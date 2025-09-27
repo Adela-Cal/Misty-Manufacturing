@@ -97,6 +97,7 @@ export const apiHelpers = {
   // Xero Integration
   checkXeroConnection: () => api.get('/xero/status'),
   getXeroAuthUrl: () => api.get('/xero/auth/url'),
+  handleXeroCallback: (data) => api.post('/xero/auth/callback', data),
   disconnectXero: () => api.delete('/xero/disconnect'),
 };
 
