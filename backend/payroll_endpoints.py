@@ -63,7 +63,7 @@ async def create_employee(employee_data: EmployeeProfileCreate, current_user: di
     return StandardResponse(success=True, message="Employee created successfully", data={"id": new_employee.id})
 
 @payroll_router.get("/employees/{employee_id}", response_model=EmployeeProfile)
-async def get_employee(employee_id: str, current_user: dict = Depends(require_admin_or_production_manager), db: Session = Depends(get_db)):
+async def get_employee(employee_id: str, current_user: dict = Depends(require_payroll_access)):
     """Get specific employee (Admin/Manager only)"""
     employee = await db.employee_profiles.find_one({"id": employee_id, "is_active": True})
     if not employee:
