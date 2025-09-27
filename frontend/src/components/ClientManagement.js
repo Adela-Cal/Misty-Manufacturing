@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import Layout from './Layout';
+import ClientForm from './ClientForm';
 import { apiHelpers } from '../utils/api';
 import { toast } from 'sonner';
-import { PlusIcon, PencilIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, PhotoIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 const ClientManagement = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadClients();
@@ -36,6 +38,35 @@ const ClientManagement = () => {
     setSelectedClient(null);
     setShowModal(true);
   };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedClient(null);
+  };
+
+  const handleSuccess = () => {
+    loadClients(); // Reload clients after successful create/update
+  };
+
+  const handleDelete = async (client) => {
+    if (window.confirm(`Are you sure you want to delete ${client.company_name}?`)) {
+      try {
+        // Note: You'd need to implement a delete endpoint
+        // await apiHelpers.deleteClient(client.id);
+        toast.success('Client deleted successfully');
+        loadClients();
+      } catch (error) {
+        console.error('Failed to delete client:', error);
+        toast.error('Failed to delete client');
+      }
+    }
+  };
+
+  const filteredClients = clients.filter(client =>
+    client.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (client.abn && client.abn.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   if (loading) {
     return (
@@ -73,98 +104,161 @@ const ClientManagement = () => {
           </button>
         </div>
 
+        {/* Search */}
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Search clients by name, email, or ABN..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="misty-input w-full max-w-md"
+          />
+        </div>
+
         {/* Clients List */}
-        {clients.length > 0 ? (
+        {filteredClients.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {clients.map((client) => (
+            {filteredClients.map((client) => (
               <div key={client.id} className="misty-card p-6" data-testid={`client-card-${client.id}`}>
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center">
+                  <div className="flex items-center flex-1">
                     {client.logo_path ? (
                       <img
                         src={client.logo_path}
                         alt={`${client.company_name} logo`}
-                        className="h-12 w-12 rounded-lg object-cover mr-3"
+                        className="h-12 w-12 rounded-lg object-cover mr-3 flex-shrink-0"
                       />
                     ) : (
-                      <div className="h-12 w-12 bg-gray-600 rounded-lg flex items-center justify-center mr-3">
+                      <div className="h-12 w-12 bg-gray-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
                         <PhotoIcon className="h-6 w-6 text-gray-400" />
                       </div>
                     )}
-                    <div>
-                      <h3 className="font-semibold text-white">{client.company_name}</h3>
-                      <p className="text-sm text-gray-400">{client.abn || 'No ABN'}</p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-white truncate">{client.company_name}</h3>
+                      <p className="text-sm text-gray-400 truncate">{client.abn || 'No ABN'}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleEdit(client)}
-                    className="text-gray-400 hover:text-yellow-400 transition-colors"
-                    data-testid={`edit-client-${client.id}`}
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                  </button>
+                  <div className="flex items-center space-x-2 ml-2">
+                    <button
+                      onClick={() => handleEdit(client)}
+                      className="text-gray-400 hover:text-yellow-400 transition-colors p-1"
+                      data-testid={`edit-client-${client.id}`}
+                      title="Edit client"
+                    >
+                      <PencilIcon className="h-4 w-4" />
+                    </button>
+                    {/* Uncomment when delete functionality is implemented
+                    <button
+                      onClick={() => handleDelete(client)}
+                      className="text-gray-400 hover:text-red-400 transition-colors p-1"
+                      title="Delete client"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                    */}
+                  </div>
                 </div>
                 
                 <div className="space-y-2 text-sm">
-                  <p className="text-gray-300">
-                    <span className="text-gray-400">Address:</span> {client.address}, {client.city}
-                  </p>
-                  <p className="text-gray-300">
-                    <span className="text-gray-400">Email:</span> {client.email}
-                  </p>
-                  <p className="text-gray-300">
-                    <span className="text-gray-400">Phone:</span> {client.phone}
-                  </p>
+                  <div className="flex items-start">
+                    <span className="text-gray-400 w-16 flex-shrink-0">Address:</span>
+                    <span className="text-gray-300">{client.address}, {client.city}, {client.state} {client.postal_code}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-gray-400 w-16 flex-shrink-0">Email:</span>
+                    <a href={`mailto:${client.email}`} className="text-yellow-400 hover:text-yellow-300 transition-colors truncate">
+                      {client.email}
+                    </a>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-gray-400 w-16 flex-shrink-0">Phone:</span>
+                    <a href={`tel:${client.phone}`} className="text-gray-300 hover:text-yellow-400 transition-colors">
+                      {client.phone}
+                    </a>
+                  </div>
+                  {client.website && (
+                    <div className="flex items-center">
+                      <span className="text-gray-400 w-16 flex-shrink-0">Website:</span>
+                      <a 
+                        href={client.website.startsWith('http') ? client.website : `https://${client.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-yellow-400 hover:text-yellow-300 transition-colors truncate"
+                      >
+                        {client.website.replace(/^https?:\/\//, '')}
+                      </a>
+                    </div>
+                  )}
                   {client.contacts && client.contacts.length > 0 && (
-                    <p className="text-gray-300">
-                      <span className="text-gray-400">Contact:</span> {client.contacts[0].name}
-                    </p>
+                    <div className="flex items-start">
+                      <span className="text-gray-400 w-16 flex-shrink-0">Contact:</span>
+                      <div className="flex-1">
+                        {client.contacts.slice(0, 2).map((contact, index) => (
+                          <div key={index} className="text-gray-300">
+                            {contact.name} {contact.position && `(${contact.position})`}
+                            {contact.is_primary && <span className="text-yellow-400 text-xs ml-1">Primary</span>}
+                          </div>
+                        ))}
+                        {client.contacts.length > 2 && (
+                          <div className="text-gray-400 text-xs">+{client.contacts.length - 2} more</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {client.notes && (
+                    <div className="flex items-start">
+                      <span className="text-gray-400 w-16 flex-shrink-0">Notes:</span>
+                      <span className="text-gray-300 text-xs line-clamp-2">{client.notes}</span>
+                    </div>
                   )}
                 </div>
+
+                {/* Bank Details Indicator */}
+                {client.bank_details && client.bank_details.bank_name && (
+                  <div className="mt-3 pt-3 border-t border-gray-700">
+                    <div className="flex items-center">
+                      <div className="h-2 w-2 bg-green-400 rounded-full mr-2"></div>
+                      <span className="text-xs text-gray-400">Bank details on file</span>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         ) : (
           <div className="text-center py-12">
             <PhotoIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-300">No clients</h3>
-            <p className="mt-1 text-sm text-gray-400">Get started by creating a new client.</p>
-            <div className="mt-6">
-              <button
-                onClick={handleCreate}
-                className="misty-button misty-button-primary"
-              >
-                <PlusIcon className="h-5 w-5 mr-2" />
-                Add Client
-              </button>
-            </div>
+            <h3 className="mt-2 text-sm font-medium text-gray-300">
+              {searchTerm ? 'No clients found' : 'No clients'}
+            </h3>
+            <p className="mt-1 text-sm text-gray-400">
+              {searchTerm 
+                ? 'Try adjusting your search criteria.' 
+                : 'Get started by creating your first client.'
+              }
+            </p>
+            {!searchTerm && (
+              <div className="mt-6">
+                <button
+                  onClick={handleCreate}
+                  className="misty-button misty-button-primary"
+                >
+                  <PlusIcon className="h-5 w-5 mr-2" />
+                  Add Client
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Modal Placeholder */}
+      {/* Client Form Modal */}
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content max-w-2xl">
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-white mb-4">
-                {selectedClient ? 'Edit Client' : 'Add New Client'}
-              </h2>
-              <p className="text-gray-400 mb-4">Client form will be implemented here</p>
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="misty-button misty-button-secondary"
-                >
-                  Cancel
-                </button>
-                <button className="misty-button misty-button-primary">
-                  {selectedClient ? 'Update' : 'Create'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ClientForm
+          client={selectedClient}
+          onClose={handleCloseModal}
+          onSuccess={handleSuccess}
+        />
       )}
     </Layout>
   );
