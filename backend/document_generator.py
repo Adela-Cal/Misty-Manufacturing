@@ -259,7 +259,7 @@ class DocumentGenerator:
         for stage in stages:
             current_stage = job_data.get('current_stage', '').replace('_', ' ').title()
             checkbox = "☑" if stage == current_stage else "☐"
-            story.append(Paragraph(f"{checkbox} {stage}", self.styles['BodyText']))
+            story.append(Paragraph(f"{checkbox} {stage}", self.styles['AdelaBodyText']))
         
         story.append(Spacer(1, 20))
         
