@@ -48,6 +48,8 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
         phone: client.phone || '',
         email: client.email || '',
         website: client.website || '',
+        payment_terms: client.payment_terms || 'Net 30 days',
+        lead_time_days: client.lead_time_days || 7,
         contacts: client.contacts || [],
         bank_details: client.bank_details || {
           bank_name: '',
