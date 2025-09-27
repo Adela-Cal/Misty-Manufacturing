@@ -93,6 +93,11 @@ export const apiHelpers = {
   getArchivedJobs: (month, year) => api.get('/invoicing/archived-jobs', { params: { month, year } }),
   generateJobInvoice: (jobId, invoiceData) => api.post(`/invoicing/generate/${jobId}`, invoiceData),
   getMonthlyReport: (month, year) => api.get('/invoicing/monthly-report', { params: { month, year } }),
+  
+  // Xero Integration
+  checkXeroConnection: () => api.get('/xero/status'),
+  getXeroAuthUrl: () => api.get('/xero/auth/url'),
+  disconnectXero: () => api.delete('/xero/disconnect'),
 };
 
 // File download helper
