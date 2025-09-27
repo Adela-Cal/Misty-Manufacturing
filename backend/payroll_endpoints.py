@@ -37,7 +37,7 @@ async def get_employees(current_user: dict = Depends(require_payroll_access)):
     return [EmployeeProfile(**emp) for emp in employees]
 
 @payroll_router.post("/employees", response_model=StandardResponse)
-async def create_employee(employee_data: EmployeeProfileCreate, current_user: dict = Depends(require_admin), db: Session = Depends(get_db)):
+async def create_employee(employee_data: EmployeeProfileCreate, current_user: dict = Depends(require_admin)):
     """Create new employee profile (Admin only)"""
     
     # Check if employee number already exists
