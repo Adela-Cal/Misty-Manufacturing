@@ -293,7 +293,7 @@ class DocumentGenerator:
         ]
         
         for checkpoint in qc_checkpoints:
-            story.append(Paragraph(checkpoint, self.styles['BodyText']))
+            story.append(Paragraph(checkpoint, self.styles['AdelaBodyText']))
         
         # Build PDF
         def add_header_footer(canvas_obj, doc):
