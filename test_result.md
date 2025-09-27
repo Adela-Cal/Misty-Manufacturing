@@ -117,6 +117,18 @@ backend:
         agent: "main"
         comment: "Backend APIs for orders are working, need to verify frontend integration"
 
+  - task: "Client Payment Terms and Lead Time"
+    implemented: true
+    working: true
+    file: "backend/models.py, frontend/src/components/ClientForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added payment_terms and lead_time_days to client model and form. Updated document generator to use these values in order acknowledgments."
+
   - task: "Xero Integration Setup"
     implemented: false
     working: "NA"
@@ -127,7 +139,7 @@ backend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Need to implement Xero API integration for automated invoice generation"
+        comment: "Provided detailed Xero setup instructions to user. Waiting for Xero API credentials to implement integration."
 
   - task: "Invoicing & Job Closure APIs"
     implemented: false
