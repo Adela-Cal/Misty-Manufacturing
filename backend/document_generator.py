@@ -154,7 +154,7 @@ class DocumentGenerator:
         Email: {order_data.get('client_email', 'N/A')}<br/>
         Phone: {order_data.get('client_phone', 'N/A')}
         """
-        story.append(Paragraph(customer_info, self.styles['BodyText']))
+        story.append(Paragraph(customer_info, self.styles['AdelaBodyText']))
         story.append(Spacer(1, 15))
         
         # Order items
