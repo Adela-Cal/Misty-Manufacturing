@@ -17,6 +17,7 @@ from models import *
 from auth import *
 from document_generator import DocumentGenerator
 from file_utils import *
+from payroll_endpoints import payroll_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
