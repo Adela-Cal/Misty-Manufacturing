@@ -773,6 +773,18 @@ async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_produc
     
     return {"auth_url": auth_url, "state": state}
 
+@api_router.get("/xero/callback")
+async def handle_xero_oauth_redirect(code: str = None, state: str = None, error: str = None):
+    """Handle Xero OAuth redirect - redirect to frontend callback handler"""
+    if error:
+        return f"<html><body><script>window.opener.postMessage({{ error: '{error}' }}, '*'); window.close();</script></body></html>"
+    
+    if code and state:
+        # Redirect to frontend callback handler with parameters
+        return f"<html><body><script>window.location.href='http://localhost:3000/xero/callback?code={code}&state={state}';</script></body></html>"
+    
+    return "<html><body><script>window.close();</script></body></html>"
+
 @api_router.post("/xero/auth/callback")
 async def handle_xero_callback(
     callback_data: dict,
