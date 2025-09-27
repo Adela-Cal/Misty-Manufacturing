@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 # ============= EMPLOYEE MANAGEMENT ENDPOINTS =============
 
 @payroll_router.get("/employees", response_model=List[EmployeeProfile])
-async def get_employees(current_user: dict = Depends(require_admin_or_production_manager), db: Session = Depends(get_db)):
+async def get_employees(current_user: dict = Depends(require_payroll_access)):
     """Get all employees (Admin/Manager only)"""
     employees = await db.employee_profiles.find({"is_active": True}).to_list(1000)
     return [EmployeeProfile(**emp) for emp in employees]
