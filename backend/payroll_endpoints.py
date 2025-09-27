@@ -168,7 +168,7 @@ async def update_timesheet(timesheet_id: str, timesheet_data: TimesheetCreate, c
     return StandardResponse(success=True, message="Timesheet updated successfully")
 
 @payroll_router.post("/timesheets/{timesheet_id}/submit", response_model=StandardResponse)
-async def submit_timesheet(timesheet_id: str, current_user: dict = Depends(require_any_role), db: Session = Depends(get_db)):
+async def submit_timesheet(timesheet_id: str, current_user: dict = Depends(require_any_role)):
     """Submit timesheet for approval"""
     
     timesheet = await db.timesheets.find_one({"id": timesheet_id})
