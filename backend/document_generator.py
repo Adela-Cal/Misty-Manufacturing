@@ -127,12 +127,19 @@ class DocumentGenerator:
         
         story = []
         
+        # Calculate delivery date based on client lead time
+        lead_time_days = order_data.get('client_lead_time_days', 7)
+        from datetime import datetime, timedelta
+        delivery_date = datetime.now() + timedelta(days=lead_time_days)
+        
         # Order details table
         order_data_table = [
             ['Order Number:', order_data.get('order_number', 'N/A')],
             ['Invoice Number:', order_data.get('invoice_number', 'TBD')],
             ['Date:', datetime.now().strftime('%d/%m/%Y')],
-            ['Due Date:', order_data.get('due_date', 'N/A')]
+            ['Due Date:', order_data.get('due_date', 'N/A')],
+            ['Estimated Delivery:', delivery_date.strftime('%d/%m/%Y')],
+            ['Lead Time:', f"{lead_time_days} business days"]
         ]
         
         order_table = Table(order_data_table, colWidths=[40*mm, 60*mm])
