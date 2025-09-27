@@ -276,7 +276,7 @@ class DocumentGenerator:
             <b>Quality Standards:</b> {specs.get('quality_standards', 'N/A')}<br/>
             <b>Special Instructions:</b> {specs.get('special_instructions', 'N/A')}
             """
-            story.append(Paragraph(spec_text, self.styles['BodyText']))
+            story.append(Paragraph(spec_text, self.styles['AdelaBodyText']))
             story.append(Spacer(1, 15))
         
         # Notes section
