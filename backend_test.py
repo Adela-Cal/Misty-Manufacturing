@@ -522,7 +522,7 @@ class InvoicingAPITester:
                     
                     # Verify URL components
                     expected_client_id = "0C765F92708046D5B625162E5D42C5FB"
-                    expected_callback = "http://localhost:3000/xero/callback"
+                    expected_callback = "http://localhost:3000/xero/callback"  # As specified in review request
                     expected_scopes = "accounting.transactions accounting.contacts.read accounting.invoices.read accounting.settings.read"
                     
                     url_checks = []
