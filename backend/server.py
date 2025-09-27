@@ -730,6 +730,17 @@ XERO_CLIENT_SECRET = "nOLpzNnYonx6SCW6SKw-SINB8cSX2wMIL0OWbsvXeXkj4P--"
 XERO_CALLBACK_URL = "http://localhost:3000/api/xero/callback"
 XERO_SCOPES = "accounting.transactions accounting.contacts.read accounting.invoices.read accounting.settings.read"
 
+# Debug endpoint for testing
+@api_router.get("/xero/debug")
+async def debug_xero_config():
+    """Debug endpoint to check Xero configuration"""
+    return {
+        "client_id": XERO_CLIENT_ID,
+        "callback_url": XERO_CALLBACK_URL,
+        "scopes": XERO_SCOPES,
+        "expected_auth_url_start": "https://login.xero.com/identity/connect/authorize"
+    }
+
 import secrets
 import requests
 import base64
