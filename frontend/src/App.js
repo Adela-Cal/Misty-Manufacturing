@@ -9,6 +9,7 @@ import OrderManagement from './components/OrderManagement';
 import ProductionBoard from './components/ProductionBoard';
 import Reports from './components/Reports';
 import PayrollManagement from './components/PayrollManagement';
+import Invoicing from './components/Invoicing';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function AppRoutes() {
