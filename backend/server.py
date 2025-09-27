@@ -774,7 +774,7 @@ async def generate_job_invoice(
         "total_amount": invoice_data.get("total_amount", job["total_amount"]),
         "payment_terms": client.get("payment_terms", "Net 30 days"),
         "due_date": invoice_data.get("due_date"),
-        "created_by": current_user["id"],
+        "created_by": current_user["user_id"],
         "created_at": datetime.utcnow(),
         "status": "draft"
     }
