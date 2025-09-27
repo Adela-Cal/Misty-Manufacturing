@@ -85,14 +85,14 @@ async def save_logo_file(file: UploadFile, client_id: str) -> str:
                     img.thumbnail(max_size, Image.Resampling.LANCZOS)
                     img.save(file_path, "JPEG", quality=85)
         
-        except Exception as e:
+        except Exception:
             # If image processing fails, remove the file
             os.remove(file_path)
             raise HTTPException(status_code=400, detail="Invalid image file")
         
         return file_path
     
-    except Exception as e:
+    except Exception:
         if os.path.exists(file_path):
             os.remove(file_path)
         raise HTTPException(status_code=500, detail="Failed to save file")
@@ -119,7 +119,7 @@ async def save_document_file(file: UploadFile, document_type: str) -> str:
         
         return file_path
     
-    except Exception as e:
+    except Exception:
         if os.path.exists(file_path):
             os.remove(file_path)
         raise HTTPException(status_code=500, detail="Failed to save document")
