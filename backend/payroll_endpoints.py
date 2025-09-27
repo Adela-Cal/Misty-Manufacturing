@@ -114,7 +114,7 @@ async def get_employee_leave_balances(employee_id: str, current_user: dict = Dep
 # ============= TIMESHEET ENDPOINTS =============
 
 @payroll_router.get("/timesheets/current-week/{employee_id}")
-async def get_current_week_timesheet(employee_id: str, current_user: dict = Depends(require_any_role), db: Session = Depends(get_db)):
+async def get_current_week_timesheet(employee_id: str, current_user: dict = Depends(require_any_role)):
     """Get or create current week timesheet"""
     
     # Check access permissions
