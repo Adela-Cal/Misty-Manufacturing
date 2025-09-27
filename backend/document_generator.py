@@ -204,6 +204,18 @@ class DocumentGenerator:
         story.append(items_table)
         story.append(Spacer(1, 20))
         
+        # Payment terms and delivery information
+        story.append(Paragraph("Terms & Conditions", self.styles['SectionHeader']))
+        
+        payment_terms = order_data.get('client_payment_terms', 'Net 30 days')
+        terms_info = f"""
+        <b>Payment Terms:</b> {payment_terms}<br/>
+        <b>Delivery Terms:</b> Delivery will commence approximately {lead_time_days} business days from order confirmation.<br/>
+        <b>Special Instructions:</b> {order_data.get('delivery_instructions', 'Standard delivery terms apply.')}<br/>
+        """
+        story.append(Paragraph(terms_info, self.styles['AdelaBodyText']))
+        story.append(Spacer(1, 10))
+        
         # Bank details for payment
         if order_data.get('bank_details'):
             story.append(Paragraph("Payment Details", self.styles['SectionHeader']))
