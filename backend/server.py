@@ -728,8 +728,12 @@ async def get_live_jobs(current_user: dict = Depends(require_admin_or_production
         "invoiced": {"$ne": True}
     }).to_list(length=None)
     
-    # Enrich with client information
+    # Convert ObjectId to string and enrich with client information
     for job in live_jobs:
+        # Remove MongoDB ObjectId if present
+        if "_id" in job:
+            del job["_id"]
+            
         client = await db.clients.find_one({"id": job["client_id"]})
         if client:
             job["client_name"] = client["company_name"]
