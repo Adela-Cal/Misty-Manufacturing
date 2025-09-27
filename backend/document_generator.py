@@ -417,7 +417,7 @@ class DocumentGenerator:
         {invoice_data.get('client_address', 'N/A')}<br/>
         ABN: {invoice_data.get('client_abn', 'N/A')}
         """
-        story.append(Paragraph(bill_to_info, self.styles['BodyText']))
+        story.append(Paragraph(bill_to_info, self.styles['AdelaBodyText']))
         story.append(Spacer(1, 20))
         
         # Invoice items
