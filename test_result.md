@@ -224,3 +224,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Starting implementation of comprehensive invoicing system with Xero integration. OrderManagement component is working fine - no import issues found. Proceeding with logo update and invoicing functionality. Provided detailed Xero setup instructions to user."
+  - agent: "testing"
+    message: "Comprehensive testing of invoicing system completed successfully. All 4 invoicing APIs are working correctly: live jobs retrieval, invoice generation, archived jobs with filtering, and monthly reporting. Fixed critical issues: ObjectId serialization in MongoDB responses, JWT token field access (user_id vs id), and ReportLab method name (drawCentredString). Client model updates with payment_terms and lead_time_days are working. Document generation includes new client fields. Authentication and role-based permissions are properly enforced. System ready for production use."
