@@ -201,6 +201,14 @@ const Invoicing = () => {
             <h1 className="text-3xl font-bold text-white mb-2">Invoicing & Job Closure</h1>
             <p className="text-gray-400">Generate invoices and manage completed jobs</p>
           </div>
+          <div>
+            <button
+              onClick={testPdfDownload}
+              className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white text-sm"
+            >
+              🔧 Test PDF Download
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
