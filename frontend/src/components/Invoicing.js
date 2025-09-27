@@ -257,6 +257,13 @@ const Invoicing = () => {
                               Invoice
                             </button>
                             <button
+                              onClick={() => downloadInvoice(job.id, job.order_number)}
+                              className="text-gray-400 hover:text-yellow-400 transition-colors"
+                              title="Download Invoice PDF"
+                            >
+                              <DocumentArrowDownIcon className="h-4 w-4" />
+                            </button>
+                            <button
                               onClick={() => downloadPackingSlip(job.id, job.order_number)}
                               className="text-gray-400 hover:text-green-400 transition-colors"
                               title="Download Packing Slip"
