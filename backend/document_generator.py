@@ -368,9 +368,9 @@ class DocumentGenerator:
             story.append(Spacer(1, 20))
         
         # Signature section
-        story.append(Paragraph("Packed by: _________________ Date: _______", self.styles['BodyText']))
+        story.append(Paragraph("Packed by: _________________ Date: _______", self.styles['AdelaBodyText']))
         story.append(Spacer(1, 15))
-        story.append(Paragraph("Checked by: _________________ Date: _______", self.styles['BodyText']))
+        story.append(Paragraph("Checked by: _________________ Date: _______", self.styles['AdelaBodyText']))
         
         # Build PDF
         def add_header_footer(canvas_obj, doc):
