@@ -8,6 +8,7 @@ import {
   Cog8ToothIcon,
   ChartBarIcon,
   BanknotesIcon,
+  DocumentCurrencyDollarIcon,
   ArrowRightOnRectangleIcon,
   UserIcon
 } from '@heroicons/react/24/outline';
