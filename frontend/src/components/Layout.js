@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { apiHelpers } from '../utils/api';
+import { toast } from 'sonner';
 import { 
   HomeIcon, 
   UsersIcon, 
@@ -10,7 +12,9 @@ import {
   BanknotesIcon,
   DocumentCurrencyDollarIcon,
   ArrowRightOnRectangleIcon,
-  UserIcon
+  UserIcon,
+  LinkIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 const Layout = ({ children }) => {
