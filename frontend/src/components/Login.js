@@ -36,9 +36,13 @@ const Login = () => {
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          {/* Adela Merchants Logo Placeholder */}
-          <div className="mx-auto h-20 w-20 bg-yellow-400 rounded-full flex items-center justify-center mb-4">
-            <span className="text-2xl font-bold text-gray-900">AM</span>
+          {/* Adela Merchants Logo */}
+          <div className="mx-auto mb-4">
+            <img 
+              src="/logo.svg" 
+              alt="Adela Merchants Logo" 
+              className="h-20 w-20 mx-auto"
+            />
           </div>
           <h1 className="text-3xl font-bold text-yellow-400 mb-2">Misty</h1>
           <h2 className="text-xl text-gray-300 mb-2">Manufacturing Management</h2>
