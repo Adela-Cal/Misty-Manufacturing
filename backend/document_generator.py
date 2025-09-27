@@ -208,7 +208,7 @@ class DocumentGenerator:
             <b>Account Number:</b> {bank_info.get('account_number', 'N/A')}<br/>
             <b>Reference:</b> {order_data.get('order_number', 'N/A')}
             """
-            story.append(Paragraph(payment_info, self.styles['BodyText']))
+            story.append(Paragraph(payment_info, self.styles['AdelaBodyText']))
         
         # Build PDF with custom header/footer
         def add_header_footer(canvas_obj, doc):
