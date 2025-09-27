@@ -302,7 +302,10 @@ class InvoicingAPITester:
                 # Move order to delivery stage to make it ready for invoicing
                 if order_id:
                     stage_update = {
+                        "order_id": order_id,
+                        "from_stage": "order_entered",
                         "to_stage": "delivery",
+                        "updated_by": "test-user",
                         "notes": "Moving to delivery for invoice testing"
                     }
                     
