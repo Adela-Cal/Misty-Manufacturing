@@ -216,9 +216,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "OrderManagement.js import fix"
     - "Xero Integration Setup"
-    - "Invoicing & Job Closure APIs"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
