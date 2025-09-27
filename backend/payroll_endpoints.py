@@ -1,12 +1,21 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, status
 from typing import List, Optional, Dict, Any
 from datetime import datetime, date, timedelta
-from sqlalchemy.orm import Session
-from database import get_db
-from auth import require_admin, require_admin_or_production_manager, get_current_user, require_any_role
+from motor.motor_asyncio import AsyncIOMotorClient
+from dotenv import load_dotenv
+import os
+from auth import require_admin, require_admin_or_production_manager, get_current_user, require_any_role, require_manager, require_payroll_access
 from payroll_models import *
 from payroll_service import PayrollCalculationService, TimesheetService, LeaveManagementService, PayrollReportingService
 import logging
+
+# MongoDB connection for payroll endpoints
+ROOT_DIR = os.path.dirname(__file__)
+load_dotenv(os.path.join(ROOT_DIR, '.env'))
+
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ['DB_NAME']]
 
 # Create router for payroll endpoints
 payroll_router = APIRouter(prefix="/api/payroll", tags=["payroll"])
