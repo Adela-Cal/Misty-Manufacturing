@@ -36,9 +36,11 @@ const Layout = ({ children }) => {
         {/* Logo */}
         <div className="flex items-center h-16 px-4 border-b border-gray-700">
           <div className="flex items-center">
-            <div className="h-8 w-8 bg-yellow-400 rounded-full flex items-center justify-center mr-3">
-              <span className="text-sm font-bold text-gray-900">AM</span>
-            </div>
+            <img 
+              src="/logo.svg" 
+              alt="Adela Merchants" 
+              className="h-8 w-8 mr-3"
+            />
             <div>
               <h1 className="text-lg font-bold text-yellow-400">Misty</h1>
               <p className="text-xs text-gray-400">Manufacturing</p>
