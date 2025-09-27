@@ -22,7 +22,7 @@ const Layout = ({ children }) => {
     { name: 'Clients', href: '/clients', icon: UsersIcon, permission: 'manage_clients' },
     { name: 'Orders', href: '/orders', icon: ClipboardDocumentListIcon, permission: 'create_orders' },
     { name: 'Production', href: '/production', icon: Cog8ToothIcon, permission: 'update_production' },
-    { name: 'Invoicing', href: '/invoicing', icon: BanknotesIcon, permission: 'view_reports' },
+    { name: 'Invoicing', href: '/invoicing', icon: DocumentCurrencyDollarIcon, permission: 'view_reports' },
     { name: 'Payroll', href: '/payroll', icon: BanknotesIcon, permission: null },
     { name: 'Reports', href: '/reports', icon: ChartBarIcon, permission: 'view_reports' },
   ];
