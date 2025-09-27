@@ -771,7 +771,17 @@ async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_produc
     
     auth_url = f"https://login.xero.com/identity/connect/authorize?{urlencode(auth_params)}"
     
-    return {"auth_url": auth_url, "state": state}
+    # Debug logging
+    logger.info(f"Generated Xero OAuth URL: {auth_url}")
+    logger.info(f"Client ID: {XERO_CLIENT_ID}")
+    logger.info(f"Callback URL: {XERO_CALLBACK_URL}")
+    logger.info(f"Scopes: {XERO_SCOPES}")
+    
+    return {"auth_url": auth_url, "state": state, "debug_info": {
+        "client_id": XERO_CLIENT_ID,
+        "callback_url": XERO_CALLBACK_URL,
+        "scopes": XERO_SCOPES
+    }}
 
 @api_router.get("/xero/callback")
 async def handle_xero_oauth_redirect(code: str = None, state: str = None, error: str = None):
