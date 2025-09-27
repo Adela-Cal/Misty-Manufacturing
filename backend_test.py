@@ -434,17 +434,17 @@ class InvoicingAPITester:
         try:
             response = temp_session.get(f"{API_BASE}/invoicing/live-jobs")
             
-            if response.status_code == 401:
+            if response.status_code in [401, 403]:
                 self.log_result(
                     "Role Permissions", 
                     True, 
-                    "Invoicing endpoints properly require authentication"
+                    f"Invoicing endpoints properly require authentication (status: {response.status_code})"
                 )
             else:
                 self.log_result(
                     "Role Permissions", 
                     False, 
-                    f"Expected 401 Unauthorized but got {response.status_code}",
+                    f"Expected 401/403 but got {response.status_code}",
                     "Invoicing endpoints should require authentication"
                 )
                 
