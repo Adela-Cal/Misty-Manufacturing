@@ -879,6 +879,15 @@ async def get_monthly_invoicing_report(
         "created_at": {"$gte": start_date, "$lt": end_date}
     }).to_list(length=None)
     
+    # Remove ObjectIds from results
+    for job in completed_jobs:
+        if "_id" in job:
+            del job["_id"]
+    
+    for invoice in invoiced_jobs:
+        if "_id" in invoice:
+            del invoice["_id"]
+    
     # Calculate totals
     total_jobs_completed = len(completed_jobs)
     total_jobs_invoiced = len(invoiced_jobs)
