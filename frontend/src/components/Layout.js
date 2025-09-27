@@ -20,6 +20,8 @@ import {
 const Layout = ({ children }) => {
   const { user, logout, hasPermission } = useAuth();
   const location = useLocation();
+  const [xeroConnected, setXeroConnected] = useState(false);
+  const [checkingXeroStatus, setCheckingXeroStatus] = useState(true);
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: HomeIcon, permission: null },
