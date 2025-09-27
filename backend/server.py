@@ -741,7 +741,7 @@ async def get_live_jobs(current_user: dict = Depends(require_admin_or_production
 async def generate_job_invoice(
     job_id: str,
     invoice_data: dict,
-    current_user: dict = Depends(require_admin_or_manager)
+    current_user: dict = Depends(require_admin_or_production_manager)
 ):
     """Generate invoice for a completed job"""
     # Get job/order
@@ -811,7 +811,7 @@ async def generate_job_invoice(
 async def get_archived_jobs(
     month: Optional[int] = None, 
     year: Optional[int] = None,
-    current_user: dict = Depends(require_admin_or_manager)
+    current_user: dict = Depends(require_admin_or_production_manager)
 ):
     """Get archived jobs (completed and invoiced)"""
     # Build query filter
@@ -851,7 +851,7 @@ async def get_archived_jobs(
 async def get_monthly_invoicing_report(
     month: int,
     year: int,
-    current_user: dict = Depends(require_admin_or_manager)
+    current_user: dict = Depends(require_admin_or_production_manager)
 ):
     """Generate monthly invoicing report"""
     start_date = datetime(year, month, 1)
