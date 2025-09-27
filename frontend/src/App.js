@@ -37,6 +37,7 @@ function AppRoutes() {
         <Route path="/invoicing" element={<Invoicing />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/payroll" element={<PayrollManagement />} />
+        <Route path="/xero/callback" element={<XeroCallback />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
