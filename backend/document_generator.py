@@ -90,7 +90,7 @@ class DocumentGenerator:
         
         # Document title
         canvas_obj.setFont('Helvetica-Bold', 14)
-        canvas_obj.drawCentredText(self.page_width/2, self.page_height - 50*mm, doc_title)
+        canvas_obj.drawCentredString(self.page_width/2, self.page_height - 50*mm, doc_title)
         
         canvas_obj.restoreState()
     
