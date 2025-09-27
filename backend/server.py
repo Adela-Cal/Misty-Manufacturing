@@ -718,6 +718,32 @@ async def generate_invoice(order_id: str, current_user: dict = Depends(require_a
         headers={"Content-Disposition": f"attachment; filename=invoice_{order['order_number']}.pdf"}
     )
 
+# ============= XERO INTEGRATION ENDPOINTS =============
+
+@api_router.get("/xero/status")
+async def check_xero_connection_status(current_user: dict = Depends(require_admin_or_production_manager)):
+    """Check if user has active Xero connection"""
+    # For now, return false until user provides credentials
+    # This will be updated when Xero credentials are provided
+    return {"connected": False, "message": "Xero integration not configured"}
+
+@api_router.get("/xero/auth/url")
+async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_production_manager)):
+    """Get Xero OAuth authorization URL"""
+    # This endpoint will be implemented once user provides Xero credentials
+    # For now, return a placeholder response
+    raise HTTPException(
+        status_code=501, 
+        detail="Xero integration not yet configured. Please provide Xero API credentials to enable this feature."
+    )
+
+@api_router.delete("/xero/disconnect")
+async def disconnect_xero(current_user: dict = Depends(require_admin_or_production_manager)):
+    """Disconnect from Xero"""
+    # This will remove stored Xero tokens
+    # For now, return success as there's nothing to disconnect
+    return {"message": "Xero disconnection successful"}
+
 # ============= INVOICING ENDPOINTS =============
 
 @api_router.get("/invoicing/live-jobs")
