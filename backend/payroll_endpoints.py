@@ -276,7 +276,7 @@ async def get_pending_timesheets(current_user: dict = Depends(require_payroll_ac
 # ============= LEAVE REQUEST ENDPOINTS =============
 
 @payroll_router.post("/leave-requests", response_model=StandardResponse)
-async def create_leave_request(leave_data: LeaveRequestCreate, current_user: dict = Depends(require_any_role), db: Session = Depends(get_db)):
+async def create_leave_request(leave_data: LeaveRequestCreate, current_user: dict = Depends(require_any_role)):
     """Create new leave request"""
     
     # Check if user can create leave for this employee
