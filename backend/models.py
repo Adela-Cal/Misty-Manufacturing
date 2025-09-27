@@ -10,6 +10,8 @@ class UserRole(str, Enum):
     PRODUCTION_MANAGER = "production_manager"
     SALES = "sales"
     PRODUCTION_TEAM = "production_team"
+    MANAGER = "manager"          # Department/Team managers
+    EMPLOYEE = "employee"        # Regular employees
 
 class ProductionStage(str, Enum):
     ORDER_ENTERED = "order_entered"
