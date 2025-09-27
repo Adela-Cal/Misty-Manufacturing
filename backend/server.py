@@ -718,6 +718,174 @@ async def generate_invoice(order_id: str, current_user: dict = Depends(require_a
         headers={"Content-Disposition": f"attachment; filename=invoice_{order['order_number']}.pdf"}
     )
 
+# ============= INVOICING ENDPOINTS =============
+
+@api_router.get("/invoicing/live-jobs")
+async def get_live_jobs(current_user: dict = Depends(require_admin_or_manager)):
+    """Get all jobs ready for invoicing (completed production, not yet invoiced)"""
+    live_jobs = await db.orders.find({
+        "current_stage": "delivery", 
+        "invoiced": {"$ne": True}
+    }).to_list(length=None)
+    
+    # Enrich with client information
+    for job in live_jobs:
+        client = await db.clients.find_one({"id": job["client_id"]})
+        if client:
+            job["client_name"] = client["company_name"]
+            job["client_payment_terms"] = client.get("payment_terms", "Net 30 days")
+        
+    return {"data": live_jobs}
+
+@api_router.post("/invoicing/generate/{job_id}")
+async def generate_job_invoice(
+    job_id: str,
+    invoice_data: dict,
+    current_user: dict = Depends(require_admin_or_manager)
+):
+    """Generate invoice for a completed job"""
+    # Get job/order
+    job = await db.orders.find_one({"id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    if job.get("invoiced"):
+        raise HTTPException(status_code=400, detail="Job already invoiced")
+    
+    # Get client info
+    client = await db.clients.find_one({"id": job["client_id"]})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Generate invoice number (simple sequential for now)
+    invoice_count = await db.invoices.count_documents({}) + 1
+    invoice_number = f"INV-{invoice_count:04d}"
+    
+    # Prepare invoice data
+    invoice_record = {
+        "id": str(uuid.uuid4()),
+        "invoice_number": invoice_number,
+        "job_id": job_id,
+        "client_id": job["client_id"],
+        "invoice_type": invoice_data.get("invoice_type", "full"),  # "full" or "partial"
+        "items": invoice_data.get("items", job["items"]),
+        "subtotal": invoice_data.get("subtotal", job["subtotal"]),
+        "gst": invoice_data.get("gst", job["gst"]),
+        "total_amount": invoice_data.get("total_amount", job["total_amount"]),
+        "payment_terms": client.get("payment_terms", "Net 30 days"),
+        "due_date": invoice_data.get("due_date"),
+        "created_by": current_user["id"],
+        "created_at": datetime.utcnow(),
+        "status": "draft"
+    }
+    
+    # Insert invoice record
+    await db.invoices.insert_one(invoice_record)
+    
+    # Update job status
+    update_data = {
+        "invoiced": True,
+        "invoice_id": invoice_record["id"],
+        "current_stage": "cleared",
+        "updated_at": datetime.utcnow()
+    }
+    
+    # If partial invoice, don't mark as fully invoiced
+    if invoice_data.get("invoice_type") == "partial":
+        update_data["invoiced"] = False
+        update_data["partially_invoiced"] = True
+        update_data["current_stage"] = "delivery"  # Keep in delivery stage for remaining items
+    
+    await db.orders.update_one(
+        {"id": job_id},
+        {"$set": update_data}
+    )
+    
+    return {
+        "message": "Invoice generated successfully",
+        "invoice_id": invoice_record["id"],
+        "invoice_number": invoice_number
+    }
+
+@api_router.get("/invoicing/archived-jobs")
+async def get_archived_jobs(
+    month: Optional[int] = None, 
+    year: Optional[int] = None,
+    current_user: dict = Depends(require_admin_or_manager)
+):
+    """Get archived jobs (completed and invoiced)"""
+    # Build query filter
+    query_filter = {"invoiced": True}
+    
+    if month and year:
+        start_date = datetime(year, month, 1)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1)
+        else:
+            end_date = datetime(year, month + 1, 1)
+        
+        query_filter["created_at"] = {
+            "$gte": start_date,
+            "$lt": end_date
+        }
+    
+    archived_jobs = await db.orders.find(query_filter).to_list(length=None)
+    
+    # Enrich with client and invoice information
+    for job in archived_jobs:
+        # Get client info
+        client = await db.clients.find_one({"id": job["client_id"]})
+        if client:
+            job["client_name"] = client["company_name"]
+        
+        # Get invoice info
+        if job.get("invoice_id"):
+            invoice = await db.invoices.find_one({"id": job["invoice_id"]})
+            if invoice:
+                job["invoice_number"] = invoice["invoice_number"]
+                job["invoice_date"] = invoice["created_at"]
+    
+    return {"data": archived_jobs}
+
+@api_router.get("/invoicing/monthly-report")
+async def get_monthly_invoicing_report(
+    month: int,
+    year: int,
+    current_user: dict = Depends(require_admin_or_manager)
+):
+    """Generate monthly invoicing report"""
+    start_date = datetime(year, month, 1)
+    if month == 12:
+        end_date = datetime(year + 1, 1, 1)
+    else:
+        end_date = datetime(year, month + 1, 1)
+    
+    # Get jobs completed this month
+    completed_jobs = await db.orders.find({
+        "updated_at": {"$gte": start_date, "$lt": end_date},
+        "current_stage": "cleared"
+    }).to_list(length=None)
+    
+    # Get jobs invoiced this month
+    invoiced_jobs = await db.invoices.find({
+        "created_at": {"$gte": start_date, "$lt": end_date}
+    }).to_list(length=None)
+    
+    # Calculate totals
+    total_jobs_completed = len(completed_jobs)
+    total_jobs_invoiced = len(invoiced_jobs)
+    total_invoice_amount = sum(inv.get("total_amount", 0) for inv in invoiced_jobs)
+    
+    return {
+        "month": month,
+        "year": year,
+        "total_jobs_completed": total_jobs_completed,
+        "total_jobs_invoiced": total_jobs_invoiced,
+        "total_invoice_amount": total_invoice_amount,
+        "completed_jobs": completed_jobs,
+        "invoiced_jobs": invoiced_jobs
+    }
+
 # ============= FILE SERVING ENDPOINTS =============
 
 @api_router.get("/uploads/{file_path:path}")
