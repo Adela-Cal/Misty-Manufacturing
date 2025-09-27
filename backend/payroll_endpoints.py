@@ -192,7 +192,7 @@ async def submit_timesheet(timesheet_id: str, current_user: dict = Depends(requi
     return StandardResponse(success=True, message="Timesheet submitted for approval")
 
 @payroll_router.post("/timesheets/{timesheet_id}/approve", response_model=StandardResponse)
-async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(require_admin_or_production_manager), db: Session = Depends(get_db)):
+async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(require_payroll_access)):
     """Approve timesheet and calculate pay (Manager only)"""
     
     timesheet_doc = await db.timesheets.find_one({"id": timesheet_id})
