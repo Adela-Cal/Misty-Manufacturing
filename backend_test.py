@@ -451,6 +451,328 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result("Role Permissions", False, f"Error: {str(e)}")
     
+    def test_xero_connection_status(self):
+        """Test GET /api/xero/status"""
+        print("\n=== XERO CONNECTION STATUS TEST ===")
+        
+        try:
+            response = self.session.get(f"{API_BASE}/xero/status")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                if 'connected' in data and 'message' in data:
+                    connected = data.get('connected')
+                    message = data.get('message')
+                    
+                    # For new connections, should return false
+                    if connected == False and "No Xero connection found" in message:
+                        self.log_result(
+                            "Xero Connection Status", 
+                            True, 
+                            "Correctly reports no Xero connection for new user",
+                            f"Connected: {connected}, Message: {message}"
+                        )
+                    elif connected == True:
+                        self.log_result(
+                            "Xero Connection Status", 
+                            True, 
+                            "User has active Xero connection",
+                            f"Message: {message}"
+                        )
+                    else:
+                        self.log_result(
+                            "Xero Connection Status", 
+                            False, 
+                            "Unexpected connection status response",
+                            f"Connected: {connected}, Message: {message}"
+                        )
+                else:
+                    self.log_result(
+                        "Xero Connection Status", 
+                        False, 
+                        "Response missing required fields (connected, message)",
+                        str(data)
+                    )
+            else:
+                self.log_result(
+                    "Xero Connection Status", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Xero Connection Status", False, f"Error: {str(e)}")
+    
+    def test_xero_auth_url(self):
+        """Test GET /api/xero/auth/url"""
+        print("\n=== XERO AUTH URL TEST ===")
+        
+        try:
+            response = self.session.get(f"{API_BASE}/xero/auth/url")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'auth_url' in data and 'state' in data:
+                    auth_url = data.get('auth_url')
+                    state = data.get('state')
+                    
+                    # Verify URL components
+                    expected_client_id = "0C765F92708046D5B625162E5D42C5FB"
+                    expected_callback = "http://localhost:3000/xero/callback"
+                    expected_scopes = "accounting.transactions accounting.contacts.read accounting.invoices.read accounting.settings.read"
+                    
+                    url_checks = []
+                    
+                    # Check client ID
+                    if expected_client_id in auth_url:
+                        url_checks.append("✅ Client ID correct")
+                    else:
+                        url_checks.append("❌ Client ID missing or incorrect")
+                    
+                    # Check callback URL
+                    if expected_callback in auth_url:
+                        url_checks.append("✅ Callback URL correct")
+                    else:
+                        url_checks.append("❌ Callback URL missing or incorrect")
+                    
+                    # Check scopes (at least accounting.transactions should be present)
+                    if "accounting.transactions" in auth_url:
+                        url_checks.append("✅ Required scopes present")
+                    else:
+                        url_checks.append("❌ Required scopes missing")
+                    
+                    # Check state parameter
+                    if state and len(state) > 20:
+                        url_checks.append("✅ State parameter generated")
+                    else:
+                        url_checks.append("❌ State parameter missing or too short")
+                    
+                    # Check if it's a proper Xero URL
+                    if "https://login.xero.com/identity/connect/authorize" in auth_url:
+                        url_checks.append("✅ Proper Xero authorization URL")
+                    else:
+                        url_checks.append("❌ Not a proper Xero authorization URL")
+                    
+                    all_checks_passed = all("✅" in check for check in url_checks)
+                    
+                    self.log_result(
+                        "Xero Auth URL", 
+                        all_checks_passed, 
+                        "Generated Xero OAuth URL" if all_checks_passed else "OAuth URL has issues",
+                        "\n".join(url_checks)
+                    )
+                    
+                    return state  # Return state for callback testing
+                else:
+                    self.log_result(
+                        "Xero Auth URL", 
+                        False, 
+                        "Response missing required fields (auth_url, state)",
+                        str(data)
+                    )
+            else:
+                self.log_result(
+                    "Xero Auth URL", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Xero Auth URL", False, f"Error: {str(e)}")
+        
+        return None
+    
+    def test_xero_auth_callback(self, state_param):
+        """Test POST /api/xero/auth/callback with mock data"""
+        print("\n=== XERO AUTH CALLBACK TEST ===")
+        
+        if not state_param:
+            self.log_result(
+                "Xero Auth Callback", 
+                False, 
+                "No state parameter available from auth URL test"
+            )
+            return
+        
+        try:
+            # Test with mock callback data
+            callback_data = {
+                "code": "mock_authorization_code_12345",
+                "state": state_param
+            }
+            
+            response = self.session.post(f"{API_BASE}/xero/auth/callback", json=callback_data)
+            
+            # Note: This will likely fail with actual Xero API call, but we're testing the endpoint structure
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'message' in data:
+                    self.log_result(
+                        "Xero Auth Callback", 
+                        True, 
+                        "Callback endpoint processed successfully",
+                        data.get('message')
+                    )
+                else:
+                    self.log_result(
+                        "Xero Auth Callback", 
+                        False, 
+                        "Callback response missing message field",
+                        str(data)
+                    )
+            elif response.status_code == 400:
+                # Expected for mock data - check if it's validating properly
+                error_text = response.text
+                if "authorization code" in error_text.lower() or "failed to exchange" in error_text.lower():
+                    self.log_result(
+                        "Xero Auth Callback", 
+                        True, 
+                        "Callback endpoint properly validates authorization codes (expected failure with mock data)",
+                        f"Status: {response.status_code}, Response: {error_text}"
+                    )
+                else:
+                    self.log_result(
+                        "Xero Auth Callback", 
+                        False, 
+                        f"Unexpected error response: {response.status_code}",
+                        error_text
+                    )
+            else:
+                self.log_result(
+                    "Xero Auth Callback", 
+                    False, 
+                    f"Unexpected status code: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Xero Auth Callback", False, f"Error: {str(e)}")
+    
+    def test_xero_disconnect(self):
+        """Test DELETE /api/xero/disconnect"""
+        print("\n=== XERO DISCONNECT TEST ===")
+        
+        try:
+            response = self.session.delete(f"{API_BASE}/xero/disconnect")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'message' in data:
+                    message = data.get('message')
+                    
+                    # Should return success message regardless of whether connection existed
+                    if "disconnection successful" in message.lower() or "no xero connection found" in message.lower():
+                        self.log_result(
+                            "Xero Disconnect", 
+                            True, 
+                            "Disconnect endpoint working correctly",
+                            message
+                        )
+                    else:
+                        self.log_result(
+                            "Xero Disconnect", 
+                            False, 
+                            "Unexpected disconnect response message",
+                            message
+                        )
+                else:
+                    self.log_result(
+                        "Xero Disconnect", 
+                        False, 
+                        "Disconnect response missing message field",
+                        str(data)
+                    )
+            else:
+                self.log_result(
+                    "Xero Disconnect", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Xero Disconnect", False, f"Error: {str(e)}")
+    
+    def test_xero_permissions(self):
+        """Test that Xero endpoints require admin/manager permissions"""
+        print("\n=== XERO PERMISSIONS TEST ===")
+        
+        # Test without authentication
+        temp_session = requests.Session()
+        
+        try:
+            response = temp_session.get(f"{API_BASE}/xero/status")
+            
+            if response.status_code in [401, 403]:
+                self.log_result(
+                    "Xero Permissions", 
+                    True, 
+                    f"Xero endpoints properly require authentication (status: {response.status_code})"
+                )
+            else:
+                self.log_result(
+                    "Xero Permissions", 
+                    False, 
+                    f"Expected 401/403 but got {response.status_code}",
+                    "Xero endpoints should require admin/manager authentication"
+                )
+                
+        except Exception as e:
+            self.log_result("Xero Permissions", False, f"Error: {str(e)}")
+    
+    def test_jobs_ready_for_invoicing(self):
+        """Test that there are jobs in delivery stage ready for invoicing"""
+        print("\n=== JOBS READY FOR INVOICING TEST ===")
+        
+        try:
+            response = self.session.get(f"{API_BASE}/invoicing/live-jobs")
+            
+            if response.status_code == 200:
+                data = response.json()
+                jobs = data.get('data', [])
+                
+                # Check for jobs in delivery stage
+                delivery_jobs = [job for job in jobs if job.get('current_stage') == 'delivery']
+                
+                if len(delivery_jobs) >= 7:
+                    self.log_result(
+                        "Jobs Ready for Invoicing", 
+                        True, 
+                        f"Found {len(delivery_jobs)} jobs in delivery stage ready for invoicing (expected 7+)",
+                        f"Total live jobs: {len(jobs)}"
+                    )
+                elif len(delivery_jobs) > 0:
+                    self.log_result(
+                        "Jobs Ready for Invoicing", 
+                        True, 
+                        f"Found {len(delivery_jobs)} jobs in delivery stage ready for invoicing",
+                        f"Total live jobs: {len(jobs)} (expected 7 but found {len(delivery_jobs)})"
+                    )
+                else:
+                    self.log_result(
+                        "Jobs Ready for Invoicing", 
+                        False, 
+                        "No jobs found in delivery stage ready for invoicing",
+                        f"Total live jobs: {len(jobs)}, Jobs by stage: {[job.get('current_stage') for job in jobs]}"
+                    )
+            else:
+                self.log_result(
+                    "Jobs Ready for Invoicing", 
+                    False, 
+                    f"Failed to retrieve live jobs: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Jobs Ready for Invoicing", False, f"Error: {str(e)}")
+    
     def run_all_tests(self):
         """Run all invoicing system tests"""
         print("🚀 Starting Invoicing System Backend API Tests")
