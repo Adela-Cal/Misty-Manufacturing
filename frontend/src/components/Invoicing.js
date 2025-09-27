@@ -67,16 +67,27 @@ const Invoicing = () => {
       
       toast.success(`Invoice ${response.data.invoice_number} generated successfully`);
       
-      // Automatically download invoice PDF and packing slip
-      setTimeout(async () => {
-        try {
-          await downloadInvoice(selectedJob.id, selectedJob.order_number);
-          await downloadPackingSlip(selectedJob.id, selectedJob.order_number);
-        } catch (downloadError) {
-          console.error('Failed to download documents:', downloadError);
-          toast.error('Invoice generated but download failed. You can manually download from Archived Jobs.');
-        }
-      }, 1000);
+      // Show download prompt instead of automatic download
+      toast.success(
+        <div>
+          <p>📄 Documents ready for download:</p>
+          <div className="mt-2 space-x-2">
+            <button 
+              onClick={() => downloadInvoice(selectedJob.id, selectedJob.order_number)}
+              className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs text-white"
+            >
+              📄 Invoice PDF
+            </button>
+            <button 
+              onClick={() => downloadPackingSlip(selectedJob.id, selectedJob.order_number)}
+              className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs text-white"
+            >
+              📦 Packing Slip
+            </button>
+          </div>
+        </div>,
+        { duration: 10000 }
+      );
       
       setShowInvoiceModal(false);
       setSelectedJob(null);
