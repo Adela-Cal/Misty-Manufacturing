@@ -750,6 +750,7 @@ class InvoicingAPITester:
                         f"Found {len(delivery_jobs)} jobs in delivery stage ready for invoicing (expected 7+)",
                         f"Total live jobs: {len(jobs)}"
                     )
+                    return delivery_jobs  # Return jobs for document testing
                 elif len(delivery_jobs) > 0:
                     self.log_result(
                         "Jobs Ready for Invoicing", 
@@ -757,6 +758,7 @@ class InvoicingAPITester:
                         f"Found {len(delivery_jobs)} jobs in delivery stage ready for invoicing",
                         f"Total live jobs: {len(jobs)} (expected 7 but found {len(delivery_jobs)})"
                     )
+                    return delivery_jobs  # Return jobs for document testing
                 else:
                     self.log_result(
                         "Jobs Ready for Invoicing", 
@@ -774,7 +776,8 @@ class InvoicingAPITester:
                 
         except Exception as e:
             self.log_result("Jobs Ready for Invoicing", False, f"Error: {str(e)}")
-    
+        
+        return []
     def run_all_tests(self):
         """Run all invoicing system and Xero integration tests"""
         print("🚀 Starting Backend API Tests - Invoicing System & Xero Integration")
