@@ -123,11 +123,14 @@ backend:
     file: "backend/models.py, frontend/src/components/ClientForm.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Added payment_terms and lead_time_days to client model and form. Updated document generator to use these values in order acknowledgments."
+      - working: true
+        agent: "testing"
+        comment: "Client model updates working correctly. Successfully created client with payment_terms='Net 14 days' and lead_time_days=10. Document generation includes these fields in order acknowledgments. Fixed drawCentredText method name to drawCentredString in document generator."
 
   - task: "Xero Integration Setup"
     implemented: false
