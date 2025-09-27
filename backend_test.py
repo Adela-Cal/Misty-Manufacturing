@@ -774,8 +774,8 @@ class InvoicingAPITester:
             self.log_result("Jobs Ready for Invoicing", False, f"Error: {str(e)}")
     
     def run_all_tests(self):
-        """Run all invoicing system tests"""
-        print("🚀 Starting Invoicing System Backend API Tests")
+        """Run all invoicing system and Xero integration tests"""
+        print("🚀 Starting Backend API Tests - Invoicing System & Xero Integration")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 60)
         
@@ -786,6 +786,17 @@ class InvoicingAPITester:
         
         # Test role permissions
         self.test_role_permissions()
+        
+        # Test Xero Integration APIs
+        print("\n🔗 TESTING XERO INTEGRATION ENDPOINTS")
+        self.test_xero_permissions()
+        self.test_xero_connection_status()
+        state_param = self.test_xero_auth_url()
+        self.test_xero_auth_callback(state_param)
+        self.test_xero_disconnect()
+        
+        # Test jobs ready for invoicing
+        self.test_jobs_ready_for_invoicing()
         
         # Test client model updates
         client_id = self.test_client_model_updates()
