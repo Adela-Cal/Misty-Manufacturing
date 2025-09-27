@@ -95,3 +95,19 @@ def can_manage_clients(user_role: str) -> bool:
 
 def can_view_reports(user_role: str) -> bool:
     return user_role in [UserRole.ADMIN.value, UserRole.PRODUCTION_MANAGER.value, UserRole.SALES.value]
+
+def can_manage_payroll(user_role: str) -> bool:
+    """Check if user can manage payroll functions"""
+    return user_role in [UserRole.ADMIN.value, UserRole.MANAGER.value]
+
+def can_view_all_timesheets(user_role: str) -> bool:
+    """Check if user can view all employee timesheets"""
+    return user_role in [UserRole.ADMIN.value, UserRole.PRODUCTION_MANAGER.value, UserRole.MANAGER.value]
+
+def can_approve_leave(user_role: str) -> bool:
+    """Check if user can approve leave requests"""
+    return user_role in [UserRole.ADMIN.value, UserRole.PRODUCTION_MANAGER.value, UserRole.MANAGER.value]
+
+def can_view_payroll_reports(user_role: str) -> bool:
+    """Check if user can view payroll reports"""
+    return user_role in [UserRole.ADMIN.value, UserRole.MANAGER.value]
