@@ -139,7 +139,7 @@ async def get_current_week_timesheet(employee_id: str, current_user: dict = Depe
     return new_timesheet
 
 @payroll_router.put("/timesheets/{timesheet_id}", response_model=StandardResponse)
-async def update_timesheet(timesheet_id: str, timesheet_data: TimesheetCreate, current_user: dict = Depends(require_any_role), db: Session = Depends(get_db)):
+async def update_timesheet(timesheet_id: str, timesheet_data: TimesheetCreate, current_user: dict = Depends(require_any_role)):
     """Update timesheet entries"""
     
     # Get existing timesheet
