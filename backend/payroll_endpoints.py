@@ -390,7 +390,7 @@ async def get_payroll_summary(start_date: date, end_date: date, current_user: di
     }
 
 @payroll_router.get("/reports/leave-balances")
-async def get_leave_balances_report(current_user: dict = Depends(require_admin_or_production_manager), db: Session = Depends(get_db)):
+async def get_leave_balances_report(current_user: dict = Depends(require_payroll_access)):
     """Get leave balances for all employees"""
     
     employees = await db.employee_profiles.find({"is_active": True}).to_list(1000)
