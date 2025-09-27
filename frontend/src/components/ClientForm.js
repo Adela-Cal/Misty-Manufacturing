@@ -449,6 +449,55 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
             </div>
           </div>
 
+          {/* Business Terms */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-white mb-4">Business Terms</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Payment Terms
+                </label>
+                <select
+                  name="payment_terms"
+                  value={formData.payment_terms}
+                  onChange={handleInputChange}
+                  className="misty-select w-full"
+                >
+                  <option value="Net 7 days">Net 7 days</option>
+                  <option value="Net 14 days">Net 14 days</option>
+                  <option value="Net 30 days">Net 30 days</option>
+                  <option value="Net 45 days">Net 45 days</option>
+                  <option value="Net 60 days">Net 60 days</option>
+                  <option value="Cash on Delivery">Cash on Delivery</option>
+                  <option value="Payment in advance">Payment in advance</option>
+                  <option value="2/10 Net 30">2/10 Net 30</option>
+                </select>
+                <p className="text-xs text-gray-400 mt-1">
+                  Payment terms for invoices
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Standard Lead Time (Days)
+                </label>
+                <input
+                  type="number"
+                  name="lead_time_days"
+                  value={formData.lead_time_days}
+                  onChange={handleInputChange}
+                  min="1"
+                  max="365"
+                  className="misty-input w-full"
+                  placeholder="7"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Default lead time for this client's orders
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Logo Upload */}
           <div className="mb-8">
             <h3 className="text-lg font-semibold text-white mb-4">Company Logo</h3>
