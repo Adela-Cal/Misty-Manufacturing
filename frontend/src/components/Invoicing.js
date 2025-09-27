@@ -112,12 +112,15 @@ const Invoicing = () => {
       link.target = '_blank'; // Add target blank
       document.body.appendChild(link);
       
-      // Use a small delay to ensure the link is ready
+      // Alternative: Open PDF in new tab if download doesn't work
+      window.open(url, '_blank');
+      
+      // Also try the download approach
       setTimeout(() => {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        toast.success(`📄 Invoice ${orderNumber} downloaded`);
+        toast.success(`📄 Invoice ${orderNumber} opened/downloaded`);
       }, 100);
       
     } catch (error) {
