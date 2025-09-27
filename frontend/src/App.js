@@ -34,6 +34,7 @@ function AppRoutes() {
         <Route path="/orders" element={<OrderManagement />} />
         <Route path="/production" element={<ProductionBoard />} />
         <Route path="/reports" element={<Reports />} />
+        <Route path="/payroll" element={<PayrollManagement />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
