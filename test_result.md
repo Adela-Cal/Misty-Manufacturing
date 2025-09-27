@@ -132,10 +132,10 @@ backend:
         agent: "testing"
         comment: "Client model updates working correctly. Successfully created client with payment_terms='Net 14 days' and lead_time_days=10. Document generation includes these fields in order acknowledgments. Fixed drawCentredText method name to drawCentredString in document generator."
 
-  - task: "Xero Integration Setup"
-    implemented: false
-    working: "NA"
-    file: "N/A"
+  - task: "Xero Integration APIs"
+    implemented: true
+    working: true
+    file: "backend/server.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -143,6 +143,9 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "Provided detailed Xero setup instructions to user. Waiting for Xero API credentials to implement integration."
+      - working: true
+        agent: "testing"
+        comment: "All Xero integration endpoints are implemented and working correctly. Tested: GET /api/xero/status (correctly reports no connection for new users), GET /api/xero/auth/url (generates proper OAuth URL with correct client ID 0C765F92708046D5B625162E5D42C5FB, scopes, and callback URL), POST /api/xero/auth/callback (properly validates authorization codes and state parameters), DELETE /api/xero/disconnect (successfully removes tokens). All endpoints require admin/manager permissions. Real Xero credentials are configured and ready for OAuth flow."
 
   - task: "Invoicing & Job Closure APIs"
     implemented: true
@@ -158,6 +161,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "All invoicing APIs are implemented and working correctly. Fixed ObjectId serialization issues and JWT token field access. APIs tested: GET /api/invoicing/live-jobs (6 jobs found), POST /api/invoicing/generate/{job_id} (invoice generation working), GET /api/invoicing/archived-jobs (2 archived jobs found), GET /api/invoicing/monthly-report (report generation working). Authentication and role permissions working correctly."
+      - working: true
+        agent: "testing"
+        comment: "Invoicing system confirmed working with 8 jobs in delivery stage ready for invoicing. All APIs functioning correctly: live jobs retrieval, archived jobs with filtering, monthly reporting, and invoice generation. System ready for production use."
 
 frontend:
   - task: "OrderManagement.js import fix"
