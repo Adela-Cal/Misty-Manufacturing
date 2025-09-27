@@ -15,6 +15,8 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
     phone: '',
     email: '',
     website: '',
+    payment_terms: 'Net 30 days',
+    lead_time_days: 7,
     contacts: [],
     bank_details: {
       bank_name: '',
