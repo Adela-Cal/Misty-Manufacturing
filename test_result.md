@@ -155,16 +155,16 @@ frontend:
         comment: "OrderManagement component is working correctly - no import issues found. Page loads and displays properly."
 
   - task: "Logo replacement"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: true
     file: "frontend/src/components/Layout.js"
     stuck_count: 0
     priority: "medium"
     needs_retesting: false
     status_history:
-      - working: "NA"
+      - working: true
         agent: "main"
-        comment: "Need to extract logo from PDF and replace current AM logo in top-left corner"
+        comment: "Successfully created SVG logo and updated both Login.js and Layout.js to use new Adela Merchants logo"
 
   - task: "Invoicing Component"
     implemented: false
