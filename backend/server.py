@@ -1,15 +1,22 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, status
+from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
+from datetime import datetime, timedelta
+from typing import List, Optional, Dict, Any
 import uuid
-from datetime import datetime
+from io import BytesIO
 
+# Import our custom modules
+from models import *
+from auth import *
+from document_generator import DocumentGenerator
+from file_utils import *
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -19,42 +26,719 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Create the main app without a prefix
-app = FastAPI()
+# Create the main app
+app = FastAPI(title="Misty Manufacturing Management System", version="1.0.0")
 
-# Create a router with the /api prefix
+# Create router with /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Initialize document generator
+doc_generator = DocumentGenerator()
 
-# Define Models
-class StatusCheck(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+# Ensure upload directories exist
+ensure_upload_dirs()
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+# ============= AUTHENTICATION ENDPOINTS =============
 
-# Add your routes to the router instead of directly to app
+@api_router.post("/auth/login", response_model=Token)
+async def login(user_credentials: UserLogin):
+    """Authenticate user and return JWT token"""
+    user_data = await db.users.find_one({"username": user_credentials.username})
+    
+    if not user_data or not verify_password(user_credentials.password, user_data["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password"
+        )
+    
+    if not user_data.get("is_active", True):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account is disabled"
+        )
+    
+    # Update last login
+    await db.users.update_one(
+        {"id": user_data["id"]},
+        {"$set": {"last_login": datetime.utcnow()}}
+    )
+    
+    # Create JWT token
+    access_token = create_access_token(
+        data={"sub": user_data["username"], "role": user_data["role"], "user_id": user_data["id"]}
+    )
+    
+    user_info = {
+        "id": user_data["id"],
+        "username": user_data["username"],
+        "full_name": user_data["full_name"],
+        "role": user_data["role"],
+        "email": user_data["email"]
+    }
+    
+    return {"access_token": access_token, "token_type": "bearer", "user": user_info}
+
+@api_router.post("/auth/register", response_model=StandardResponse)
+async def register_user(user_data: UserCreate, current_user: dict = Depends(require_admin)):
+    """Register new user (Admin only)"""
+    # Check if username already exists
+    existing_user = await db.users.find_one({"username": user_data.username})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    
+    # Check if email already exists
+    existing_email = await db.users.find_one({"email": user_data.email})
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Email already exists")
+    
+    # Create new user
+    hashed_password = get_password_hash(user_data.password)
+    new_user = User(
+        username=user_data.username,
+        email=user_data.email,
+        hashed_password=hashed_password,
+        role=user_data.role,
+        full_name=user_data.full_name
+    )
+    
+    await db.users.insert_one(new_user.dict())
+    
+    return StandardResponse(success=True, message="User created successfully")
+
+@api_router.get("/auth/me")
+async def get_current_user_info(current_user: dict = Depends(get_current_user)):
+    """Get current user information"""
+    user_data = await db.users.find_one({"id": current_user["user_id"]})
+    if not user_data:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {
+        "id": user_data["id"],
+        "username": user_data["username"],
+        "full_name": user_data["full_name"],
+        "role": user_data["role"],
+        "email": user_data["email"]
+    }
+
+# ============= CLIENT MANAGEMENT ENDPOINTS =============
+
+@api_router.get("/clients", response_model=List[Client])
+async def get_clients(current_user: dict = Depends(require_any_role)):
+    """Get all clients"""
+    clients = await db.clients.find({"is_active": True}).to_list(1000)
+    return [Client(**client) for client in clients]
+
+@api_router.post("/clients", response_model=StandardResponse)
+async def create_client(client_data: ClientCreate, current_user: dict = Depends(require_admin_or_sales)):
+    """Create new client"""
+    new_client = Client(**client_data.dict())
+    await db.clients.insert_one(new_client.dict())
+    
+    return StandardResponse(success=True, message="Client created successfully", data={"id": new_client.id})
+
+@api_router.get("/clients/{client_id}", response_model=Client)
+async def get_client(client_id: str, current_user: dict = Depends(require_any_role)):
+    """Get specific client"""
+    client = await db.clients.find_one({"id": client_id, "is_active": True})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    return Client(**client)
+
+@api_router.put("/clients/{client_id}", response_model=StandardResponse)
+async def update_client(client_id: str, client_data: ClientCreate, current_user: dict = Depends(require_admin_or_sales)):
+    """Update client"""
+    update_data = client_data.dict()
+    update_data["updated_at"] = datetime.utcnow()
+    
+    result = await db.clients.update_one(
+        {"id": client_id, "is_active": True},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    return StandardResponse(success=True, message="Client updated successfully")
+
+@api_router.post("/clients/{client_id}/logo")
+async def upload_client_logo(client_id: str, file: UploadFile = File(...), current_user: dict = Depends(require_admin_or_sales)):
+    """Upload client logo"""
+    # Check if client exists
+    client = await db.clients.find_one({"id": client_id, "is_active": True})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Save logo file
+    try:
+        file_path = await save_logo_file(file, client_id)
+        file_url = get_file_url(file_path)
+        
+        # Update client with logo path
+        await db.clients.update_one(
+            {"id": client_id},
+            {"$set": {"logo_path": file_path, "updated_at": datetime.utcnow()}}
+        )
+        
+        return StandardResponse(success=True, message="Logo uploaded successfully", data={"file_url": file_url})
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to upload logo")
+
+# ============= PRODUCT MANAGEMENT ENDPOINTS =============
+
+@api_router.get("/clients/{client_id}/products", response_model=List[Product])
+async def get_client_products(client_id: str, current_user: dict = Depends(require_any_role)):
+    """Get products for specific client"""
+    products = await db.products.find({"client_id": client_id, "is_active": True}).to_list(1000)
+    return [Product(**product) for product in products]
+
+@api_router.post("/products", response_model=StandardResponse)
+async def create_product(product_data: ProductCreate, current_user: dict = Depends(require_admin_or_sales)):
+    """Create new product for client"""
+    new_product = Product(**product_data.dict())
+    await db.products.insert_one(new_product.dict())
+    
+    return StandardResponse(success=True, message="Product created successfully", data={"id": new_product.id})
+
+@api_router.get("/products/{product_id}", response_model=Product)
+async def get_product(product_id: str, current_user: dict = Depends(require_any_role)):
+    """Get specific product"""
+    product = await db.products.find_one({"id": product_id, "is_active": True})
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    return Product(**product)
+
+@api_router.put("/products/{product_id}", response_model=StandardResponse)
+async def update_product(product_id: str, product_data: ProductCreate, current_user: dict = Depends(require_admin_or_sales)):
+    """Update product"""
+    update_data = product_data.dict()
+    update_data["updated_at"] = datetime.utcnow()
+    
+    result = await db.products.update_one(
+        {"id": product_id, "is_active": True},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    return StandardResponse(success=True, message="Product updated successfully")
+
+# ============= ORDER MANAGEMENT ENDPOINTS =============
+
+@api_router.get("/orders", response_model=List[Order])
+async def get_orders(status_filter: Optional[str] = None, current_user: dict = Depends(require_any_role)):
+    """Get all orders with optional status filter"""
+    query = {}
+    if status_filter:
+        query["status"] = status_filter
+    
+    orders = await db.orders.find(query).sort("created_at", -1).to_list(1000)
+    return [Order(**order) for order in orders]
+
+@api_router.post("/orders", response_model=StandardResponse)
+async def create_order(order_data: OrderCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+    """Create new order"""
+    # Get client details
+    client = await db.clients.find_one({"id": order_data.client_id, "is_active": True})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Generate order number
+    order_count = await db.orders.count_documents({})
+    order_number = f"ADM-{datetime.now().year}-{order_count + 1:04d}"
+    
+    # Calculate totals
+    subtotal = sum(item.total_price for item in order_data.items)
+    gst = subtotal * 0.1
+    total_amount = subtotal + gst
+    
+    new_order = Order(
+        order_number=order_number,
+        client_id=order_data.client_id,
+        client_name=client["company_name"],
+        items=order_data.items,
+        subtotal=subtotal,
+        gst=gst,
+        total_amount=total_amount,
+        due_date=order_data.due_date,
+        delivery_address=order_data.delivery_address,
+        delivery_instructions=order_data.delivery_instructions,
+        notes=order_data.notes,
+        created_by=current_user["user_id"]
+    )
+    
+    await db.orders.insert_one(new_order.dict())
+    
+    # Log initial production stage
+    production_log = ProductionLog(
+        order_id=new_order.id,
+        stage=ProductionStage.ORDER_ENTERED,
+        updated_by=current_user["user_id"],
+        notes="Order created"
+    )
+    await db.production_logs.insert_one(production_log.dict())
+    
+    return StandardResponse(success=True, message="Order created successfully", data={"id": new_order.id, "order_number": order_number})
+
+@api_router.get("/orders/{order_id}", response_model=Order)
+async def get_order(order_id: str, current_user: dict = Depends(require_any_role)):
+    """Get specific order"""
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    return Order(**order)
+
+@api_router.put("/orders/{order_id}/stage", response_model=StandardResponse)
+async def update_production_stage(order_id: str, stage_update: ProductionStageUpdate, current_user: dict = Depends(require_production_access)):
+    """Update order production stage"""
+    # Check permissions for specific actions
+    user_role = current_user.get("role")
+    
+    # Production team can only move stages forward, not create/delete orders
+    if user_role == UserRole.PRODUCTION_TEAM.value:
+        if stage_update.to_stage == ProductionStage.ORDER_ENTERED:
+            raise HTTPException(status_code=403, detail="Cannot move back to order entry stage")
+    
+    # Only admin and production manager can invoice
+    if stage_update.to_stage == ProductionStage.INVOICING and not can_invoice(user_role):
+        raise HTTPException(status_code=403, detail="Insufficient permissions to invoice")
+    
+    # Update order stage
+    update_data = {
+        "current_stage": stage_update.to_stage,
+        "updated_at": datetime.utcnow()
+    }
+    
+    # If moving to completed, set completion date
+    if stage_update.to_stage == ProductionStage.CLEARED:
+        update_data["completed_at"] = datetime.utcnow()
+        update_data["status"] = OrderStatus.COMPLETED
+    
+    result = await db.orders.update_one(
+        {"id": order_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Log production stage change
+    production_log = ProductionLog(
+        order_id=order_id,
+        stage=stage_update.to_stage,
+        updated_by=current_user["user_id"],
+        notes=stage_update.notes
+    )
+    await db.production_logs.insert_one(production_log.dict())
+    
+    return StandardResponse(success=True, message="Production stage updated successfully")
+
+# ============= JOB SPECIFICATION ENDPOINTS =============
+
+@api_router.post("/job-specifications", response_model=StandardResponse)
+async def create_job_specification(spec_data: JobSpecificationCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+    """Create job specification"""
+    new_spec = JobSpecification(**spec_data.dict(), created_by=current_user["user_id"])
+    await db.job_specifications.insert_one(new_spec.dict())
+    
+    return StandardResponse(success=True, message="Job specification created successfully", data={"id": new_spec.id})
+
+@api_router.get("/orders/{order_id}/job-specification", response_model=JobSpecification)
+async def get_job_specification_by_order(order_id: str, current_user: dict = Depends(require_any_role)):
+    """Get job specification for order"""
+    spec = await db.job_specifications.find_one({"order_id": order_id})
+    if not spec:
+        raise HTTPException(status_code=404, detail="Job specification not found")
+    
+    return JobSpecification(**spec)
+
+# ============= PRODUCTION BOARD ENDPOINTS =============
+
+@api_router.get("/production/board")
+async def get_production_board(current_user: dict = Depends(require_any_role)):
+    """Get production board with orders grouped by stage"""
+    # Get all active orders
+    orders = await db.orders.find({"status": {"$ne": OrderStatus.COMPLETED}}).to_list(1000)
+    
+    # Group orders by production stage
+    board = {}
+    for stage in ProductionStage:
+        if stage != ProductionStage.CLEARED:  # Don't show cleared orders on board
+            board[stage.value] = []
+    
+    for order in orders:
+        stage = order.get("current_stage", ProductionStage.ORDER_ENTERED.value)
+        if stage in board:
+            # Get client info for logo
+            client = await db.clients.find_one({"id": order["client_id"]})
+            order_info = {
+                "id": order["id"],
+                "order_number": order["order_number"],
+                "client_name": order["client_name"],
+                "client_logo": get_file_url(client.get("logo_path", "")) if client else None,
+                "due_date": order["due_date"],
+                "total_amount": order["total_amount"],
+                "items": order["items"],
+                "delivery_address": order.get("delivery_address"),
+                "is_overdue": datetime.fromisoformat(order["due_date"].replace("Z", "+00:00")) < datetime.utcnow() if isinstance(order["due_date"], str) else order["due_date"] < datetime.utcnow()
+            }
+            board[stage].append(order_info)
+    
+    return {"success": True, "data": board}
+
+@api_router.get("/production/logs/{order_id}")
+async def get_production_logs(order_id: str, current_user: dict = Depends(require_any_role)):
+    """Get production logs for order"""
+    logs = await db.production_logs.find({"order_id": order_id}).sort("timestamp", 1).to_list(1000)
+    return {"success": True, "data": logs}
+
+# ============= REPORTS ENDPOINTS =============
+
+@api_router.get("/reports/outstanding-jobs")
+async def get_outstanding_jobs_report(current_user: dict = Depends(require_admin_or_production_manager)):
+    """Generate outstanding jobs report"""
+    # Count jobs by stage
+    jobs_by_stage = {}
+    total_jobs = 0
+    overdue_jobs = 0
+    jobs_due_today = 0
+    jobs_due_this_week = 0
+    
+    now = datetime.utcnow()
+    today_end = now.replace(hour=23, minute=59, second=59)
+    week_end = now + timedelta(days=7)
+    
+    # Get all active orders
+    orders = await db.orders.find({"status": {"$ne": OrderStatus.COMPLETED}}).to_list(1000)
+    
+    for order in orders:
+        stage = order.get("current_stage", ProductionStage.ORDER_ENTERED.value)
+        jobs_by_stage[stage] = jobs_by_stage.get(stage, 0) + 1
+        total_jobs += 1
+        
+        due_date = order["due_date"]
+        if isinstance(due_date, str):
+            due_date = datetime.fromisoformat(due_date.replace("Z", "+00:00"))
+        
+        if due_date < now:
+            overdue_jobs += 1
+        elif due_date <= today_end:
+            jobs_due_today += 1
+        elif due_date <= week_end:
+            jobs_due_this_week += 1
+    
+    report = OutstandingJobsReport(
+        total_jobs=total_jobs,
+        jobs_by_stage=jobs_by_stage,
+        overdue_jobs=overdue_jobs,
+        jobs_due_today=jobs_due_today,
+        jobs_due_this_week=jobs_due_this_week
+    )
+    
+    return {"success": True, "data": report.dict()}
+
+@api_router.get("/reports/late-deliveries")
+async def get_late_deliveries_report(current_user: dict = Depends(require_admin_or_production_manager)):
+    """Generate late deliveries report"""
+    # Get completed orders that were delivered late
+    completed_orders = await db.orders.find({"status": OrderStatus.COMPLETED}).to_list(1000)
+    
+    late_deliveries = []
+    for order in completed_orders:
+        due_date = order["due_date"]
+        completed_date = order.get("completed_at")
+        
+        if completed_date and due_date:
+            if isinstance(due_date, str):
+                due_date = datetime.fromisoformat(due_date.replace("Z", "+00:00"))
+            if isinstance(completed_date, str):
+                completed_date = datetime.fromisoformat(completed_date.replace("Z", "+00:00"))
+            
+            if completed_date > due_date:
+                delay_days = (completed_date - due_date).days
+                late_deliveries.append({
+                    "order": order,
+                    "delay_days": delay_days,
+                    "client_name": order["client_name"]
+                })
+    
+    # Calculate statistics
+    total_late = len(late_deliveries)
+    avg_delay = sum(ld["delay_days"] for ld in late_deliveries) / total_late if total_late > 0 else 0
+    
+    # Group by client
+    late_by_client = {}
+    for ld in late_deliveries:
+        client = ld["client_name"]
+        late_by_client[client] = late_by_client.get(client, 0) + 1
+    
+    # Group by month
+    late_by_month = {}
+    for ld in late_deliveries:
+        completed_date = ld["order"]["completed_at"]
+        if isinstance(completed_date, str):
+            completed_date = datetime.fromisoformat(completed_date.replace("Z", "+00:00"))
+        month_key = completed_date.strftime("%Y-%m")
+        late_by_month[month_key] = late_by_month.get(month_key, 0) + 1
+    
+    report = LateDeliveryReport(
+        total_late_deliveries=total_late,
+        average_delay_days=avg_delay,
+        late_deliveries_by_client=late_by_client,
+        late_deliveries_by_month=late_by_month
+    )
+    
+    return {"success": True, "data": report.dict()}
+
+@api_router.get("/reports/customer-annual/{client_id}")
+async def get_customer_annual_report(client_id: str, year: int, current_user: dict = Depends(require_admin_or_production_manager)):
+    """Generate customer annual report"""
+    # Get client info
+    client = await db.clients.find_one({"id": client_id})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Get orders for the year
+    start_date = datetime(year, 1, 1)
+    end_date = datetime(year + 1, 1, 1)
+    
+    orders = await db.orders.find({
+        "client_id": client_id,
+        "created_at": {"$gte": start_date, "$lt": end_date}
+    }).to_list(1000)
+    
+    # Calculate statistics
+    total_orders = len(orders)
+    total_revenue = sum(order["total_amount"] for order in orders)
+    avg_order_value = total_revenue / total_orders if total_orders > 0 else 0
+    
+    # Orders by month
+    orders_by_month = {}
+    revenue_by_month = {}
+    for i in range(1, 13):
+        month_key = f"{year}-{i:02d}"
+        orders_by_month[month_key] = 0
+        revenue_by_month[month_key] = 0
+    
+    for order in orders:
+        created_date = order["created_at"]
+        if isinstance(created_date, str):
+            created_date = datetime.fromisoformat(created_date.replace("Z", "+00:00"))
+        month_key = created_date.strftime("%Y-%m")
+        if month_key in orders_by_month:
+            orders_by_month[month_key] += 1
+            revenue_by_month[month_key] += order["total_amount"]
+    
+    # Top products
+    product_stats = {}
+    for order in orders:
+        for item in order["items"]:
+            product_name = item["product_name"]
+            if product_name not in product_stats:
+                product_stats[product_name] = {"quantity": 0, "revenue": 0, "orders": 0}
+            product_stats[product_name]["quantity"] += item["quantity"]
+            product_stats[product_name]["revenue"] += item["total_price"]
+            product_stats[product_name]["orders"] += 1
+    
+    top_products = sorted(
+        [{"product": k, **v} for k, v in product_stats.items()],
+        key=lambda x: x["revenue"],
+        reverse=True
+    )[:5]
+    
+    # On-time delivery rate
+    completed_orders = [o for o in orders if o.get("completed_at")]
+    on_time_orders = 0
+    for order in completed_orders:
+        due_date = order["due_date"]
+        completed_date = order["completed_at"]
+        
+        if isinstance(due_date, str):
+            due_date = datetime.fromisoformat(due_date.replace("Z", "+00:00"))
+        if isinstance(completed_date, str):
+            completed_date = datetime.fromisoformat(completed_date.replace("Z", "+00:00"))
+        
+        if completed_date <= due_date:
+            on_time_orders += 1
+    
+    on_time_rate = (on_time_orders / len(completed_orders)) * 100 if completed_orders else 0
+    
+    report = CustomerAnnualReport(
+        client_id=client_id,
+        client_name=client["company_name"],
+        year=year,
+        total_orders=total_orders,
+        total_revenue=total_revenue,
+        average_order_value=avg_order_value,
+        orders_by_month=orders_by_month,
+        revenue_by_month=revenue_by_month,
+        top_products=top_products,
+        on_time_delivery_rate=on_time_rate
+    )
+    
+    return {"success": True, "data": report.dict()}
+
+# ============= DOCUMENT GENERATION ENDPOINTS =============
+
+@api_router.get("/documents/acknowledgment/{order_id}")
+async def generate_acknowledgment(order_id: str, current_user: dict = Depends(require_any_role)):
+    """Generate order acknowledgment PDF"""
+    # Get order and client data
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    client = await db.clients.find_one({"id": order["client_id"]})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Prepare data for PDF generation
+    order_data = {
+        "order_number": order["order_number"],
+        "invoice_number": f"INV-{order['order_number']}",
+        "due_date": order["due_date"].strftime("%d/%m/%Y") if isinstance(order["due_date"], datetime) else order["due_date"],
+        "client_name": client["company_name"],
+        "client_address": f"{client['address']}, {client['city']}, {client['state']} {client['postal_code']}",
+        "client_email": client["email"],
+        "client_phone": client["phone"],
+        "items": order["items"],
+        "subtotal": order["subtotal"],
+        "gst": order["gst"],
+        "total_amount": order["total_amount"],
+        "bank_details": client.get("bank_details")
+    }
+    
+    # Generate PDF
+    pdf_content = doc_generator.generate_order_acknowledgment(order_data)
+    
+    return StreamingResponse(
+        BytesIO(pdf_content),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=acknowledgment_{order['order_number']}.pdf"}
+    )
+
+@api_router.get("/documents/job-card/{order_id}")
+async def generate_job_card(order_id: str, current_user: dict = Depends(require_production_access)):
+    """Generate job card PDF"""
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Get job specifications if available
+    job_spec = await db.job_specifications.find_one({"order_id": order_id})
+    
+    # Get product specifications
+    specifications = None
+    if order["items"] and len(order["items"]) > 0:
+        product_id = order["items"][0].get("product_id")
+        if product_id:
+            product = await db.products.find_one({"id": product_id})
+            if product:
+                specifications = product.get("specifications")
+    
+    job_data = {
+        "order_number": order["order_number"],
+        "client_name": order["client_name"],
+        "due_date": order["due_date"].strftime("%d/%m/%Y") if isinstance(order["due_date"], datetime) else order["due_date"],
+        "current_stage": order.get("current_stage", "order_entered"),
+        "specifications": specifications,
+        "job_specification": job_spec
+    }
+    
+    pdf_content = doc_generator.generate_job_card(job_data)
+    
+    return StreamingResponse(
+        BytesIO(pdf_content),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=job_card_{order['order_number']}.pdf"}
+    )
+
+@api_router.get("/documents/packing-list/{order_id}")
+async def generate_packing_list(order_id: str, current_user: dict = Depends(require_production_access)):
+    """Generate packing list PDF"""
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    order_data = {
+        "order_number": order["order_number"],
+        "client_name": order["client_name"],
+        "delivery_address": order.get("delivery_address", "N/A"),
+        "delivery_instructions": order.get("delivery_instructions"),
+        "items": order["items"]
+    }
+    
+    pdf_content = doc_generator.generate_packing_list(order_data)
+    
+    return StreamingResponse(
+        BytesIO(pdf_content),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=packing_list_{order['order_number']}.pdf"}
+    )
+
+@api_router.get("/documents/invoice/{order_id}")
+async def generate_invoice(order_id: str, current_user: dict = Depends(require_admin_or_production_manager)):
+    """Generate invoice PDF"""
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    client = await db.clients.find_one({"id": order["client_id"]})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    invoice_data = {
+        "invoice_number": f"INV-{order['order_number']}",
+        "order_number": order["order_number"],
+        "payment_due_date": (datetime.utcnow() + timedelta(days=30)).strftime("%d/%m/%Y"),
+        "client_name": client["company_name"],
+        "client_address": f"{client['address']}, {client['city']}, {client['state']} {client['postal_code']}",
+        "client_abn": client.get("abn", "N/A"),
+        "items": order["items"],
+        "subtotal": order["subtotal"],
+        "gst": order["gst"],
+        "total_amount": order["total_amount"]
+    }
+    
+    pdf_content = doc_generator.generate_invoice(invoice_data)
+    
+    return StreamingResponse(
+        BytesIO(pdf_content),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=invoice_{order['order_number']}.pdf"}
+    )
+
+# ============= FILE SERVING ENDPOINTS =============
+
+@api_router.get("/uploads/{file_path:path}")
+async def serve_uploaded_file(file_path: str):
+    """Serve uploaded files"""
+    full_path = f"/app/uploads/{file_path}"
+    if not os.path.exists(full_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    return FileResponse(full_path)
+
+# ============= SYSTEM ENDPOINTS =============
+
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Misty Manufacturing Management System API"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
+@api_router.get("/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": datetime.utcnow()}
 
 # Include the router in the main app
 app.include_router(api_router)
 
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -63,12 +747,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files for uploads
+app.mount("/uploads", StaticFiles(directory="/app/uploads"), name="uploads")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize system on startup"""
+    logger.info("Starting Misty Manufacturing Management System...")
+    
+    # Create default admin user if not exists
+    admin_user = await db.users.find_one({"username": "Callum"})
+    if not admin_user:
+        logger.info("Creating default admin user...")
+        default_admin = User(
+            username="Callum",
+            email="admin@adelamerchants.com.au",
+            hashed_password=get_password_hash("Peach7510"),
+            role=UserRole.ADMIN,
+            full_name="Callum - System Administrator"
+        )
+        await db.users.insert_one(default_admin.dict())
+        logger.info("Default admin user created successfully")
+    
+    logger.info("Misty Manufacturing Management System started successfully!")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
