@@ -165,6 +165,18 @@ backend:
         agent: "testing"
         comment: "Invoicing system confirmed working with 8 jobs in delivery stage ready for invoicing. All APIs functioning correctly: live jobs retrieval, archived jobs with filtering, monthly reporting, and invoice generation. System ready for production use."
 
+  - task: "Document Generation APIs (PDF Creation)"
+    implemented: true
+    working: true
+    file: "backend/server.py, backend/document_generator.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "USER REPORTED ISSUE RESOLVED: Comprehensive testing of all 4 document generation endpoints shows 100% success rate (12/12 tests passed across 3 different orders). Tested endpoints: GET /api/documents/invoice/{order_id} (3056 bytes), GET /api/documents/packing-list/{order_id} (2844 bytes), GET /api/documents/acknowledgment/{order_id} (3253 bytes), GET /api/documents/job-card/{order_id} (2733 bytes). All PDFs have proper download headers (Content-Disposition: attachment), correct content-type (application/pdf), valid PDF structure (%PDF header), and include Adela Merchants branding. ReportLab PDF generation library working correctly. Found 10 jobs in delivery stage ready for document generation. The user's reported issue about PDFs not being generated/downloaded appears to have been temporary or already resolved."
+
 frontend:
   - task: "OrderManagement.js import fix"
     implemented: true
