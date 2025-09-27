@@ -184,7 +184,7 @@ async def upload_client_logo(client_id: str, file: UploadFile = File(...), curre
     
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Failed to upload logo")
 
 # ============= PRODUCT MANAGEMENT ENDPOINTS =============
