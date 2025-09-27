@@ -837,6 +837,10 @@ async def get_archived_jobs(
     
     # Enrich with client and invoice information
     for job in archived_jobs:
+        # Remove MongoDB ObjectId if present
+        if "_id" in job:
+            del job["_id"]
+            
         # Get client info
         client = await db.clients.find_one({"id": job["client_id"]})
         if client:
