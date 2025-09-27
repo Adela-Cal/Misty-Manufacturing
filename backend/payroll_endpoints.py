@@ -260,7 +260,7 @@ async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(requ
     )
 
 @payroll_router.get("/timesheets/pending")
-async def get_pending_timesheets(current_user: dict = Depends(require_admin_or_production_manager), db: Session = Depends(get_db)):
+async def get_pending_timesheets(current_user: dict = Depends(require_payroll_access)):
     """Get all pending timesheets for approval"""
     
     pending_timesheets = await db.timesheets.find({"status": TimesheetStatus.SUBMITTED}).to_list(1000)
