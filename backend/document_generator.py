@@ -80,7 +80,7 @@ class DocumentGenerator:
         # Company name
         canvas_obj.setFillColor(ADELA_BLACK)
         canvas_obj.setFont('Helvetica-Bold', 18)
-        canvas_obj.drawCentredText(self.page_width/2, self.page_height - 25*mm, 
+        canvas_obj.drawCentredString(self.page_width/2, self.page_height - 25*mm, 
                                  "ADELA MERCHANTS")
         
         # ABN (placeholder - should be from your actual ABN)
