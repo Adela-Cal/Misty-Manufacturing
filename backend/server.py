@@ -720,22 +720,54 @@ async def generate_invoice(order_id: str, current_user: dict = Depends(require_a
 
 # ============= XERO INTEGRATION ENDPOINTS =============
 
+# Xero credentials (provided by user)
+XERO_CLIENT_ID = "0C765F92708046D5B625162E5D42C5FB"
+XERO_CLIENT_SECRET = "nOLpzNnYonx6SCW6SKw-SINB8cSX2wMIL0OWbsvXeXkj4P--"
+XERO_CALLBACK_URL = "http://localhost:3000/xero/callback"
+XERO_SCOPES = "accounting.transactions accounting.contacts.read accounting.invoices.read accounting.settings.read"
+
+import secrets
+import requests
+import base64
+from urllib.parse import urlencode
+
 @api_router.get("/xero/status")
 async def check_xero_connection_status(current_user: dict = Depends(require_admin_or_production_manager)):
     """Check if user has active Xero connection"""
-    # For now, return false until user provides credentials
-    # This will be updated when Xero credentials are provided
-    return {"connected": False, "message": "Xero integration not configured"}
+    # Check if user has stored Xero tokens
+    user_tokens = await db.xero_tokens.find_one({"user_id": current_user["user_id"]})
+    
+    if user_tokens and user_tokens.get("access_token"):
+        # TODO: Validate token is still active with Xero API
+        return {"connected": True, "message": "Xero connection active"}
+    else:
+        return {"connected": False, "message": "No Xero connection found"}
 
 @api_router.get("/xero/auth/url")
 async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_production_manager)):
     """Get Xero OAuth authorization URL"""
-    # This endpoint will be implemented once user provides Xero credentials
-    # For now, return a placeholder response
-    raise HTTPException(
-        status_code=501, 
-        detail="Xero integration not yet configured. Please provide Xero API credentials to enable this feature."
-    )
+    # Generate secure state parameter
+    state = secrets.token_urlsafe(32)
+    
+    # Store state for validation
+    await db.xero_auth_states.insert_one({
+        "state": state,
+        "user_id": current_user["user_id"],
+        "created_at": datetime.utcnow()
+    })
+    
+    # Build authorization URL
+    auth_params = {
+        "response_type": "code",
+        "client_id": XERO_CLIENT_ID,
+        "redirect_uri": XERO_CALLBACK_URL,
+        "scope": XERO_SCOPES,
+        "state": state
+    }
+    
+    auth_url = f"https://login.xero.com/identity/connect/authorize?{urlencode(auth_params)}"
+    
+    return {"auth_url": auth_url, "state": state}
 
 @api_router.post("/xero/auth/callback")
 async def handle_xero_callback(
@@ -743,19 +775,82 @@ async def handle_xero_callback(
     current_user: dict = Depends(require_admin_or_production_manager)
 ):
     """Handle Xero OAuth callback and exchange code for tokens"""
-    # This endpoint will be implemented once user provides Xero credentials
-    # For now, return a placeholder response
-    raise HTTPException(
-        status_code=501, 
-        detail="Xero integration not yet configured. Please provide Xero API credentials to enable this feature."
-    )
+    auth_code = callback_data.get("code")
+    state = callback_data.get("state")
+    
+    if not auth_code or not state:
+        raise HTTPException(status_code=400, detail="Missing authorization code or state")
+    
+    # Validate state parameter
+    stored_state = await db.xero_auth_states.find_one({
+        "state": state,
+        "user_id": current_user["user_id"]
+    })
+    
+    if not stored_state:
+        raise HTTPException(status_code=400, detail="Invalid state parameter")
+    
+    # Clean up used state
+    await db.xero_auth_states.delete_one({"state": state})
+    
+    # Exchange code for tokens
+    token_url = "https://identity.xero.com/connect/token"
+    
+    # Prepare authentication
+    auth_string = f"{XERO_CLIENT_ID}:{XERO_CLIENT_SECRET}"
+    auth_bytes = auth_string.encode('ascii')
+    auth_b64 = base64.b64encode(auth_bytes).decode('ascii')
+    
+    headers = {
+        "Authorization": f"Basic {auth_b64}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    
+    token_data = {
+        "grant_type": "authorization_code",
+        "code": auth_code,
+        "redirect_uri": XERO_CALLBACK_URL
+    }
+    
+    try:
+        response = requests.post(token_url, headers=headers, data=token_data)
+        response.raise_for_status()
+        
+        tokens = response.json()
+        
+        # Store tokens for user
+        token_record = {
+            "user_id": current_user["user_id"],
+            "access_token": tokens["access_token"],
+            "refresh_token": tokens["refresh_token"],
+            "expires_at": datetime.utcnow() + timedelta(seconds=tokens.get("expires_in", 1800)),
+            "created_at": datetime.utcnow(),
+            "tenant_id": None  # Will be updated when we get tenant info
+        }
+        
+        # Upsert token record
+        await db.xero_tokens.replace_one(
+            {"user_id": current_user["user_id"]},
+            token_record,
+            upsert=True
+        )
+        
+        return {"message": "Xero connection successful", "access_token_expires_in": tokens.get("expires_in", 1800)}
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Xero token exchange failed: {str(e)}")
+        raise HTTPException(status_code=400, detail="Failed to exchange authorization code")
 
 @api_router.delete("/xero/disconnect")
 async def disconnect_xero(current_user: dict = Depends(require_admin_or_production_manager)):
     """Disconnect from Xero"""
-    # This will remove stored Xero tokens
-    # For now, return success as there's nothing to disconnect
-    return {"message": "Xero disconnection successful"}
+    # Remove stored tokens
+    result = await db.xero_tokens.delete_one({"user_id": current_user["user_id"]})
+    
+    if result.deleted_count > 0:
+        return {"message": "Xero disconnection successful"}
+    else:
+        return {"message": "No Xero connection found to disconnect"}
 
 # ============= INVOICING ENDPOINTS =============
 
