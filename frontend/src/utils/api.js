@@ -87,6 +87,12 @@ export const apiHelpers = {
   generateJobCard: (orderId) => api.get(`/documents/job-card/${orderId}`, { responseType: 'blob' }),
   generatePackingList: (orderId) => api.get(`/documents/packing-list/${orderId}`, { responseType: 'blob' }),
   generateInvoice: (orderId) => api.get(`/documents/invoice/${orderId}`, { responseType: 'blob' }),
+  
+  // Invoicing
+  getLiveJobs: () => api.get('/invoicing/live-jobs'),
+  getArchivedJobs: (month, year) => api.get('/invoicing/archived-jobs', { params: { month, year } }),
+  generateJobInvoice: (jobId, invoiceData) => api.post(`/invoicing/generate/${jobId}`, invoiceData),
+  getMonthlyReport: (month, year) => api.get('/invoicing/monthly-report', { params: { month, year } }),
 };
 
 // File download helper
