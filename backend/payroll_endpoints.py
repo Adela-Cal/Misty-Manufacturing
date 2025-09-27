@@ -360,7 +360,7 @@ async def reject_leave_request(request_id: str, rejection_reason: str, current_u
 # ============= REPORTING ENDPOINTS =============
 
 @payroll_router.get("/reports/payroll-summary")
-async def get_payroll_summary(start_date: date, end_date: date, current_user: dict = Depends(require_admin_or_production_manager), db: Session = Depends(get_db)):
+async def get_payroll_summary(start_date: date, end_date: date, current_user: dict = Depends(require_payroll_access)):
     """Get payroll summary for date range"""
     
     # Get all payroll calculations in date range
