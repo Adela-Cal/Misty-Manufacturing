@@ -72,7 +72,7 @@ async def get_employee(employee_id: str, current_user: dict = Depends(require_pa
     return EmployeeProfile(**employee)
 
 @payroll_router.put("/employees/{employee_id}", response_model=StandardResponse)
-async def update_employee(employee_id: str, employee_data: EmployeeProfileCreate, current_user: dict = Depends(require_admin), db: Session = Depends(get_db)):
+async def update_employee(employee_id: str, employee_data: EmployeeProfileCreate, current_user: dict = Depends(require_admin)):
     """Update employee profile (Admin only)"""
     
     update_data = employee_data.dict()
