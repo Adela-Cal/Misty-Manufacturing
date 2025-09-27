@@ -364,7 +364,7 @@ class DocumentGenerator:
         # Delivery instructions
         if order_data.get('delivery_instructions'):
             story.append(Paragraph("Delivery Instructions", self.styles['SectionHeader']))
-            story.append(Paragraph(order_data['delivery_instructions'], self.styles['BodyText']))
+            story.append(Paragraph(order_data['delivery_instructions'], self.styles['AdelaBodyText']))
             story.append(Spacer(1, 20))
         
         # Signature section
