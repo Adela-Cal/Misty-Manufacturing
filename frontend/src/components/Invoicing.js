@@ -101,15 +101,25 @@ const Invoicing = () => {
   const downloadInvoice = async (jobId, orderNumber) => {
     try {
       const response = await apiHelpers.generateInvoice(jobId);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      
+      // Ensure we have the right response type
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      
       const link = document.createElement('a');
       link.href = url;
       link.download = `invoice_${orderNumber}.pdf`;
+      link.target = '_blank'; // Add target blank
       document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      toast.success('Invoice downloaded successfully');
+      
+      // Use a small delay to ensure the link is ready
+      setTimeout(() => {
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        toast.success(`📄 Invoice ${orderNumber} downloaded`);
+      }, 100);
+      
     } catch (error) {
       console.error('Failed to download invoice:', error);
       toast.error('Failed to download invoice');
