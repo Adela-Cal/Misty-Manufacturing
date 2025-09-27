@@ -101,3 +101,110 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "User wants to: 1) Fix missing import in OrderManagement.js component, 2) Update AM logo to new Adela Merchants logo from PDF, 3) Implement comprehensive invoicing & job closure functionality with Xero integration, 4) Add archived jobs management, 5) Enhance role-based permissions for production board and reporting"
+
+backend:
+  - task: "Order Management API endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Backend APIs for orders are working, need to verify frontend integration"
+
+  - task: "Xero Integration Setup"
+    implemented: false
+    working: "NA"
+    file: "N/A"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need to implement Xero API integration for automated invoice generation"
+
+  - task: "Invoicing & Job Closure APIs"
+    implemented: false
+    working: "NA"
+    file: "N/A"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need to create new APIs for invoicing live jobs and archiving completed jobs"
+
+frontend:
+  - task: "OrderManagement.js import fix"
+    implemented: false
+    working: false
+    file: "frontend/src/components/OrderManagement.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Need to investigate and fix missing import issue in OrderManagement component"
+
+  - task: "Logo replacement"
+    implemented: false
+    working: "NA"
+    file: "frontend/src/components/Layout.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need to extract logo from PDF and replace current AM logo in top-left corner"
+
+  - task: "Invoicing Component"
+    implemented: false
+    working: "NA"
+    file: "N/A"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need to create comprehensive invoicing interface for live jobs management"
+
+  - task: "Archived Jobs Component"
+    implemented: false
+    working: "NA"
+    file: "N/A"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need to create archived jobs view and reporting functionality"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "OrderManagement.js import fix"
+    - "Xero Integration Setup"
+    - "Invoicing & Job Closure APIs"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Starting implementation of comprehensive invoicing system with Xero integration. First fixing OrderManagement import issue, then proceeding with logo update and invoicing functionality."
