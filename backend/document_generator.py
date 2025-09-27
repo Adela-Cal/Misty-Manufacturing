@@ -26,43 +26,47 @@ class DocumentGenerator:
     def _setup_custom_styles(self):
         """Setup custom styles for Adela Merchants branding"""
         # Company header style
-        self.styles.add(ParagraphStyle(
-            name='AdelaHeader',
-            fontSize=24,
-            textColor=ADELA_BLACK,
-            spaceAfter=10,
-            alignment=TA_CENTER,
-            fontName='Helvetica-Bold'
-        ))
+        if 'AdelaHeader' not in self.styles:
+            self.styles.add(ParagraphStyle(
+                name='AdelaHeader',
+                fontSize=24,
+                textColor=ADELA_BLACK,
+                spaceAfter=10,
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold'
+            ))
         
         # Document title style
-        self.styles.add(ParagraphStyle(
-            name='DocumentTitle',
-            fontSize=18,
-            textColor=ADELA_BLACK,
-            spaceAfter=15,
-            alignment=TA_CENTER,
-            fontName='Helvetica-Bold'
-        ))
+        if 'DocumentTitle' not in self.styles:
+            self.styles.add(ParagraphStyle(
+                name='DocumentTitle',
+                fontSize=18,
+                textColor=ADELA_BLACK,
+                spaceAfter=15,
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold'
+            ))
         
         # Section header style
-        self.styles.add(ParagraphStyle(
-            name='SectionHeader',
-            fontSize=12,
-            textColor=ADELA_BLACK,
-            spaceAfter=8,
-            fontName='Helvetica-Bold',
-            backColor=ADELA_LIGHT_GRAY
-        ))
+        if 'SectionHeader' not in self.styles:
+            self.styles.add(ParagraphStyle(
+                name='SectionHeader',
+                fontSize=12,
+                textColor=ADELA_BLACK,
+                spaceAfter=8,
+                fontName='Helvetica-Bold',
+                backColor=ADELA_LIGHT_GRAY
+            ))
         
         # Body text style
-        self.styles.add(ParagraphStyle(
-            name='BodyText',
-            fontSize=10,
-            textColor=ADELA_BLACK,
-            spaceAfter=6,
-            fontName='Helvetica'
-        ))
+        if 'AdelaBodyText' not in self.styles:
+            self.styles.add(ParagraphStyle(
+                name='AdelaBodyText',
+                fontSize=10,
+                textColor=ADELA_BLACK,
+                spaceAfter=6,
+                fontName='Helvetica'
+            ))
     
     def _draw_header(self, canvas_obj, doc_title: str):
         """Draw Adela Merchants letterhead header with curved elements"""
