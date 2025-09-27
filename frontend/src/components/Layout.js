@@ -190,7 +190,7 @@ const Layout = ({ children }) => {
           </ul>
         </nav>
 
-        {/* User info, Xero connection, and logout */}
+        {/* User info and logout */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
           <div className="flex items-center mb-3">
             <div className="h-8 w-8 bg-gray-600 rounded-full flex items-center justify-center mr-3">
@@ -204,41 +204,6 @@ const Layout = ({ children }) => {
                 {user?.role?.replace('_', ' ')}
               </p>
             </div>
-          </div>
-          
-          {/* Xero Connection Buttons */}
-          <div className="mb-3 space-y-2">
-            {checkingXeroStatus ? (
-              <div className="flex items-center justify-center py-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400"></div>
-                <span className="ml-2 text-xs text-gray-400">Checking Xero...</span>
-              </div>
-            ) : xeroConnected ? (
-              <>
-                <div className="flex items-center px-3 py-1 text-xs bg-green-900/30 border border-green-700 rounded-md">
-                  <div className="h-2 w-2 bg-green-400 rounded-full mr-2"></div>
-                  <span className="text-green-400 flex-1">Xero Connected</span>
-                </div>
-                <button
-                  onClick={handleXeroDisconnect}
-                  className="w-full flex items-center px-3 py-2 text-xs font-medium text-gray-300 hover:bg-gray-700 hover:text-red-400 rounded-md transition-colors duration-200 border border-gray-600"
-                >
-                  <XMarkIcon className="mr-2 h-4 w-4" />
-                  Disconnect from Xero
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={handleXeroConnect}
-                className="w-full flex items-center px-3 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-200 border border-blue-500"
-                style={{
-                  background: 'linear-gradient(135deg, #13b5ea 0%, #0e7bb8 100%)',
-                }}
-              >
-                <LinkIcon className="mr-2 h-4 w-4" />
-                Connect to Xero
-              </button>
-            )}
           </div>
           
           <button
