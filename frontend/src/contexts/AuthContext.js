@@ -85,6 +85,16 @@ export const AuthProvider = ({ children }) => {
         return ['admin', 'production_manager', 'sales'].includes(role);
       case 'delete_orders':
         return ['admin', 'production_manager'].includes(role);
+      case 'manage_payroll':
+        return ['admin', 'manager'].includes(role);
+      case 'view_all_timesheets':
+        return ['admin', 'production_manager', 'manager'].includes(role);
+      case 'approve_leave':
+        return ['admin', 'production_manager', 'manager'].includes(role);
+      case 'view_payroll_reports':
+        return ['admin', 'manager'].includes(role);
+      case 'submit_timesheet':
+        return ['admin', 'manager', 'production_manager', 'employee'].includes(role);
       default:
         return true;
     }
