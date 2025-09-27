@@ -721,7 +721,7 @@ async def generate_invoice(order_id: str, current_user: dict = Depends(require_a
 # ============= INVOICING ENDPOINTS =============
 
 @api_router.get("/invoicing/live-jobs")
-async def get_live_jobs(current_user: dict = Depends(require_admin_or_manager)):
+async def get_live_jobs(current_user: dict = Depends(require_admin_or_production_manager)):
     """Get all jobs ready for invoicing (completed production, not yet invoiced)"""
     live_jobs = await db.orders.find({
         "current_stage": "delivery", 
