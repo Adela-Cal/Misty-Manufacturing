@@ -1,53 +1,64 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import './App.css';
+import { Toaster } from 'sonner';
+import Login from './components/Login';
+import Dashboard from './components/Dashboard';
+import ClientManagement from './components/ClientManagement';
+import OrderManagement from './components/OrderManagement';
+import ProductionBoard from './components/ProductionBoard';
+import Reports from './components/Reports';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+function AppRoutes() {
+  const { user, loading } = useAuth();
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  if (!user) {
+    return <Login />;
+  }
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+    <div className="min-h-screen bg-gray-900">
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/clients" element={<ClientManagement />} />
+        <Route path="/orders" element={<OrderManagement />} />
+        <Route path="/production" element={<ProductionBoard />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
-};
+}
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <div className="App">
+          <AppRoutes />
+          <Toaster 
+            position="top-right" 
+            theme="dark"
+            toastOptions={{
+              style: {
+                background: '#1f2937',
+                color: '#f9fafb',
+                border: '1px solid #374151',
+              },
+            }}
+          />
+        </div>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
