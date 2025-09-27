@@ -1040,7 +1040,7 @@ class InvoicingAPITester:
         return []
     def run_all_tests(self):
         """Run all invoicing system and Xero integration tests"""
-        print("🚀 Starting Backend API Tests - Invoicing System & Xero Integration")
+        print("🚀 Starting Backend API Tests - Document Generation & Invoicing System")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 60)
         
@@ -1048,6 +1048,9 @@ class InvoicingAPITester:
         if not self.authenticate():
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
+        
+        # Test ReportLab PDF generation capability
+        self.test_reportlab_pdf_generation()
         
         # Test role permissions
         self.test_role_permissions()
@@ -1060,8 +1063,8 @@ class InvoicingAPITester:
         self.test_xero_auth_callback(state_param)
         self.test_xero_disconnect()
         
-        # Test jobs ready for invoicing
-        self.test_jobs_ready_for_invoicing()
+        # Test jobs ready for invoicing and get delivery jobs for document testing
+        delivery_jobs = self.test_jobs_ready_for_invoicing()
         
         # Test client model updates
         client_id = self.test_client_model_updates()
@@ -1075,6 +1078,12 @@ class InvoicingAPITester:
         if client_id:
             self.test_invoice_generation_api(client_id)
             self.test_document_generation(client_id)
+        
+        # MAIN FOCUS: Test document generation endpoints with real data
+        print("\n📄 TESTING DOCUMENT GENERATION ENDPOINTS (USER REPORTED ISSUE)")
+        self.test_document_generation_endpoints(delivery_jobs)
+        self.test_pdf_download_functionality(delivery_jobs)
+        self.test_document_branding_and_content(delivery_jobs)
         
         return self.generate_report()
     
