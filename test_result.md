@@ -207,4 +207,4 @@ test_plan:
 
 agent_communication:
   - agent: "main"
-    message: "Starting implementation of comprehensive invoicing system with Xero integration. First fixing OrderManagement import issue, then proceeding with logo update and invoicing functionality."
+    message: "Starting implementation of comprehensive invoicing system with Xero integration. OrderManagement component is working fine - no import issues found. Proceeding with logo update and invoicing functionality. Provided detailed Xero setup instructions to user."
