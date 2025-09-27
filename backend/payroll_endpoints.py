@@ -89,7 +89,7 @@ async def update_employee(employee_id: str, employee_data: EmployeeProfileCreate
     return StandardResponse(success=True, message="Employee updated successfully")
 
 @payroll_router.get("/employees/{employee_id}/leave-balances", response_model=EmployeeLeaveBalance)
-async def get_employee_leave_balances(employee_id: str, current_user: dict = Depends(require_any_role), db: Session = Depends(get_db)):
+async def get_employee_leave_balances(employee_id: str, current_user: dict = Depends(require_any_role)):
     """Get employee leave balances (Employee can view own, Managers can view all)"""
     
     # Check if user can access this employee's data
