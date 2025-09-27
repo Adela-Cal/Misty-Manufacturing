@@ -222,7 +222,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Xero Integration Setup"
+    - "Xero Integration APIs"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
