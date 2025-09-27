@@ -741,6 +741,26 @@ async def debug_xero_config():
         "expected_auth_url_start": "https://login.xero.com/identity/connect/authorize"
     }
 
+@api_router.get("/debug/test-pdf")
+async def test_pdf_download():
+    """Simple test PDF for debugging download issues"""
+    from reportlab.pdfgen import canvas
+    from io import BytesIO
+    
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer)
+    c.drawString(100, 750, "Test PDF Download")
+    c.drawString(100, 730, "If you can see this, PDF downloads are working!")
+    c.save()
+    
+    buffer.seek(0)
+    
+    return StreamingResponse(
+        BytesIO(buffer.read()),
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=test.pdf"}
+    )
+
 import secrets
 import requests
 import base64
