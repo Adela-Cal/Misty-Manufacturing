@@ -319,7 +319,7 @@ async def get_pending_leave_requests(current_user: dict = Depends(require_payrol
     return {"success": True, "data": pending_requests}
 
 @payroll_router.post("/leave-requests/{request_id}/approve", response_model=StandardResponse)
-async def approve_leave_request(request_id: str, current_user: dict = Depends(require_admin_or_production_manager), db: Session = Depends(get_db)):
+async def approve_leave_request(request_id: str, current_user: dict = Depends(require_payroll_access)):
     """Approve leave request"""
     
     result = await db.leave_requests.update_one(
