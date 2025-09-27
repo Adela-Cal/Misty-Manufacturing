@@ -87,6 +87,8 @@ class Client(BaseModel):
     logo_path: Optional[str] = None
     contacts: List[ClientContact] = []
     bank_details: Optional[ClientBankDetails] = None
+    payment_terms: str = "Net 30 days"  # Default payment terms
+    lead_time_days: int = 7  # Default lead time in days
     notes: Optional[str] = None
     is_active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
