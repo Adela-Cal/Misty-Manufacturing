@@ -533,8 +533,10 @@ class InvoicingAPITester:
                     else:
                         url_checks.append("❌ Client ID missing or incorrect")
                     
-                    # Check callback URL
-                    if expected_callback in auth_url:
+                    # Check callback URL (URL encoded)
+                    import urllib.parse
+                    encoded_callback = urllib.parse.quote(expected_callback, safe='')
+                    if encoded_callback in auth_url or expected_callback in auth_url:
                         url_checks.append("✅ Callback URL correct")
                     else:
                         url_checks.append("❌ Callback URL missing or incorrect")
