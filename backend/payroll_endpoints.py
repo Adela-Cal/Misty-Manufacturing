@@ -305,7 +305,7 @@ async def create_leave_request(leave_data: LeaveRequestCreate, current_user: dic
     return StandardResponse(success=True, message="Leave request created successfully", data={"id": leave_request.id})
 
 @payroll_router.get("/leave-requests/pending")
-async def get_pending_leave_requests(current_user: dict = Depends(require_admin_or_production_manager), db: Session = Depends(get_db)):
+async def get_pending_leave_requests(current_user: dict = Depends(require_payroll_access)):
     """Get all pending leave requests"""
     
     pending_requests = await db.leave_requests.find({"status": LeaveStatus.PENDING}).to_list(1000)
