@@ -107,6 +107,8 @@ class ClientCreate(BaseModel):
     website: Optional[str] = None
     contacts: List[ClientContact] = []
     bank_details: Optional[ClientBankDetails] = None
+    payment_terms: str = "Net 30 days"
+    lead_time_days: int = 7
     notes: Optional[str] = None
 
 # Product Models
