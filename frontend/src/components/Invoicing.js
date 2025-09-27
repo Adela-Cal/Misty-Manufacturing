@@ -175,6 +175,38 @@ const Invoicing = () => {
     return new Intl.DateTimeFormat('en-AU').format(new Date(date));
   };
 
+  const testPdfDownload = async () => {
+    try {
+      console.log('Testing PDF download...');
+      
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/debug/test-pdf`);
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      console.log('Blob size:', blob.size);
+      console.log('Blob type:', blob.type);
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'test.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Test PDF download initiated');
+    } catch (error) {
+      console.error('Test download failed:', error);
+      toast.error(`Test download failed: ${error.message}`);
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
