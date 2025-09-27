@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer circle with yellow background -->
+  <circle cx="40" cy="40" r="40" fill="#FCD34D"/>
+  
+  <!-- Inner circle for logo mark -->
+  <circle cx="40" cy="40" r="32" fill="#1F2937" stroke="#FCD34D" stroke-width="2"/>
+  
+  <!-- Stylized "AM" lettering -->
+  <g transform="translate(40, 40)">
+    <!-- Letter A -->
+    <path d="M-12 12 L-8 -12 L-4 -12 L0 12 L-4 12 L-5 8 L-7 8 L-8 12 Z M-6.5 4 L-5.5 4 L-6 -4 Z" fill="#FCD34D" stroke="none"/>
+    
+    <!-- Letter M -->
+    <path d="M4 12 L4 -12 L8 -12 L10 -4 L12 -12 L16 -12 L16 12 L12 12 L12 0 L10.5 8 L9.5 8 L8 0 L8 12 Z" fill="#FCD34D" stroke="none"/>
+  </g>
+  
+  <!-- Decorative accent curve -->
+  <path d="M10 40 Q40 20 70 40 Q40 60 10 40" fill="none" stroke="#FCD34D" stroke-width="1" opacity="0.3"/>
+</svg>
