@@ -727,7 +727,7 @@ async def generate_invoice(order_id: str, current_user: dict = Depends(require_a
 # Xero credentials (provided by user)
 XERO_CLIENT_ID = "0C765F92708046D5B625162E5D42C5FB"
 XERO_CLIENT_SECRET = "nOLpzNnYonx6SCW6SKw-SINB8cSX2wMIL0OWbsvXeXkj4P--"
-XERO_CALLBACK_URL = "http://localhost:3000/xero/callback"
+XERO_CALLBACK_URL = "http://localhost:3000/api/xero/callback"
 XERO_SCOPES = "accounting.transactions accounting.contacts.read accounting.invoices.read accounting.settings.read"
 
 import secrets
