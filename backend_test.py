@@ -729,6 +729,266 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result("Xero Permissions", False, f"Error: {str(e)}")
     
+    def test_document_generation_endpoints(self, delivery_jobs):
+        """Test all document generation endpoints with real order data"""
+        print("\n=== DOCUMENT GENERATION ENDPOINTS TEST ===")
+        
+        if not delivery_jobs:
+            self.log_result(
+                "Document Generation Endpoints", 
+                False, 
+                "No delivery jobs available for document testing"
+            )
+            return
+        
+        # Use the first available job for testing
+        test_job = delivery_jobs[0]
+        order_id = test_job.get('id')
+        order_number = test_job.get('order_number', 'Unknown')
+        
+        print(f"Testing document generation with Order ID: {order_id}, Order Number: {order_number}")
+        
+        # Test all document endpoints
+        document_endpoints = [
+            ("Invoice PDF", f"/documents/invoice/{order_id}", "invoice"),
+            ("Packing List PDF", f"/documents/packing-list/{order_id}", "packing_list"),
+            ("Order Acknowledgment PDF", f"/documents/acknowledgment/{order_id}", "acknowledgment"),
+            ("Job Card PDF", f"/documents/job-card/{order_id}", "job_card")
+        ]
+        
+        successful_docs = 0
+        failed_docs = []
+        
+        for doc_name, endpoint, doc_type in document_endpoints:
+            try:
+                print(f"  Testing {doc_name}...")
+                response = self.session.get(f"{API_BASE}{endpoint}")
+                
+                if response.status_code == 200:
+                    # Check if response is actually a PDF
+                    content_type = response.headers.get('content-type', '')
+                    content_length = len(response.content)
+                    
+                    if 'application/pdf' in content_type and content_length > 1000:
+                        # Check if PDF content starts with PDF header
+                        pdf_header = response.content[:4]
+                        if pdf_header == b'%PDF':
+                            self.log_result(
+                                f"{doc_name} Generation", 
+                                True, 
+                                f"Successfully generated {doc_name} ({content_length} bytes)",
+                                f"Content-Type: {content_type}, Order: {order_number}"
+                            )
+                            successful_docs += 1
+                        else:
+                            self.log_result(
+                                f"{doc_name} Generation", 
+                                False, 
+                                f"Response is not a valid PDF (missing PDF header)",
+                                f"Content starts with: {pdf_header}, Length: {content_length}"
+                            )
+                            failed_docs.append(doc_name)
+                    else:
+                        self.log_result(
+                            f"{doc_name} Generation", 
+                            False, 
+                            f"Invalid PDF response",
+                            f"Content-Type: {content_type}, Length: {content_length}"
+                        )
+                        failed_docs.append(doc_name)
+                else:
+                    error_detail = response.text[:200] if response.text else "No error details"
+                    self.log_result(
+                        f"{doc_name} Generation", 
+                        False, 
+                        f"HTTP {response.status_code} error",
+                        error_detail
+                    )
+                    failed_docs.append(doc_name)
+                    
+            except Exception as e:
+                self.log_result(f"{doc_name} Generation", False, f"Exception: {str(e)}")
+                failed_docs.append(doc_name)
+        
+        # Overall document generation summary
+        if successful_docs == len(document_endpoints):
+            self.log_result(
+                "Document Generation Endpoints", 
+                True, 
+                f"All {len(document_endpoints)} document types generated successfully"
+            )
+        else:
+            self.log_result(
+                "Document Generation Endpoints", 
+                False, 
+                f"Only {successful_docs}/{len(document_endpoints)} document types working",
+                f"Failed: {', '.join(failed_docs)}"
+            )
+    
+    def test_pdf_download_functionality(self, delivery_jobs):
+        """Test that PDFs can be properly downloaded with correct headers"""
+        print("\n=== PDF DOWNLOAD FUNCTIONALITY TEST ===")
+        
+        if not delivery_jobs:
+            self.log_result(
+                "PDF Download Functionality", 
+                False, 
+                "No delivery jobs available for download testing"
+            )
+            return
+        
+        test_job = delivery_jobs[0]
+        order_id = test_job.get('id')
+        order_number = test_job.get('order_number', 'Unknown')
+        
+        try:
+            # Test invoice PDF download
+            response = self.session.get(f"{API_BASE}/documents/invoice/{order_id}")
+            
+            if response.status_code == 200:
+                # Check download headers
+                content_disposition = response.headers.get('content-disposition', '')
+                content_type = response.headers.get('content-type', '')
+                
+                # Should have attachment disposition for download
+                has_attachment = 'attachment' in content_disposition
+                has_filename = f'invoice_{order_number}.pdf' in content_disposition or 'filename=' in content_disposition
+                is_pdf_type = 'application/pdf' in content_type
+                
+                if has_attachment and has_filename and is_pdf_type:
+                    self.log_result(
+                        "PDF Download Functionality", 
+                        True, 
+                        "PDF download headers configured correctly",
+                        f"Content-Disposition: {content_disposition}, Content-Type: {content_type}"
+                    )
+                else:
+                    issues = []
+                    if not has_attachment:
+                        issues.append("Missing 'attachment' in Content-Disposition")
+                    if not has_filename:
+                        issues.append("Missing filename in Content-Disposition")
+                    if not is_pdf_type:
+                        issues.append("Incorrect Content-Type")
+                    
+                    self.log_result(
+                        "PDF Download Functionality", 
+                        False, 
+                        "PDF download headers have issues",
+                        f"Issues: {', '.join(issues)}"
+                    )
+            else:
+                self.log_result(
+                    "PDF Download Functionality", 
+                    False, 
+                    f"Failed to get PDF for download test: HTTP {response.status_code}",
+                    response.text[:200]
+                )
+                
+        except Exception as e:
+            self.log_result("PDF Download Functionality", False, f"Error: {str(e)}")
+    
+    def test_reportlab_pdf_generation(self):
+        """Test if ReportLab PDF generation is working properly"""
+        print("\n=== REPORTLAB PDF GENERATION TEST ===")
+        
+        try:
+            # Test basic ReportLab functionality
+            from reportlab.pdfgen import canvas
+            from reportlab.lib.pagesizes import A4
+            from io import BytesIO
+            
+            # Create a simple test PDF
+            buffer = BytesIO()
+            c = canvas.Canvas(buffer, pagesize=A4)
+            c.drawString(100, 750, "ReportLab Test PDF")
+            c.save()
+            
+            # Check if PDF was created
+            pdf_content = buffer.getvalue()
+            buffer.close()
+            
+            if len(pdf_content) > 100 and pdf_content.startswith(b'%PDF'):
+                self.log_result(
+                    "ReportLab PDF Generation", 
+                    True, 
+                    f"ReportLab is working correctly ({len(pdf_content)} bytes generated)"
+                )
+            else:
+                self.log_result(
+                    "ReportLab PDF Generation", 
+                    False, 
+                    "ReportLab generated invalid PDF content",
+                    f"Content length: {len(pdf_content)}, Starts with: {pdf_content[:10]}"
+                )
+                
+        except ImportError as e:
+            self.log_result(
+                "ReportLab PDF Generation", 
+                False, 
+                "ReportLab library not available",
+                str(e)
+            )
+        except Exception as e:
+            self.log_result("ReportLab PDF Generation", False, f"ReportLab error: {str(e)}")
+    
+    def test_document_branding_and_content(self, delivery_jobs):
+        """Test that documents include proper Adela Merchants branding"""
+        print("\n=== DOCUMENT BRANDING AND CONTENT TEST ===")
+        
+        if not delivery_jobs:
+            self.log_result(
+                "Document Branding and Content", 
+                False, 
+                "No delivery jobs available for branding testing"
+            )
+            return
+        
+        test_job = delivery_jobs[0]
+        order_id = test_job.get('id')
+        
+        try:
+            # Test order acknowledgment for branding elements
+            response = self.session.get(f"{API_BASE}/documents/acknowledgment/{order_id}")
+            
+            if response.status_code == 200 and 'application/pdf' in response.headers.get('content-type', ''):
+                # For PDF content analysis, we can check the raw content for text strings
+                pdf_content = response.content.decode('latin-1', errors='ignore')
+                
+                branding_elements = [
+                    ("Company Name", "ADELA MERCHANTS" in pdf_content),
+                    ("Document Title", "ORDER ACKNOWLEDGMENT" in pdf_content),
+                    ("Contact Email", "info@adelamerchants.com.au" in pdf_content),
+                    ("Website", "www.adelamerchants.com.au" in pdf_content)
+                ]
+                
+                found_elements = [name for name, found in branding_elements if found]
+                missing_elements = [name for name, found in branding_elements if not found]
+                
+                if len(found_elements) >= 2:  # At least company name and title should be present
+                    self.log_result(
+                        "Document Branding and Content", 
+                        True, 
+                        f"Document contains proper branding elements",
+                        f"Found: {', '.join(found_elements)}"
+                    )
+                else:
+                    self.log_result(
+                        "Document Branding and Content", 
+                        False, 
+                        "Document missing key branding elements",
+                        f"Missing: {', '.join(missing_elements)}, Found: {', '.join(found_elements)}"
+                    )
+            else:
+                self.log_result(
+                    "Document Branding and Content", 
+                    False, 
+                    f"Could not retrieve document for branding test: HTTP {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result("Document Branding and Content", False, f"Error: {str(e)}")
+    
     def test_jobs_ready_for_invoicing(self):
         """Test that there are jobs in delivery stage ready for invoicing"""
         print("\n=== JOBS READY FOR INVOICING TEST ===")
