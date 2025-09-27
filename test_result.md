@@ -142,9 +142,9 @@ backend:
         comment: "Provided detailed Xero setup instructions to user. Waiting for Xero API credentials to implement integration."
 
   - task: "Invoicing & Job Closure APIs"
-    implemented: false
-    working: "NA"
-    file: "N/A"
+    implemented: true
+    working: true
+    file: "backend/server.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -152,6 +152,9 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "Need to create new APIs for invoicing live jobs and archiving completed jobs"
+      - working: true
+        agent: "testing"
+        comment: "All invoicing APIs are implemented and working correctly. Fixed ObjectId serialization issues and JWT token field access. APIs tested: GET /api/invoicing/live-jobs (6 jobs found), POST /api/invoicing/generate/{job_id} (invoice generation working), GET /api/invoicing/archived-jobs (2 archived jobs found), GET /api/invoicing/monthly-report (report generation working). Authentication and role permissions working correctly."
 
 frontend:
   - task: "OrderManagement.js import fix"
