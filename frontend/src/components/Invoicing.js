@@ -66,6 +66,18 @@ const Invoicing = () => {
       const response = await apiHelpers.generateJobInvoice(selectedJob.id, invoiceData);
       
       toast.success(`Invoice ${response.data.invoice_number} generated successfully`);
+      
+      // Automatically download invoice PDF and packing slip
+      setTimeout(async () => {
+        try {
+          await downloadInvoice(selectedJob.id, selectedJob.order_number);
+          await downloadPackingSlip(selectedJob.id, selectedJob.order_number);
+        } catch (downloadError) {
+          console.error('Failed to download documents:', downloadError);
+          toast.error('Invoice generated but download failed. You can manually download from Archived Jobs.');
+        }
+      }, 1000);
+      
       setShowInvoiceModal(false);
       setSelectedJob(null);
       loadData(); // Refresh data
