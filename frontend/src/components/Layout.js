@@ -33,6 +33,12 @@ const Layout = ({ children }) => {
     { name: 'Reports', href: '/reports', icon: ChartBarIcon, permission: 'view_reports' },
   ];
 
+  // Xero connection item (separate from main navigation)
+  const xeroConnectionItem = { 
+    name: 'Xero Connection', 
+    permission: 'view_reports' 
+  };
+
   const filteredNavigation = navigation.filter(item => 
     !item.permission || hasPermission(item.permission)
   );
