@@ -737,6 +737,19 @@ async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_produc
         detail="Xero integration not yet configured. Please provide Xero API credentials to enable this feature."
     )
 
+@api_router.post("/xero/auth/callback")
+async def handle_xero_callback(
+    callback_data: dict,
+    current_user: dict = Depends(require_admin_or_production_manager)
+):
+    """Handle Xero OAuth callback and exchange code for tokens"""
+    # This endpoint will be implemented once user provides Xero credentials
+    # For now, return a placeholder response
+    raise HTTPException(
+        status_code=501, 
+        detail="Xero integration not yet configured. Please provide Xero API credentials to enable this feature."
+    )
+
 @api_router.delete("/xero/disconnect")
 async def disconnect_xero(current_user: dict = Depends(require_admin_or_production_manager)):
     """Disconnect from Xero"""
