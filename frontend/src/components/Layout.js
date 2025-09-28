@@ -41,7 +41,7 @@ const Layout = ({ children }) => {
     { name: 'Product Specifications', href: '/product-specifications', icon: DocumentTextIcon, permission: 'view_reports' },
     { name: 'Calculators', href: '/calculators', icon: CalculatorIcon, permission: 'view_reports' },
     { name: 'Stocktake', href: '/stocktake', icon: ClipboardDocumentListIcon, permission: 'view_reports' },
-    { name: 'Staff & Security', href: '/staff-security', icon: UserIcon, permission: 'admin' },
+    { name: 'Staff & Security', href: '/staff-security', icon: ShieldCheckIcon, permission: 'admin' },
   ];
 
   // Xero connection item (separate from main navigation)
