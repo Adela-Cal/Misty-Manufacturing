@@ -18,7 +18,8 @@ import {
   CubeIcon,
   TruckIcon,
   DocumentTextIcon,
-  CalculatorIcon
+  CalculatorIcon,
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 
 const Layout = ({ children }) => {
