@@ -249,7 +249,7 @@ async def get_materials(current_user: dict = Depends(require_any_role)):
     return [Material(**material) for material in materials]
 
 @api_router.post("/materials", response_model=StandardResponse)
-async def create_material(material_data: MaterialCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+async def create_material(material_data: MaterialCreate, current_user: dict = Depends(require_admin_or_manager)):
     """Create new material"""
     new_material = Material(**material_data.dict())
     await db.materials.insert_one(new_material.dict())
