@@ -303,7 +303,7 @@ async def get_suppliers(current_user: dict = Depends(require_any_role)):
     return [Supplier(**supplier) for supplier in suppliers]
 
 @api_router.post("/suppliers", response_model=StandardResponse)
-async def create_supplier(supplier_data: SupplierCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+async def create_supplier(supplier_data: SupplierCreate, current_user: dict = Depends(require_admin_or_manager)):
     """Create new supplier"""
     new_supplier = Supplier(**supplier_data.dict())
     
