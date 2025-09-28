@@ -7109,8 +7109,9 @@ class InvoicingAPITester:
                 except Exception as e:
                     self.log_result(f"Edge Case - Delete Order in {stage.title()} Stage", False, f"Error: {str(e)}")
         
-        # Test 3: Test different unsafe stages
-        unsafe_stages = ["cutting", "paper_slitting", "spiral_winding", "finishing", "quality_control", "packing"]
+        # Test 3: Test different unsafe stages (using actual ProductionStage enum values)
+        # Note: The delete_order function checks for these specific stage names
+        unsafe_stages = ["paper_slitting", "winding", "finishing"]
         
         for stage in unsafe_stages[:2]:  # Test first 2 to avoid too many test orders
             unsafe_order_id = self.create_test_order_in_stage(client_id, stage)
