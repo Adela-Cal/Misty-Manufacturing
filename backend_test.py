@@ -3051,8 +3051,8 @@ class InvoicingAPITester:
                 self.log_result("PUT /api/materials - Update Material", False, f"Error: {str(e)}")
 
     def run_all_tests(self):
-        """Run all backend API tests including new Materials and Client Product Catalog APIs"""
-        print("🚀 Starting Backend API Tests - Materials Management & Client Product Catalog")
+        """Run all backend API tests with PRIMARY FOCUS on Materials API Fix"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Materials API Fix")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 60)
         
@@ -3060,6 +3060,10 @@ class InvoicingAPITester:
         if not self.authenticate():
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
+        
+        # PRIMARY FOCUS: Test Materials API Fix
+        print("\n🔧 TESTING MATERIALS API FIX - PRIMARY FOCUS")
+        self.test_materials_api_fix()
         
         # Test authentication requirements for new endpoints
         self.test_authentication_requirements()
