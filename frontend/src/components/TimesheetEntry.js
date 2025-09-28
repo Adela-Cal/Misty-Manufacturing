@@ -435,10 +435,24 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
                 const isWeekend = new Date(entry.date).getDay() === 0 || new Date(entry.date).getDay() === 6;
                 return (
                   <tr key={index} className={isWeekend ? 'bg-gray-700/30' : ''}>
-                    <td className="px-4 py-3">
+                    <td 
+                      className={`px-4 py-3 ${canEdit() ? 'cursor-pointer hover:bg-gray-600' : ''}`}
+                      onClick={() => handleDayClick(index)}
+                    >
                       <div className="text-sm">
                         <div className="font-medium text-white">{getDayName(entry.date)}</div>
                         <div className="text-gray-400">{formatDate(entry.date)}</div>
+                        {Object.keys(entry.leave_hours || {}).length > 0 && (
+                          <div className="text-xs text-yellow-400 mt-1">
+                            {Object.entries(entry.leave_hours).map(([type, hours]) => 
+                              hours > 0 && (
+                                <div key={type}>
+                                  {payrollUtils.leaveTypeDisplayNames[type] || type}: {hours}h
+                                </div>
+                              )
+                            )}
+                          </div>
+                        )}
                       </div>
                     </td>
                     
