@@ -137,6 +137,10 @@ const MaterialsManagement = () => {
       newErrors.order_to_delivery_time = 'Order to delivery time is required';
     }
     
+    if (!formData.material_description.trim()) {
+      newErrors.material_description = 'Material description is required';
+    }
+    
     if (!formData.price || parseFloat(formData.price) <= 0) {
       newErrors.price = 'Price must be greater than 0';
     }
