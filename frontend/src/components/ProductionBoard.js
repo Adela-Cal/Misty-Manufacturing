@@ -158,38 +158,7 @@ const ProductionBoard = () => {
     </svg>
   );
 
-  const AustraliaMap = ({ deliveryAddress }) => {
-    const location = getDeliveryLocationDot(deliveryAddress);
-    
-    return (
-      <div className="relative" title={`Delivery: ${deliveryAddress || 'Unknown'}`}>
-        <svg width="60" height="45" viewBox="0 0 200 150" className="text-gray-400">
-          {/* Simplified Australia outline */}
-          <path 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2"
-            d="M30,40 L50,20 L80,15 L120,20 L150,25 L170,40 L180,60 L175,80 L170,100 L160,120 L140,130 L100,135 L70,130 L50,125 L35,110 L25,90 L20,70 L25,50 Z"
-          />
-          {/* Tasmania */}
-          <path 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2"
-            d="M125,130 L135,125 L140,135 L130,140 Z"
-          />
-          {/* Delivery location dot */}
-          <circle 
-            cx={location.x * 2} 
-            cy={location.y * 1.5} 
-            r="3" 
-            fill="red" 
-            className="animate-pulse"
-          />
-        </svg>
-      </div>
-    );
-  };
+  // Removed AustraliaMap component as requested
 
   const JobCard = ({ job, stageKey }) => {
     const isExpanded = expandedJobs[job.id];
