@@ -1115,6 +1115,7 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(req
         order_number=order_number,
         client_id=order_data.client_id,
         client_name=client["company_name"],
+        purchase_order_number=order_data.purchase_order_number,
         items=order_data.items,
         subtotal=subtotal,
         gst=gst,
