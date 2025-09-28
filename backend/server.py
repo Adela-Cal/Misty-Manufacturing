@@ -740,11 +740,15 @@ async def generate_invoice_pdf(order_id: str):
 
 # ============= XERO INTEGRATION ENDPOINTS =============
 
-# Xero credentials from environment variables
+# Xero Integration Configuration
 XERO_CLIENT_ID = os.getenv("XERO_CLIENT_ID")
 XERO_CLIENT_SECRET = os.getenv("XERO_CLIENT_SECRET")  
 XERO_CALLBACK_URL = os.getenv("XERO_REDIRECT_URI", "https://app.emergent.sh/api/xero/callback")
 XERO_SCOPES = "openid profile email accounting.transactions accounting.contacts accounting.settings offline_access"
+
+# Xero Account Configuration
+XERO_DEFAULT_SALES_ACCOUNT_CODE = "200"  # Sales account code
+XERO_DEFAULT_TAX_TYPE = "OUTPUT"  # Default GST/tax type
 
 # Debug endpoint for testing
 @api_router.get("/xero/debug")
