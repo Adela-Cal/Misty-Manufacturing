@@ -526,51 +526,53 @@ const ProductSpecifications = () => {
                   </div>
                 </div>
 
-                {/* Specifications */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-white mb-4">Product Specifications</h3>
-                  <div className="space-y-4">
-                    {Object.entries(formData.specifications).map(([key, value]) => (
-                      <div key={key} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={key}
-                          onChange={(e) => {
-                            const newKey = e.target.value;
-                            const newSpecs = { ...formData.specifications };
-                            delete newSpecs[key];
-                            newSpecs[newKey] = value;
-                            setFormData(prev => ({ ...prev, specifications: newSpecs }));
-                          }}
-                          className="misty-input flex-1"
-                          placeholder="Specification name (e.g., Core ID, Width)"
-                        />
-                        <input
-                          type="text"
-                          value={value}
-                          onChange={(e) => handleSpecificationChange(key, e.target.value)}
-                          className="misty-input flex-1"
-                          placeholder="Specification value"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeSpecification(key)}
-                          className="text-red-400 hover:text-red-300 p-2"
-                        >
-                          <MinusIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => handleSpecificationChange(`spec_${Date.now()}`, '')}
-                      className="text-yellow-400 hover:text-yellow-300 text-sm flex items-center"
-                    >
-                      <PlusIcon className="h-4 w-4 mr-1" />
-                      Add Specification
-                    </button>
+                {/* Specifications - Only show for non-Spiral Paper Core types */}
+                {formData.product_type !== 'Spiral Paper Core' && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4">Product Specifications</h3>
+                    <div className="space-y-4">
+                      {Object.entries(formData.specifications).map(([key, value]) => (
+                        <div key={key} className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={key}
+                            onChange={(e) => {
+                              const newKey = e.target.value;
+                              const newSpecs = { ...formData.specifications };
+                              delete newSpecs[key];
+                              newSpecs[newKey] = value;
+                              setFormData(prev => ({ ...prev, specifications: newSpecs }));
+                            }}
+                            className="misty-input flex-1"
+                            placeholder="Specification name (e.g., Core ID, Width)"
+                          />
+                          <input
+                            type="text"
+                            value={value}
+                            onChange={(e) => handleSpecificationChange(key, e.target.value)}
+                            className="misty-input flex-1"
+                            placeholder="Specification value"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeSpecification(key)}
+                            className="text-red-400 hover:text-red-300 p-2"
+                          >
+                            <MinusIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => handleSpecificationChange(`spec_${Date.now()}`, '')}
+                        className="text-yellow-400 hover:text-yellow-300 text-sm flex items-center"
+                      >
+                        <PlusIcon className="h-4 w-4 mr-1" />
+                        Add Specification
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Materials Composition - Conditional Based on Product Type */}
                 {formData.product_type === 'Spiral Paper Core' ? (
