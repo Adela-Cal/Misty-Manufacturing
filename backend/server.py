@@ -748,6 +748,182 @@ def _is_first_business_day(check_date):
         first_day += timedelta(days=1)
     return check_date == first_day
 
+# ============= USER MANAGEMENT ENDPOINTS =============
+
+@api_router.get("/users", response_model=List[dict])
+async def get_users(current_user: dict = Depends(require_admin)):
+    """Get all users (Admin only)"""
+    users = await db.users.find({}).sort("full_name", 1).to_list(1000)
+    
+    # Remove password hashes from response
+    for user in users:
+        if "password_hash" in user:
+            del user["password_hash"]
+    
+    return users
+
+@api_router.post("/users", response_model=StandardResponse)
+async def create_user(user_data: UserCreate, current_user: dict = Depends(require_admin)):
+    """Create new user account (Admin only)"""
+    # Check if username or email already exists
+    existing_user = await db.users.find_one({
+        "$or": [
+            {"username": user_data.username},
+            {"email": user_data.email}
+        ]
+    })
+    
+    if existing_user:
+        if existing_user["username"] == user_data.username:
+            raise HTTPException(status_code=400, detail="Username already exists")
+        if existing_user["email"] == user_data.email:
+            raise HTTPException(status_code=400, detail="Email already exists")
+    
+    # Hash the password
+    password_hash = hash_password(user_data.password)
+    
+    # Create user document
+    new_user = {
+        "id": str(uuid.uuid4()),
+        "username": user_data.username,
+        "email": user_data.email,
+        "password_hash": password_hash,
+        "full_name": user_data.full_name,
+        "role": user_data.role,
+        "department": user_data.department,
+        "phone": user_data.phone,
+        "is_active": True,
+        "created_at": datetime.utcnow(),
+        "updated_at": None,
+        "created_by": current_user["sub"]
+    }
+    
+    await db.users.insert_one(new_user)
+    
+    return StandardResponse(success=True, message="User created successfully", data={"id": new_user["id"]})
+
+@api_router.get("/users/{user_id}", response_model=dict)
+async def get_user(user_id: str, current_user: dict = Depends(require_admin)):
+    """Get specific user by ID (Admin only)"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Remove password hash from response
+    if "password_hash" in user:
+        del user["password_hash"]
+    
+    return user
+
+@api_router.put("/users/{user_id}", response_model=StandardResponse)
+async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = Depends(require_admin)):
+    """Update user account (Admin only)"""
+    # Check if user exists
+    existing_user = await db.users.find_one({"id": user_id})
+    if not existing_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Prepare update data
+    update_data = {}
+    if user_data.email is not None:
+        # Check if email is already used by another user
+        email_user = await db.users.find_one({"email": user_data.email, "id": {"$ne": user_id}})
+        if email_user:
+            raise HTTPException(status_code=400, detail="Email already exists")
+        update_data["email"] = user_data.email
+    
+    if user_data.full_name is not None:
+        update_data["full_name"] = user_data.full_name
+    if user_data.role is not None:
+        update_data["role"] = user_data.role
+    if user_data.department is not None:
+        update_data["department"] = user_data.department
+    if user_data.phone is not None:
+        update_data["phone"] = user_data.phone
+    if user_data.is_active is not None:
+        update_data["is_active"] = user_data.is_active
+    
+    update_data["updated_at"] = datetime.utcnow()
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": update_data}
+    )
+    
+    return StandardResponse(success=True, message="User updated successfully")
+
+@api_router.delete("/users/{user_id}", response_model=StandardResponse)
+async def delete_user(user_id: str, current_user: dict = Depends(require_admin)):
+    """Soft delete user (Admin only)"""
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return StandardResponse(success=True, message="User deactivated successfully")
+
+@api_router.post("/users/change-password", response_model=StandardResponse)
+async def change_user_password(password_data: PasswordChangeRequest, current_user: dict = Depends(get_current_user)):
+    """Change user's own password"""
+    # Get current user from database
+    user = await db.users.find_one({"id": current_user["sub"]})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify current password
+    if not verify_password(password_data.current_password, user["password_hash"]):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    # Hash new password
+    new_password_hash = hash_password(password_data.new_password)
+    
+    # Update password
+    await db.users.update_one(
+        {"id": current_user["sub"]},
+        {"$set": {
+            "password_hash": new_password_hash,
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    
+    return StandardResponse(success=True, message="Password changed successfully")
+
+# Helper functions for user management
+def _generate_permissions(role: UserRole) -> List[str]:
+    """Generate permissions based on role"""
+    base_permissions = []
+    
+    if role == UserRole.ADMIN:
+        return ["all"]  # Admin has all permissions
+    
+    elif role == UserRole.MANAGER:
+        return [
+            "manage_clients", "create_orders", "update_production", 
+            "view_reports", "manage_payroll", "manage_materials",
+            "manage_suppliers", "manage_specifications", "use_calculators"
+        ]
+    
+    elif role == UserRole.SUPERVISOR:
+        return [
+            "create_orders", "update_production", "use_calculators", 
+            "view_own_payroll", "submit_timesheets", "request_leave"
+        ]
+    
+    elif role == UserRole.PRODUCTION_STAFF:
+        return [
+            "update_production", "view_own_payroll", "submit_timesheets", "request_leave"
+        ]
+    
+    elif role == UserRole.SALES:
+        return [
+            "manage_clients", "create_orders", "view_reports"
+        ]
+    
+    return base_permissions
+
 # ============= CLIENT PRODUCT CATALOG ENDPOINTS =============
 
 @api_router.get("/clients/{client_id}/catalog", response_model=List[ClientProduct])
