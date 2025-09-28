@@ -83,7 +83,7 @@ const Invoicing = () => {
               onClick={() => downloadPackingSlip(selectedJob.id, selectedJob.order_number)}
               className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs text-white"
             >
-              📦 Packing Slip
+              Packing Slip
             </button>
           </div>
         </div>,
