@@ -603,6 +603,53 @@ const MaterialsManagement = () => {
                           placeholder="0.00"
                         />
                       </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Supplied Roll Weight (kg)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          name="supplied_roll_weight"
+                          value={formData.supplied_roll_weight}
+                          onChange={handleInputChange}
+                          className="misty-input w-full"
+                          placeholder="0.00"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Master Deckle Width (mm)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          name="master_deckle_width_mm"
+                          value={formData.master_deckle_width_mm}
+                          onChange={handleInputChange}
+                          className="misty-input w-full"
+                          placeholder="0.00"
+                        />
+                      </div>
+
+                      {/* Linear Meters Calculation */}
+                      {calculateLinearMeters() && (
+                        <div className="md:col-span-2 mt-4 p-4 bg-gray-800 rounded-lg border border-gray-600">
+                          <h4 className="text-md font-semibold text-white mb-2">Calculated Linear Meters</h4>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-300">
+                              Based on GSM ({formData.gsm}), Weight ({formData.supplied_roll_weight} kg), Width ({formData.master_deckle_width_mm} mm)
+                            </span>
+                            <span className="text-yellow-400 font-bold text-lg">
+                              {calculateLinearMeters()} meters
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
