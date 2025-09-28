@@ -1054,7 +1054,79 @@ async def get_next_xero_invoice_number(current_user: dict = Depends(require_admi
         logger.error(f"Failed to get next invoice number from Xero: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get next invoice number: {str(e)}")
 
-@api_router.post("/xero/create-draft-invoice")
+@api_router.get("/xero/account-codes")
+async def get_xero_account_codes(current_user: dict = Depends(require_admin_or_production_manager)):
+    """Get available account codes from Xero for setup verification"""
+    try:
+        api_client, tenant_id = await get_xero_api_client(current_user["user_id"])
+        
+        if not tenant_id:
+            raise HTTPException(status_code=400, detail="No Xero tenant ID found")
+        
+        accounting_api = AccountingApi(api_client)
+        
+        # Get all revenue accounts
+        accounts_response = accounting_api.get_accounts(
+            xero_tenant_id=tenant_id,
+            where='Type=="REVENUE" AND Status=="ACTIVE"'
+        )
+        
+        revenue_accounts = []
+        if accounts_response.accounts:
+            for account in accounts_response.accounts:
+                revenue_accounts.append({
+                    "code": account.code,
+                    "name": account.name,
+                    "description": account.description,
+                    "type": account.type
+                })
+        
+        return {
+            "success": True,
+            "revenue_accounts": revenue_accounts,
+            "recommended_setup": {
+                "message": "For best results, ensure you have a revenue account with code '200' or update Misty to use one of your existing codes",
+                "current_default": "200"
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get Xero account codes: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get account codes: {str(e)}")
+
+@api_router.get("/xero/tax-rates")
+async def get_xero_tax_rates(current_user: dict = Depends(require_admin_or_production_manager)):
+    """Get available tax rates from Xero"""
+    try:
+        api_client, tenant_id = await get_xero_api_client(current_user["user_id"])
+        
+        if not tenant_id:
+            raise HTTPException(status_code=400, detail="No Xero tenant ID found")
+        
+        accounting_api = AccountingApi(api_client)
+        
+        # Get all tax rates
+        tax_rates_response = accounting_api.get_tax_rates(xero_tenant_id=tenant_id)
+        
+        tax_rates = []
+        if tax_rates_response.tax_rates:
+            for tax_rate in tax_rates_response.tax_rates:
+                tax_rates.append({
+                    "name": tax_rate.name,
+                    "tax_type": tax_rate.tax_type,
+                    "rate": str(tax_rate.effective_rate) if tax_rate.effective_rate else "0",
+                    "status": tax_rate.status
+                })
+        
+        return {
+            "success": True,
+            "tax_rates": tax_rates,
+            "current_default": "OUTPUT"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get Xero tax rates: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get tax rates: {str(e)}")
 async def create_xero_draft_invoice(
     invoice_data: dict,
     current_user: dict = Depends(require_admin_or_production_manager)
