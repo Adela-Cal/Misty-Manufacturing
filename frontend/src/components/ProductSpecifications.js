@@ -584,8 +584,7 @@ const ProductSpecifications = () => {
                           value={formData.internal_diameter}
                           onChange={(e) => setFormData(prev => ({ 
                             ...prev, 
-                            internal_diameter: e.target.value,
-                            specifications: { ...prev.specifications, internal_diameter: e.target.value }
+                            internal_diameter: e.target.value
                           }))}
                           className="misty-input w-full"
                           placeholder="Enter internal diameter"
