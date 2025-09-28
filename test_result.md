@@ -499,6 +499,18 @@ metadata:
         agent: "main"
         comment: "Added user management API helper functions to frontend api.js to connect StaffSecurity.js component with backend endpoints. Added: getUsers(), createUser(), getUser(), updateUser(), deleteUser(), and changePassword() functions to apiHelpers object. The StaffSecurity.js component was already complete and now fully integrates with the tested backend API endpoints for complete user management functionality including user creation, role updates, password changes, and user deactivation."
 
+  - task: "Sidebar Scroll Fix and Navigation Enhancement"
+    implemented: true
+    working: true
+    file: "frontend/src/components/Layout.js"
+    stuck_count: 0  
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed sidebar content overflow and overlapping issues by restructuring the Layout.js sidebar with proper flexbox layout and scroll functionality. Converted sidebar to flex column with: 1) Fixed logo header at top (flex-shrink-0), 2) Scrollable navigation area in middle (flex-1 overflow-y-auto), 3) Fixed user info section at bottom (flex-shrink-0). Added 'Staff & Security' navigation item with ShieldCheckIcon and admin permission. This resolves user-reported issue where navigation items were overlapping and 'Connect to Xero' button was inaccessible due to content overflow."
+
 test_plan:
   current_focus:
     - "Staff & Security User Management API endpoints"
