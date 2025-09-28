@@ -302,7 +302,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
           {/* Client Selection */}
           <div className="mb-8">
             <h3 className="text-lg font-semibold text-white mb-4">Order Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
                   Client *
@@ -330,6 +330,20 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                 {errors.client_id && (
                   <p className="text-red-400 text-sm mt-1">{errors.client_id}</p>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Purchase Order Number
+                </label>
+                <input
+                  type="text"
+                  name="purchase_order_number"
+                  value={formData.purchase_order_number}
+                  onChange={handleInputChange}
+                  className="misty-input w-full"
+                  placeholder="Client's PO number"
+                />
               </div>
               
               <div>
