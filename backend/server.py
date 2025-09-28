@@ -663,7 +663,11 @@ async def create_stocktake(
         created_by=current_user["sub"]
     )
     
-    await db.stocktakes.insert_one(new_stocktake.dict())
+    # Convert the stocktake to dict and handle date serialization
+    stocktake_dict = new_stocktake.dict()
+    stocktake_dict["stocktake_date"] = datetime.combine(stocktake_data.stocktake_date, datetime.min.time())
+    
+    await db.stocktakes.insert_one(stocktake_dict)
     
     return StandardResponse(
         success=True, 
