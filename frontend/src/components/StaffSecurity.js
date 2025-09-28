@@ -77,11 +77,11 @@ const StaffSecurity = () => {
   const handleEdit = (user) => {
     setSelectedUser(user);
     setFormData({
-      username: user.username,
-      email: user.email,
+      username: user.username || '',
+      email: user.email || '',
       password: '', // Don't populate password for edit
-      full_name: user.full_name,
-      role: user.role,
+      full_name: user.full_name || '',
+      role: user.role || 'production_team',
       department: user.department || '',
       phone: user.phone || '',
       employment_type: user.employment_type || 'full_time'
