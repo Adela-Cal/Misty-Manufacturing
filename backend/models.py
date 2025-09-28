@@ -174,6 +174,7 @@ class Order(BaseModel):
     delivery_instructions: Optional[str] = None
     status: OrderStatus = OrderStatus.ACTIVE
     current_stage: ProductionStage = ProductionStage.ORDER_ENTERED
+    runtime_estimate: Optional[str] = None  # e.g., "2-3 days", "1 week"
     notes: Optional[str] = None
     created_by: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
