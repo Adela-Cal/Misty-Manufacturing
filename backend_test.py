@@ -3659,8 +3659,8 @@ class InvoicingAPITester:
             self.log_result("Product Specification Validation - Required Fields", False, f"Error: {str(e)}")
 
     def run_all_tests(self):
-        """Run all backend API tests with PRIMARY FOCUS on Materials API Fix"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Materials API Fix")
+        """Run all backend API tests with PRIMARY FOCUS on NEW Suppliers and Product Specifications APIs"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: NEW Suppliers & Product Specifications APIs")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 60)
         
@@ -3669,8 +3669,19 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test Materials API Fix
-        print("\n🔧 TESTING MATERIALS API FIX - PRIMARY FOCUS")
+        # PRIMARY FOCUS: Test NEW Suppliers and Product Specifications API endpoints
+        print("\n🏭 TESTING NEW SUPPLIERS API ENDPOINTS - PRIMARY FOCUS")
+        self.test_suppliers_api_endpoints()
+        
+        print("\n📋 TESTING NEW PRODUCT SPECIFICATIONS API ENDPOINTS - PRIMARY FOCUS")
+        self.test_product_specifications_api_endpoints()
+        
+        print("\n🔐 TESTING NEW ENDPOINTS AUTHENTICATION & VALIDATION - PRIMARY FOCUS")
+        self.test_new_endpoints_authentication_requirements()
+        self.test_new_endpoints_validation_requirements()
+        
+        # SECONDARY: Test Materials API Fix
+        print("\n🔧 TESTING MATERIALS API FIX - SECONDARY")
         self.test_materials_api_fix()
         
         # Test authentication requirements for new endpoints
