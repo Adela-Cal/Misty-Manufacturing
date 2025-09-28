@@ -91,6 +91,10 @@ export const apiHelpers = {
   // Production Board
   getProductionBoard: () => api.get('/production/board'),
   getProductionLogs: (orderId) => api.get(`/production/logs/${orderId}`),
+  moveOrderStage: (orderId, data) => api.post(`/production/move-stage/${orderId}`, data),
+  getMaterialsStatus: (orderId) => api.get(`/production/materials-status/${orderId}`),
+  updateMaterialsStatus: (orderId, data) => api.put(`/production/materials-status/${orderId}`, data),
+  updateOrderItemStatus: (orderId, data) => api.put(`/production/order-item-status/${orderId}`, data),
   
   // Reports
   getOutstandingJobsReport: () => api.get('/reports/outstanding-jobs'),
