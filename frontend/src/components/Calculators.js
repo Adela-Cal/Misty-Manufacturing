@@ -529,27 +529,44 @@ const SpiralCoreConsumption = ({ productSpecs, loading, setLoading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Core Length (mm)</label>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Core Length (mm) *</label>
           <input
             type="number"
             step="0.1"
             value={formData.core_length}
             onChange={(e) => setFormData({...formData, core_length: e.target.value})}
             className="misty-input w-full"
+            placeholder="Enter core length"
             required
           />
+          <p className="text-xs text-gray-500 mt-1">Required input for calculation</p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Quantity</label>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Quantity *</label>
           <input
             type="number"
             min="1"
             value={formData.quantity}
             onChange={(e) => setFormData({...formData, quantity: e.target.value})}
             className="misty-input w-full"
+            placeholder="Enter quantity needed"
             required
           />
+          <p className="text-xs text-gray-500 mt-1">Required input for calculation</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Master Tube Length (mm)</label>
+          <input
+            type="number"
+            step="0.1"
+            value={formData.master_tube_length}
+            onChange={(e) => setFormData({...formData, master_tube_length: e.target.value})}
+            className="misty-input w-full"
+            placeholder="Optional: Calculate master tubes required"
+          />
+          <p className="text-xs text-gray-500 mt-1">Optional: If provided, calculates quantity of master tubes needed</p>
         </div>
 
         <div>
