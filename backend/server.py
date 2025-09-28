@@ -691,7 +691,7 @@ async def generate_packing_list(order_id: str, current_user: dict = Depends(requ
     )
 
 @api_router.get("/documents/invoice/{order_id}")
-async def generate_invoice(order_id: str, current_user: dict = Depends(require_admin_or_production_manager)):
+async def generate_invoice_pdf(order_id: str, token: str = None, current_user: dict = Depends(require_admin_or_production_manager)):
     """Generate invoice PDF"""
     order = await db.orders.find_one({"id": order_id})
     if not order:
