@@ -312,16 +312,17 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Xero Integration Completion"
-    - "Fetch Next Invoice Number from Xero"
-    - "Create Draft Invoices in Xero"
+    - "Materials Management API endpoints"
+    - "Client Product Catalog API endpoints"
+    - "Materials Management Component"
+    - "Client Product Catalog Management"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "Starting implementation of comprehensive invoicing system with Xero integration. OrderManagement component is working fine - no import issues found. Proceeding with logo update and invoicing functionality. Provided detailed Xero setup instructions to user."
+    message: "Implementing client product catalog system as requested by user. Phase 1: Added Materials and ClientProduct models with comprehensive API endpoints. Materials support supplier info, pricing, units, and raw substrate specifications. Client products support two types: Finished Goods (simple) and Paper Cores (complex with materials, core specs, etc.). Added copy functionality between clients. Next: Create frontend components."
   - agent: "testing"
     message: "Comprehensive testing of invoicing system completed successfully. All 4 invoicing APIs are working correctly: live jobs retrieval, invoice generation, archived jobs with filtering, and monthly reporting. Fixed critical issues: ObjectId serialization in MongoDB responses, JWT token field access (user_id vs id), and ReportLab method name (drawCentredString). Client model updates with payment_terms and lead_time_days are working. Document generation includes new client fields. Authentication and role-based permissions are properly enforced. System ready for production use."
   - agent: "testing"
