@@ -214,6 +214,25 @@ const MaterialsManagement = () => {
     'Single Unit'
   ];
 
+  // Calculate linear meters for raw substrate
+  const calculateLinearMeters = () => {
+    if (!formData.raw_substrate || !formData.gsm || !formData.supplied_roll_weight || !formData.master_deckle_width_mm) {
+      return '';
+    }
+    
+    const gsm = parseFloat(formData.gsm);
+    const weight = parseFloat(formData.supplied_roll_weight);
+    const width = parseFloat(formData.master_deckle_width_mm);
+    
+    if (gsm > 0 && weight > 0 && width > 0) {
+      // Formula: Linear meters = (Weight in kg * 1,000,000) / (GSM * width in mm)
+      const linearMeters = (weight * 1000000) / (gsm * width);
+      return linearMeters.toFixed(2);
+    }
+    
+    return '';
+  };
+
   if (loading) {
     return (
       <Layout>
