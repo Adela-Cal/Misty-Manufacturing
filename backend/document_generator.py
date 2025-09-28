@@ -36,6 +36,89 @@ class DocumentGenerator:
                 alignment=TA_CENTER,
                 fontName='Helvetica-Bold'
             ))
+    
+    def draw_letterhead_header(self, canvas_obj, doc):
+        """Draw the Adela Merchants letterhead header with curved bands"""
+        canvas_obj.saveState()
+        
+        # Header yellow band (curved, extends from left to 85% width)
+        path = canvas_obj.beginPath()
+        path.moveTo(0, self.page_height - 80)
+        path.curveTo(100, self.page_height - 60, 
+                    self.page_width * 0.6, self.page_height - 70,
+                    self.page_width * 0.85, self.page_height - 50)
+        path.lineTo(self.page_width * 0.85, self.page_height)
+        path.lineTo(0, self.page_height)
+        path.closePath()
+        canvas_obj.setFillColor(ADELA_YELLOW)
+        canvas_obj.drawPath(path, fill=1, stroke=0)
+        
+        # Header black curved band (inside yellow band)
+        path = canvas_obj.beginPath()
+        path.moveTo(self.page_width * 0.3, self.page_height - 75)
+        path.curveTo(self.page_width * 0.4, self.page_height - 65,
+                    self.page_width * 0.5, self.page_height - 68,
+                    self.page_width * 0.65, self.page_height - 55)
+        path.curveTo(self.page_width * 0.7, self.page_height - 70,
+                    self.page_width * 0.45, self.page_height - 80,
+                    self.page_width * 0.3, self.page_height - 85)
+        path.closePath()
+        canvas_obj.setFillColor(ADELA_BLACK)
+        canvas_obj.drawPath(path, fill=1, stroke=0)
+        
+        # Company name "ADELA MERCHANTS"
+        canvas_obj.setFillColor(ADELA_BLACK)
+        canvas_obj.setFont("Helvetica-Bold", 18)
+        canvas_obj.drawString(40, self.page_height - 45, "ADELA MERCHANTS")
+        
+        # ABN in top right
+        canvas_obj.setFont("Helvetica", 10)
+        canvas_obj.drawRightString(self.page_width - 40, self.page_height - 35, "ABN - 6268 104 6435")
+        
+        # Large watermark monogram (light yellow, centered)
+        canvas_obj.setFillColor(ADELA_LIGHT_YELLOW)
+        canvas_obj.setFont("Helvetica-Bold", 120)
+        canvas_obj.drawCentredText(self.page_width/2, self.page_height * 0.6, "AM")
+        
+        canvas_obj.restoreState()
+    
+    def draw_letterhead_footer(self, canvas_obj, doc):
+        """Draw the Adela Merchants letterhead footer with contact info"""
+        canvas_obj.saveState()
+        
+        # Footer yellow band (mirrors header)
+        path = canvas_obj.beginPath()
+        path.moveTo(0, 80)
+        path.curveTo(100, 60, 
+                    self.page_width * 0.6, 70,
+                    self.page_width * 0.85, 50)
+        path.lineTo(self.page_width * 0.85, 0)
+        path.lineTo(0, 0)
+        path.closePath()
+        canvas_obj.setFillColor(ADELA_YELLOW)
+        canvas_obj.drawPath(path, fill=1, stroke=0)
+        
+        # Footer black curved band
+        path = canvas_obj.beginPath()
+        path.moveTo(self.page_width * 0.1, 75)
+        path.curveTo(self.page_width * 0.2, 65,
+                    self.page_width * 0.3, 68,
+                    self.page_width * 0.45, 55)
+        path.curveTo(self.page_width * 0.5, 70,
+                    self.page_width * 0.25, 80,
+                    self.page_width * 0.1, 85)
+        path.closePath()
+        canvas_obj.setFillColor(ADELA_BLACK)
+        canvas_obj.drawPath(path, fill=1, stroke=0)
+        
+        # Contact information (bottom left)
+        canvas_obj.setFillColor(ADELA_BLACK)
+        canvas_obj.setFont("Helvetica", 8)
+        canvas_obj.drawString(40, 45, "📧 info@adelamerchants.com.au")
+        canvas_obj.drawString(40, 30, "🌐 www.adelamerchants.com.au")
+        canvas_obj.drawString(40, 15, "📍 123 Business St, Melbourne VIC 3000")
+        
+        canvas_obj.restoreState()
         
         # Document title style
         if 'DocumentTitle' not in self.styles:
