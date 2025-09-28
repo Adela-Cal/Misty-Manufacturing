@@ -419,7 +419,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     full_name: str
-    role: UserRole = UserRole.PRODUCTION_STAFF
+    role: UserRole = UserRole.PRODUCTION_TEAM
     department: Optional[str] = None
     phone: Optional[str] = None
     employment_type: EmploymentType = EmploymentType.FULL_TIME
