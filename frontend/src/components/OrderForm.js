@@ -400,131 +400,143 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
             </div>
           </div>
 
-          {/* Order Items */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Order Items</h3>
-              <button
-                type="button"
-                onClick={addItem}
-                className="misty-button misty-button-secondary flex items-center text-sm"
-              >
-                <PlusIcon className="h-4 w-4 mr-1" />
-                Add Item
-              </button>
-            </div>
-            
-            {errors.items && (
-              <p className="text-red-400 text-sm mb-4">{errors.items}</p>
-            )}
-            
-            <div className="space-y-4">
-              {formData.items.map((item, index) => (
-                <div key={index} className="border border-gray-600 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-white font-medium">Item {index + 1}</h4>
-                    {formData.items.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeItem(index)}
-                        className="text-red-400 hover:text-red-300 transition-colors"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Product Name *
-                      </label>
-                      {clientProducts.length > 0 ? (
-                        <div className="space-y-2">
+          {/* Order Items - Only show when client is selected */}
+          {formData.client_id && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white">Order Items</h3>
+                <button
+                  type="button"
+                  onClick={addItem}
+                  className="misty-button misty-button-secondary flex items-center text-sm"
+                >
+                  <PlusIcon className="h-4 w-4 mr-1" />
+                  Add Item
+                </button>
+              </div>
+              
+              {errors.items && (
+                <p className="text-red-400 text-sm mb-4">{errors.items}</p>
+              )}
+              
+              <div className="space-y-4">
+                {formData.items.map((item, index) => (
+                  <div key={index} className="border border-gray-600 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-white font-medium">Item {index + 1}</h4>
+                      {formData.items.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeItem(index)}
+                          className="text-red-400 hover:text-red-300 transition-colors"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Product Name *
+                        </label>
+                        {clientProducts.length > 0 ? (
                           <select
-                            value=""
-                            onChange={(e) => e.target.value && selectProduct(index, e.target.value)}
-                            className="misty-select w-full"
+                            value={item.product_name}
+                            onChange={(e) => {
+                              const selectedProduct = clientProducts.find(p => p.product_name === e.target.value);
+                              if (selectedProduct) {
+                                handleItemChange(index, 'product_name', selectedProduct.product_name);
+                                handleItemChange(index, 'unit_price', selectedProduct.unit_price);
+                                // Recalculate total with current quantity
+                                const newTotal = formData.items[index].quantity * selectedProduct.unit_price;
+                                handleItemChange(index, 'total_price', newTotal);
+                              } else {
+                                handleItemChange(index, 'product_name', e.target.value);
+                              }
+                            }}
+                            className={`misty-select w-full ${errors[`item_${index}_product_name`] ? 'border-red-500' : ''}`}
                           >
-                            <option value="">Select from client products</option>
+                            <option value="">Select a product</option>
                             {clientProducts.map(product => (
-                              <option key={product.id} value={product.id}>
+                              <option key={product.id} value={product.product_name}>
                                 {product.product_name} - ${product.unit_price}
                               </option>
                             ))}
                           </select>
-                          <input
-                            type="text"
-                            value={item.product_name}
-                            onChange={(e) => handleItemChange(index, 'product_name', e.target.value)}
-                            className={`misty-input w-full ${errors[`item_${index}_product_name`] ? 'border-red-500' : ''}`}
-                            placeholder="Or enter custom product name"
-                          />
-                        </div>
-                      ) : (
+                        ) : (
+                          <div className="text-center text-gray-400 py-3">
+                            No products available for this client.
+                            <br />
+                            <span className="text-sm">Add products to the client profile first.</span>
+                          </div>
+                        )}
+                        {errors[`item_${index}_product_name`] && (
+                          <p className="text-red-400 text-sm mt-1">{errors[`item_${index}_product_name`]}</p>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Quantity *
+                        </label>
                         <input
-                          type="text"
-                          value={item.product_name}
-                          onChange={(e) => handleItemChange(index, 'product_name', e.target.value)}
-                          className={`misty-input w-full ${errors[`item_${index}_product_name`] ? 'border-red-500' : ''}`}
-                          placeholder="Enter product name"
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={item.quantity}
+                          onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                          className={`misty-input w-full ${errors[`item_${index}_quantity`] ? 'border-red-500' : ''}`}
                         />
-                      )}
-                      {errors[`item_${index}_product_name`] && (
-                        <p className="text-red-400 text-sm mt-1">{errors[`item_${index}_product_name`]}</p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Quantity *
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={item.quantity}
-                        onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                        className={`misty-input w-full ${errors[`item_${index}_quantity`] ? 'border-red-500' : ''}`}
-                      />
-                      {errors[`item_${index}_quantity`] && (
-                        <p className="text-red-400 text-sm mt-1">{errors[`item_${index}_quantity`]}</p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Unit Price *
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.unit_price}
-                        onChange={(e) => handleItemChange(index, 'unit_price', e.target.value)}
-                        className={`misty-input w-full ${errors[`item_${index}_unit_price`] ? 'border-red-500' : ''}`}
-                      />
-                      {errors[`item_${index}_unit_price`] && (
-                        <p className="text-red-400 text-sm mt-1">{errors[`item_${index}_unit_price`]}</p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Total Price
-                      </label>
-                      <input
-                        type="number"
-                        value={item.total_price.toFixed(2)}
-                        className="misty-input w-full bg-gray-600"
-                        readOnly
-                      />
+                        {errors[`item_${index}_quantity`] && (
+                          <p className="text-red-400 text-sm mt-1">{errors[`item_${index}_quantity`]}</p>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Unit Price *
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={item.unit_price}
+                          onChange={(e) => handleItemChange(index, 'unit_price', e.target.value)}
+                          className={`misty-input w-full ${errors[`item_${index}_unit_price`] ? 'border-red-500' : ''}`}
+                        />
+                        {errors[`item_${index}_unit_price`] && (
+                          <p className="text-red-400 text-sm mt-1">{errors[`item_${index}_unit_price`]}</p>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Total Price
+                        </label>
+                        <input
+                          type="number"
+                          value={item.total_price.toFixed(2)}
+                          className="misty-input w-full bg-gray-600"
+                          readOnly
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Show message when no client selected */}
+          {!formData.client_id && (
+            <div className="mb-8">
+              <div className="misty-card p-6 text-center">
+                <h3 className="text-lg font-semibold text-gray-300 mb-2">Select a Client</h3>
+                <p className="text-gray-400">Please select a client above to add order items.</p>
+              </div>
+            </div>
+          )}
 
           {/* Order Totals */}
           <div className="mb-8">
