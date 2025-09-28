@@ -15,6 +15,12 @@ import secrets
 import requests
 import base64
 from urllib.parse import urlencode
+import asyncio
+
+# Xero SDK imports
+from xero_python import ApiClient, Configuration
+from xero_python.api_client import OAuth2Token
+from xero_python.accounting import AccountingApi, Invoice, Invoices, Contact, Contacts, LineItem
 
 # Import our custom modules
 from models import *
