@@ -363,24 +363,64 @@ const Invoicing = () => {
                               Invoice
                             </button>
                             <button
-                              onClick={() => {
-                                const url = `${process.env.REACT_APP_BACKEND_URL}/api/documents/invoice/${job.id}?token=${localStorage.getItem('token')}`;
-                                window.open(url, '_blank');
-                                toast.success('Invoice PDF opened');
+                              onClick={async () => {
+                                try {
+                                  const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/documents/invoice/${job.id}`, {
+                                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                                  });
+                                  
+                                  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                                  
+                                  const blob = await response.blob();
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.style.display = 'none';
+                                  a.href = url;
+                                  a.download = `invoice_${job.order_number}.pdf`;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  setTimeout(() => {
+                                    document.body.removeChild(a);
+                                    URL.revokeObjectURL(url);
+                                  }, 100);
+                                  toast.success(`Invoice ${job.order_number} downloaded`);
+                                } catch (error) {
+                                  toast.error('Download failed');
+                                }
                               }}
                               className="text-gray-400 hover:text-yellow-400 transition-colors"
-                              title="Open Invoice PDF"
+                              title="Download Invoice PDF"
                             >
                               <DocumentArrowDownIcon className="h-4 w-4" />
                             </button>
                             <button
-                              onClick={() => {
-                                const url = `${process.env.REACT_APP_BACKEND_URL}/api/documents/packing-list/${job.id}?token=${localStorage.getItem('token')}`;
-                                window.open(url, '_blank');
-                                toast.success('Packing Slip PDF opened');
+                              onClick={async () => {
+                                try {
+                                  const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/documents/packing-list/${job.id}`, {
+                                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                                  });
+                                  
+                                  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                                  
+                                  const blob = await response.blob();
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.style.display = 'none';
+                                  a.href = url;
+                                  a.download = `packing_slip_${job.order_number}.pdf`;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  setTimeout(() => {
+                                    document.body.removeChild(a);
+                                    URL.revokeObjectURL(url);
+                                  }, 100);
+                                  toast.success(`Packing Slip ${job.order_number} downloaded`);
+                                } catch (error) {
+                                  toast.error('Download failed');
+                                }
                               }}
                               className="text-gray-400 hover:text-green-400 transition-colors"
-                              title="Open Packing Slip PDF"
+                              title="Download Packing Slip PDF"
                             >
                               <DocumentArrowDownIcon className="h-4 w-4" />
                             </button>
