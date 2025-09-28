@@ -467,14 +467,14 @@ class DocumentGenerator:
         
         # Delivery instructions
         if order_data.get('delivery_instructions'):
-            story.append(Paragraph("Delivery Instructions", self.styles['SectionHeader']))
-            story.append(Paragraph(order_data['delivery_instructions'], self.styles['AdelaBodyText']))
+            story.append(Paragraph("Delivery Instructions", self.styles.get('SectionHeader', self.styles['Heading2'])))
+            story.append(Paragraph(order_data['delivery_instructions'], self.styles.get('AdelaBodyText', self.styles['Normal'])))
             story.append(Spacer(1, 20))
         
         # Signature section
-        story.append(Paragraph("Packed by: _________________ Date: _______", self.styles['AdelaBodyText']))
+        story.append(Paragraph("Packed by: _________________ Date: _______", self.styles.get('AdelaBodyText', self.styles['Normal'])))
         story.append(Spacer(1, 15))
-        story.append(Paragraph("Checked by: _________________ Date: _______", self.styles['AdelaBodyText']))
+        story.append(Paragraph("Checked by: _________________ Date: _______", self.styles.get('AdelaBodyText', self.styles['Normal'])))
         
         # Build PDF (simplified - no header/footer for now)
         doc.build(story)
