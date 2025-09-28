@@ -865,16 +865,23 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = 
 
 @api_router.delete("/users/{user_id}", response_model=StandardResponse)
 async def delete_user(user_id: str, current_user: dict = Depends(require_admin)):
-    """Soft delete user (Admin only)"""
-    result = await db.users.update_one(
-        {"id": user_id},
-        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
-    )
-    
-    if result.matched_count == 0:
+    """Delete user permanently (Admin only)"""
+    # Check if user exists before deletion
+    existing_user = await db.users.find_one({"id": user_id})
+    if not existing_user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    return StandardResponse(success=True, message="User deactivated successfully")
+    # Prevent admin from deleting themselves
+    if user_id == current_user.get("user_id") or user_id == current_user.get("sub"):
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    # Permanently delete the user
+    result = await db.users.delete_one({"id": user_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return StandardResponse(success=True, message="User deleted successfully")
 
 @api_router.post("/users/change-password", response_model=StandardResponse)
 async def change_user_password(password_data: PasswordChangeRequest, current_user: dict = Depends(get_current_user)):
