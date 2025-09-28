@@ -107,6 +107,7 @@ export const apiHelpers = {
   getOrders: (statusFilter) => api.get('/orders', { params: { status_filter: statusFilter } }),
   createOrder: (data) => api.post('/orders', data),
   getOrder: (id) => api.get(`/orders/${id}`),
+  deleteOrder: (id) => api.delete(`/orders/${id}`),
   updateOrder: (id, data) => api.put(`/orders/${id}`, data),
   updateOrderStage: (id, data) => api.put(`/orders/${id}/stage`, data),
   
