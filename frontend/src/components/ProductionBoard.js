@@ -195,11 +195,12 @@ const ProductionBoard = () => {
   const JobCard = ({ job, stageKey }) => {
     const isExpanded = expandedJobs[job.id];
     const isOverdue = job.is_overdue;
+    const materialsStatus = getMaterialsStatus(job);
 
     return (
       <div 
         className={`
-          bg-gray-800 border rounded-lg p-4 transition-all duration-200 hover:shadow-lg
+          bg-gray-800 border rounded-lg p-4 transition-all duration-200 hover:shadow-lg mb-3
           ${stageColors[stageKey] || 'border-gray-600'}
           ${isOverdue ? 'border-red-500 bg-red-900/20' : ''}
         `}
@@ -207,7 +208,7 @@ const ProductionBoard = () => {
       >
         {/* Job Header */}
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center">
+          <div className="flex items-center flex-1">
             {job.client_logo && (
               <img
                 src={job.client_logo}
@@ -215,16 +216,40 @@ const ProductionBoard = () => {
                 className="h-8 w-8 rounded object-cover mr-3"
               />
             )}
-            <div>
+            <div className="flex-1">
               <h4 className="font-semibold text-white">{job.order_number}</h4>
               <p className="text-sm text-gray-400">{job.client_name}</p>
             </div>
+            
+            {/* Australia Map */}
+            <div className="mx-3">
+              <AustraliaMap deliveryAddress={job.delivery_address} />
+            </div>
+            
             {isOverdue && (
               <ExclamationTriangleIcon className="h-5 w-5 text-red-400 ml-2" />
             )}
           </div>
           
           <div className="flex items-center space-x-2">
+            {/* Materials Status Hexagon */}
+            <button
+              className="text-gray-400 hover:text-yellow-400 transition-colors"
+              title={`Materials ${materialsStatus === 'ready' ? 'Ready' : 'Pending'}`}
+            >
+              <HexagonIcon status={materialsStatus} />
+            </button>
+            
+            {/* Book Icon for Order Items */}
+            <button
+              onClick={() => toggleJobExpansion(job.id)}
+              className="text-gray-400 hover:text-yellow-400 transition-colors"
+              title="View Order Items"
+              data-testid={`expand-job-${job.id}`}
+            >
+              <BookOpenIcon className="h-5 w-5" />
+            </button>
+            
             <button
               onClick={() => handleDownloadJobCard(job.id, job.order_number)}
               className="text-gray-400 hover:text-blue-400 transition-colors"
@@ -233,27 +258,15 @@ const ProductionBoard = () => {
             >
               <DocumentArrowDownIcon className="h-5 w-5" />
             </button>
-            
-            <button
-              onClick={() => toggleJobExpansion(job.id)}
-              className="text-gray-400 hover:text-yellow-400 transition-colors"
-              data-testid={`expand-job-${job.id}`}
-            >
-              {isExpanded ? (
-                <ChevronDownIcon className="h-5 w-5" />
-              ) : (
-                <ChevronRightIcon className="h-5 w-5" />
-              )}
-            </button>
           </div>
         </div>
 
         {/* Job Summary */}
         <div className="space-y-1 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-400">Total:</span>
+            <span className="text-gray-400">Runtime:</span>
             <span className="text-yellow-400 font-medium">
-              {formatCurrency(job.total_amount)}
+              {job.runtime || '2-3 days'} {/* TODO: Use actual runtime from backend */}
             </span>
           </div>
           <div className="flex justify-between">
@@ -264,19 +277,45 @@ const ProductionBoard = () => {
           </div>
         </div>
 
+        {/* Navigation Arrows */}
+        <div className="flex justify-between mt-3">
+          <button
+            onClick={() => moveJobStage(job.id, stageKey, 'backward')}
+            className="text-gray-400 hover:text-yellow-400 transition-colors"
+            title="Move to Previous Stage"
+          >
+            <ArrowLeftIcon className="h-6 w-6 font-bold" />
+          </button>
+          
+          <button
+            onClick={() => moveJobStage(job.id, stageKey, 'forward')}
+            className="text-gray-400 hover:text-yellow-400 transition-colors"
+            title="Move to Next Stage"
+          >
+            <ArrowRightIcon className="h-6 w-6 font-bold" />
+          </button>
+        </div>
+
         {/* Expanded Details */}
         {isExpanded && (
           <div className="mt-4 pt-4 border-t border-gray-700">
             <div className="space-y-3">
-              {/* Order Items */}
+              {/* Order Items with checkboxes */}
               <div>
                 <h5 className="font-medium text-white mb-2">Order Items:</h5>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {job.items.map((item, index) => (
-                    <div key={index} className="flex justify-between text-sm">
-                      <span className="text-gray-300">
-                        {item.product_name} (x{item.quantity})
-                      </span>
+                    <div key={index} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="mr-2 rounded bg-gray-700 border-gray-600"
+                          // TODO: Connect to backend for item completion status
+                        />
+                        <span className="text-gray-300">
+                          {item.product_name} (x{item.quantity})
+                        </span>
+                      </div>
                       <span className="text-gray-400">
                         {formatCurrency(item.total_price)}
                       </span>
