@@ -341,6 +341,11 @@ const StaffSecurity = () => {
                     </td>
                     <td className="text-sm py-2 px-3">{user.department || '—'}</td>
                     <td className="text-sm py-2 px-3">
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-blue-900 text-blue-200">
+                        {user.employment_type ? user.employment_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Full Time'}
+                      </span>
+                    </td>
+                    <td className="text-sm py-2 px-3">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
                         user.is_active ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'
                       }`}>
