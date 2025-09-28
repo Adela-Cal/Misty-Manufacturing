@@ -6952,7 +6952,7 @@ class InvoicingAPITester:
         print("\n--- Testing Order Soft Delete Behavior ---")
         
         # Create a new order for soft delete testing
-        test_order_id = self.create_test_order_in_stage(client_id, "acknowledged")
+        test_order_id = self.create_test_order_in_stage(client_id, "pending_material")
         
         if not test_order_id:
             self.log_result(
