@@ -5509,6 +5509,286 @@ class InvoicingAPITester:
             except Exception as e:
                 self.log_result("User Appears as Inactive in List", False, f"Error: {str(e)}")
 
+    def test_user_deletion_functionality(self):
+        """Test the updated user deletion functionality with permanent deletion"""
+        print("\n=== USER DELETION FUNCTIONALITY TEST ===")
+        
+        # Test 1: Create a test user for deletion
+        test_user_data = {
+            "username": f"testuser_deletion_{int(datetime.now().timestamp())}",
+            "email": f"testdeletion_{int(datetime.now().timestamp())}@example.com",
+            "password": "TestPassword123",
+            "full_name": "Test User for Deletion",
+            "role": "production_staff",
+            "department": "Testing",
+            "phone": "0412345678"
+        }
+        
+        test_user_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/users", json=test_user_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                test_user_id = result.get('data', {}).get('id')
+                
+                if test_user_id:
+                    self.log_result(
+                        "Create Test User for Deletion", 
+                        True, 
+                        f"Successfully created test user for deletion testing",
+                        f"User ID: {test_user_id}, Username: {test_user_data['username']}"
+                    )
+                else:
+                    self.log_result(
+                        "Create Test User for Deletion", 
+                        False, 
+                        "User creation response missing ID"
+                    )
+                    return
+            else:
+                self.log_result(
+                    "Create Test User for Deletion", 
+                    False, 
+                    f"Failed to create test user with status {response.status_code}",
+                    response.text
+                )
+                return
+        except Exception as e:
+            self.log_result("Create Test User for Deletion", False, f"Error: {str(e)}")
+            return
+        
+        # Test 2: Test DELETE /api/users/{user_id} endpoint (Hard Delete)
+        try:
+            response = self.session.delete(f"{API_BASE}/users/{test_user_id}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                message = result.get('message', '')
+                
+                if message == "User deleted successfully":
+                    self.log_result(
+                        "Hard Delete Functionality", 
+                        True, 
+                        f"Successfully deleted user with correct response message",
+                        f"Response: {message}"
+                    )
+                else:
+                    self.log_result(
+                        "Hard Delete Functionality", 
+                        False, 
+                        f"Unexpected response message: '{message}' (expected 'User deleted successfully')"
+                    )
+            else:
+                self.log_result(
+                    "Hard Delete Functionality", 
+                    False, 
+                    f"Delete failed with status {response.status_code}",
+                    response.text
+                )
+                return
+        except Exception as e:
+            self.log_result("Hard Delete Functionality", False, f"Error: {str(e)}")
+            return
+        
+        # Test 3: Verify user is completely removed from database
+        try:
+            response = self.session.get(f"{API_BASE}/users/{test_user_id}")
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Verify Complete Database Removal", 
+                    True, 
+                    "User completely removed from database (404 response as expected)"
+                )
+            else:
+                self.log_result(
+                    "Verify Complete Database Removal", 
+                    False, 
+                    f"User still exists in database (status: {response.status_code})",
+                    "User should be completely removed, not just marked inactive"
+                )
+        except Exception as e:
+            self.log_result("Verify Complete Database Removal", False, f"Error: {str(e)}")
+        
+        # Test 4: Test that admin cannot delete their own account
+        try:
+            # Get current user info to find admin user ID
+            me_response = self.session.get(f"{API_BASE}/auth/me")
+            if me_response.status_code == 200:
+                current_user = me_response.json()
+                current_user_id = current_user.get('id')
+                
+                if current_user_id:
+                    # Try to delete own account
+                    response = self.session.delete(f"{API_BASE}/users/{current_user_id}")
+                    
+                    if response.status_code == 400:
+                        result = response.json()
+                        error_message = result.get('detail', '')
+                        
+                        if "Cannot delete your own account" in error_message:
+                            self.log_result(
+                                "Prevent Self-Deletion", 
+                                True, 
+                                "Correctly prevents admin from deleting their own account",
+                                f"Error message: {error_message}"
+                            )
+                        else:
+                            self.log_result(
+                                "Prevent Self-Deletion", 
+                                False, 
+                                f"Wrong error message for self-deletion attempt: '{error_message}'"
+                            )
+                    else:
+                        self.log_result(
+                            "Prevent Self-Deletion", 
+                            False, 
+                            f"Expected 400 status but got {response.status_code}",
+                            "Should prevent admin from deleting their own account"
+                        )
+                else:
+                    self.log_result(
+                        "Prevent Self-Deletion", 
+                        False, 
+                        "Could not get current user ID for self-deletion test"
+                    )
+            else:
+                self.log_result(
+                    "Prevent Self-Deletion", 
+                    False, 
+                    "Could not get current user info for self-deletion test"
+                )
+        except Exception as e:
+            self.log_result("Prevent Self-Deletion", False, f"Error: {str(e)}")
+        
+        # Test 5: Test deletion of non-existent user (should return 404)
+        try:
+            fake_user_id = "non-existent-user-id-12345"
+            response = self.session.delete(f"{API_BASE}/users/{fake_user_id}")
+            
+            if response.status_code == 404:
+                result = response.json()
+                error_message = result.get('detail', '')
+                
+                if "User not found" in error_message:
+                    self.log_result(
+                        "Delete Non-Existent User", 
+                        True, 
+                        "Correctly returns 404 for non-existent user deletion",
+                        f"Error message: {error_message}"
+                    )
+                else:
+                    self.log_result(
+                        "Delete Non-Existent User", 
+                        False, 
+                        f"Wrong error message for non-existent user: '{error_message}'"
+                    )
+            else:
+                self.log_result(
+                    "Delete Non-Existent User", 
+                    False, 
+                    f"Expected 404 status but got {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Delete Non-Existent User", False, f"Error: {str(e)}")
+        
+        # Test 6: Test unauthorized access (without admin token)
+        try:
+            # Create a temporary session without authentication
+            temp_session = requests.Session()
+            
+            response = temp_session.delete(f"{API_BASE}/users/{test_user_id}")
+            
+            if response.status_code in [401, 403]:
+                self.log_result(
+                    "Delete Endpoint Authentication", 
+                    True, 
+                    f"DELETE endpoint properly requires admin authentication (status: {response.status_code})"
+                )
+            else:
+                self.log_result(
+                    "Delete Endpoint Authentication", 
+                    False, 
+                    f"Expected 401/403 but got {response.status_code}",
+                    "DELETE endpoint should require admin authentication"
+                )
+        except Exception as e:
+            self.log_result("Delete Endpoint Authentication", False, f"Error: {str(e)}")
+        
+        # Test 7: Create another test user and verify permanent deletion vs soft delete
+        test_user_data_2 = {
+            "username": f"testuser_permanent_{int(datetime.now().timestamp())}",
+            "email": f"testpermanent_{int(datetime.now().timestamp())}@example.com",
+            "password": "TestPassword123",
+            "full_name": "Test User for Permanent Deletion",
+            "role": "production_staff",
+            "department": "Testing",
+            "phone": "0412345679"
+        }
+        
+        test_user_id_2 = None
+        try:
+            response = self.session.post(f"{API_BASE}/users", json=test_user_data_2)
+            
+            if response.status_code == 200:
+                result = response.json()
+                test_user_id_2 = result.get('data', {}).get('id')
+                
+                if test_user_id_2:
+                    # Delete the user
+                    delete_response = self.session.delete(f"{API_BASE}/users/{test_user_id_2}")
+                    
+                    if delete_response.status_code == 200:
+                        # Try to find user in all users list (should not be there)
+                        all_users_response = self.session.get(f"{API_BASE}/users")
+                        
+                        if all_users_response.status_code == 200:
+                            all_users = all_users_response.json()
+                            deleted_user_found = any(user.get('id') == test_user_id_2 for user in all_users)
+                            
+                            if not deleted_user_found:
+                                self.log_result(
+                                    "Verify Permanent Deletion", 
+                                    True, 
+                                    "User permanently deleted - not found in users list",
+                                    f"Checked {len(all_users)} users, deleted user not present"
+                                )
+                            else:
+                                self.log_result(
+                                    "Verify Permanent Deletion", 
+                                    False, 
+                                    "User still appears in users list after deletion",
+                                    "User should be permanently removed, not just marked inactive"
+                                )
+                        else:
+                            self.log_result(
+                                "Verify Permanent Deletion", 
+                                False, 
+                                "Could not retrieve users list to verify permanent deletion"
+                            )
+                    else:
+                        self.log_result(
+                            "Verify Permanent Deletion", 
+                            False, 
+                            f"Failed to delete second test user: {delete_response.status_code}"
+                        )
+                else:
+                    self.log_result(
+                        "Verify Permanent Deletion", 
+                        False, 
+                        "Could not create second test user for permanent deletion test"
+                    )
+            else:
+                self.log_result(
+                    "Verify Permanent Deletion", 
+                    False, 
+                    f"Failed to create second test user: {response.status_code}"
+                )
+        except Exception as e:
+            self.log_result("Verify Permanent Deletion", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run backend API tests with PRIMARY FOCUS on User Deactivation functionality"""
         print("🚀 Starting Backend API Tests - PRIMARY FOCUS: User Deactivation Functionality")
