@@ -392,7 +392,7 @@ async def update_product_specification(spec_id: str, spec_data: ProductSpecifica
     return StandardResponse(success=True, message="Product specification updated successfully")
 
 @api_router.delete("/product-specifications/{spec_id}", response_model=StandardResponse)
-async def delete_product_specification(spec_id: str, current_user: dict = Depends(require_admin_or_production_manager)):
+async def delete_product_specification(spec_id: str, current_user: dict = Depends(require_admin_or_manager)):
     """Soft delete product specification"""
     result = await db.product_specifications.update_one(
         {"id": spec_id, "is_active": True},
