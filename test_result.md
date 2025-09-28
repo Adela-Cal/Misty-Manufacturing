@@ -226,6 +226,18 @@ frontend:
         agent: "main"
         comment: "Need to create archived jobs view and reporting functionality"
 
+  - task: "Packing Slip Icon Differentiation"
+    implemented: true
+    working: true
+    file: "frontend/src/components/Invoicing.js"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Changed packing slip icon from DocumentArrowDownIcon to CubeIcon for better visual differentiation from invoice download icon. Verified through screenshot that distinct icons now display correctly."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
