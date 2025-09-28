@@ -72,10 +72,14 @@ def require_role(allowed_roles: list[UserRole]):
 
 # Pre-defined permission dependencies
 require_admin = require_role([UserRole.ADMIN])
-require_admin_or_production_manager = require_role([UserRole.ADMIN, UserRole.PRODUCTION_MANAGER])
-require_admin_or_sales = require_role([UserRole.ADMIN, UserRole.SALES])
-require_production_access = require_role([UserRole.ADMIN, UserRole.PRODUCTION_MANAGER, UserRole.PRODUCTION_TEAM])
-require_any_role = require_role([UserRole.ADMIN, UserRole.PRODUCTION_MANAGER, UserRole.SALES, UserRole.PRODUCTION_TEAM, UserRole.MANAGER, UserRole.EMPLOYEE])
+require_admin_or_manager = require_role([UserRole.ADMIN, UserRole.MANAGER])
+require_manager_or_admin = require_role([UserRole.ADMIN, UserRole.MANAGER])
+require_production_access = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.PRODUCTION_STAFF])
+require_any_role = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.PRODUCTION_STAFF, UserRole.SALES])
+
+# Updated permission dependencies for new roles
+require_supervisor_or_higher = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR])
+require_production_staff_or_higher = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.PRODUCTION_STAFF])
 
 # New payroll permission dependencies
 require_manager = require_role([UserRole.ADMIN, UserRole.MANAGER])
