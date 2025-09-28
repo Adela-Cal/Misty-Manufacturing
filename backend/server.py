@@ -660,7 +660,7 @@ async def create_stocktake(
     new_stocktake = Stocktake(
         stocktake_date=stocktake_data.stocktake_date,
         month=current_month,
-        created_by=current_user["username"]
+        created_by=current_user["sub"]
     )
     
     await db.stocktakes.insert_one(new_stocktake.dict())
