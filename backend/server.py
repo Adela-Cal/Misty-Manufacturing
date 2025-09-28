@@ -932,13 +932,13 @@ def _generate_permissions(role: UserRole) -> List[str]:
             "manage_suppliers", "manage_specifications", "use_calculators"
         ]
     
-    elif role == UserRole.SUPERVISOR:
+    elif role == UserRole.MANAGER:
         return [
             "create_orders", "update_production", "use_calculators", 
             "view_own_payroll", "submit_timesheets", "request_leave"
         ]
     
-    elif role == UserRole.PRODUCTION_STAFF:
+    elif role == UserRole.PRODUCTION_TEAM:
         return [
             "update_production", "view_own_payroll", "submit_timesheets", "request_leave"
         ]
