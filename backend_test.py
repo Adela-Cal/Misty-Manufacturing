@@ -1230,8 +1230,8 @@ class InvoicingAPITester:
         
         return []
     def test_materials_management_api(self):
-        """Test Materials Management API endpoints"""
-        print("\n=== MATERIALS MANAGEMENT API TEST ===")
+        """Test Materials Management API endpoints with new fields"""
+        print("\n=== MATERIALS MANAGEMENT API TEST (WITH NEW FIELDS) ===")
         
         # Test GET /api/materials (get all materials)
         try:
@@ -1254,11 +1254,12 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result("Get All Materials", False, f"Error: {str(e)}")
         
-        # Test POST /api/materials (create basic material)
+        # Test POST /api/materials (create basic material with material_description - REQUIRED FIELD)
         basic_material_data = {
-            "supplier": "Test Supplier Ltd",
-            "product_code": "TEST-MAT-001",
+            "supplier": "Premium Paper Supplies",
+            "product_code": "PPS-BASIC-001",
             "order_to_delivery_time": "5-7 business days",
+            "material_description": "High-quality printing paper for commercial use",  # NEW REQUIRED FIELD
             "price": 25.50,
             "unit": "m2",
             "raw_substrate": False
@@ -1272,25 +1273,62 @@ class InvoicingAPITester:
                 result = response.json()
                 basic_material_id = result.get('data', {}).get('id')
                 self.log_result(
-                    "Create Basic Material", 
+                    "Create Basic Material (with material_description)", 
                     True, 
                     f"Successfully created basic material with ID: {basic_material_id}"
                 )
             else:
                 self.log_result(
-                    "Create Basic Material", 
+                    "Create Basic Material (with material_description)", 
                     False, 
                     f"Failed with status {response.status_code}",
                     response.text
                 )
         except Exception as e:
-            self.log_result("Create Basic Material", False, f"Error: {str(e)}")
+            self.log_result("Create Basic Material (with material_description)", False, f"Error: {str(e)}")
         
-        # Test POST /api/materials (create raw substrate material)
+        # Test POST /api/materials (create material WITHOUT material_description - should fail)
+        invalid_material_data = {
+            "supplier": "Test Supplier Ltd",
+            "product_code": "TEST-INVALID-001",
+            "order_to_delivery_time": "5-7 business days",
+            # Missing material_description - should cause validation error
+            "price": 25.50,
+            "unit": "m2",
+            "raw_substrate": False
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/materials", json=invalid_material_data)
+            
+            if response.status_code == 422:  # Validation error expected
+                self.log_result(
+                    "Create Material Without material_description (validation test)", 
+                    True, 
+                    "Correctly rejected material creation without required material_description field"
+                )
+            elif response.status_code == 200:
+                self.log_result(
+                    "Create Material Without material_description (validation test)", 
+                    False, 
+                    "Material was created without required material_description field - validation failed"
+                )
+            else:
+                self.log_result(
+                    "Create Material Without material_description (validation test)", 
+                    False, 
+                    f"Unexpected status code {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Material Without material_description (validation test)", False, f"Error: {str(e)}")
+        
+        # Test POST /api/materials (create raw substrate material with ALL NEW FIELDS)
         raw_substrate_data = {
-            "supplier": "Raw Materials Co",
-            "product_code": "RAW-SUB-001",
+            "supplier": "Industrial Raw Materials Co",
+            "product_code": "IRM-RAW-SUB-001",
             "order_to_delivery_time": "10-14 business days",
+            "material_description": "Premium corrugated cardboard substrate for high-strength packaging applications",  # NEW REQUIRED FIELD
             "price": 45.75,
             "unit": "By the Box",
             "raw_substrate": True,
@@ -1298,7 +1336,9 @@ class InvoicingAPITester:
             "thickness_mm": 2.5,
             "burst_strength_kpa": 850.0,
             "ply_bonding_jm2": 120.5,
-            "moisture_percent": 8.2
+            "moisture_percent": 8.2,
+            "supplied_roll_weight": 1250.5,  # NEW FIELD for raw substrates
+            "master_deckle_width_mm": 1600.0  # NEW FIELD for raw substrates
         }
         
         raw_material_id = None
@@ -1309,55 +1349,104 @@ class InvoicingAPITester:
                 result = response.json()
                 raw_material_id = result.get('data', {}).get('id')
                 self.log_result(
-                    "Create Raw Substrate Material", 
+                    "Create Raw Substrate Material (with new fields)", 
                     True, 
                     f"Successfully created raw substrate material with ID: {raw_material_id}"
                 )
             else:
                 self.log_result(
-                    "Create Raw Substrate Material", 
+                    "Create Raw Substrate Material (with new fields)", 
                     False, 
                     f"Failed with status {response.status_code}",
                     response.text
                 )
         except Exception as e:
-            self.log_result("Create Raw Substrate Material", False, f"Error: {str(e)}")
+            self.log_result("Create Raw Substrate Material (with new fields)", False, f"Error: {str(e)}")
         
-        # Test GET /api/materials/{id} (get specific material)
+        # Test GET /api/materials/{id} (get specific material and verify new fields)
         if basic_material_id:
             try:
                 response = self.session.get(f"{API_BASE}/materials/{basic_material_id}")
                 
                 if response.status_code == 200:
                     material = response.json()
-                    if material.get('supplier') == "Test Supplier Ltd":
+                    
+                    # Verify basic material has new required field
+                    has_material_description = material.get('material_description') == "High-quality printing paper for commercial use"
+                    has_correct_supplier = material.get('supplier') == "Premium Paper Supplies"
+                    
+                    if has_material_description and has_correct_supplier:
                         self.log_result(
-                            "Get Specific Material", 
+                            "Get Specific Basic Material (verify new fields)", 
                             True, 
-                            f"Successfully retrieved material: {material.get('product_code')}"
+                            f"Successfully retrieved material with material_description: {material.get('product_code')}"
                         )
                     else:
                         self.log_result(
-                            "Get Specific Material", 
+                            "Get Specific Basic Material (verify new fields)", 
                             False, 
-                            "Material data doesn't match expected values"
+                            "Material missing material_description or other expected values",
+                            f"material_description: {material.get('material_description')}, supplier: {material.get('supplier')}"
                         )
                 else:
                     self.log_result(
-                        "Get Specific Material", 
+                        "Get Specific Basic Material (verify new fields)", 
                         False, 
                         f"Failed with status {response.status_code}",
                         response.text
                     )
             except Exception as e:
-                self.log_result("Get Specific Material", False, f"Error: {str(e)}")
+                self.log_result("Get Specific Basic Material (verify new fields)", False, f"Error: {str(e)}")
         
-        # Test PUT /api/materials/{id} (update material)
+        # Test GET /api/materials/{id} (get raw substrate material and verify ALL new fields)
+        if raw_material_id:
+            try:
+                response = self.session.get(f"{API_BASE}/materials/{raw_material_id}")
+                
+                if response.status_code == 200:
+                    material = response.json()
+                    
+                    # Verify raw substrate material has all new fields
+                    checks = [
+                        ("material_description", material.get('material_description') == "Premium corrugated cardboard substrate for high-strength packaging applications"),
+                        ("supplied_roll_weight", material.get('supplied_roll_weight') == 1250.5),
+                        ("master_deckle_width_mm", material.get('master_deckle_width_mm') == 1600.0),
+                        ("raw_substrate", material.get('raw_substrate') == True)
+                    ]
+                    
+                    passed_checks = [name for name, passed in checks if passed]
+                    failed_checks = [name for name, passed in checks if not passed]
+                    
+                    if len(failed_checks) == 0:
+                        self.log_result(
+                            "Get Specific Raw Substrate Material (verify all new fields)", 
+                            True, 
+                            f"Successfully retrieved raw substrate material with all new fields: {material.get('product_code')}"
+                        )
+                    else:
+                        self.log_result(
+                            "Get Specific Raw Substrate Material (verify all new fields)", 
+                            False, 
+                            f"Raw substrate material missing or incorrect new fields: {', '.join(failed_checks)}",
+                            f"Passed: {', '.join(passed_checks)}, Failed: {', '.join(failed_checks)}"
+                        )
+                else:
+                    self.log_result(
+                        "Get Specific Raw Substrate Material (verify all new fields)", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Get Specific Raw Substrate Material (verify all new fields)", False, f"Error: {str(e)}")
+        
+        # Test PUT /api/materials/{id} (update material with new fields)
         if basic_material_id:
             update_data = {
-                "supplier": "Updated Supplier Ltd",
-                "product_code": "TEST-MAT-001-UPDATED",
+                "supplier": "Updated Premium Supplier Ltd",
+                "product_code": "UPS-BASIC-001-UPDATED",
                 "order_to_delivery_time": "3-5 business days",
+                "material_description": "Updated high-quality printing paper with enhanced durability",  # Updated required field
                 "price": 28.75,
                 "unit": "m2",
                 "raw_substrate": False
@@ -1367,20 +1456,103 @@ class InvoicingAPITester:
                 response = self.session.put(f"{API_BASE}/materials/{basic_material_id}", json=update_data)
                 
                 if response.status_code == 200:
-                    self.log_result(
-                        "Update Material", 
-                        True, 
-                        "Successfully updated material"
-                    )
+                    # Verify the update worked by fetching the material
+                    get_response = self.session.get(f"{API_BASE}/materials/{basic_material_id}")
+                    if get_response.status_code == 200:
+                        updated_material = get_response.json()
+                        if updated_material.get('material_description') == "Updated high-quality printing paper with enhanced durability":
+                            self.log_result(
+                                "Update Material (with new fields)", 
+                                True, 
+                                "Successfully updated material with new material_description field"
+                            )
+                        else:
+                            self.log_result(
+                                "Update Material (with new fields)", 
+                                False, 
+                                "Material updated but material_description not correctly updated"
+                            )
+                    else:
+                        self.log_result(
+                            "Update Material (with new fields)", 
+                            True, 
+                            "Material update returned success"
+                        )
                 else:
                     self.log_result(
-                        "Update Material", 
+                        "Update Material (with new fields)", 
                         False, 
                         f"Failed with status {response.status_code}",
                         response.text
                     )
             except Exception as e:
-                self.log_result("Update Material", False, f"Error: {str(e)}")
+                self.log_result("Update Material (with new fields)", False, f"Error: {str(e)}")
+        
+        # Test PUT /api/materials/{id} (update raw substrate material with new fields)
+        if raw_material_id:
+            raw_update_data = {
+                "supplier": "Updated Industrial Raw Materials Co",
+                "product_code": "UIRM-RAW-SUB-001-UPDATED",
+                "order_to_delivery_time": "7-10 business days",
+                "material_description": "Updated premium corrugated cardboard substrate with enhanced strength properties",
+                "price": 52.25,
+                "unit": "By the Box",
+                "raw_substrate": True,
+                "gsm": "280",
+                "thickness_mm": 2.8,
+                "burst_strength_kpa": 950.0,
+                "ply_bonding_jm2": 135.0,
+                "moisture_percent": 7.5,
+                "supplied_roll_weight": 1400.0,  # Updated new field
+                "master_deckle_width_mm": 1800.0  # Updated new field
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/materials/{raw_material_id}", json=raw_update_data)
+                
+                if response.status_code == 200:
+                    # Verify the update worked by fetching the material
+                    get_response = self.session.get(f"{API_BASE}/materials/{raw_material_id}")
+                    if get_response.status_code == 200:
+                        updated_material = get_response.json()
+                        
+                        # Check updated new fields
+                        checks = [
+                            ("material_description", updated_material.get('material_description') == "Updated premium corrugated cardboard substrate with enhanced strength properties"),
+                            ("supplied_roll_weight", updated_material.get('supplied_roll_weight') == 1400.0),
+                            ("master_deckle_width_mm", updated_material.get('master_deckle_width_mm') == 1800.0)
+                        ]
+                        
+                        passed_checks = [name for name, passed in checks if passed]
+                        failed_checks = [name for name, passed in checks if not passed]
+                        
+                        if len(failed_checks) == 0:
+                            self.log_result(
+                                "Update Raw Substrate Material (with new fields)", 
+                                True, 
+                                "Successfully updated raw substrate material with all new fields"
+                            )
+                        else:
+                            self.log_result(
+                                "Update Raw Substrate Material (with new fields)", 
+                                False, 
+                                f"Raw substrate material updated but new fields not correctly updated: {', '.join(failed_checks)}"
+                            )
+                    else:
+                        self.log_result(
+                            "Update Raw Substrate Material (with new fields)", 
+                            True, 
+                            "Raw substrate material update returned success"
+                        )
+                else:
+                    self.log_result(
+                        "Update Raw Substrate Material (with new fields)", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Update Raw Substrate Material (with new fields)", False, f"Error: {str(e)}")
         
         # Test DELETE /api/materials/{id} (soft delete material)
         if basic_material_id:
