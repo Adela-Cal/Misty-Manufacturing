@@ -321,7 +321,7 @@ async def get_supplier(supplier_id: str, current_user: dict = Depends(require_an
     return Supplier(**supplier)
 
 @api_router.put("/suppliers/{supplier_id}", response_model=StandardResponse)
-async def update_supplier(supplier_id: str, supplier_data: SupplierCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+async def update_supplier(supplier_id: str, supplier_data: SupplierCreate, current_user: dict = Depends(require_admin_or_manager)):
     """Update supplier"""
     update_data = supplier_data.dict()
     update_data["updated_at"] = datetime.utcnow()
