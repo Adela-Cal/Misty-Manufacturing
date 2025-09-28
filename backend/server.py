@@ -794,6 +794,7 @@ async def create_user(user_data: UserCreate, current_user: dict = Depends(requir
         "role": user_data.role,
         "department": user_data.department,
         "phone": user_data.phone,
+        "employment_type": user_data.employment_type.value,
         "is_active": True,
         "created_at": datetime.utcnow(),
         "updated_at": None,
