@@ -105,6 +105,21 @@
 user_problem_statement: "User wants to enhance the Production Board with: 1) Change from column layout to row layout, 2) Add hexagon icon for materials ready status, 3) Remove job value display, 4) Add runtime value to tiles, 5) Add Australia map with delivery location dots, 6) Add book icon for order items with completion checkboxes, 7) Add navigation arrows to move jobs between stages"
 
 backend:
+  - task: "Order Creation with Purchase Order Number Field"
+    implemented: true
+    working: true
+    file: "backend/server.py, backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated order creation endpoint to properly handle the new purchase_order_number field. Added purchase_order_number as Optional[str] field to both Order and OrderCreate models. Updated POST /api/orders endpoint to accept and store purchase_order_number from request payload. Fixed missing runtime_estimate field in order creation."
+      - working: true
+        agent: "testing"
+        comment: "PURCHASE ORDER NUMBER FUNCTIONALITY TESTING COMPLETED - ALL TESTS PASSED (100% SUCCESS RATE): Comprehensive testing of updated order creation endpoint shows 7/7 tests passed successfully. ✅ CREATE ORDER WITH PO NUMBER: Successfully created order with purchase_order_number='PO-2024-TEST-001' and verified correct storage and retrieval, ✅ CREATE ORDER WITHOUT PO NUMBER: Successfully created order without purchase_order_number field and verified null value handling, ✅ CREATE ORDER WITH EXPLICIT NULL PO: Successfully created order with purchase_order_number=null and verified proper null handling, ✅ EXISTING FUNCTIONALITY VERIFICATION: All existing order functionality working correctly with PO number field - client selection, due dates, delivery address, delivery instructions, runtime estimate, notes, items, total calculations, order numbering, timestamps all working, ✅ ORDER LIST INTEGRATION: Purchase order numbers correctly included in GET /api/orders responses and can be retrieved in order lists, ✅ BACKEND INTEGRATION: Fixed missing runtime_estimate field in order creation during testing. AUTHENTICATION: All tests performed with admin credentials (Callum/Peach7510). The purchase_order_number field enhancement is fully functional - accepts string values, handles null values correctly, maintains backward compatibility, and integrates seamlessly with existing order management functionality. Ready for production use."
+
   - task: "Production Board API enhancements"
     implemented: true
     working: true
