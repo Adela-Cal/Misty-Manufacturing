@@ -80,6 +80,7 @@ const SuppliersManagement = () => {
       currency_accepted: supplier.currency_accepted || 'AUD',
       bank_name: supplier.bank_name,
       bank_address: supplier.bank_address,
+      account_name: supplier.account_name || '',  // New field
       bank_account_number: supplier.bank_account_number,
       swift_code: supplier.swift_code || ''
     });
