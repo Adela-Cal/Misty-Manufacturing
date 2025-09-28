@@ -744,7 +744,7 @@ async def generate_invoice_pdf(order_id: str):
 XERO_CLIENT_ID = os.getenv("XERO_CLIENT_ID")
 XERO_CLIENT_SECRET = os.getenv("XERO_CLIENT_SECRET")  
 XERO_CALLBACK_URL = os.getenv("XERO_REDIRECT_URI", "https://app.emergent.sh/api/xero/callback")
-XERO_SCOPES = "accounting.transactions accounting.contacts.read accounting.invoices.read accounting.settings.read accounting.transactions.read accounting.settings openid profile email offline_access"
+XERO_SCOPES = "openid profile email accounting.transactions accounting.contacts accounting.settings offline_access"
 
 # Debug endpoint for testing
 @api_router.get("/xero/debug")
