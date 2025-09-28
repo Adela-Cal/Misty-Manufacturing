@@ -376,7 +376,7 @@ async def get_product_specification(spec_id: str, current_user: dict = Depends(r
     return ProductSpecification(**spec)
 
 @api_router.put("/product-specifications/{spec_id}", response_model=StandardResponse)
-async def update_product_specification(spec_id: str, spec_data: ProductSpecificationCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+async def update_product_specification(spec_id: str, spec_data: ProductSpecificationCreate, current_user: dict = Depends(require_admin_or_manager)):
     """Update product specification"""
     update_data = spec_data.dict()
     update_data["updated_at"] = datetime.utcnow()
