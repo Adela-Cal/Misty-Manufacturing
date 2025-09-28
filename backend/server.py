@@ -502,7 +502,7 @@ async def calculate_material_permutation(
                 "permutation_options": permutation_options[:10],  # Top 10 options
                 "total_options_found": len(permutation_options)
             },
-            calculated_by=current_user["username"]
+            calculated_by=current_user["sub"]
         )
         
         return StandardResponse(success=True, message="Permutation calculation completed", data=result.dict())
