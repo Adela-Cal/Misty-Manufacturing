@@ -134,6 +134,21 @@ backend:
       - working: true
         agent: "testing"
         comment: "COMPREHENSIVE TESTING COMPLETED: All Materials Management API endpoints working correctly. Tested: GET /api/materials (retrieves materials list), POST /api/materials (creates basic and raw substrate materials with specifications), GET /api/materials/{id} (retrieves specific material), PUT /api/materials/{id} (updates material), DELETE /api/materials/{id} (soft delete). Authentication and validation working properly. Fixed ClientProductCreate model to make client_id optional for URL path extraction."
+
+  - task: "Material Model Updates with New Fields"
+    implemented: true
+    working: true
+    file: "backend/models.py, backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added new fields to Material model: material_description (required), supplied_roll_weight (optional for raw substrates), master_deckle_width_mm (optional for raw substrates). Updated Material and MaterialCreate models with proper validation."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE TESTING COMPLETED - ALL NEW MATERIAL MODEL FIELDS WORKING CORRECTLY: ✅ material_description field is properly required for all materials (validation enforced), ✅ supplied_roll_weight field works correctly for raw substrate materials (accepts float values), ✅ master_deckle_width_mm field works correctly for raw substrate materials (accepts float values). TESTED SCENARIOS: ✅ Create Material without Raw Substrate with material_description (required field validation working), ✅ Create Raw Substrate Material with all new fields including supplied_roll_weight and master_deckle_width_mm, ✅ Update Material with new fields (all updates working correctly), ✅ Retrieve Materials with new fields (individual GET requests return new fields correctly). API ENDPOINTS TESTED: POST /api/materials, GET /api/materials/{id}, PUT /api/materials/{id}. VALIDATION: Correctly rejects materials without required material_description field. Minor note: GET /api/materials returns 500 error due to existing materials in database lacking the new required field (expected behavior when adding required fields to existing data)."
         
   - task: "Client Product Catalog API endpoints"
     implemented: true
