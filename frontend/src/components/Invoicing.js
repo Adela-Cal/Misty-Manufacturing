@@ -145,32 +145,46 @@ const Invoicing = () => {
 
   const downloadPackingSlip = async (jobId, orderNumber) => {
     try {
-      const response = await apiHelpers.generatePackingList(jobId);
+      // Use fetch instead of axios for blob handling
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/documents/packing-list/${jobId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      console.log('Packing slip blob size:', blob.size, 'type:', blob.type);
       
-      // Ensure we have the right response type
-      const blob = new Blob([response.data], { type: 'application/pdf' });
+      if (blob.size === 0) {
+        throw new Error('Received empty PDF');
+      }
+
       const url = window.URL.createObjectURL(blob);
       
+      // Try download first
       const link = document.createElement('a');
       link.href = url;
       link.download = `packing_slip_${orderNumber}.pdf`;
-      link.target = '_blank'; // Add target blank
       document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
-      // Alternative: Open PDF in new tab if download doesn't work  
-      window.open(url, '_blank');
-      
-      // Also try the download approach
+      // Also open in new tab as backup
       setTimeout(() => {
-        link.click();
-        document.body.removeChild(link);
+        window.open(url, '_blank');
         window.URL.revokeObjectURL(url);
-        toast.success(`📦 Packing Slip ${orderNumber} opened/downloaded`);
-      }, 100);
+        toast.success(`📦 Packing Slip ${orderNumber} ready for download`);
+      }, 500);
       
     } catch (error) {
       console.error('Failed to download packing slip:', error);
-      toast.error('Failed to download packing slip');
+      toast.error(`Failed to download packing slip: ${error.message}`);
     }
   };
 
