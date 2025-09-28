@@ -3911,9 +3911,298 @@ class InvoicingAPITester:
         
         return supplier_id
 
+    def test_product_specifications_api(self):
+        """Test Product Specifications API endpoints for backend stability after frontend changes"""
+        print("\n=== PRODUCT SPECIFICATIONS API STABILITY TEST ===")
+        
+        # Test 1: GET /api/product-specifications - Verify existing specifications are retrievable
+        try:
+            response = self.session.get(f"{API_BASE}/product-specifications")
+            
+            if response.status_code == 200:
+                specs = response.json()
+                self.log_result(
+                    "GET Product Specifications", 
+                    True, 
+                    f"Successfully retrieved {len(specs)} existing product specifications"
+                )
+                existing_specs = specs
+            else:
+                self.log_result(
+                    "GET Product Specifications", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                existing_specs = []
+        except Exception as e:
+            self.log_result("GET Product Specifications", False, f"Error: {str(e)}")
+            existing_specs = []
+        
+        # Test 2: POST /api/product-specifications - Create regular Paper Core specification
+        regular_paper_core_spec = {
+            "product_name": "Standard Paper Core",
+            "product_type": "Paper Core",
+            "specifications": {
+                "inner_diameter_mm": 76,
+                "outer_diameter_mm": 80,
+                "length_mm": 1000,
+                "wall_thickness_mm": 2.0,
+                "material_grade": "Standard",
+                "crush_strength_n": 500
+            },
+            "materials_composition": [
+                {
+                    "material_name": "Recycled Cardboard",
+                    "percentage": 80,
+                    "grade": "Standard"
+                },
+                {
+                    "material_name": "Virgin Fiber",
+                    "percentage": 20,
+                    "grade": "High Quality"
+                }
+            ],
+            "manufacturing_notes": "Standard paper core for general use"
+        }
+        
+        regular_spec_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=regular_paper_core_spec)
+            
+            if response.status_code == 200:
+                result = response.json()
+                regular_spec_id = result.get('data', {}).get('id')
+                
+                if regular_spec_id:
+                    self.log_result(
+                        "Create Regular Paper Core Specification", 
+                        True, 
+                        "Successfully created regular Paper Core specification with flexible dict storage",
+                        f"Spec ID: {regular_spec_id}"
+                    )
+                else:
+                    self.log_result(
+                        "Create Regular Paper Core Specification", 
+                        False, 
+                        "Specification creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create Regular Paper Core Specification", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Regular Paper Core Specification", False, f"Error: {str(e)}")
+        
+        # Test 3: POST /api/product-specifications - Create Spiral Paper Core specification with new fields
+        spiral_paper_core_spec = {
+            "product_name": "Premium Spiral Paper Core",
+            "product_type": "Spiral Paper Core",
+            "specifications": {
+                "internal_diameter": 76.2,
+                "external_diameter": 82.5,
+                "length": 1200,
+                "wall_thickness_required": 3.15,
+                "spiral_angle_degrees": 45,
+                "adhesive_type": "PVA",
+                "surface_finish": "Smooth",
+                "compression_strength_kpa": 850,
+                "moisture_content_max": 8.5,
+                "spiral_overlap_mm": 2.0,
+                "end_cap_type": "Plastic",
+                "color": "Natural Brown"
+            },
+            "materials_composition": [
+                {
+                    "material_name": "High-Grade Kraft Paper",
+                    "percentage": 60,
+                    "grade": "Premium",
+                    "gsm": 180
+                },
+                {
+                    "material_name": "Recycled Fiber",
+                    "percentage": 30,
+                    "grade": "Standard",
+                    "gsm": 120
+                },
+                {
+                    "material_name": "PVA Adhesive",
+                    "percentage": 10,
+                    "grade": "Industrial",
+                    "viscosity": "Medium"
+                }
+            ],
+            "manufacturing_notes": "Spiral paper core with enhanced strength for heavy-duty applications. Requires precise spiral winding angle and adhesive application."
+        }
+        
+        spiral_spec_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=spiral_paper_core_spec)
+            
+            if response.status_code == 200:
+                result = response.json()
+                spiral_spec_id = result.get('data', {}).get('id')
+                
+                if spiral_spec_id:
+                    self.log_result(
+                        "Create Spiral Paper Core Specification", 
+                        True, 
+                        "Successfully created Spiral Paper Core specification with new fields",
+                        f"Spec ID: {spiral_spec_id}, Fields: internal_diameter, wall_thickness_required, spiral_angle_degrees, etc."
+                    )
+                else:
+                    self.log_result(
+                        "Create Spiral Paper Core Specification", 
+                        False, 
+                        "Spiral specification creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create Spiral Paper Core Specification", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Spiral Paper Core Specification", False, f"Error: {str(e)}")
+        
+        # Test 4: GET /api/product-specifications/{id} - Verify both types can be retrieved correctly
+        if regular_spec_id:
+            try:
+                response = self.session.get(f"{API_BASE}/product-specifications/{regular_spec_id}")
+                
+                if response.status_code == 200:
+                    spec = response.json()
+                    specifications = spec.get('specifications', {})
+                    materials = spec.get('materials_composition', [])
+                    
+                    # Verify regular Paper Core fields are stored correctly
+                    expected_fields = ['inner_diameter_mm', 'outer_diameter_mm', 'length_mm', 'wall_thickness_mm']
+                    found_fields = [field for field in expected_fields if field in specifications]
+                    
+                    if len(found_fields) == len(expected_fields) and len(materials) == 2:
+                        self.log_result(
+                            "Retrieve Regular Paper Core Specification", 
+                            True, 
+                            f"Successfully retrieved regular Paper Core with all fields intact",
+                            f"Spec fields: {len(specifications)}, Materials: {len(materials)}"
+                        )
+                    else:
+                        self.log_result(
+                            "Retrieve Regular Paper Core Specification", 
+                            False, 
+                            "Retrieved specification missing expected fields or materials",
+                            f"Found fields: {found_fields}, Materials count: {len(materials)}"
+                        )
+                else:
+                    self.log_result(
+                        "Retrieve Regular Paper Core Specification", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Retrieve Regular Paper Core Specification", False, f"Error: {str(e)}")
+        
+        if spiral_spec_id:
+            try:
+                response = self.session.get(f"{API_BASE}/product-specifications/{spiral_spec_id}")
+                
+                if response.status_code == 200:
+                    spec = response.json()
+                    specifications = spec.get('specifications', {})
+                    materials = spec.get('materials_composition', [])
+                    
+                    # Verify Spiral Paper Core specific fields are stored correctly
+                    spiral_fields = ['internal_diameter', 'wall_thickness_required', 'spiral_angle_degrees', 'adhesive_type']
+                    found_spiral_fields = [field for field in spiral_fields if field in specifications]
+                    
+                    if len(found_spiral_fields) == len(spiral_fields) and len(materials) == 3:
+                        self.log_result(
+                            "Retrieve Spiral Paper Core Specification", 
+                            True, 
+                            f"Successfully retrieved Spiral Paper Core with all new fields intact",
+                            f"Spiral fields: {found_spiral_fields}, Materials: {len(materials)}"
+                        )
+                    else:
+                        self.log_result(
+                            "Retrieve Spiral Paper Core Specification", 
+                            False, 
+                            "Retrieved Spiral specification missing expected fields or materials",
+                            f"Found spiral fields: {found_spiral_fields}, Materials count: {len(materials)}"
+                        )
+                else:
+                    self.log_result(
+                        "Retrieve Spiral Paper Core Specification", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Retrieve Spiral Paper Core Specification", False, f"Error: {str(e)}")
+        
+        # Test 5: Verify flexible specifications dict can handle both types seamlessly
+        try:
+            response = self.session.get(f"{API_BASE}/product-specifications")
+            
+            if response.status_code == 200:
+                all_specs = response.json()
+                
+                # Count different product types
+                paper_core_count = len([s for s in all_specs if s.get('product_type') == 'Paper Core'])
+                spiral_core_count = len([s for s in all_specs if s.get('product_type') == 'Spiral Paper Core'])
+                
+                # Verify both types are present and retrievable
+                if paper_core_count > 0 and spiral_core_count > 0:
+                    self.log_result(
+                        "Flexible Specifications Dict Handling", 
+                        True, 
+                        f"Backend seamlessly handles both specification types",
+                        f"Paper Cores: {paper_core_count}, Spiral Paper Cores: {spiral_core_count}, Total: {len(all_specs)}"
+                    )
+                else:
+                    self.log_result(
+                        "Flexible Specifications Dict Handling", 
+                        False, 
+                        "Not all specification types found in retrieval",
+                        f"Paper Cores: {paper_core_count}, Spiral Paper Cores: {spiral_core_count}"
+                    )
+            else:
+                self.log_result(
+                    "Flexible Specifications Dict Handling", 
+                    False, 
+                    f"Failed to retrieve all specifications for type verification: {response.status_code}"
+                )
+        except Exception as e:
+            self.log_result("Flexible Specifications Dict Handling", False, f"Error: {str(e)}")
+        
+        # Test 6: Verify authentication and permissions are still working
+        temp_session = requests.Session()
+        try:
+            response = temp_session.get(f"{API_BASE}/product-specifications")
+            
+            if response.status_code in [401, 403]:
+                self.log_result(
+                    "Product Specifications API Authentication", 
+                    True, 
+                    f"API properly requires authentication (status: {response.status_code})"
+                )
+            else:
+                self.log_result(
+                    "Product Specifications API Authentication", 
+                    False, 
+                    f"Expected 401/403 but got {response.status_code}",
+                    "API should require authentication"
+                )
+        except Exception as e:
+            self.log_result("Product Specifications API Authentication", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on Suppliers Account Name Field"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Suppliers Account Name Field")
+        """Run backend API tests with PRIMARY FOCUS on Product Specifications API"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Product Specifications API Stability")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 80)
         
@@ -3922,9 +4211,9 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test NEW Account Name field in Suppliers API
-        print("\n🏭 TESTING SUPPLIERS ACCOUNT NAME FIELD - PRIMARY FOCUS")
-        supplier_id = self.test_suppliers_account_name_field()
+        # PRIMARY FOCUS: Test Product Specifications API endpoints after frontend changes
+        print("\n📋 TESTING PRODUCT SPECIFICATIONS API - PRIMARY FOCUS")
+        self.test_product_specifications_api()
         
         return self.generate_report()
     
