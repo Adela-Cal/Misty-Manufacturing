@@ -327,6 +327,7 @@ class MaterialCreate(BaseModel):
     order_to_delivery_time: str
     material_description: str  # New field
     price: float
+    currency: str = "AUD"  # New field with default
     unit: str
     raw_substrate: bool = False
     gsm: Optional[str] = None
