@@ -1799,6 +1799,463 @@ class InvoicingAPITester:
             except Exception as e:
                 self.log_result(f"{name} Authentication", False, f"Error: {str(e)}")
 
+    def test_production_board_enhancements(self):
+        """Test new Production Board API enhancements"""
+        print("\n=== PRODUCTION BOARD ENHANCEMENTS TEST ===")
+        
+        # Test GET /api/production/board - should include runtime and materials_ready fields
+        try:
+            response = self.session.get(f"{API_BASE}/production/board")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success') and 'data' in data:
+                    board_data = data['data']
+                    
+                    # Check if board has stages
+                    if isinstance(board_data, dict) and len(board_data) > 0:
+                        # Find a stage with jobs to test
+                        test_job = None
+                        for stage, jobs in board_data.items():
+                            if jobs and len(jobs) > 0:
+                                test_job = jobs[0]
+                                break
+                        
+                        if test_job:
+                            # Check for new fields: runtime and materials_ready
+                            has_runtime = 'runtime' in test_job
+                            has_materials_ready = 'materials_ready' in test_job
+                            
+                            if has_runtime and has_materials_ready:
+                                self.log_result(
+                                    "Production Board Enhanced Fields", 
+                                    True, 
+                                    f"Production board includes new fields: runtime='{test_job.get('runtime')}', materials_ready={test_job.get('materials_ready')}"
+                                )
+                                return test_job.get('id')  # Return order ID for further testing
+                            else:
+                                missing_fields = []
+                                if not has_runtime:
+                                    missing_fields.append('runtime')
+                                if not has_materials_ready:
+                                    missing_fields.append('materials_ready')
+                                
+                                self.log_result(
+                                    "Production Board Enhanced Fields", 
+                                    False, 
+                                    f"Production board missing new fields: {', '.join(missing_fields)}"
+                                )
+                        else:
+                            self.log_result(
+                                "Production Board Enhanced Fields", 
+                                False, 
+                                "No jobs found on production board to test enhanced fields"
+                            )
+                    else:
+                        self.log_result(
+                            "Production Board Enhanced Fields", 
+                            False, 
+                            "Production board data is empty or invalid format"
+                        )
+                else:
+                    self.log_result(
+                        "Production Board Enhanced Fields", 
+                        False, 
+                        "Production board response missing success/data fields",
+                        str(data)
+                    )
+            else:
+                self.log_result(
+                    "Production Board Enhanced Fields", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Production Board Enhanced Fields", False, f"Error: {str(e)}")
+        
+        return None
+
+    def test_stage_movement_api(self, order_id):
+        """Test POST /api/production/move-stage/{order_id}"""
+        print("\n=== STAGE MOVEMENT API TEST ===")
+        
+        if not order_id:
+            self.log_result(
+                "Stage Movement API", 
+                False, 
+                "No order ID available for stage movement testing"
+            )
+            return
+        
+        # Test forward movement
+        try:
+            forward_request = {
+                "direction": "forward",
+                "notes": "Testing forward stage movement"
+            }
+            
+            response = self.session.post(f"{API_BASE}/production/move-stage/{order_id}", json=forward_request)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success') and 'new_stage' in data:
+                    new_stage = data.get('new_stage')
+                    self.log_result(
+                        "Stage Movement Forward", 
+                        True, 
+                        f"Successfully moved order to stage: {new_stage}",
+                        data.get('message')
+                    )
+                    
+                    # Test backward movement
+                    backward_request = {
+                        "direction": "backward",
+                        "notes": "Testing backward stage movement"
+                    }
+                    
+                    backward_response = self.session.post(f"{API_BASE}/production/move-stage/{order_id}", json=backward_request)
+                    
+                    if backward_response.status_code == 200:
+                        backward_data = backward_response.json()
+                        
+                        if backward_data.get('success'):
+                            self.log_result(
+                                "Stage Movement Backward", 
+                                True, 
+                                f"Successfully moved order back to stage: {backward_data.get('new_stage')}",
+                                backward_data.get('message')
+                            )
+                        else:
+                            self.log_result(
+                                "Stage Movement Backward", 
+                                False, 
+                                "Backward movement response indicates failure",
+                                str(backward_data)
+                            )
+                    else:
+                        self.log_result(
+                            "Stage Movement Backward", 
+                            False, 
+                            f"Backward movement failed with status {backward_response.status_code}",
+                            backward_response.text
+                        )
+                else:
+                    self.log_result(
+                        "Stage Movement Forward", 
+                        False, 
+                        "Forward movement response missing success/new_stage fields",
+                        str(data)
+                    )
+            else:
+                self.log_result(
+                    "Stage Movement Forward", 
+                    False, 
+                    f"Forward movement failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Stage Movement API", False, f"Error: {str(e)}")
+        
+        # Test invalid direction
+        try:
+            invalid_request = {
+                "direction": "invalid_direction",
+                "notes": "Testing invalid direction"
+            }
+            
+            response = self.session.post(f"{API_BASE}/production/move-stage/{order_id}", json=invalid_request)
+            
+            if response.status_code == 400:
+                self.log_result(
+                    "Stage Movement Invalid Direction", 
+                    True, 
+                    "Correctly rejected invalid direction with status 400"
+                )
+            else:
+                self.log_result(
+                    "Stage Movement Invalid Direction", 
+                    False, 
+                    f"Expected 400 for invalid direction but got {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Stage Movement Invalid Direction", False, f"Error: {str(e)}")
+
+    def test_materials_status_api(self, order_id):
+        """Test materials status API endpoints"""
+        print("\n=== MATERIALS STATUS API TEST ===")
+        
+        if not order_id:
+            self.log_result(
+                "Materials Status API", 
+                False, 
+                "No order ID available for materials status testing"
+            )
+            return
+        
+        # Test GET /api/production/materials-status/{order_id}
+        try:
+            response = self.session.get(f"{API_BASE}/production/materials-status/{order_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success') and 'data' in data:
+                    materials_data = data['data']
+                    
+                    # Check required fields
+                    required_fields = ['order_id', 'materials_ready', 'materials_checklist', 'updated_by']
+                    missing_fields = [field for field in required_fields if field not in materials_data]
+                    
+                    if not missing_fields:
+                        self.log_result(
+                            "Get Materials Status", 
+                            True, 
+                            f"Successfully retrieved materials status for order {order_id}",
+                            f"Materials ready: {materials_data.get('materials_ready')}, Checklist items: {len(materials_data.get('materials_checklist', []))}"
+                        )
+                    else:
+                        self.log_result(
+                            "Get Materials Status", 
+                            False, 
+                            f"Materials status response missing fields: {missing_fields}",
+                            str(materials_data)
+                        )
+                else:
+                    self.log_result(
+                        "Get Materials Status", 
+                        False, 
+                        "Materials status response missing success/data fields",
+                        str(data)
+                    )
+            else:
+                self.log_result(
+                    "Get Materials Status", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Get Materials Status", False, f"Error: {str(e)}")
+        
+        # Test PUT /api/production/materials-status/{order_id}
+        try:
+            update_data = {
+                "materials_ready": True,
+                "materials_checklist": [
+                    {"material": "Raw Paper", "ready": True},
+                    {"material": "Adhesive", "ready": True},
+                    {"material": "Packaging", "ready": False}
+                ]
+            }
+            
+            response = self.session.put(f"{API_BASE}/production/materials-status/{order_id}", json=update_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success'):
+                    self.log_result(
+                        "Update Materials Status", 
+                        True, 
+                        "Successfully updated materials status",
+                        data.get('message')
+                    )
+                    
+                    # Verify the update by getting the status again
+                    verify_response = self.session.get(f"{API_BASE}/production/materials-status/{order_id}")
+                    
+                    if verify_response.status_code == 200:
+                        verify_data = verify_response.json()
+                        
+                        if verify_data.get('success') and verify_data.get('data', {}).get('materials_ready') == True:
+                            self.log_result(
+                                "Verify Materials Status Update", 
+                                True, 
+                                "Materials status update was persisted correctly"
+                            )
+                        else:
+                            self.log_result(
+                                "Verify Materials Status Update", 
+                                False, 
+                                "Materials status update was not persisted correctly"
+                            )
+                else:
+                    self.log_result(
+                        "Update Materials Status", 
+                        False, 
+                        "Update materials status response indicates failure",
+                        str(data)
+                    )
+            else:
+                self.log_result(
+                    "Update Materials Status", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Update Materials Status", False, f"Error: {str(e)}")
+
+    def test_order_item_status_api(self, order_id):
+        """Test PUT /api/production/order-item-status/{order_id}"""
+        print("\n=== ORDER ITEM STATUS API TEST ===")
+        
+        if not order_id:
+            self.log_result(
+                "Order Item Status API", 
+                False, 
+                "No order ID available for order item status testing"
+            )
+            return
+        
+        # Test updating first item completion status
+        try:
+            update_data = {
+                "item_index": 0,
+                "is_completed": True
+            }
+            
+            response = self.session.put(f"{API_BASE}/production/order-item-status/{order_id}", json=update_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success'):
+                    self.log_result(
+                        "Update Order Item Status", 
+                        True, 
+                        "Successfully updated order item completion status",
+                        data.get('message')
+                    )
+                    
+                    # Test updating with invalid item index
+                    invalid_update = {
+                        "item_index": 999,  # Invalid index
+                        "is_completed": True
+                    }
+                    
+                    invalid_response = self.session.put(f"{API_BASE}/production/order-item-status/{order_id}", json=invalid_update)
+                    
+                    if invalid_response.status_code == 400:
+                        self.log_result(
+                            "Order Item Status Invalid Index", 
+                            True, 
+                            "Correctly rejected invalid item index with status 400"
+                        )
+                    else:
+                        self.log_result(
+                            "Order Item Status Invalid Index", 
+                            False, 
+                            f"Expected 400 for invalid index but got {invalid_response.status_code}",
+                            invalid_response.text
+                        )
+                else:
+                    self.log_result(
+                        "Update Order Item Status", 
+                        False, 
+                        "Update order item status response indicates failure",
+                        str(data)
+                    )
+            else:
+                self.log_result(
+                    "Update Order Item Status", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Update Order Item Status", False, f"Error: {str(e)}")
+
+    def test_production_board_authentication(self):
+        """Test that production board endpoints require proper authentication"""
+        print("\n=== PRODUCTION BOARD AUTHENTICATION TEST ===")
+        
+        # Test without authentication
+        temp_session = requests.Session()
+        
+        endpoints_to_test = [
+            ("Production Board", "GET", "/production/board"),
+            ("Move Stage", "POST", "/production/move-stage/test-id"),
+            ("Get Materials Status", "GET", "/production/materials-status/test-id"),
+            ("Update Materials Status", "PUT", "/production/materials-status/test-id"),
+            ("Update Order Item Status", "PUT", "/production/order-item-status/test-id")
+        ]
+        
+        for endpoint_name, method, endpoint in endpoints_to_test:
+            try:
+                if method == "GET":
+                    response = temp_session.get(f"{API_BASE}{endpoint}")
+                elif method == "POST":
+                    response = temp_session.post(f"{API_BASE}{endpoint}", json={"direction": "forward"})
+                elif method == "PUT":
+                    response = temp_session.put(f"{API_BASE}{endpoint}", json={"test": "data"})
+                
+                if response.status_code in [401, 403]:
+                    self.log_result(
+                        f"{endpoint_name} Authentication", 
+                        True, 
+                        f"Correctly requires authentication (status: {response.status_code})"
+                    )
+                else:
+                    self.log_result(
+                        f"{endpoint_name} Authentication", 
+                        False, 
+                        f"Expected 401/403 but got {response.status_code}",
+                        f"Endpoint {endpoint} should require authentication"
+                    )
+                    
+            except Exception as e:
+                self.log_result(f"{endpoint_name} Authentication", False, f"Error: {str(e)}")
+
+    def test_invalid_order_ids(self):
+        """Test error handling for invalid order IDs"""
+        print("\n=== INVALID ORDER IDS TEST ===")
+        
+        invalid_order_id = "invalid-order-id-12345"
+        
+        endpoints_to_test = [
+            ("Move Stage Invalid Order", "POST", f"/production/move-stage/{invalid_order_id}", {"direction": "forward"}),
+            ("Get Materials Status Invalid Order", "GET", f"/production/materials-status/{invalid_order_id}", None),
+            ("Update Materials Status Invalid Order", "PUT", f"/production/materials-status/{invalid_order_id}", {"materials_ready": True, "materials_checklist": []}),
+            ("Update Order Item Status Invalid Order", "PUT", f"/production/order-item-status/{invalid_order_id}", {"item_index": 0, "is_completed": True})
+        ]
+        
+        for test_name, method, endpoint, data in endpoints_to_test:
+            try:
+                if method == "GET":
+                    response = self.session.get(f"{API_BASE}{endpoint}")
+                elif method == "POST":
+                    response = self.session.post(f"{API_BASE}{endpoint}", json=data)
+                elif method == "PUT":
+                    response = self.session.put(f"{API_BASE}{endpoint}", json=data)
+                
+                if response.status_code == 404:
+                    self.log_result(
+                        test_name, 
+                        True, 
+                        "Correctly returned 404 for invalid order ID"
+                    )
+                else:
+                    self.log_result(
+                        test_name, 
+                        False, 
+                        f"Expected 404 for invalid order ID but got {response.status_code}",
+                        response.text
+                    )
+                    
+            except Exception as e:
+                self.log_result(test_name, False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend API tests including new Materials and Client Product Catalog APIs"""
         print("🚀 Starting Backend API Tests - Materials Management & Client Product Catalog")
