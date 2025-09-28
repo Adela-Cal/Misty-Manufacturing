@@ -104,6 +104,7 @@ const MaterialsManagement = () => {
       try {
         await apiHelpers.deleteMaterial(material.id);
         toast.success('Material deleted successfully');
+        setShowModal(false); // Close modal if deleting from within modal
         loadMaterials();
       } catch (error) {
         console.error('Failed to delete material:', error);
