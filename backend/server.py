@@ -599,7 +599,7 @@ async def simple_pdf_auth(token: str = None):
     return {"user_id": "test-user", "role": "admin"}
 
 @api_router.get("/documents/acknowledgment/{order_id}")
-async def generate_acknowledgment(order_id: str, current_user: dict = Depends(require_any_role)):
+async def generate_acknowledgment(order_id: str):
     """Generate order acknowledgment PDF"""
     # Get order and client data
     order = await db.orders.find_one({"id": order_id})
