@@ -533,7 +533,7 @@ const StaffSecurity = () => {
                         className="misty-button misty-button-danger"
                       >
                         <TrashIcon className="h-4 w-4 mr-2" />
-                        Deactivate User
+                        Delete User
                       </button>
                     )}
                   </div>
