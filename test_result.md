@@ -382,9 +382,40 @@ metadata:
   test_sequence: 0
   run_ui: false
 
+  - task: "Suppliers API endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py, backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented comprehensive Suppliers CRUD API endpoints with all required fields: supplier_name, phone_number, email, physical_address, post_code, bank_name, bank_account_number. Added Supplier and SupplierCreate models with proper validation and authentication requirements (admin/production_manager roles)."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE SUPPLIERS API TESTING COMPLETED - ALL ENDPOINTS WORKING PERFECTLY: ✅ GET /api/suppliers (retrieved 0 suppliers initially), ✅ POST /api/suppliers (successfully created supplier with all required fields including bank details), ✅ GET /api/suppliers/{id} (retrieved specific supplier with all required fields), ✅ PUT /api/suppliers/{id} (successfully updated supplier information), ✅ DELETE /api/suppliers/{id} (successfully soft deleted supplier - no longer accessible). AUTHENTICATION: All endpoints properly require admin/production_manager permissions. VALIDATION: Correctly validates required fields with 422 validation errors. All 5 Suppliers API endpoints are fully functional and ready for production use."
+
+  - task: "Product Specifications API endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py, backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented comprehensive Product Specifications CRUD API endpoints with flexible specifications dict storage and materials_composition array. Added ProductSpecification and ProductSpecificationCreate models supporting Paper Core and Spiral Paper Core types with different field sets and proper authentication requirements (admin/production_manager roles)."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE PRODUCT SPECIFICATIONS API TESTING COMPLETED - ALL ENDPOINTS WORKING PERFECTLY: ✅ GET /api/product-specifications (retrieved 0 specifications initially), ✅ POST /api/product-specifications (successfully created Paper Core specification with flexible dict storage), ✅ POST /api/product-specifications (successfully created Spiral Paper Core specification with different materials composition), ✅ GET /api/product-specifications/{id} (retrieved specification with flexible dict storage - 6 spec fields, 2 material items), ✅ PUT /api/product-specifications/{id} (successfully updated specification with new fields added to flexible dict), ✅ DELETE /api/product-specifications/{id} (successfully soft deleted specification - no longer accessible). FLEXIBLE STORAGE: Specifications dict properly stores different field sets for Paper Core vs Spiral Paper Core types. MATERIALS COMPOSITION: Array storage working correctly with different materials and percentages. AUTHENTICATION: All endpoints properly require admin/production_manager permissions. VALIDATION: Correctly validates required fields with 422 validation errors. All 6 Product Specifications API endpoints are fully functional and ready for production use."
+
 test_plan:
   current_focus:
-    - "Client Product Catalog Management"
+    - "Suppliers API endpoints"
+    - "Product Specifications API endpoints"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
