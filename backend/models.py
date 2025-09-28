@@ -298,6 +298,57 @@ class DocumentTemplate(BaseModel):
     template_data: Dict[str, Any]
     generated_at: datetime = Field(default_factory=datetime.utcnow)
 
+# Supplier Models
+class Supplier(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    supplier_name: str
+    contact_person: Optional[str] = None
+    phone_number: str
+    email: EmailStr
+    physical_address: str
+    post_code: str
+    currency_accepted: str = "AUD"
+    # Bank details
+    bank_name: str
+    bank_address: str
+    bank_account_number: str
+    swift_code: Optional[str] = None
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+class SupplierCreate(BaseModel):
+    supplier_name: str
+    contact_person: Optional[str] = None
+    phone_number: str
+    email: EmailStr
+    physical_address: str
+    post_code: str
+    currency_accepted: str = "AUD"
+    bank_name: str
+    bank_address: str
+    bank_account_number: str
+    swift_code: Optional[str] = None
+
+# Product Specifications Models
+class ProductSpecification(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    product_name: str
+    product_type: str  # e.g., "Paper Core", "Spiral Paper Core"
+    specifications: Dict[str, Any]  # Flexible spec storage
+    materials_composition: List[Dict[str, Any]] = []  # Materials used with quantities
+    manufacturing_notes: Optional[str] = None
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+class ProductSpecificationCreate(BaseModel):
+    product_name: str
+    product_type: str
+    specifications: Dict[str, Any]
+    materials_composition: List[Dict[str, Any]] = []
+    manufacturing_notes: Optional[str] = None
+
 # Materials & Products Models
 class Material(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
