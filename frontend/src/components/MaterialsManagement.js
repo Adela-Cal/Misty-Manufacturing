@@ -441,24 +441,45 @@ const MaterialsManagement = () => {
                       )}
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Price *
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        className={`misty-input w-full ${errors.price ? 'border-red-500' : ''}`}
-                        placeholder="0.00"
-                        required
-                      />
-                      {errors.price && (
-                        <p className="text-red-400 text-sm mt-1">{errors.price}</p>
-                      )}
+                    <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Price *
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          name="price"
+                          value={formData.price}
+                          onChange={handleInputChange}
+                          className={`misty-input w-full ${errors.price ? 'border-red-500' : ''}`}
+                          placeholder="0.00"
+                          required
+                        />
+                        {errors.price && (
+                          <p className="text-red-400 text-sm mt-1">{errors.price}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Currency *
+                        </label>
+                        <select
+                          name="currency"
+                          value={formData.currency}
+                          onChange={handleInputChange}
+                          className="misty-select w-full"
+                          required
+                        >
+                          {currencyOptions.map(currency => (
+                            <option key={currency.code} value={currency.code}>
+                              {currency.code} ({currency.symbol}) - {currency.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
                     <div>
