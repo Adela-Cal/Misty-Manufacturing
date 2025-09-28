@@ -112,9 +112,9 @@ const Layout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-gray-800 border-r border-gray-700">
-        {/* Logo */}
-        <div className="flex items-center h-16 px-4 border-b border-gray-700">
+      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+        {/* Logo - Fixed at top */}
+        <div className="flex items-center h-16 px-4 border-b border-gray-700 flex-shrink-0">
           <div className="flex items-center">
             <img 
               src="/logo.svg" 
@@ -128,79 +128,81 @@ const Layout = ({ children }) => {
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="mt-8 px-4">
-          <ul className="space-y-2">
-            {filteredNavigation.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <li key={item.name}>
-                  <Link
-                    to={item.href}
-                    className={`
-                      flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
-                      ${
-                        isActive
-                          ? 'bg-yellow-400 text-gray-900'
-                          : 'text-gray-300 hover:bg-gray-700 hover:text-yellow-400'
-                      }
-                    `}
-                    data-testid={`nav-${item.name.toLowerCase()}`}
-                  >
-                    <item.icon className="mr-3 h-5 w-5" />
-                    {item.name}
-                  </Link>
-                </li>
-              );
-            })}
-            
-            {/* Xero Connection Section */}
-            {hasPermission('view_reports') && (
-              <li className="pt-4">
-                <div className="border-t border-gray-700 pt-4">
-                  <div className="px-3 py-1 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Integration
-                  </div>
-                  
-                  {checkingXeroStatus ? (
-                    <div className="flex items-center px-3 py-2 text-sm text-gray-400 mt-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400 mr-3"></div>
-                      Checking Xero...
-                    </div>
-                  ) : xeroConnected ? (
-                    <>
-                      <div className="flex items-center px-3 py-2 text-sm bg-green-900/30 border border-green-700 rounded-md mt-2 mb-2">
-                        <div className="h-2 w-2 bg-green-400 rounded-full mr-3"></div>
-                        <span className="text-green-400 flex-1">Xero Connected</span>
-                      </div>
-                      <button
-                        onClick={handleXeroDisconnect}
-                        className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-red-400 rounded-md transition-colors duration-200"
-                      >
-                        <XMarkIcon className="mr-3 h-5 w-5" />
-                        Disconnect Xero
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={handleXeroConnect}
-                      className="w-full flex items-center px-3 py-2 text-sm font-medium text-white rounded-md transition-colors duration-200 mt-2"
-                      style={{
-                        background: 'linear-gradient(135deg, #13b5ea 0%, #0e7bb8 100%)',
-                      }}
+        {/* Scrollable Navigation Area */}
+        <div className="flex-1 overflow-y-auto">
+          <nav className="mt-8 px-4 pb-4">
+            <ul className="space-y-2">
+              {filteredNavigation.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <li key={item.name}>
+                    <Link
+                      to={item.href}
+                      className={`
+                        flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
+                        ${
+                          isActive
+                            ? 'bg-yellow-400 text-gray-900'
+                            : 'text-gray-300 hover:bg-gray-700 hover:text-yellow-400'
+                        }
+                      `}
+                      data-testid={`nav-${item.name.toLowerCase()}`}
                     >
-                      <LinkIcon className="mr-3 h-5 w-5" />
-                      Connect to Xero
-                    </button>
-                  )}
-                </div>
-              </li>
-            )}
-          </ul>
-        </nav>
+                      <item.icon className="mr-3 h-5 w-5" />
+                      {item.name}
+                    </Link>
+                  </li>
+                );
+              })}
+              
+              {/* Xero Connection Section */}
+              {hasPermission('view_reports') && (
+                <li className="pt-4">
+                  <div className="border-t border-gray-700 pt-4">
+                    <div className="px-3 py-1 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Integration
+                    </div>
+                    
+                    {checkingXeroStatus ? (
+                      <div className="flex items-center px-3 py-2 text-sm text-gray-400 mt-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400 mr-3"></div>
+                        Checking Xero...
+                      </div>
+                    ) : xeroConnected ? (
+                      <>
+                        <div className="flex items-center px-3 py-2 text-sm bg-green-900/30 border border-green-700 rounded-md mt-2 mb-2">
+                          <div className="h-2 w-2 bg-green-400 rounded-full mr-3"></div>
+                          <span className="text-green-400 flex-1">Xero Connected</span>
+                        </div>
+                        <button
+                          onClick={handleXeroDisconnect}
+                          className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-red-400 rounded-md transition-colors duration-200"
+                        >
+                          <XMarkIcon className="mr-3 h-5 w-5" />
+                          Disconnect Xero
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={handleXeroConnect}
+                        className="w-full flex items-center px-3 py-2 text-sm font-medium text-white rounded-md transition-colors duration-200 mt-2"
+                        style={{
+                          background: 'linear-gradient(135deg, #13b5ea 0%, #0e7bb8 100%)',
+                        }}
+                      >
+                        <LinkIcon className="mr-3 h-5 w-5" />
+                        Connect to Xero
+                      </button>
+                    )}
+                  </div>
+                </li>
+              )}
+            </ul>
+          </nav>
+        </div>
 
-        {/* User info and logout */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
+        {/* User info and logout - Fixed at bottom */}
+        <div className="flex-shrink-0 p-4 border-t border-gray-700 bg-gray-800">
           <div className="flex items-center mb-3">
             <div className="h-8 w-8 bg-gray-600 rounded-full flex items-center justify-center mr-3">
               <UserIcon className="h-5 w-5 text-gray-300" />
