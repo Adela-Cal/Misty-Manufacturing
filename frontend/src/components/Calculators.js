@@ -630,44 +630,82 @@ const SpiralCoreConsumption = ({ productSpecs, loading, setLoading }) => {
       </form>
 
       {results && (
-        <div className="bg-gray-700 rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-white mb-4">Material Consumption Results</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-300">Material:</span>
-                <span className="text-white">{results.results.material_name}</span>
+        <div className="bg-gray-700 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">🧮 Spiral Core Consumption Results</h3>
+          
+          {/* Input Summary */}
+          <div className="mb-6 p-4 bg-gray-800 rounded-lg">
+            <h4 className="text-md font-semibold text-white mb-3">Input Parameters</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <span className="text-gray-400">Internal Diameter:</span>
+                <div className="text-white font-medium">{results.input_parameters.core_internal_diameter} mm</div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-300">GSM:</span>
-                <span className="text-white">{results.results.gsm}</span>
+              <div>
+                <span className="text-gray-400">Wall Thickness:</span>
+                <div className="text-white font-medium">{results.input_parameters.wall_thickness_required} mm</div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-300">Layers Required:</span>
-                <span className="text-white">{results.results.layers_required}</span>
+              <div>
+                <span className="text-gray-400">Core Length:</span>
+                <div className="text-white font-medium">{results.input_parameters.core_length} mm</div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-300">Outer Diameter:</span>
-                <span className="text-white">{results.results.outer_diameter_mm} mm</span>
+              <div>
+                <span className="text-gray-400">Quantity:</span>
+                <div className="text-white font-medium">{results.input_parameters.quantity}</div>
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-300">Surface Area per Core:</span>
-                <span className="text-white">{results.results.surface_area_m2_per_core} m²</span>
+          </div>
+
+          {/* Calculation Results */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h4 className="text-md font-semibold text-white">📏 Dimensions & Volume</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Outer Diameter:</span>
+                  <span className="text-white font-medium">{results.calculations.outer_diameter} mm</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Volume per Core:</span>
+                  <span className="text-white font-medium">{results.calculations.volume_per_core} cm³</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Total Volume:</span>
+                  <span className="text-white font-medium">{results.calculations.total_volume} cm³</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-300">Weight per Core:</span>
-                <span className="text-white">{results.results.material_weight_per_core_kg} kg</span>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="text-md font-semibold text-white">📐 Linear Measurements</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Length per Core:</span>
+                  <span className="text-white font-medium">{results.calculations.linear_meters_per_core} m</span>
+                </div>
+                <div className="flex justify-between font-bold">
+                  <span className="text-yellow-400">Total Linear Meters:</span>
+                  <span className="text-yellow-400 font-bold">{results.calculations.total_linear_meters} m</span>
+                </div>
+                {results.calculations.master_tubes_required && (
+                  <div className="flex justify-between font-bold">
+                    <span className="text-green-400">Master Tubes Required:</span>
+                    <span className="text-green-400 font-bold">{results.calculations.master_tubes_required}</span>
+                  </div>
+                )}
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-300">Quantity:</span>
-                <span className="text-white">{results.results.quantity}</span>
-              </div>
-              <div className="flex justify-between font-bold">
-                <span className="text-yellow-400">Total Material Required:</span>
-                <span className="text-yellow-400">{results.results.total_material_weight_kg} kg</span>
-              </div>
+            </div>
+          </div>
+
+          {/* Material Usage Summary */}
+          <div className="mt-6 p-4 bg-gradient-to-r from-yellow-900/20 to-orange-900/20 rounded-lg border border-yellow-700/30">
+            <h4 className="text-md font-semibold text-yellow-400 mb-2">📋 Material Usage Summary</h4>
+            <div className="text-white">
+              <p>• <strong>{results.input_parameters.quantity}</strong> spiral cores will require <strong>{results.calculations.total_volume} cm³</strong> of material</p>
+              <p>• Total finished tube length: <strong>{results.calculations.total_linear_meters} meters</strong></p>
+              {results.calculations.master_tubes_required && (
+                <p>• Master tubes needed (based on {(results.input_parameters.master_tube_length/1000).toFixed(1)}m length): <strong>{results.calculations.master_tubes_required} tubes</strong></p>
+              )}
             </div>
           </div>
         </div>
