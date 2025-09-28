@@ -45,6 +45,7 @@ export const apiHelpers = {
   getClients: () => api.get('/clients'),
   createClient: (data) => api.post('/clients', data),
   updateClient: (id, data) => api.put(`/clients/${id}`, data),
+  deleteClient: (id) => api.delete(`/clients/${id}`),
   getClient: (id) => api.get(`/clients/${id}`),
   uploadClientLogo: (id, file) => {
     const formData = new FormData();
