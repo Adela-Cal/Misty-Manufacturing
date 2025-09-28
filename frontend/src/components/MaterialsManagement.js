@@ -68,8 +68,11 @@ const MaterialsManagement = () => {
 
   const handleCreate = () => {
     setSelectedMaterial(null);
+  const handleCreate = () => {
+    setSelectedMaterial(null);
     setFormData({
-      supplier: '',
+      supplier_id: '',
+      supplier_name: '',
       product_code: '',
       order_to_delivery_time: '',
       material_description: '',  // New field
