@@ -4386,6 +4386,28 @@ class InvoicingAPITester:
                     break
             
             if not spiral_spec:
+                # Get a real material ID for the test
+                materials_response = self.session.get(f"{API_BASE}/materials")
+                if materials_response.status_code != 200:
+                    self.log_result(
+                        "Calculator: Spiral Core Consumption", 
+                        False, 
+                        "Failed to get materials for test specification creation"
+                    )
+                    return
+                
+                materials = materials_response.json()
+                if not materials:
+                    self.log_result(
+                        "Calculator: Spiral Core Consumption", 
+                        False, 
+                        "No materials available for test specification creation"
+                    )
+                    return
+                
+                # Use first available material
+                real_material_id = materials[0]['id']
+                
                 # Create a test Spiral Paper Core specification
                 test_spec_data = {
                     "product_name": "Test Spiral Core for Calculator",
@@ -4395,7 +4417,7 @@ class InvoicingAPITester:
                         "wall_thickness_required": 3.0,
                         "spiral_angle_degrees": 45.0,
                         "adhesive_type": "PVA",
-                        "selected_material_id": "test-material-id"
+                        "selected_material_id": real_material_id
                     },
                     "materials_composition": [
                         {"material_name": "Test Paper", "percentage": 100.0, "grade": "Premium"}
