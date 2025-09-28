@@ -484,6 +484,24 @@ const StaffSecurity = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Employment Type
+                      </label>
+                      <select
+                        name="employment_type"
+                        value={formData.employment_type}
+                        onChange={handleInputChange}
+                        className="misty-select w-full"
+                      >
+                        <option value="full_time">Full Time</option>
+                        <option value="part_time">Part Time</option>
+                        <option value="contract">Contract</option>
+                        <option value="temporary">Temporary</option>
+                        <option value="intern">Intern</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
                         Password {selectedUser ? '' : '*'}
                       </label>
                       <div className="relative">
