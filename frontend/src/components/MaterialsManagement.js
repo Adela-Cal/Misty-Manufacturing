@@ -84,6 +84,7 @@ const MaterialsManagement = () => {
       order_to_delivery_time: material.order_to_delivery_time,
       material_description: material.material_description || '',  // New field
       price: material.price.toString(),
+      currency: material.currency || 'AUD',  // New field
       unit: material.unit,
       raw_substrate: material.raw_substrate || false,
       gsm: material.gsm || '',
