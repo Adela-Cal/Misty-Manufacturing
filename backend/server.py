@@ -881,18 +881,19 @@ async def change_user_password(password_data: PasswordChangeRequest, current_use
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Verify current password
-    if not verify_password(password_data.current_password, user["password_hash"]):
+    # Verify current password (check both possible field names for compatibility)
+    password_field = "password_hash" if "password_hash" in user else "hashed_password"
+    if not verify_password(password_data.current_password, user[password_field]):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     
     # Hash new password
     new_password_hash = hash_password(password_data.new_password)
     
-    # Update password
+    # Update password (use the same field name that exists)
     await db.users.update_one(
         {"id": user_id},
         {"$set": {
-            "password_hash": new_password_hash,
+            password_field: new_password_hash,
             "updated_at": datetime.utcnow()
         }}
     )
