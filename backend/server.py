@@ -675,7 +675,7 @@ async def generate_job_card(order_id: str, current_user: dict = Depends(require_
     )
 
 @api_router.get("/documents/packing-list/{order_id}")
-async def generate_packing_list(order_id: str, token: str = None, current_user: dict = Depends(simple_pdf_auth)):
+async def generate_packing_list(order_id: str, current_user: dict = Depends(require_production_access)):
     """Generate packing list PDF"""
     order = await db.orders.find_one({"id": order_id})
     if not order:
