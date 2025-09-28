@@ -87,23 +87,33 @@ const StaffSecurity = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (user) => {
+  const handleDelete = (user) => {
     console.log('Delete button clicked for user:', user);
-    
-    if (window.confirm(`Are you sure you wish to delete user "${user.username}"? This action cannot be undone.`)) {
+    setUserToDelete(user);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (userToDelete) {
       try {
         console.log('User confirmed deletion, calling API...');
-        await apiHelpers.deleteUser(user.id);
+        await apiHelpers.deleteUser(userToDelete.id);
         toast.success('User deleted successfully');
         setShowModal(false);
+        setShowDeleteConfirm(false);
+        setUserToDelete(null);
         loadUsers();
       } catch (error) {
         console.error('Failed to delete user:', error);
         toast.error('Failed to delete user');
       }
-    } else {
-      console.log('User cancelled deletion');
     }
+  };
+
+  const cancelDelete = () => {
+    console.log('User cancelled deletion');
+    setShowDeleteConfirm(false);
+    setUserToDelete(null);
   };
 
   const handleInputChange = (e) => {
