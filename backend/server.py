@@ -755,10 +755,12 @@ async def get_users(current_user: dict = Depends(require_admin)):
     """Get all users (Admin only)"""
     users = await db.users.find({}).sort("full_name", 1).to_list(1000)
     
-    # Remove password hashes from response
+    # Remove password hashes and convert ObjectId to string
     for user in users:
         if "password_hash" in user:
             del user["password_hash"]
+        if "_id" in user:
+            del user["_id"]  # Remove MongoDB ObjectId
     
     return users
 
