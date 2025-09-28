@@ -22,6 +22,7 @@ class InvoicingAPITester:
         self.session = requests.Session()
         self.auth_token = None
         self.test_results = []
+        self.test_user_id = None  # Store test user ID for cleanup
         
     def log_result(self, test_name, success, message, details=None):
         """Log test result"""
