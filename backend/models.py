@@ -351,6 +351,90 @@ class ProductSpecificationCreate(BaseModel):
     materials_composition: List[Dict[str, Any]] = []
     manufacturing_notes: Optional[str] = None
 
+# Calculator Models
+class MaterialConsumptionByClientRequest(BaseModel):
+    client_id: str
+    material_id: str
+    start_date: date
+    end_date: date
+
+class MaterialPermutationRequest(BaseModel):
+    core_ids: List[str]
+    sizes_to_manufacture: List[Dict[str, Any]]  # [{width: float, priority: int}]
+    master_deckle_width: float
+    acceptable_waste_percentage: float
+
+class SpiralCoreConsumptionRequest(BaseModel):
+    product_specification_id: str
+    core_internal_diameter: float  # mm
+    core_length: float  # mm
+    quantity: int
+
+class CalculationResult(BaseModel):
+    calculation_type: str
+    input_parameters: Dict[str, Any]
+    results: Dict[str, Any]
+    calculated_at: datetime = Field(default_factory=datetime.utcnow)
+    calculated_by: str
+
+# Stocktake Models
+class StocktakeEntry(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    stocktake_id: str
+    material_id: str
+    material_name: str
+    current_quantity: float  # Up to 2 decimal places
+    unit: str
+    counted_by: str
+    counted_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Stocktake(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    stocktake_date: date
+    month: str  # "2025-09"
+    status: str = "in_progress"  # in_progress, completed
+    entries: List[StocktakeEntry] = []
+    completed_by: Optional[str] = None
+    completed_at: Optional[datetime] = None
+    created_by: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class StocktakeCreate(BaseModel):
+    stocktake_date: date
+    
+class StocktakeEntryUpdate(BaseModel):
+    material_id: str
+    current_quantity: float
+
+# User Management Models (Enhanced)
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    MANAGER = "manager" 
+    SUPERVISOR = "supervisor"
+    PRODUCTION_STAFF = "production_staff"
+    SALES = "sales"
+
+class UserCreate(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+    full_name: str
+    role: UserRole = UserRole.PRODUCTION_STAFF
+    department: Optional[str] = None
+    phone: Optional[str] = None
+
+class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+    role: Optional[UserRole] = None
+    department: Optional[str] = None
+    phone: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+
 # Materials & Products Models
 class Material(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
