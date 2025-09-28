@@ -634,7 +634,7 @@ async def move_order_stage(
     stage_log = ProductionLog(
         order_id=order_id,
         stage=new_stage,
-        updated_by=current_user["username"],
+        updated_by=current_user["sub"],
         notes=request.notes
     )
     await db.production_logs.insert_one(stage_log.dict())
@@ -651,7 +651,7 @@ async def get_materials_status(order_id: str, current_user: dict = Depends(requi
             order_id=order_id,
             materials_ready=False,
             materials_checklist=[],
-            updated_by=current_user["username"]
+            updated_by=current_user["sub"]
         )
         await db.materials_status.insert_one(default_status.dict())
         return {"success": True, "data": default_status.dict()}
