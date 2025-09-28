@@ -171,6 +171,92 @@ const ProductSpecifications = () => {
     }));
   };
 
+  // Spiral Paper Core specific functions
+  const calculateLayers = (materialId, requiredThickness) => {
+    const material = materials.find(m => m.id === materialId);
+    if (!material || !material.thickness_mm || !requiredThickness) return 0;
+    
+    return Math.ceil(parseFloat(requiredThickness) / parseFloat(material.thickness_mm));
+  };
+
+  const getLayerOptions = (materialId, requiredThickness) => {
+    const material = materials.find(m => m.id === materialId);
+    if (!material || !material.thickness_mm || !requiredThickness) return [];
+    
+    const materialThickness = parseFloat(material.thickness_mm);
+    const required = parseFloat(requiredThickness);
+    
+    const exactLayers = required / materialThickness;
+    const lowerLayers = Math.floor(exactLayers);
+    const upperLayers = Math.ceil(exactLayers);
+    
+    const options = [];
+    
+    if (lowerLayers > 0) {
+      options.push({
+        layers: lowerLayers,
+        totalThickness: (lowerLayers * materialThickness).toFixed(2),
+        difference: Math.abs(required - (lowerLayers * materialThickness)).toFixed(2)
+      });
+    }
+    
+    if (upperLayers !== lowerLayers) {
+      options.push({
+        layers: upperLayers,
+        totalThickness: (upperLayers * materialThickness).toFixed(2),
+        difference: Math.abs(required - (upperLayers * materialThickness)).toFixed(2)
+      });
+    }
+    
+    return options;
+  };
+
+  const handleMaterialSelect = (materialId) => {
+    const material = materials.find(m => m.id === materialId);
+    if (!material) return;
+    
+    const layers = calculateLayers(materialId, formData.wall_thickness_required);
+    
+    setFormData(prev => ({
+      ...prev,
+      selected_material_id: materialId,
+      layers_required: layers,
+      specifications: {
+        ...prev.specifications,
+        selected_material_id: materialId,
+        material_gsm: material.gsm || '',
+        material_thickness: material.thickness_mm ? material.thickness_mm.toString() : '',
+        layers_required: layers
+      }
+    }));
+  };
+
+  const addLayerSpecification = () => {
+    setFormData(prev => ({
+      ...prev,
+      layer_specifications: [
+        ...prev.layer_specifications,
+        { layer_type: 'Outer Most Layer', width: '', width_range: '' }
+      ]
+    }));
+  };
+
+  const removeLayerSpecification = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      layer_specifications: prev.layer_specifications.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleLayerSpecChange = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      layer_specifications: prev.layer_specifications.map((item, i) => 
+        i === index ? { ...item, [field]: value } : item
+      )
+    }));
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
