@@ -381,9 +381,9 @@ const ProductionBoard = () => {
         <div className="p-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-700 rounded w-1/4 mb-8"></div>
-            <div className="flex space-x-4 overflow-x-auto">
+            <div className="space-y-4">
               {[...Array(7)].map((_, i) => (
-                <div key={i} className="flex-shrink-0 w-80 h-96 bg-gray-700 rounded"></div>
+                <div key={i} className="h-32 bg-gray-700 rounded"></div>
               ))}
             </div>
           </div>
