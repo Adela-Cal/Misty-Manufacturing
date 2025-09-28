@@ -420,17 +420,32 @@ const MaterialsManagement = () => {
                       <label className="block text-sm font-medium text-gray-300 mb-1">
                         Supplier *
                       </label>
-                      <input
-                        type="text"
-                        name="supplier"
-                        value={formData.supplier}
-                        onChange={handleInputChange}
-                        className={`misty-input w-full ${errors.supplier ? 'border-red-500' : ''}`}
-                        placeholder="Enter supplier name"
+                      <select
+                        name="supplier_id"
+                        value={formData.supplier_id}
+                        onChange={(e) => {
+                          const selectedSupplier = suppliers.find(s => s.id === e.target.value);
+                          setFormData(prev => ({
+                            ...prev,
+                            supplier_id: e.target.value,
+                            supplier_name: selectedSupplier ? selectedSupplier.supplier_name : ''
+                          }));
+                          if (errors.supplier_id) {
+                            setErrors(prev => ({ ...prev, supplier_id: '' }));
+                          }
+                        }}
+                        className={`misty-select w-full ${errors.supplier_id ? 'border-red-500' : ''}`}
                         required
-                      />
-                      {errors.supplier && (
-                        <p className="text-red-400 text-sm mt-1">{errors.supplier}</p>
+                      >
+                        <option value="">Select a supplier</option>
+                        {suppliers.map(supplier => (
+                          <option key={supplier.id} value={supplier.id}>
+                            {supplier.supplier_name}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.supplier_id && (
+                        <p className="text-red-400 text-sm mt-1">{errors.supplier_id}</p>
                       )}
                     </div>
 
