@@ -849,7 +849,7 @@ const ProductSpecifications = () => {
                 )}
 
                 {/* Form Actions */}
-                <div className="flex justify-between pt-6 border-t border-gray-700">
+                <div className="sticky bottom-0 bg-gray-900 flex justify-between pt-6 border-t border-gray-700 mt-8">
                   <div>
                     {selectedSpec && (
                       <button
