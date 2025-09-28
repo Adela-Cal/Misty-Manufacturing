@@ -405,7 +405,7 @@ const Invoicing = () => {
                               title="Download Packing Slip PDF (right-click to save)"
                               onClick={() => toast.success('Packing Slip PDF opened - right-click to save if needed')}
                             >
-                              <DocumentArrowDownIcon className="h-4 w-4" />
+                              <CubeIcon className="h-4 w-4" />
                             </a>
                           </div>
                         </td>
