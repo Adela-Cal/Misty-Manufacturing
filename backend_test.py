@@ -4859,8 +4859,8 @@ class InvoicingAPITester:
             self.log_result("Stocktake Authentication", False, f"Error: {str(e)}")
 
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on Product Specifications API"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Product Specifications API Stability")
+        """Run backend API tests with PRIMARY FOCUS on new Calculator and Stocktake endpoints"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: New Calculator and Stocktake API Endpoints")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 80)
         
@@ -4869,8 +4869,26 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test Product Specifications API endpoints after frontend changes
-        print("\n📋 TESTING PRODUCT SPECIFICATIONS API - PRIMARY FOCUS")
+        # PRIMARY FOCUS: Test NEW Calculator API endpoints
+        print("\n🧮 TESTING NEW CALCULATOR API ENDPOINTS - PRIMARY FOCUS")
+        print("=" * 60)
+        self.test_calculator_material_consumption_by_client()
+        self.test_calculator_material_permutation()
+        self.test_calculator_spiral_core_consumption()
+        self.test_calculator_authentication()
+        
+        # PRIMARY FOCUS: Test NEW Stocktake API endpoints
+        print("\n📦 TESTING NEW STOCKTAKE API ENDPOINTS - PRIMARY FOCUS")
+        print("=" * 60)
+        self.test_stocktake_current_status()
+        stocktake_id = self.test_stocktake_creation()
+        self.test_stocktake_entry_update(stocktake_id)
+        self.test_stocktake_completion(stocktake_id)
+        self.test_stocktake_authentication()
+        
+        # SECONDARY: Test Product Specifications API endpoints for stability
+        print("\n📋 TESTING PRODUCT SPECIFICATIONS API - SECONDARY FOCUS")
+        print("=" * 60)
         self.test_product_specifications_api()
         
         return self.generate_report()
