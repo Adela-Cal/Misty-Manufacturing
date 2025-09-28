@@ -218,6 +218,17 @@ const MaterialsManagement = () => {
     'Single Unit'
   ];
 
+  const currencyOptions = [
+    { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
+    { code: 'USD', symbol: '$', name: 'US Dollar' },
+    { code: 'EUR', symbol: '€', name: 'Euro' },
+    { code: 'GBP', symbol: '£', name: 'British Pound' },
+    { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
+    { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
+    { code: 'NZD', symbol: 'NZ$', name: 'New Zealand Dollar' },
+    { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar' }
+  ];
+
   // Calculate linear meters for raw substrate
   const calculateLinearMeters = () => {
     if (!formData.raw_substrate || !formData.gsm || !formData.supplied_roll_weight || !formData.master_deckle_width_mm) {
