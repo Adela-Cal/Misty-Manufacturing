@@ -336,24 +336,28 @@ const Invoicing = () => {
                               <CurrencyDollarIcon className="h-4 w-4 mr-1" />
                               Invoice
                             </button>
-                            <a
-                              href={`${process.env.REACT_APP_BACKEND_URL}/api/documents/invoice/${job.id}?token=${localStorage.getItem('token')}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <button
+                              onClick={() => {
+                                const url = `${process.env.REACT_APP_BACKEND_URL}/api/documents/invoice/${job.id}?token=${localStorage.getItem('token')}`;
+                                window.open(url, '_blank');
+                                toast.success('Invoice PDF opened');
+                              }}
                               className="text-gray-400 hover:text-yellow-400 transition-colors"
-                              title="Download Invoice PDF"
+                              title="Open Invoice PDF"
                             >
                               <DocumentArrowDownIcon className="h-4 w-4" />
-                            </a>
-                            <a
-                              href={`${process.env.REACT_APP_BACKEND_URL}/api/documents/packing-list/${job.id}?token=${localStorage.getItem('token')}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            </button>
+                            <button
+                              onClick={() => {
+                                const url = `${process.env.REACT_APP_BACKEND_URL}/api/documents/packing-list/${job.id}?token=${localStorage.getItem('token')}`;
+                                window.open(url, '_blank');
+                                toast.success('Packing Slip PDF opened');
+                              }}
                               className="text-gray-400 hover:text-green-400 transition-colors"
-                              title="Download Packing Slip"
+                              title="Open Packing Slip PDF"
                             >
                               <DocumentArrowDownIcon className="h-4 w-4" />
-                            </a>
+                            </button>
                           </div>
                         </td>
                       </tr>
