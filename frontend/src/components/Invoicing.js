@@ -372,20 +372,24 @@ const Invoicing = () => {
                               <CurrencyDollarIcon className="h-4 w-4 mr-1" />
                               Invoice
                             </button>
-                            <button
-                              onClick={() => downloadInvoice(job.id, job.order_number)}
+                            <a
+                              href={`${process.env.REACT_APP_BACKEND_URL}/api/documents/invoice/${job.id}?token=${localStorage.getItem('token')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="text-gray-400 hover:text-yellow-400 transition-colors"
                               title="Download Invoice PDF"
                             >
                               <DocumentArrowDownIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => downloadPackingSlip(job.id, job.order_number)}
+                            </a>
+                            <a
+                              href={`${process.env.REACT_APP_BACKEND_URL}/api/documents/packing-list/${job.id}?token=${localStorage.getItem('token')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="text-gray-400 hover:text-green-400 transition-colors"
                               title="Download Packing Slip"
                             >
                               <DocumentArrowDownIcon className="h-4 w-4" />
-                            </button>
+                            </a>
                           </div>
                         </td>
                       </tr>
