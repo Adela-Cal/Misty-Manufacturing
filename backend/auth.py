@@ -85,7 +85,7 @@ require_production_staff_or_higher = require_role([UserRole.ADMIN, UserRole.MANA
 require_manager = require_role([UserRole.ADMIN, UserRole.MANAGER])
 require_payroll_access = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR])
 require_payroll_management = require_role([UserRole.ADMIN, UserRole.MANAGER])
-require_employee_or_manager = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.PRODUCTION_MANAGER, UserRole.EMPLOYEE])
+require_employee_or_manager = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.PRODUCTION_STAFF])
 
 # Permission checking functions
 def can_create_orders(user_role: str) -> bool:
