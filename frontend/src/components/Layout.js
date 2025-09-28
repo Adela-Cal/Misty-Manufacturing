@@ -14,7 +14,8 @@ import {
   ArrowRightOnRectangleIcon,
   UserIcon,
   LinkIcon,
-  XMarkIcon
+  XMarkIcon,
+  CubeIcon
 } from '@heroicons/react/24/outline';
 
 const Layout = ({ children }) => {
