@@ -7097,7 +7097,7 @@ class InvoicingAPITester:
                 self.log_result("Edge Case - Delete Already Cancelled Order", False, f"Error: {str(e)}")
         
         # Test 2: Test different safe stages
-        safe_stages = ["order_entered", "acknowledged"]
+        safe_stages = ["order_entered", "pending_material"]
         
         for stage in safe_stages:
             stage_order_id = self.create_test_order_in_stage(client_id, stage)
