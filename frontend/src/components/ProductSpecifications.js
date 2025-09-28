@@ -572,73 +572,288 @@ const ProductSpecifications = () => {
                   </div>
                 </div>
 
-                {/* Materials Composition */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-white mb-4">Materials Composition</h3>
-                  <div className="space-y-4">
-                    {formData.materials_composition.map((material, index) => (
-                      <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-800 rounded-lg">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Material Name
-                          </label>
-                          <input
-                            type="text"
-                            value={material.material_name}
-                            onChange={(e) => handleMaterialChange(index, 'material_name', e.target.value)}
-                            className="misty-input w-full"
-                            placeholder="Material name"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Percentage (%)
-                          </label>
-                          <input
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            max="100"
-                            value={material.percentage}
-                            onChange={(e) => handleMaterialChange(index, 'percentage', e.target.value)}
-                            className="misty-input w-full"
-                            placeholder="0.0"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">
-                            GSM
-                          </label>
-                          <input
-                            type="text"
-                            value={material.gsm}
-                            onChange={(e) => handleMaterialChange(index, 'gsm', e.target.value)}
-                            className="misty-input w-full"
-                            placeholder="GSM value"
-                          />
-                        </div>
-                        <div className="flex items-end">
-                          <button
-                            type="button"
-                            onClick={() => removeMaterialComposition(index)}
-                            className="misty-button misty-button-danger w-full"
-                          >
-                            <MinusIcon className="h-4 w-4 mr-1" />
-                            Remove
-                          </button>
-                        </div>
+                {/* Materials Composition - Conditional Based on Product Type */}
+                {formData.product_type === 'Spiral Paper Core' ? (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4">Spiral Paper Core Specifications</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Product Internal Diameter (mm) *
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={formData.internal_diameter}
+                          onChange={(e) => setFormData(prev => ({ 
+                            ...prev, 
+                            internal_diameter: e.target.value,
+                            specifications: { ...prev.specifications, internal_diameter: e.target.value }
+                          }))}
+                          className="misty-input w-full"
+                          placeholder="Enter internal diameter"
+                        />
                       </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={addMaterialComposition}
-                      className="text-yellow-400 hover:text-yellow-300 text-sm flex items-center"
-                    >
-                      <PlusIcon className="h-4 w-4 mr-1" />
-                      Add Material
-                    </button>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Product Wall Thickness Required (mm) *
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={formData.wall_thickness_required}
+                          onChange={(e) => {
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              wall_thickness_required: e.target.value,
+                              specifications: { ...prev.specifications, wall_thickness_required: e.target.value }
+                            }));
+                            // Recalculate layers if material is selected
+                            if (formData.selected_material_id) {
+                              const layers = calculateLayers(formData.selected_material_id, e.target.value);
+                              setFormData(prev => ({ 
+                                ...prev, 
+                                layers_required: layers,
+                                specifications: { ...prev.specifications, layers_required: layers }
+                              }));
+                            }
+                          }}
+                          className="misty-input w-full"
+                          placeholder="Enter wall thickness"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Material Name *
+                      </label>
+                      <select
+                        value={formData.selected_material_id}
+                        onChange={(e) => handleMaterialSelect(e.target.value)}
+                        className="misty-select w-full"
+                      >
+                        <option value="">Select a material</option>
+                        {materials.filter(m => m.raw_substrate).map(material => (
+                          <option key={material.id} value={material.id}>
+                            {material.product_code} - {material.supplier} (GSM: {material.gsm}, Thickness: {material.thickness_mm}mm)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {formData.selected_material_id && formData.wall_thickness_required && (
+                      <div className="mb-6 p-4 bg-gray-800 rounded-lg">
+                        <h4 className="text-md font-medium text-white mb-3">Material Calculations</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">GSM (Generated)</label>
+                            <input
+                              type="text"
+                              value={materials.find(m => m.id === formData.selected_material_id)?.gsm || ''}
+                              className="misty-input w-full bg-gray-700"
+                              disabled
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">Thickness (mm) (Generated)</label>
+                            <input
+                              type="text"
+                              value={materials.find(m => m.id === formData.selected_material_id)?.thickness_mm || ''}
+                              className="misty-input w-full bg-gray-700"
+                              disabled
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">Layers Required (Calculated)</label>
+                            <input
+                              type="text"
+                              value={formData.layers_required}
+                              className="misty-input w-full bg-gray-700"
+                              disabled
+                            />
+                          </div>
+                        </div>
+
+                        {/* Show layer options if thickness doesn't match exactly */}
+                        {(() => {
+                          const layerOptions = getLayerOptions(formData.selected_material_id, formData.wall_thickness_required);
+                          if (layerOptions.length > 1) {
+                            return (
+                              <div className="mt-4">
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                  Thickness Options (exact match not possible):
+                                </label>
+                                <div className="space-y-2">
+                                  {layerOptions.map((option, index) => (
+                                    <div key={index} className="flex items-center justify-between bg-gray-700 p-2 rounded">
+                                      <span className="text-gray-300">
+                                        {option.layers} layers = {option.totalThickness}mm
+                                      </span>
+                                      <span className={`text-sm ${parseFloat(option.difference) < 0.1 ? 'text-green-400' : 'text-yellow-400'}`}>
+                                        Difference: ±{option.difference}mm
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
+                    )}
+
+                    {/* Layer Specifications */}
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-md font-medium text-white">Layer Specifications</h4>
+                        <button
+                          type="button"
+                          onClick={addLayerSpecification}
+                          className="text-yellow-400 hover:text-yellow-300 text-sm flex items-center"
+                        >
+                          <PlusIcon className="h-4 w-4 mr-1" />
+                          Add Layer
+                        </button>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        {formData.layer_specifications.map((layer, index) => (
+                          <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-800 rounded-lg">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-1">
+                                Layer Type
+                              </label>
+                              <select
+                                value={layer.layer_type}
+                                onChange={(e) => handleLayerSpecChange(index, 'layer_type', e.target.value)}
+                                className="misty-select w-full"
+                              >
+                                <option value="Outer Most Layer">Outer Most Layer</option>
+                                <option value="Central Layer">Central Layer</option>
+                                <option value="Inner Most Layer">Inner Most Layer</option>
+                              </select>
+                            </div>
+                            
+                            {layer.layer_type === 'Central Layer' ? (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
+                                  Width Range (mm)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={layer.width_range}
+                                  onChange={(e) => handleLayerSpecChange(index, 'width_range', e.target.value)}
+                                  className="misty-input w-full"
+                                  placeholder="e.g., 61-68"
+                                />
+                              </div>
+                            ) : (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
+                                  Width (mm)
+                                </label>
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  min="0"
+                                  value={layer.width}
+                                  onChange={(e) => handleLayerSpecChange(index, 'width', e.target.value)}
+                                  className="misty-input w-full"
+                                  placeholder="Width in mm"
+                                />
+                              </div>
+                            )}
+                            
+                            <div className="flex items-end">
+                              <button
+                                type="button"
+                                onClick={() => removeLayerSpecification(index)}
+                                className="misty-button misty-button-danger w-full"
+                              >
+                                <MinusIcon className="h-4 w-4 mr-1" />
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  // Original Materials Composition for other product types
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4">Materials Composition</h3>
+                    <div className="space-y-4">
+                      {formData.materials_composition.map((material, index) => (
+                        <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-800 rounded-lg">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Material Name
+                            </label>
+                            <input
+                              type="text"
+                              value={material.material_name}
+                              onChange={(e) => handleMaterialChange(index, 'material_name', e.target.value)}
+                              className="misty-input w-full"
+                              placeholder="Material name"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Percentage (%)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              max="100"
+                              value={material.percentage}
+                              onChange={(e) => handleMaterialChange(index, 'percentage', e.target.value)}
+                              className="misty-input w-full"
+                              placeholder="0.0"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              GSM
+                            </label>
+                            <input
+                              type="text"
+                              value={material.gsm}
+                              onChange={(e) => handleMaterialChange(index, 'gsm', e.target.value)}
+                              className="misty-input w-full"
+                              placeholder="GSM value"
+                            />
+                          </div>
+                          <div className="flex items-end">
+                            <button
+                              type="button"
+                              onClick={() => removeMaterialComposition(index)}
+                              className="misty-button misty-button-danger w-full"
+                            >
+                              <MinusIcon className="h-4 w-4 mr-1" />
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={addMaterialComposition}
+                        className="text-yellow-400 hover:text-yellow-300 text-sm flex items-center"
+                      >
+                        <PlusIcon className="h-4 w-4 mr-1" />
+                        Add Material
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Form Actions */}
                 <div className="flex justify-between pt-6 border-t border-gray-700">
