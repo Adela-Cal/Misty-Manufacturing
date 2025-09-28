@@ -573,7 +573,7 @@ async def calculate_spiral_core_consumption(
                 "total_material_weight_kg": round(total_weight, 2),
                 "unit": material["unit"]
             },
-            calculated_by=current_user["username"]
+            calculated_by=current_user["sub"]
         )
         
         return StandardResponse(success=True, message="Spiral core consumption calculated", data=result.dict())
