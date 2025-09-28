@@ -5214,9 +5214,304 @@ class InvoicingAPITester:
             except Exception as e:
                 self.log_result("Cleanup Test User", False, f"Cleanup error: {str(e)}")
 
+    def test_user_deactivation_functionality(self):
+        """Test user deactivation functionality as requested in review"""
+        print("\n=== USER DEACTIVATION FUNCTIONALITY TEST ===")
+        
+        # Test 1: Create a test user for deactivation testing
+        test_user_data = {
+            "username": f"testuser_deactivation_{int(datetime.now().timestamp())}",
+            "email": f"testdeactivation{int(datetime.now().timestamp())}@example.com",
+            "password": "TestPassword123!",
+            "full_name": "Test User for Deactivation",
+            "role": "production_staff",
+            "department": "Testing",
+            "phone": "0412345678"
+        }
+        
+        try:
+            # Create test user
+            response = self.session.post(f"{API_BASE}/users", json=test_user_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.test_user_id = result.get('data', {}).get('id')
+                
+                if self.test_user_id:
+                    self.log_result(
+                        "Create Test User for Deactivation", 
+                        True, 
+                        f"Successfully created test user for deactivation testing",
+                        f"User ID: {self.test_user_id}, Username: {test_user_data['username']}"
+                    )
+                    
+                    # Verify user is initially active
+                    get_response = self.session.get(f"{API_BASE}/users/{self.test_user_id}")
+                    if get_response.status_code == 200:
+                        user_data = get_response.json()
+                        is_active = user_data.get('is_active', False)
+                        
+                        if is_active:
+                            self.log_result(
+                                "Verify Test User Initially Active", 
+                                True, 
+                                "Test user is initially active as expected"
+                            )
+                        else:
+                            self.log_result(
+                                "Verify Test User Initially Active", 
+                                False, 
+                                "Test user should be active initially but is not"
+                            )
+                    else:
+                        self.log_result(
+                            "Verify Test User Initially Active", 
+                            False, 
+                            "Failed to retrieve test user for verification"
+                        )
+                else:
+                    self.log_result(
+                        "Create Test User for Deactivation", 
+                        False, 
+                        "User creation response missing ID"
+                    )
+                    return
+            else:
+                self.log_result(
+                    "Create Test User for Deactivation", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                return
+                
+        except Exception as e:
+            self.log_result("Create Test User for Deactivation", False, f"Error: {str(e)}")
+            return
+        
+        # Test 2: Test DELETE /api/users/{user_id} endpoint functionality
+        if self.test_user_id:
+            try:
+                response = self.session.delete(f"{API_BASE}/users/{self.test_user_id}")
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    success = result.get('success', False)
+                    message = result.get('message', '')
+                    
+                    if success and 'deactivated' in message.lower():
+                        self.log_result(
+                            "DELETE Endpoint Functionality", 
+                            True, 
+                            f"DELETE endpoint successfully deactivated user",
+                            f"Response: {message}"
+                        )
+                        
+                        # Test 3: Verify user gets marked as inactive (is_active: false)
+                        get_response = self.session.get(f"{API_BASE}/users/{self.test_user_id}")
+                        if get_response.status_code == 200:
+                            user_data = get_response.json()
+                            is_active = user_data.get('is_active', True)
+                            
+                            if not is_active:
+                                self.log_result(
+                                    "Verify User Marked as Inactive", 
+                                    True, 
+                                    "User correctly marked as inactive (is_active: false) after DELETE"
+                                )
+                                
+                                # Test 4: Verify user still exists in database but is_active is false
+                                if 'id' in user_data and user_data['id'] == self.test_user_id:
+                                    self.log_result(
+                                        "Verify User Still Exists in Database", 
+                                        True, 
+                                        "User still exists in database but marked as inactive (soft delete working correctly)"
+                                    )
+                                else:
+                                    self.log_result(
+                                        "Verify User Still Exists in Database", 
+                                        False, 
+                                        "User data missing or ID mismatch after deactivation"
+                                    )
+                            else:
+                                self.log_result(
+                                    "Verify User Marked as Inactive", 
+                                    False, 
+                                    f"User should be inactive after DELETE but is_active is still {is_active}"
+                                )
+                        else:
+                            self.log_result(
+                                "Verify User Marked as Inactive", 
+                                False, 
+                                f"Failed to retrieve user after deactivation: {get_response.status_code}"
+                            )
+                    else:
+                        self.log_result(
+                            "DELETE Endpoint Functionality", 
+                            False, 
+                            f"DELETE endpoint response indicates failure",
+                            f"Success: {success}, Message: {message}"
+                        )
+                else:
+                    self.log_result(
+                        "DELETE Endpoint Functionality", 
+                        False, 
+                        f"DELETE endpoint failed with status {response.status_code}",
+                        response.text
+                    )
+                    
+            except Exception as e:
+                self.log_result("DELETE Endpoint Functionality", False, f"Error: {str(e)}")
+        
+        # Test 5: Test deactivating already inactive user
+        if self.test_user_id:
+            try:
+                response = self.session.delete(f"{API_BASE}/users/{self.test_user_id}")
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    success = result.get('success', False)
+                    
+                    if success:
+                        self.log_result(
+                            "Deactivate Already Inactive User", 
+                            True, 
+                            "DELETE endpoint handles already inactive user correctly"
+                        )
+                    else:
+                        self.log_result(
+                            "Deactivate Already Inactive User", 
+                            False, 
+                            "DELETE endpoint should handle already inactive user gracefully"
+                        )
+                else:
+                    self.log_result(
+                        "Deactivate Already Inactive User", 
+                        False, 
+                        f"DELETE endpoint failed on already inactive user: {response.status_code}"
+                    )
+                    
+            except Exception as e:
+                self.log_result("Deactivate Already Inactive User", False, f"Error: {str(e)}")
+        
+        # Test 6: Test deactivating non-existent user (should return 404)
+        fake_user_id = "non-existent-user-id-12345"
+        try:
+            response = self.session.delete(f"{API_BASE}/users/{fake_user_id}")
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Deactivate Non-existent User", 
+                    True, 
+                    "DELETE endpoint correctly returns 404 for non-existent user"
+                )
+            else:
+                self.log_result(
+                    "Deactivate Non-existent User", 
+                    False, 
+                    f"Expected 404 for non-existent user but got {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Deactivate Non-existent User", False, f"Error: {str(e)}")
+        
+        # Test 7: Test unauthorized access returns proper 403 error
+        temp_session = requests.Session()
+        if self.test_user_id:
+            try:
+                response = temp_session.delete(f"{API_BASE}/users/{self.test_user_id}")
+                
+                if response.status_code in [401, 403]:
+                    self.log_result(
+                        "Unauthorized DELETE Access", 
+                        True, 
+                        f"DELETE endpoint properly requires admin authentication (status: {response.status_code})"
+                    )
+                else:
+                    self.log_result(
+                        "Unauthorized DELETE Access", 
+                        False, 
+                        f"Expected 401/403 for unauthorized access but got {response.status_code}",
+                        "DELETE endpoint should require admin authentication"
+                    )
+                    
+            except Exception as e:
+                self.log_result("Unauthorized DELETE Access", False, f"Error: {str(e)}")
+        
+        # Test 8: Verify deactivated users can still be retrieved but marked inactive
+        if self.test_user_id:
+            try:
+                response = self.session.get(f"{API_BASE}/users/{self.test_user_id}")
+                
+                if response.status_code == 200:
+                    user_data = response.json()
+                    is_active = user_data.get('is_active', True)
+                    
+                    if not is_active:
+                        self.log_result(
+                            "Retrieve Deactivated User", 
+                            True, 
+                            "Deactivated user can still be retrieved and is correctly marked as inactive"
+                        )
+                    else:
+                        self.log_result(
+                            "Retrieve Deactivated User", 
+                            False, 
+                            "Deactivated user should be marked as inactive when retrieved"
+                        )
+                else:
+                    self.log_result(
+                        "Retrieve Deactivated User", 
+                        False, 
+                        f"Failed to retrieve deactivated user: {response.status_code}"
+                    )
+                    
+            except Exception as e:
+                self.log_result("Retrieve Deactivated User", False, f"Error: {str(e)}")
+        
+        # Test 9: Verify user appears as inactive in user list
+        if self.test_user_id:
+            try:
+                response = self.session.get(f"{API_BASE}/users")
+                
+                if response.status_code == 200:
+                    users = response.json()
+                    test_user = next((user for user in users if user.get('id') == self.test_user_id), None)
+                    
+                    if test_user:
+                        is_active = test_user.get('is_active', True)
+                        if not is_active:
+                            self.log_result(
+                                "User Appears as Inactive in List", 
+                                True, 
+                                "Deactivated user appears as inactive in user list"
+                            )
+                        else:
+                            self.log_result(
+                                "User Appears as Inactive in List", 
+                                False, 
+                                "Deactivated user should appear as inactive in user list"
+                            )
+                    else:
+                        self.log_result(
+                            "User Appears as Inactive in List", 
+                            False, 
+                            "Deactivated user not found in user list (may be filtered out)"
+                        )
+                else:
+                    self.log_result(
+                        "User Appears as Inactive in List", 
+                        False, 
+                        f"Failed to retrieve user list: {response.status_code}"
+                    )
+                    
+            except Exception as e:
+                self.log_result("User Appears as Inactive in List", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on Username Editing functionality"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Username Editing Functionality")
+        """Run backend API tests with PRIMARY FOCUS on User Deactivation functionality"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: User Deactivation Functionality")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 80)
         
@@ -5225,10 +5520,10 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test Username Editing functionality
-        print("\n👤 TESTING USERNAME EDITING FUNCTIONALITY - PRIMARY FOCUS")
+        # PRIMARY FOCUS: Test User Deactivation functionality
+        print("\n👤 TESTING USER DEACTIVATION FUNCTIONALITY - PRIMARY FOCUS")
         print("=" * 60)
-        self.test_username_editing_functionality()
+        self.test_user_deactivation_functionality()
         
         return self.generate_report()
     
