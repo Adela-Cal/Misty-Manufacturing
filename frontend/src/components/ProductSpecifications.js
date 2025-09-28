@@ -281,11 +281,31 @@ const ProductSpecifications = () => {
     }
     
     try {
+      let submitData = {
+        product_name: formData.product_name,
+        product_type: formData.product_type,
+        specifications: { ...formData.specifications },
+        materials_composition: formData.materials_composition,
+        manufacturing_notes: formData.manufacturing_notes
+      };
+
+      // For Spiral Paper Cores, add specific fields to specifications
+      if (formData.product_type === 'Spiral Paper Core') {
+        submitData.specifications = {
+          ...submitData.specifications,
+          internal_diameter: formData.internal_diameter,
+          wall_thickness_required: formData.wall_thickness_required,
+          selected_material_id: formData.selected_material_id,
+          layers_required: formData.layers_required,
+          layer_specifications: formData.layer_specifications
+        };
+      }
+      
       if (selectedSpec) {
-        await apiHelpers.updateProductSpecification(selectedSpec.id, formData);
+        await apiHelpers.updateProductSpecification(selectedSpec.id, submitData);
         toast.success('Product specification updated successfully');
       } else {
-        await apiHelpers.createProductSpecification(formData);
+        await apiHelpers.createProductSpecification(submitData);
         toast.success('Product specification created successfully');
       }
       
