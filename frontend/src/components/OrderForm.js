@@ -547,29 +547,44 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
           </div>
 
           {/* Form Actions */}
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-700">
-            <button
-              type="button"
-              onClick={onClose}
-              className="misty-button misty-button-secondary"
-              disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="misty-button misty-button-primary"
-              disabled={loading || loadingClients}
-            >
-              {loading ? (
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
-                  {order ? 'Updating...' : 'Creating...'}
-                </div>
-              ) : (
-                order ? 'Update Order' : 'Create Order'
+          <div className="flex justify-between pt-6 border-t border-gray-700">
+            <div>
+              {order && (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="misty-button misty-button-danger"
+                  disabled={loading}
+                >
+                  <TrashIcon className="h-4 w-4 mr-2" />
+                  Delete Order
+                </button>
               )}
-            </button>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="misty-button misty-button-secondary"
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="misty-button misty-button-primary"
+                disabled={loading || loadingClients}
+              >
+                {loading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
+                    {order ? 'Updating...' : 'Creating...'}
+                  </div>
+                ) : (
+                  order ? 'Update Order' : 'Create Order'
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </div>
