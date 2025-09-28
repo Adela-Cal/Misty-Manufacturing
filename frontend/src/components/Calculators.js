@@ -466,13 +466,19 @@ const SpiralCoreConsumption = ({ productSpecs, loading, setLoading }) => {
     setLoading(true);
     
     try {
-      const response = await apiHelpers.calculateSpiralCoreConsumption({
+      // Perform enhanced calculations
+      const calculationData = {
         ...formData,
         core_internal_diameter: parseFloat(formData.core_internal_diameter),
+        wall_thickness_required: parseFloat(formData.wall_thickness_required),
         core_length: parseFloat(formData.core_length),
-        quantity: parseInt(formData.quantity)
-      });
-      setResults(response.data.data);
+        quantity: parseInt(formData.quantity),
+        master_tube_length: formData.master_tube_length ? parseFloat(formData.master_tube_length) : null
+      };
+
+      // Calculate material consumption and linear meters
+      const calculations = calculateConsumption(calculationData);
+      setResults(calculations);
       toast.success('Consumption calculated successfully');
     } catch (error) {
       console.error('Calculation failed:', error);
@@ -480,6 +486,42 @@ const SpiralCoreConsumption = ({ productSpecs, loading, setLoading }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Enhanced calculation function
+  const calculateConsumption = (data) => {
+    const { core_internal_diameter, wall_thickness_required, core_length, quantity, master_tube_length } = data;
+    
+    // Calculate outer diameter
+    const outer_diameter = core_internal_diameter + (2 * wall_thickness_required);
+    
+    // Calculate material consumption (approximate based on core volume)
+    const inner_radius = core_internal_diameter / 2;
+    const outer_radius = outer_diameter / 2;
+    const volume_per_core = Math.PI * (Math.pow(outer_radius, 2) - Math.pow(inner_radius, 2)) * core_length;
+    const total_volume = volume_per_core * quantity;
+    
+    // Calculate linear meters of finished tubes
+    const linear_meters_per_core = core_length / 1000; // Convert mm to meters
+    const total_linear_meters = linear_meters_per_core * quantity;
+    
+    // Calculate master tubes required if master tube length is provided
+    let master_tubes_required = null;
+    if (master_tube_length) {
+      master_tubes_required = Math.ceil(total_linear_meters / (master_tube_length / 1000));
+    }
+    
+    return {
+      calculations: {
+        outer_diameter: outer_diameter.toFixed(2),
+        volume_per_core: (volume_per_core / 1000000).toFixed(6), // Convert mm³ to cm³
+        total_volume: (total_volume / 1000000).toFixed(6), // Convert mm³ to cm³
+        linear_meters_per_core: linear_meters_per_core.toFixed(3),
+        total_linear_meters: total_linear_meters.toFixed(3),
+        master_tubes_required: master_tubes_required
+      },
+      input_parameters: data
+    };
   };
 
   return (
