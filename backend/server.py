@@ -294,6 +294,116 @@ async def delete_material(material_id: str, current_user: dict = Depends(require
     
     return StandardResponse(success=True, message="Material deleted successfully")
 
+# ============= SUPPLIERS ENDPOINTS =============
+
+@api_router.get("/suppliers", response_model=List[Supplier])
+async def get_suppliers(current_user: dict = Depends(require_any_role)):
+    """Get all active suppliers"""
+    suppliers = await db.suppliers.find({"is_active": True}).sort("supplier_name", 1).to_list(1000)
+    return [Supplier(**supplier) for supplier in suppliers]
+
+@api_router.post("/suppliers", response_model=StandardResponse)
+async def create_supplier(supplier_data: SupplierCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+    """Create new supplier"""
+    new_supplier = Supplier(**supplier_data.dict(), created_by=current_user["sub"])
+    
+    await db.suppliers.insert_one(new_supplier.dict())
+    
+    return StandardResponse(success=True, message="Supplier created successfully", data={"id": new_supplier.id})
+
+@api_router.get("/suppliers/{supplier_id}", response_model=Supplier)
+async def get_supplier(supplier_id: str, current_user: dict = Depends(require_any_role)):
+    """Get specific supplier by ID"""
+    supplier = await db.suppliers.find_one({"id": supplier_id, "is_active": True})
+    if not supplier:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    
+    return Supplier(**supplier)
+
+@api_router.put("/suppliers/{supplier_id}", response_model=StandardResponse)
+async def update_supplier(supplier_id: str, supplier_data: SupplierCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+    """Update supplier"""
+    update_data = supplier_data.dict()
+    update_data["updated_at"] = datetime.utcnow()
+    
+    result = await db.suppliers.update_one(
+        {"id": supplier_id, "is_active": True},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    
+    return StandardResponse(success=True, message="Supplier updated successfully")
+
+@api_router.delete("/suppliers/{supplier_id}", response_model=StandardResponse)
+async def delete_supplier(supplier_id: str, current_user: dict = Depends(require_admin_or_production_manager)):
+    """Soft delete supplier"""
+    result = await db.suppliers.update_one(
+        {"id": supplier_id, "is_active": True},
+        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    
+    return StandardResponse(success=True, message="Supplier deleted successfully")
+
+# ============= PRODUCT SPECIFICATIONS ENDPOINTS =============
+
+@api_router.get("/product-specifications", response_model=List[ProductSpecification])
+async def get_product_specifications(current_user: dict = Depends(require_any_role)):
+    """Get all product specifications"""
+    specs = await db.product_specifications.find({"is_active": True}).sort("product_name", 1).to_list(1000)
+    return [ProductSpecification(**spec) for spec in specs]
+
+@api_router.post("/product-specifications", response_model=StandardResponse)
+async def create_product_specification(spec_data: ProductSpecificationCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+    """Create new product specification"""
+    new_spec = ProductSpecification(**spec_data.dict())
+    
+    await db.product_specifications.insert_one(new_spec.dict())
+    
+    return StandardResponse(success=True, message="Product specification created successfully", data={"id": new_spec.id})
+
+@api_router.get("/product-specifications/{spec_id}", response_model=ProductSpecification)
+async def get_product_specification(spec_id: str, current_user: dict = Depends(require_any_role)):
+    """Get specific product specification by ID"""
+    spec = await db.product_specifications.find_one({"id": spec_id, "is_active": True})
+    if not spec:
+        raise HTTPException(status_code=404, detail="Product specification not found")
+    
+    return ProductSpecification(**spec)
+
+@api_router.put("/product-specifications/{spec_id}", response_model=StandardResponse)
+async def update_product_specification(spec_id: str, spec_data: ProductSpecificationCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+    """Update product specification"""
+    update_data = spec_data.dict()
+    update_data["updated_at"] = datetime.utcnow()
+    
+    result = await db.product_specifications.update_one(
+        {"id": spec_id, "is_active": True},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Product specification not found")
+    
+    return StandardResponse(success=True, message="Product specification updated successfully")
+
+@api_router.delete("/product-specifications/{spec_id}", response_model=StandardResponse)
+async def delete_product_specification(spec_id: str, current_user: dict = Depends(require_admin_or_production_manager)):
+    """Soft delete product specification"""
+    result = await db.product_specifications.update_one(
+        {"id": spec_id, "is_active": True},
+        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Product specification not found")
+    
+    return StandardResponse(success=True, message="Product specification deleted successfully")
+
 # ============= CLIENT PRODUCT CATALOG ENDPOINTS =============
 
 @api_router.get("/clients/{client_id}/catalog", response_model=List[ClientProduct])
