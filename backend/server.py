@@ -21,7 +21,7 @@ import asyncio
 from xero_python.api_client import ApiClient, Configuration
 from xero_python.api_client.oauth2 import OAuth2Token
 from xero_python.accounting import AccountingApi
-from xero_python.accounting.models import Invoice, Contact, LineItem, Contacts
+from xero_python.accounting.models import Invoice, Contact, LineItem, Contacts, Invoices
 
 # Import our custom modules
 from models import *
