@@ -1058,6 +1058,30 @@ async def copy_client_product(client_id: str, product_id: str, target_client_id:
         data={"id": copied_product.id}
     )
 
+@api_router.delete("/clients/{client_id}", response_model=StandardResponse)
+async def delete_client(client_id: str, current_user: dict = Depends(require_admin)):
+    """Delete client (soft delete - Admin only)"""
+    # Check if client exists
+    existing_client = await db.clients.find_one({"id": client_id, "is_active": True})
+    if not existing_client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Check if client has active orders
+    active_orders = await db.orders.find_one({"client_id": client_id, "status": {"$nin": ["completed", "cancelled"]}})
+    if active_orders:
+        raise HTTPException(status_code=400, detail="Cannot delete client with active orders")
+    
+    # Perform soft delete
+    result = await db.clients.update_one(
+        {"id": client_id},
+        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    return StandardResponse(success=True, message="Client deleted successfully")
+
 # ============= ORDER MANAGEMENT ENDPOINTS =============
 
 @api_router.get("/orders", response_model=List[Order])
