@@ -105,6 +105,30 @@
 user_problem_statement: "User wants to: 1) Enhance client management with client-specific product catalog system, 2) Add 'Products & Materials' management under Reports with searchable materials database, 3) Support two product types: Finished Goods and Paper Cores with different specifications, 4) Enable copying products between clients with price modifications, 5) Integration with order management for auto-population of client products"
 
 backend:
+  - task: "Materials Management API endpoints"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py, backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented Materials CRUD endpoints for Products & Materials database with Material model including supplier, product code, pricing, and raw substrate specifications"
+        
+  - task: "Client Product Catalog API endpoints"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py, backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented Client Product Catalog CRUD endpoints supporting Finished Goods and Paper Cores with different field sets, including copy functionality between clients"
+
   - task: "Order Management API endpoints"
     implemented: true
     working: true
