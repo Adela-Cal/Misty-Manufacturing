@@ -147,6 +147,14 @@ export const apiHelpers = {
   createXeroDraftInvoice: (invoiceData) => api.post('/xero/create-draft-invoice', invoiceData),
   getXeroAccountCodes: () => api.get('/xero/account-codes'),
   getXeroTaxRates: () => api.get('/xero/tax-rates'),
+  
+  // User Management
+  getUsers: () => api.get('/users'),
+  createUser: (userData) => api.post('/users', userData),
+  getUser: (userId) => api.get(`/users/${userId}`),
+  updateUser: (userId, userData) => api.put(`/users/${userId}`, userData),
+  deleteUser: (userId) => api.delete(`/users/${userId}`),
+  changePassword: (passwordData) => api.post('/users/change-password', passwordData),
 };
 
 // File download helper
