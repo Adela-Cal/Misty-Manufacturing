@@ -446,7 +446,22 @@ const ProductSpecifications = () => {
         {showModal && (
           <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
             <div className="modal-content max-w-6xl max-h-[90vh] overflow-y-auto">
-              <form onSubmit={handleSubmit} className="p-6">
+              <div className="sticky top-0 bg-gray-900 z-10 p-6 pb-0 border-b border-gray-700">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-white">
+                    {selectedSpec ? 'Edit Product Specification' : 'Add New Product Specification'}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <XMarkIcon className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+              <form onSubmit={handleSubmit} className="px-6 pb-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-white">
