@@ -396,8 +396,12 @@ const PayrollManagement = () => {
               
               <div className="text-center py-8">
                 <ClockIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-400">Timesheet functionality will be implemented here</p>
-                <button className="misty-button misty-button-primary mt-4">
+                <p className="text-white text-lg font-medium mb-2">My Timesheet</p>
+                <p className="text-gray-400 mb-6">Track your work hours and manage leave requests</p>
+                <button 
+                  className="misty-button misty-button-primary"
+                  onClick={() => setShowTimesheetModal(true)}
+                >
                   Open Current Week Timesheet
                 </button>
               </div>
