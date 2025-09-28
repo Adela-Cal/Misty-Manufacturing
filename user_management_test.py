@@ -236,8 +236,10 @@ class UserManagementTester:
             )
             return
         
+        # Create unique email for update
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         update_data = {
-            "email": "teststaff001.updated@adelamerchants.com.au",
+            "email": f"teststaff_updated_{timestamp}@adelamerchants.com.au",
             "full_name": "Test Staff Member Updated",
             "role": "supervisor",
             "department": "Quality Control",
