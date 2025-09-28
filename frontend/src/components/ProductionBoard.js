@@ -266,7 +266,7 @@ const ProductionBoard = () => {
           <div className="flex justify-between">
             <span className="text-gray-400">Runtime:</span>
             <span className="text-yellow-400 font-medium">
-              {job.runtime || '2-3 days'} {/* TODO: Use actual runtime from backend */}
+              {job.runtime || '2-3 days'}
             </span>
           </div>
           <div className="flex justify-between">
