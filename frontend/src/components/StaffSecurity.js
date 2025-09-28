@@ -313,6 +313,7 @@ const StaffSecurity = () => {
                   <th className="py-2 text-sm">Email</th>
                   <th className="py-2 text-sm">Role</th>
                   <th className="py-2 text-sm">Department</th>
+                  <th className="py-2 text-sm">Employment Type</th>
                   <th className="py-2 text-sm">Status</th>
                 </tr>
               </thead>
