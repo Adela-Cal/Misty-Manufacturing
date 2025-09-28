@@ -61,6 +61,7 @@ const MaterialsManagement = () => {
       order_to_delivery_time: '',
       material_description: '',  // New field
       price: '',
+      currency: 'AUD',  // New field
       unit: 'm2',
       raw_substrate: false,
       gsm: '',
