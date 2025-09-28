@@ -305,7 +305,7 @@ async def get_suppliers(current_user: dict = Depends(require_any_role)):
 @api_router.post("/suppliers", response_model=StandardResponse)
 async def create_supplier(supplier_data: SupplierCreate, current_user: dict = Depends(require_admin_or_production_manager)):
     """Create new supplier"""
-    new_supplier = Supplier(**supplier_data.dict(), created_by=current_user["sub"])
+    new_supplier = Supplier(**supplier_data.dict())
     
     await db.suppliers.insert_one(new_supplier.dict())
     
