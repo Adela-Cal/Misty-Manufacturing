@@ -255,6 +255,21 @@ backend:
         agent: "testing"
         comment: "USER REPORTED ISSUE RESOLVED: Comprehensive testing of all 4 document generation endpoints shows 100% success rate (12/12 tests passed across 3 different orders). Tested endpoints: GET /api/documents/invoice/{order_id} (3056 bytes), GET /api/documents/packing-list/{order_id} (2844 bytes), GET /api/documents/acknowledgment/{order_id} (3253 bytes), GET /api/documents/job-card/{order_id} (2733 bytes). All PDFs have proper download headers (Content-Disposition: attachment), correct content-type (application/pdf), valid PDF structure (%PDF header), and include Adela Merchants branding. ReportLab PDF generation library working correctly. Found 10 jobs in delivery stage ready for document generation. The user's reported issue about PDFs not being generated/downloaded appears to have been temporary or already resolved."
 
+  - task: "Client Deletion API endpoint"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented DELETE /api/clients/{client_id} endpoint for client deletion with soft delete functionality (sets is_active to false), admin-only access required, safety check to prevent deletion of clients with active orders, and proper error handling for non-existent clients."
+      - working: true
+        agent: "testing"
+        comment: "CLIENT DELETION FUNCTIONALITY TESTING COMPLETED - ALL TESTS PASSED (100% SUCCESS RATE): Comprehensive testing of the new client deletion endpoint shows 9/9 tests passed successfully. ✅ CLIENT DELETION ENDPOINT: DELETE /api/clients/{client_id} successfully deletes clients with admin credentials and returns proper 'Client deleted successfully' message, ✅ SOFT DELETE VERIFICATION: Client correctly marked as inactive (is_active: false) and returns 404 after deletion - soft delete working correctly, ✅ SAFETY PROTECTIONS: Correctly prevents deletion of clients with active orders (400 error with 'Cannot delete client with active orders' message), correctly returns 404 for non-existent clients, handles already deleted clients properly, ✅ AUTHENTICATION & AUTHORIZATION: DELETE endpoint properly requires admin authentication (403 status for unauthorized requests), ✅ CLIENT FILTERING: Deleted clients correctly filtered out from GET /api/clients list (only shows active clients), ✅ DATA INTEGRITY: Client still exists in database but marked inactive, client relationships preserved, no data corruption or cascading issues, ✅ EDGE CASES: Successfully tested deleting already deleted client (404 response), deleting non-existent client (404 response), proper datetime updates on deletion. AUTHENTICATION: All tests performed with admin credentials (Callum/Peach7510). The client deletion functionality is fully operational with proper soft delete behavior, safety protections, and admin authentication requirements as specified in the review request."
+
 frontend:
   - task: "Production Board Enhancement - Row Layout & New Features"
     implemented: true
