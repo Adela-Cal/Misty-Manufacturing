@@ -572,6 +572,143 @@ async def get_production_logs(order_id: str, current_user: dict = Depends(requir
     logs = await db.production_logs.find({"order_id": order_id}).sort("timestamp", 1).to_list(1000)
     return {"success": True, "data": logs}
 
+@api_router.post("/production/move-stage/{order_id}")
+async def move_order_stage(
+    order_id: str, 
+    request: StageMovementRequest, 
+    current_user: dict = Depends(require_admin_or_production_manager)
+):
+    """Move order to next or previous production stage"""
+    # Get current order
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Define stage progression
+    stage_order = [
+        ProductionStage.ORDER_ENTERED,
+        ProductionStage.PENDING_MATERIAL,
+        ProductionStage.PAPER_SLITTING,
+        ProductionStage.WINDING,
+        ProductionStage.FINISHING,
+        ProductionStage.DELIVERY,
+        ProductionStage.INVOICING,
+        ProductionStage.CLEARED
+    ]
+    
+    current_stage = ProductionStage(order["current_stage"])
+    current_index = stage_order.index(current_stage)
+    
+    # Calculate new stage
+    if request.direction == "forward":
+        new_index = min(current_index + 1, len(stage_order) - 1)
+    elif request.direction == "backward":
+        new_index = max(current_index - 1, 0)
+    else:
+        raise HTTPException(status_code=400, detail="Direction must be 'forward' or 'backward'")
+    
+    if new_index == current_index:
+        raise HTTPException(status_code=400, detail="Order is already at the first/last stage")
+    
+    new_stage = stage_order[new_index]
+    
+    # Update order stage
+    await db.orders.update_one(
+        {"id": order_id},
+        {
+            "$set": {
+                "current_stage": new_stage.value,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+    
+    # Log stage change
+    stage_log = ProductionLog(
+        order_id=order_id,
+        stage=new_stage,
+        updated_by=current_user["username"],
+        notes=request.notes
+    )
+    await db.production_logs.insert_one(stage_log.dict())
+    
+    return {"success": True, "message": f"Order moved to {new_stage.value}", "new_stage": new_stage.value}
+
+@api_router.get("/production/materials-status/{order_id}")
+async def get_materials_status(order_id: str, current_user: dict = Depends(require_any_role)):
+    """Get materials status for order"""
+    status = await db.materials_status.find_one({"order_id": order_id})
+    if not status:
+        # Create default status if not exists
+        default_status = MaterialsStatus(
+            order_id=order_id,
+            materials_ready=False,
+            materials_checklist=[],
+            updated_by=current_user["username"]
+        )
+        await db.materials_status.insert_one(default_status.dict())
+        return {"success": True, "data": default_status.dict()}
+    
+    return {"success": True, "data": status}
+
+@api_router.put("/production/materials-status/{order_id}")
+async def update_materials_status(
+    order_id: str, 
+    status_update: MaterialsStatusUpdate,
+    current_user: dict = Depends(require_admin_or_production_manager)
+):
+    """Update materials status for order"""
+    # Check if order exists
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Update or create materials status
+    update_data = {
+        "materials_ready": status_update.materials_ready,
+        "materials_checklist": status_update.materials_checklist,
+        "updated_by": current_user["username"],
+        "updated_at": datetime.utcnow()
+    }
+    
+    result = await db.materials_status.update_one(
+        {"order_id": order_id},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"success": True, "message": "Materials status updated"}
+
+@api_router.put("/production/order-item-status/{order_id}")
+async def update_order_item_status(
+    order_id: str,
+    item_update: OrderItemStatusUpdate,
+    current_user: dict = Depends(require_admin_or_production_manager)
+):
+    """Update completion status of specific order item"""
+    # Get the order
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Validate item index
+    if item_update.item_index >= len(order["items"]) or item_update.item_index < 0:
+        raise HTTPException(status_code=400, detail="Invalid item index")
+    
+    # Update the specific item's completion status
+    update_query = {
+        f"items.{item_update.item_index}.is_completed": item_update.is_completed,
+        "updated_at": datetime.utcnow()
+    }
+    
+    await db.orders.update_one(
+        {"id": order_id},
+        {"$set": update_query}
+    )
+    
+    return {"success": True, "message": f"Item {item_update.item_index} marked as {'completed' if item_update.is_completed else 'pending'}"}
+
+
 # ============= REPORTS ENDPOINTS =============
 
 @api_router.get("/reports/outstanding-jobs")
