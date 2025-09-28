@@ -5790,8 +5790,8 @@ class InvoicingAPITester:
             self.log_result("Verify Permanent Deletion", False, f"Error: {str(e)}")
 
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on User Deactivation functionality"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: User Deactivation Functionality")
+        """Run backend API tests with PRIMARY FOCUS on User Deletion functionality"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: User Deletion Functionality")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 80)
         
@@ -5800,10 +5800,10 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test User Deactivation functionality
-        print("\n👤 TESTING USER DEACTIVATION FUNCTIONALITY - PRIMARY FOCUS")
+        # PRIMARY FOCUS: Test User Deletion functionality
+        print("\n👤 TESTING USER DELETION FUNCTIONALITY - PRIMARY FOCUS")
         print("=" * 60)
-        self.test_user_deactivation_functionality()
+        self.test_user_deletion_functionality()
         
         return self.generate_report()
     
