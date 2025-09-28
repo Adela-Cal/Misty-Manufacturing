@@ -692,10 +692,13 @@ async def generate_packing_list(order_id: str, token: str = None, current_user: 
 
 async def optional_auth_dependency(token: str = None, authorization: str = Header(None)):
     """Handle authentication via token parameter or Authorization header"""
+    from auth import SECRET_KEY, ALGORITHM
+    from jose import jwt, JWTError
+    
     try:
         # Try token from query parameter first
         if token:
-            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             user_id = payload.get("user_id") or payload.get("sub")
             if not user_id:
                 raise HTTPException(status_code=401, detail="Invalid token")
@@ -709,8 +712,8 @@ async def optional_auth_dependency(token: str = None, authorization: str = Heade
             
         # Fallback to Authorization header
         elif authorization and authorization.startswith("Bearer "):
-            token = authorization.split(" ")[1]
-            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            token_header = authorization.split(" ")[1]
+            payload = jwt.decode(token_header, SECRET_KEY, algorithms=[ALGORITHM])
             user_id = payload.get("user_id") or payload.get("sub")
             if not user_id:
                 raise HTTPException(status_code=401, detail="Invalid token")
