@@ -903,7 +903,8 @@ async def handle_xero_oauth_redirect(code: str = None, state: str = None, error:
     
     if code and state:
         # Redirect to frontend callback handler with parameters
-        return f"<html><body><script>window.location.href='http://localhost:3000/xero/callback?code={code}&state={state}';</script></body></html>"
+        frontend_callback_url = os.getenv("FRONTEND_URL", "https://app.emergent.sh") + f"/xero/callback?code={code}&state={state}"
+        return f"<html><body><script>window.location.href='{frontend_callback_url}';</script></body></html>"
     
     return "<html><body><script>window.close();</script></body></html>"
 
