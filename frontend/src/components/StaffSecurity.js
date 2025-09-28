@@ -86,15 +86,15 @@ const StaffSecurity = () => {
   };
 
   const handleDelete = async (user) => {
-    if (window.confirm(`Are you sure you want to deactivate user "${user.username}"?`)) {
+    if (window.confirm(`Are you sure you wish to delete user "${user.username}"? This action cannot be undone.`)) {
       try {
         await apiHelpers.deleteUser(user.id);
-        toast.success('User deactivated successfully');
+        toast.success('User deleted successfully');
         setShowModal(false);
         loadUsers();
       } catch (error) {
-        console.error('Failed to deactivate user:', error);
-        toast.error('Failed to deactivate user');
+        console.error('Failed to delete user:', error);
+        toast.error('Failed to delete user');
       }
     }
   };
