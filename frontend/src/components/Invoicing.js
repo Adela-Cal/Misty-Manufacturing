@@ -209,47 +209,11 @@ const Invoicing = () => {
     return new Intl.DateTimeFormat('en-AU').format(new Date(date));
   };
 
-  const testPdfDownload = async () => {
-    try {
-      console.log('Testing PDF download...');
-      
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/debug/test-pdf`);
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const blob = await response.blob();
-      console.log('Blob size:', blob.size);
-      console.log('Blob type:', blob.type);
-      
-      if (blob.size === 0) {
-        throw new Error('Received empty PDF blob');
-      }
-      
-      const url = window.URL.createObjectURL(blob);
-      
-      // Try download
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'test.pdf';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Also open in new tab for testing
-      setTimeout(() => {
-        window.open(url, '_blank');
-        window.URL.revokeObjectURL(url);
-        toast.success(`Test PDF ready! Blob size: ${blob.size} bytes`);
-      }, 500);
-      
-    } catch (error) {
-      console.error('Test download failed:', error);
-      toast.error(`Test download failed: ${error.message}`);
-    }
+  const testPdfDownload = () => {
+    // Simple direct URL approach - bypass blob creation
+    const testUrl = `${process.env.REACT_APP_BACKEND_URL}/api/debug/test-pdf`;
+    window.open(testUrl, '_blank');
+    toast.success('Test PDF opened in new tab');
   };
 
   if (loading) {
