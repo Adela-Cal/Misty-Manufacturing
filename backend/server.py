@@ -700,7 +700,7 @@ async def generate_packing_list(order_id: str, token: str = None, current_user: 
 # Moved this function above document endpoints
 
 @api_router.get("/documents/invoice/{order_id}")
-async def generate_invoice_pdf(order_id: str, token: str = None, current_user: dict = Depends(simple_pdf_auth)):
+async def generate_invoice_pdf(order_id: str, current_user: dict = Depends(require_admin_or_production_manager)):
     """Generate invoice PDF"""
     order = await db.orders.find_one({"id": order_id})
     if not order:
