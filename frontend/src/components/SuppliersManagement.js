@@ -468,6 +468,24 @@ const SuppliersManagement = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Account Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="account_name"
+                        value={formData.account_name}
+                        onChange={handleInputChange}
+                        className={`misty-input w-full ${errors.account_name ? 'border-red-500' : ''}`}
+                        placeholder="Enter account holder name"
+                        required
+                      />
+                      {errors.account_name && (
+                        <p className="text-red-400 text-sm mt-1">{errors.account_name}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
                         Bank Account Number *
                       </label>
                       <input
