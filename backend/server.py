@@ -358,7 +358,7 @@ async def get_product_specifications(current_user: dict = Depends(require_any_ro
     return [ProductSpecification(**spec) for spec in specs]
 
 @api_router.post("/product-specifications", response_model=StandardResponse)
-async def create_product_specification(spec_data: ProductSpecificationCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+async def create_product_specification(spec_data: ProductSpecificationCreate, current_user: dict = Depends(require_admin_or_manager)):
     """Create new product specification"""
     new_spec = ProductSpecification(**spec_data.dict())
     
