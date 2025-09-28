@@ -424,6 +424,7 @@ class UserCreate(BaseModel):
     phone: Optional[str] = None
 
 class UserUpdate(BaseModel):
+    username: Optional[str] = None
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
     role: Optional[UserRole] = None
