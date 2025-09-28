@@ -7132,6 +7132,10 @@ class InvoicingAPITester:
             unsafe_order_id = self.create_test_order_in_stage(client_id, stage)
             
             if unsafe_order_id:
+                # Verify the order is actually in the expected stage
+                actual_stage = self.verify_order_stage(unsafe_order_id)
+                print(f"Order {unsafe_order_id} is in stage: {actual_stage}")
+                
                 try:
                     response = self.session.delete(f"{API_BASE}/orders/{unsafe_order_id}")
                     
@@ -7143,7 +7147,7 @@ class InvoicingAPITester:
                             self.log_result(
                                 f"Edge Case - Prevent Delete in {stage.title()} Stage", 
                                 True, 
-                                f"Correctly prevented deletion in {stage} stage (unsafe stage)",
+                                f"Correctly prevented deletion in {actual_stage} stage (unsafe stage)",
                                 f"Message: {message}"
                             )
                         else:
@@ -7156,8 +7160,8 @@ class InvoicingAPITester:
                         self.log_result(
                             f"Edge Case - Prevent Delete in {stage.title()} Stage", 
                             False, 
-                            f"Expected 400 but got {response.status_code} for unsafe stage {stage}",
-                            response.text
+                            f"Expected 400 but got {response.status_code} for order in {actual_stage} stage (expected {stage})",
+                            f"Response: {response.text}"
                         )
                         
                 except Exception as e:
