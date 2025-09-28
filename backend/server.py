@@ -282,7 +282,7 @@ async def update_material(material_id: str, material_data: MaterialCreate, curre
     return StandardResponse(success=True, message="Material updated successfully")
 
 @api_router.delete("/materials/{material_id}", response_model=StandardResponse)
-async def delete_material(material_id: str, current_user: dict = Depends(require_admin_or_production_manager)):
+async def delete_material(material_id: str, current_user: dict = Depends(require_admin_or_manager)):
     """Delete material (soft delete)"""
     result = await db.materials.update_one(
         {"id": material_id, "is_active": True},
