@@ -414,7 +414,7 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
             <thead className="bg-gray-700">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Day
+                  Day (Click for Leave)
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Regular Hours
@@ -423,10 +423,7 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
                   Overtime Hours
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Annual Leave
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Sick Leave
+                  Leave Hours
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Notes
