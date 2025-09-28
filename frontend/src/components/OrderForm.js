@@ -241,6 +241,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       // Prepare order data
       const orderData = {
         client_id: formData.client_id,
+        purchase_order_number: formData.purchase_order_number || null,
         due_date: new Date(formData.due_date).toISOString(),
         delivery_address: formData.delivery_address || null,
         delivery_instructions: formData.delivery_instructions || null,
