@@ -215,7 +215,7 @@ const Invoicing = () => {
       
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/debug/test-pdf`);
       console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -225,16 +225,27 @@ const Invoicing = () => {
       console.log('Blob size:', blob.size);
       console.log('Blob type:', blob.type);
       
+      if (blob.size === 0) {
+        throw new Error('Received empty PDF blob');
+      }
+      
       const url = window.URL.createObjectURL(blob);
+      
+      // Try download
       const link = document.createElement('a');
       link.href = url;
       link.download = 'test.pdf';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
       
-      toast.success('Test PDF download initiated');
+      // Also open in new tab for testing
+      setTimeout(() => {
+        window.open(url, '_blank');
+        window.URL.revokeObjectURL(url);
+        toast.success(`Test PDF ready! Blob size: ${blob.size} bytes`);
+      }, 500);
+      
     } catch (error) {
       console.error('Test download failed:', error);
       toast.error(`Test download failed: ${error.message}`);
