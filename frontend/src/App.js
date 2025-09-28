@@ -15,6 +15,7 @@ import Calculators from './components/Calculators';
 import Stocktake from './components/Stocktake';
 import PayrollManagement from './components/PayrollManagement';
 import Invoicing from './components/Invoicing';
+import StaffSecurity from './components/StaffSecurity';
 import XeroCallback from './components/XeroCallback';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
