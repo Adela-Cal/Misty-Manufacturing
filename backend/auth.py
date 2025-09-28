@@ -79,18 +79,18 @@ require_admin = require_role([UserRole.ADMIN])
 require_admin_or_manager = require_role([UserRole.ADMIN, UserRole.MANAGER])
 require_manager_or_admin = require_role([UserRole.ADMIN, UserRole.MANAGER])
 require_admin_or_sales = require_role([UserRole.ADMIN, UserRole.SALES])  # Added
-require_production_access = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.PRODUCTION_STAFF])
-require_any_role = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.PRODUCTION_STAFF, UserRole.SALES])
+require_production_access = require_role([UserRole.ADMIN, UserRole.PRODUCTION_MANAGER, UserRole.MANAGER, UserRole.PRODUCTION_TEAM])
+require_any_role = require_role([UserRole.ADMIN, UserRole.PRODUCTION_MANAGER, UserRole.MANAGER, UserRole.PRODUCTION_TEAM, UserRole.SALES])
 
 # Updated permission dependencies for new roles
-require_supervisor_or_higher = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR])
-require_production_staff_or_higher = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.PRODUCTION_STAFF])
+require_supervisor_or_higher = require_role([UserRole.ADMIN, UserRole.PRODUCTION_MANAGER, UserRole.MANAGER])
+require_production_staff_or_higher = require_role([UserRole.ADMIN, UserRole.PRODUCTION_MANAGER, UserRole.MANAGER, UserRole.PRODUCTION_TEAM])
 
 # New payroll permission dependencies
 require_manager = require_role([UserRole.ADMIN, UserRole.MANAGER])
-require_payroll_access = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR])
+require_payroll_access = require_role([UserRole.ADMIN, UserRole.PRODUCTION_MANAGER, UserRole.MANAGER])
 require_payroll_management = require_role([UserRole.ADMIN, UserRole.MANAGER])
-require_employee_or_manager = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.PRODUCTION_STAFF])
+require_employee_or_manager = require_role([UserRole.ADMIN, UserRole.PRODUCTION_MANAGER, UserRole.MANAGER, UserRole.PRODUCTION_TEAM])
 
 # Permission checking functions
 def can_create_orders(user_role: str) -> bool:
