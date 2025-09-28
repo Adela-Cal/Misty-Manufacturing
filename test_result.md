@@ -465,8 +465,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Calculators Frontend Component"
-    - "Stocktake Frontend Component"
+    - "Staff & Security User Management API endpoints"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
