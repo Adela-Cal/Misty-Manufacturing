@@ -220,14 +220,7 @@ const ProductSpecifications = () => {
     setFormData(prev => ({
       ...prev,
       selected_material_id: materialId,
-      layers_required: layers,
-      specifications: {
-        ...prev.specifications,
-        selected_material_id: materialId,
-        material_gsm: material.gsm || '',
-        material_thickness: material.thickness_mm ? material.thickness_mm.toString() : '',
-        layers_required: layers
-      }
+      layers_required: layers
     }));
   };
 
