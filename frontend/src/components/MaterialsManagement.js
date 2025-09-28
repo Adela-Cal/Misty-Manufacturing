@@ -178,6 +178,7 @@ const MaterialsManagement = () => {
         order_to_delivery_time: formData.order_to_delivery_time,
         material_description: formData.material_description,  // New field
         price: parseFloat(formData.price),
+        currency: formData.currency,  // New field
         unit: formData.unit,
         raw_substrate: formData.raw_substrate,
         gsm: formData.raw_substrate && formData.gsm ? formData.gsm : null,
