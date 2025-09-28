@@ -407,12 +407,7 @@ class StocktakeEntryUpdate(BaseModel):
     current_quantity: float
 
 # User Management Models (Enhanced)
-class UserRole(str, Enum):
-    ADMIN = "admin"
-    MANAGER = "manager" 
-    SUPERVISOR = "supervisor"
-    PRODUCTION_STAFF = "production_staff"
-    SALES = "sales"
+# UserRole enum is defined earlier in the file - removed duplicate
 
 class EmploymentType(str, Enum):
     FULL_TIME = "full_time"
