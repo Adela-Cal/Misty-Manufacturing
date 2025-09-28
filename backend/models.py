@@ -209,6 +209,29 @@ class ProductionLog(BaseModel):
     notes: Optional[str] = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
+# Materials Status Tracking
+class MaterialsStatus(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    order_id: str
+    materials_ready: bool = False
+    materials_checklist: List[Dict[str, Any]] = []  # List of materials with ready status
+    updated_by: str
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class MaterialsStatusUpdate(BaseModel):
+    materials_ready: bool
+    materials_checklist: List[Dict[str, Any]] = []
+
+# Order Item Status Updates
+class OrderItemStatusUpdate(BaseModel):
+    item_index: int
+    is_completed: bool
+
+# Stage Movement Request
+class StageMovementRequest(BaseModel):
+    direction: str  # "forward" or "backward"
+    notes: Optional[str] = None
+
 # Job Specification Models
 class JobSpecification(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
