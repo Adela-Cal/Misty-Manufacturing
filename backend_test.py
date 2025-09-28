@@ -1229,9 +1229,579 @@ class InvoicingAPITester:
             self.log_result("Jobs Ready for Invoicing", False, f"Error: {str(e)}")
         
         return []
+    def test_materials_management_api(self):
+        """Test Materials Management API endpoints"""
+        print("\n=== MATERIALS MANAGEMENT API TEST ===")
+        
+        # Test GET /api/materials (get all materials)
+        try:
+            response = self.session.get(f"{API_BASE}/materials")
+            
+            if response.status_code == 200:
+                materials = response.json()
+                self.log_result(
+                    "Get All Materials", 
+                    True, 
+                    f"Successfully retrieved {len(materials)} materials"
+                )
+            else:
+                self.log_result(
+                    "Get All Materials", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Get All Materials", False, f"Error: {str(e)}")
+        
+        # Test POST /api/materials (create basic material)
+        basic_material_data = {
+            "supplier": "Test Supplier Ltd",
+            "product_code": "TEST-MAT-001",
+            "order_to_delivery_time": "5-7 business days",
+            "price": 25.50,
+            "unit": "m2",
+            "raw_substrate": False
+        }
+        
+        basic_material_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/materials", json=basic_material_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                basic_material_id = result.get('data', {}).get('id')
+                self.log_result(
+                    "Create Basic Material", 
+                    True, 
+                    f"Successfully created basic material with ID: {basic_material_id}"
+                )
+            else:
+                self.log_result(
+                    "Create Basic Material", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Basic Material", False, f"Error: {str(e)}")
+        
+        # Test POST /api/materials (create raw substrate material)
+        raw_substrate_data = {
+            "supplier": "Raw Materials Co",
+            "product_code": "RAW-SUB-001",
+            "order_to_delivery_time": "10-14 business days",
+            "price": 45.75,
+            "unit": "By the Box",
+            "raw_substrate": True,
+            "gsm": "250",
+            "thickness_mm": 2.5,
+            "burst_strength_kpa": 850.0,
+            "ply_bonding_jm2": 120.5,
+            "moisture_percent": 8.2
+        }
+        
+        raw_material_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/materials", json=raw_substrate_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                raw_material_id = result.get('data', {}).get('id')
+                self.log_result(
+                    "Create Raw Substrate Material", 
+                    True, 
+                    f"Successfully created raw substrate material with ID: {raw_material_id}"
+                )
+            else:
+                self.log_result(
+                    "Create Raw Substrate Material", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Raw Substrate Material", False, f"Error: {str(e)}")
+        
+        # Test GET /api/materials/{id} (get specific material)
+        if basic_material_id:
+            try:
+                response = self.session.get(f"{API_BASE}/materials/{basic_material_id}")
+                
+                if response.status_code == 200:
+                    material = response.json()
+                    if material.get('supplier') == "Test Supplier Ltd":
+                        self.log_result(
+                            "Get Specific Material", 
+                            True, 
+                            f"Successfully retrieved material: {material.get('product_code')}"
+                        )
+                    else:
+                        self.log_result(
+                            "Get Specific Material", 
+                            False, 
+                            "Material data doesn't match expected values"
+                        )
+                else:
+                    self.log_result(
+                        "Get Specific Material", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Get Specific Material", False, f"Error: {str(e)}")
+        
+        # Test PUT /api/materials/{id} (update material)
+        if basic_material_id:
+            update_data = {
+                "supplier": "Updated Supplier Ltd",
+                "product_code": "TEST-MAT-001-UPDATED",
+                "order_to_delivery_time": "3-5 business days",
+                "price": 28.75,
+                "unit": "m2",
+                "raw_substrate": False
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/materials/{basic_material_id}", json=update_data)
+                
+                if response.status_code == 200:
+                    self.log_result(
+                        "Update Material", 
+                        True, 
+                        "Successfully updated material"
+                    )
+                else:
+                    self.log_result(
+                        "Update Material", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Update Material", False, f"Error: {str(e)}")
+        
+        # Test DELETE /api/materials/{id} (soft delete material)
+        if basic_material_id:
+            try:
+                response = self.session.delete(f"{API_BASE}/materials/{basic_material_id}")
+                
+                if response.status_code == 200:
+                    self.log_result(
+                        "Delete Material", 
+                        True, 
+                        "Successfully deleted material (soft delete)"
+                    )
+                else:
+                    self.log_result(
+                        "Delete Material", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Delete Material", False, f"Error: {str(e)}")
+        
+        return raw_material_id  # Return for use in client product tests
+    
+    def test_client_product_catalog_api(self, client_id, material_id):
+        """Test Client Product Catalog API endpoints"""
+        print("\n=== CLIENT PRODUCT CATALOG API TEST ===")
+        
+        if not client_id:
+            self.log_result(
+                "Client Product Catalog API", 
+                False, 
+                "No client ID available for testing"
+            )
+            return
+        
+        # Test GET /api/clients/{client_id}/catalog (get client products)
+        try:
+            response = self.session.get(f"{API_BASE}/clients/{client_id}/catalog")
+            
+            if response.status_code == 200:
+                products = response.json()
+                self.log_result(
+                    "Get Client Product Catalog", 
+                    True, 
+                    f"Successfully retrieved {len(products)} client products"
+                )
+            else:
+                self.log_result(
+                    "Get Client Product Catalog", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Get Client Product Catalog", False, f"Error: {str(e)}")
+        
+        # Test POST /api/clients/{client_id}/catalog (create finished goods product)
+        finished_goods_data = {
+            "product_type": "finished_goods",
+            "product_code": "FG-001",
+            "product_description": "Premium Finished Product",
+            "price_ex_gst": 150.00,
+            "minimum_order_quantity": 10,
+            "consignment": False
+        }
+        
+        finished_product_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/clients/{client_id}/catalog", json=finished_goods_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                finished_product_id = result.get('data', {}).get('id')
+                self.log_result(
+                    "Create Finished Goods Product", 
+                    True, 
+                    f"Successfully created finished goods product with ID: {finished_product_id}"
+                )
+            else:
+                self.log_result(
+                    "Create Finished Goods Product", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Finished Goods Product", False, f"Error: {str(e)}")
+        
+        # Test POST /api/clients/{client_id}/catalog (create paper cores product with materials)
+        paper_cores_data = {
+            "product_type": "paper_cores",
+            "product_code": "PC-001",
+            "product_description": "Custom Paper Core - High Strength",
+            "price_ex_gst": 85.50,
+            "minimum_order_quantity": 50,
+            "consignment": True,
+            "material_used": [material_id] if material_id else [],
+            "core_id": "CORE-12345",
+            "core_width": "150mm",
+            "core_thickness": "3.2mm",
+            "strength_quality_important": True,
+            "delivery_included": True
+        }
+        
+        paper_cores_product_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/clients/{client_id}/catalog", json=paper_cores_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                paper_cores_product_id = result.get('data', {}).get('id')
+                self.log_result(
+                    "Create Paper Cores Product", 
+                    True, 
+                    f"Successfully created paper cores product with ID: {paper_cores_product_id}"
+                )
+            else:
+                self.log_result(
+                    "Create Paper Cores Product", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Paper Cores Product", False, f"Error: {str(e)}")
+        
+        # Test GET /api/clients/{client_id}/catalog/{product_id} (get specific client product)
+        if finished_product_id:
+            try:
+                response = self.session.get(f"{API_BASE}/clients/{client_id}/catalog/{finished_product_id}")
+                
+                if response.status_code == 200:
+                    product = response.json()
+                    if product.get('product_code') == "FG-001":
+                        self.log_result(
+                            "Get Specific Client Product", 
+                            True, 
+                            f"Successfully retrieved client product: {product.get('product_code')}"
+                        )
+                    else:
+                        self.log_result(
+                            "Get Specific Client Product", 
+                            False, 
+                            "Product data doesn't match expected values"
+                        )
+                else:
+                    self.log_result(
+                        "Get Specific Client Product", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Get Specific Client Product", False, f"Error: {str(e)}")
+        
+        # Test PUT /api/clients/{client_id}/catalog/{product_id} (update client product)
+        if finished_product_id:
+            update_data = {
+                "product_type": "finished_goods",
+                "product_code": "FG-001-UPDATED",
+                "product_description": "Premium Finished Product - Updated",
+                "price_ex_gst": 175.00,
+                "minimum_order_quantity": 15,
+                "consignment": True
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/clients/{client_id}/catalog/{finished_product_id}", json=update_data)
+                
+                if response.status_code == 200:
+                    self.log_result(
+                        "Update Client Product", 
+                        True, 
+                        "Successfully updated client product"
+                    )
+                else:
+                    self.log_result(
+                        "Update Client Product", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Update Client Product", False, f"Error: {str(e)}")
+        
+        return finished_product_id, paper_cores_product_id
+    
+    def test_client_product_copy_functionality(self, source_client_id, product_id):
+        """Test copying products between clients"""
+        print("\n=== CLIENT PRODUCT COPY FUNCTIONALITY TEST ===")
+        
+        if not source_client_id or not product_id:
+            self.log_result(
+                "Client Product Copy Functionality", 
+                False, 
+                "Missing source client ID or product ID for copy test"
+            )
+            return
+        
+        # Create a second client for copy testing
+        target_client_data = {
+            "company_name": "Target Copy Client Ltd",
+            "contact_name": "Jane Smith",
+            "email": "jane@targetclient.com",
+            "phone": "0487654321",
+            "address": "789 Target Street",
+            "city": "Sydney",
+            "state": "NSW",
+            "postal_code": "2000",
+            "abn": "98765432109",
+            "payment_terms": "Net 21 days",
+            "lead_time_days": 5
+        }
+        
+        target_client_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/clients", json=target_client_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                target_client_id = result.get('data', {}).get('id')
+                self.log_result(
+                    "Create Target Client for Copy Test", 
+                    True, 
+                    f"Successfully created target client with ID: {target_client_id}"
+                )
+            else:
+                self.log_result(
+                    "Create Target Client for Copy Test", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                return
+        except Exception as e:
+            self.log_result("Create Target Client for Copy Test", False, f"Error: {str(e)}")
+            return
+        
+        # Test POST /api/clients/{client_id}/catalog/{product_id}/copy-to/{target_client_id}
+        try:
+            response = self.session.post(f"{API_BASE}/clients/{source_client_id}/catalog/{product_id}/copy-to/{target_client_id}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                copied_product_id = result.get('data', {}).get('id')
+                
+                if copied_product_id:
+                    # Verify the product was copied by checking target client's catalog
+                    verify_response = self.session.get(f"{API_BASE}/clients/{target_client_id}/catalog/{copied_product_id}")
+                    
+                    if verify_response.status_code == 200:
+                        copied_product = verify_response.json()
+                        self.log_result(
+                            "Copy Product Between Clients", 
+                            True, 
+                            f"Successfully copied product to target client. New ID: {copied_product_id}",
+                            f"Product Code: {copied_product.get('product_code')}"
+                        )
+                    else:
+                        self.log_result(
+                            "Copy Product Between Clients", 
+                            False, 
+                            "Product copy reported success but verification failed"
+                        )
+                else:
+                    self.log_result(
+                        "Copy Product Between Clients", 
+                        False, 
+                        "Copy response missing new product ID"
+                    )
+            else:
+                self.log_result(
+                    "Copy Product Between Clients", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Copy Product Between Clients", False, f"Error: {str(e)}")
+    
+    def test_client_product_delete_functionality(self, client_id, product_id):
+        """Test DELETE /api/clients/{client_id}/catalog/{product_id}"""
+        print("\n=== CLIENT PRODUCT DELETE FUNCTIONALITY TEST ===")
+        
+        if not client_id or not product_id:
+            self.log_result(
+                "Client Product Delete Functionality", 
+                False, 
+                "Missing client ID or product ID for delete test"
+            )
+            return
+        
+        try:
+            response = self.session.delete(f"{API_BASE}/clients/{client_id}/catalog/{product_id}")
+            
+            if response.status_code == 200:
+                # Verify the product is no longer accessible
+                verify_response = self.session.get(f"{API_BASE}/clients/{client_id}/catalog/{product_id}")
+                
+                if verify_response.status_code == 404:
+                    self.log_result(
+                        "Delete Client Product", 
+                        True, 
+                        "Successfully deleted client product (soft delete verified)"
+                    )
+                else:
+                    self.log_result(
+                        "Delete Client Product", 
+                        False, 
+                        "Delete reported success but product still accessible"
+                    )
+            else:
+                self.log_result(
+                    "Delete Client Product", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Delete Client Product", False, f"Error: {str(e)}")
+    
+    def test_validation_errors(self, client_id):
+        """Test validation errors for required fields"""
+        print("\n=== VALIDATION ERRORS TEST ===")
+        
+        # Test materials validation - missing required fields
+        invalid_material_data = {
+            "supplier": "",  # Empty supplier
+            "product_code": "",  # Empty product code
+            "price": -10.0,  # Negative price
+            "unit": ""  # Empty unit
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/materials", json=invalid_material_data)
+            
+            if response.status_code in [400, 422]:  # Validation error expected
+                self.log_result(
+                    "Materials Validation Errors", 
+                    True, 
+                    f"Correctly rejected invalid material data with status {response.status_code}"
+                )
+            else:
+                self.log_result(
+                    "Materials Validation Errors", 
+                    False, 
+                    f"Expected validation error but got status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Materials Validation Errors", False, f"Error: {str(e)}")
+        
+        # Test client products validation - missing required fields
+        if client_id:
+            invalid_product_data = {
+                "product_type": "invalid_type",  # Invalid product type
+                "product_code": "",  # Empty product code
+                "price_ex_gst": -50.0,  # Negative price
+                "minimum_order_quantity": -5  # Negative quantity
+            }
+            
+            try:
+                response = self.session.post(f"{API_BASE}/clients/{client_id}/catalog", json=invalid_product_data)
+                
+                if response.status_code in [400, 422]:  # Validation error expected
+                    self.log_result(
+                        "Client Products Validation Errors", 
+                        True, 
+                        f"Correctly rejected invalid client product data with status {response.status_code}"
+                    )
+                else:
+                    self.log_result(
+                        "Client Products Validation Errors", 
+                        False, 
+                        f"Expected validation error but got status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Client Products Validation Errors", False, f"Error: {str(e)}")
+    
+    def test_authentication_requirements(self):
+        """Test that new endpoints require proper authentication"""
+        print("\n=== AUTHENTICATION REQUIREMENTS TEST ===")
+        
+        # Test without authentication
+        temp_session = requests.Session()
+        
+        endpoints_to_test = [
+            ("GET", "/materials", "Materials List"),
+            ("POST", "/materials", "Create Material"),
+            ("GET", "/clients/test-id/catalog", "Client Product Catalog"),
+            ("POST", "/clients/test-id/catalog", "Create Client Product")
+        ]
+        
+        for method, endpoint, name in endpoints_to_test:
+            try:
+                if method == "GET":
+                    response = temp_session.get(f"{API_BASE}{endpoint}")
+                else:
+                    response = temp_session.post(f"{API_BASE}{endpoint}", json={})
+                
+                if response.status_code in [401, 403]:
+                    self.log_result(
+                        f"{name} Authentication", 
+                        True, 
+                        f"Correctly requires authentication (status: {response.status_code})"
+                    )
+                else:
+                    self.log_result(
+                        f"{name} Authentication", 
+                        False, 
+                        f"Expected 401/403 but got {response.status_code}",
+                        f"Endpoint {endpoint} should require authentication"
+                    )
+            except Exception as e:
+                self.log_result(f"{name} Authentication", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
-        """Run all invoicing system and Xero integration tests"""
-        print("🚀 Starting Backend API Tests - Document Generation & Invoicing System")
+        """Run all backend API tests including new Materials and Client Product Catalog APIs"""
+        print("🚀 Starting Backend API Tests - Materials Management & Client Product Catalog")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 60)
         
@@ -1239,6 +1809,31 @@ class InvoicingAPITester:
         if not self.authenticate():
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
+        
+        # Test authentication requirements for new endpoints
+        self.test_authentication_requirements()
+        
+        # NEW FOCUS: Test Materials Management APIs
+        print("\n🧱 TESTING MATERIALS MANAGEMENT APIs")
+        material_id = self.test_materials_management_api()
+        
+        # Test client model updates and get client ID for product catalog tests
+        client_id = self.test_client_model_updates()
+        
+        # NEW FOCUS: Test Client Product Catalog APIs
+        print("\n📦 TESTING CLIENT PRODUCT CATALOG APIs")
+        finished_product_id, paper_cores_product_id = self.test_client_product_catalog_api(client_id, material_id)
+        
+        # Test copy functionality between clients
+        if client_id and finished_product_id:
+            self.test_client_product_copy_functionality(client_id, finished_product_id)
+        
+        # Test delete functionality
+        if client_id and paper_cores_product_id:
+            self.test_client_product_delete_functionality(client_id, paper_cores_product_id)
+        
+        # Test validation errors
+        self.test_validation_errors(client_id)
         
         # Test ReportLab PDF generation capability
         self.test_reportlab_pdf_generation()
@@ -1262,9 +1857,6 @@ class InvoicingAPITester:
         # Test jobs ready for invoicing and get delivery jobs for document testing
         delivery_jobs = self.test_jobs_ready_for_invoicing()
         
-        # Test client model updates
-        client_id = self.test_client_model_updates()
-        
         # Test invoicing APIs
         self.test_live_jobs_api()
         self.test_archived_jobs_api()
@@ -1275,8 +1867,8 @@ class InvoicingAPITester:
             self.test_invoice_generation_api(client_id)
             self.test_document_generation(client_id)
         
-        # MAIN FOCUS: Test document generation endpoints with real data
-        print("\n📄 TESTING DOCUMENT GENERATION ENDPOINTS (USER REPORTED ISSUE)")
+        # Test document generation endpoints with real data
+        print("\n📄 TESTING DOCUMENT GENERATION ENDPOINTS")
         self.test_document_generation_endpoints(delivery_jobs)
         self.test_pdf_download_functionality(delivery_jobs)
         self.test_document_branding_and_content(delivery_jobs)
