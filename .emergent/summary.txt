@@ -1,37 +1,41 @@
 <analysis>
-The previous AI engineer effectively took the application from a basic setup to a comprehensive MVP, Misty, a manufacturing business management system. The initial phase involved understanding the user's high-level requirements, which quickly evolved with detailed feature requests for client, order, production, and reporting management, along with specific branding (Adela Merchants) and dark mode theme. The AI successfully structured a multi-phase plan, starting with the backend foundation and systematically moving to the frontend.
+The AI engineer successfully established the Misty manufacturing management MVP, addressing core client, order, production, and reporting features. A major part of the work involved robust debugging of backend issues, particularly around  and database interactions, and then expanding the application to include payroll and leave management.
 
-A significant challenge involved debugging persistent backend issues related to bcrypt and database parameter handling after initial code generation, which the AI meticulously resolved through multiple small edits and restarts. Subsequently, the user introduced a new major module: payroll and leave management. The AI again followed an incremental approach, building out the backend first, then the frontend components, including enhanced user management and timesheet functionality. The system leverages FastAPI, React, and MongoDB, with JWT for authentication and ReportLab for PDF generation. The current state reflects a robust UI framework with significant backend functionality, but the user identified that interactive forms for adding clients and orders were placeholders. The AI is actively addressing this by implementing the necessary frontend forms and related API utilities.
+Subsequent development focused on making interactive forms operational for clients and orders, refining document generation (PDFs), and integrating Xero. Key challenges included:
+1.  **Xero Integration**: Extensive troubleshooting for OAuth (, ) due to redirect URI mismatches and webhook configuration issues on the user's Xero developer portal, alongside frontend button placement.
+2.  **Logo Update**: Initial incorrect implementation of the Adela Merchants logo, later corrected from user-provided PDF.
+3.  **PDF Generation**: Persistent issues with Chrome blocking blob downloads, requiring multiple iterations: from automatic downloads to interactive prompts, direct links, and finally disabling authentication for PDF endpoints and simplifying templates to ensure downloads worked.
+4.  **Backend Errors**: Debugging  in the document generator ( style missing) and CORS issues which required temporarily simplifying PDF generation.
+
+By the end of the trajectory, all core PDF downloads are functional, the correct logo is integrated, and the Xero UI is in place, awaiting successful OAuth.
 </analysis>
 
 <product_requirements>
-The user requested a manufacturing business management system, named Misty, with a dark mode theme and Adela Merchants branding (yellow/black, curved design, ABN). The system needs multi-role logins (Admin, Production Manager, Sales, Production Team) with specific permissions.
+The user required Misty, a manufacturing business management system with dark mode and Adela Merchants branding (yellow/black, curved design, ABN). It needs multi-role logins (Admin, Production Manager, Sales, Production Team) with specific permissions.
 
-**Core Manufacturing Features:**
-1.  **Client Management**: Add clients with bank info, notes, point of contact, and client-specific product pricing.
-2.  **Order Management**: Enter orders, generate order acknowledgements (PDF), track order quantities, due dates, and delivery locations.
-3.  **Job Card/Production Board**: Generate job cards (printable PDF). A 7-stage production board: . Jobs should be cleared after invoicing. Job tiles must show customer logo, order quantities, due date, delivery location via dropdown.
-4.  **Document Generation (PDF)**: Order Acknowledgements, Job Cards, Packing Lists, Invoices, all incorporating the Adela Merchants letterhead. Documents must show order/invoice number, customer details, order specifics (full/part supply), and bank details for payment.
-5.  **Reports System**: Generate outstanding jobs report, late deliveries report, and customer annual purchase reports.
-6.  **Job Specification Window**: For products, allow input of detailed notes, specifications, delivery times, and specific points of contact.
-7.  **Admin User**: 'Callum' with password 'Peach7510'.
-
-**Payroll & Leave Management Features:**
-1.  **Leave Types**: Annual, Sick, Personal, Maternity/Paternity, Training.
-2.  **User Account Holders**: Add new account holders with permission levels, input hourly rates, and display current leave entitlements.
-3.  **Timesheet Generation**: Generate weekly timesheets every Thursday at login for users to input hours worked and leave taken. This data should generate pay, annual leave, sick leave, and super contributions.
-4.  **Manager Access**: Only managers can view, change, and access payroll/leave information.
+Core features include:
+1.  **Client Management**: Add clients with bank info, notes, point of contact, client-specific product pricing, **payment terms, and lead time**.
+2.  **Order Management**: Enter orders, generate order acknowledgements (PDF), track order quantities, due dates, and delivery.
+3.  **Job Card/Production Board**: Generate printable job cards (PDF). A 7-stage production board, job tiles showing customer logo, quantities, due date, delivery.
+4.  **Document Generation (PDF)**: Order Acknowledgements, Job Cards, Packing Lists, Invoices, all incorporating the Adela Merchants letterhead. Documents must show order/invoice number, customer details, order specifics, and bank details. **Invoices and Packing Slips must be generated with relevant information**.
+5.  **Reports System**: Outstanding jobs, late deliveries, customer annual purchases, and **monthly archived jobs reports**.
+6.  **Job Specification Window**: Detailed notes, specifications, delivery times, contact points for products.
+7.  **Admin User**: 'Callum' / 'Peach7510'.
+8.  **Payroll & Leave Management**: Annual, Sick, Personal, Maternity/Paternity, Training leave types. User accounts with hourly rates, leave entitlements. Weekly timesheets generated for input, calculating pay, leave, super. Manager access to payroll/leave.
+9.  **Invoicing & Job Closure**: Function to invoice and close live jobs (Full invoice/Part Supply). **Archived jobs menu option**.
+10. **Xero Integration**: Automatically connect to Xero; generate draft invoices in Xero with client/product info; **get next invoice number from Xero**.
 </product_requirements>
 
 <key_technical_concepts>
 -   **FastAPI**: Python web framework for backend API.
 -   **React**: JavaScript library for frontend UI.
--   **MongoDB**: NoSQL database for data storage.
+-   **MongoDB**: NoSQL database for data storage (using UUIDs, not ObjectIDs).
 -   **JWT (JSON Web Tokens)**: For secure, role-based authentication.
 -   **Tailwind CSS & Radix UI**: For styling and UI components.
 -   **ReportLab**: Python library for PDF document generation.
 -   **Bcrypt**: For password hashing.
--   **User Roles & Permissions (RBAC)**: Granular access control for different staff members.
+-   **User Roles & Permissions (RBAC)**: Granular access control.
+-   **Xero API**: Third-party integration for accounting/invoicing.
 </key_technical_concepts>
 
 <code_architecture>
@@ -39,50 +43,58 @@ The application follows a standard full-stack architecture with separate  and  d
 
 
 
-**Key Files and Changes:**
-
--   : Updated to include , , , , , , , .
--   : Main FastAPI application, heavily modified to integrate new API endpoints for clients, orders, production, reports, payroll, and user management. Includes database connection and CORS handling.
--   : Defines MongoDB ODM models for core entities like users, clients, orders, products, production stages, and reports. Modified to include user roles and related fields.
--   : Handles JWT token generation, password hashing (using bcrypt), and authentication logic. Modified for role-based permissions and user creation.
--   : Manages PDF generation for various documents (acknowledgements, job cards, etc.), incorporating Adela Merchants branding.
--   : Provides utilities for file uploads, specifically for client logos and letterheads.
--   : Defines MongoDB models for payroll-specific entities like employees, timesheets, leave requests, and payroll settings. (New file)
--   : Implements API routes for payroll and leave management, including timesheets, leave applications, and employee profiles. (New file)
--   : Contains helper functions for payroll calculations, leave accrual, and timesheet processing. (New file)
--   : Main React component, configures routes for all application features including the newly added payroll and management components.
--   : Global styles, updated for the dark mode theme and Adela Merchants branding.
--   : Manages user authentication state and provides role-based permission checks for UI elements. Updated with payroll-specific permissions.
--   : Centralized API utility for interacting with backend endpoints for manufacturing management. Modified to include .
--   : API utility specifically for payroll-related backend endpoints. (New file)
--   : Login form, styled for dark mode and Adela Merchants branding.
--   : Provides the overall layout, including sidebar navigation and header. Updated to include payroll navigation links and role-based visibility.
--   : Main dashboard component displaying overview information.
--   : Displays client list and currently integrates  for adding clients. (Modified)
--   : Displays order list and currently integrates  for adding orders. (Modified, currently being fixed for an import error)
--   : Main component for the payroll dashboard with tabs for different functionalities. (New file)
--   : Component for employees to input timesheet data. (New file)
--   : Form for adding new clients. (New file)
--   : Form for creating new orders. (New file)
+-   : Updated to include , , , , , , , , .
+-   : Main FastAPI app. Integrated endpoints for client, order, production, reports, payroll, Xero. CORS configured.
+    -   **Changes**: Added Xero integration endpoints (), modified document generation endpoints to use , added debug PDF endpoint, fixed CORS configuration for .
+-   : Defines MongoDB ODM models.
+    -   **Changes**:  and  models updated to include  and .
+-   : Handles JWT auth.
+    -   **Changes**: Imports updated for  and ,  added for token-based authentication in query parameters for direct PDF links.
+-   : Manages PDF generation.
+    -   **Changes**: Initial attempts to integrate Adela Merchants letterhead. Temporarily reverted to simplified PDF generation to fix core issues (KeyError, missing styles, missing color ). ,  methods simplified, removed reliance on custom styles for  and  by using  with fallbacks.  and  methods are present but not currently utilized in the simplified PDF generation.
+-   , , , , : New files for payroll, leave, user management features.
+-   : New file for the Adela Merchants logo.
+    -   **Changes**: Created to store the correct SVG logo.
+-   : Main React component, configures routes.
+    -   **Changes**: Added routes for  and .
+-   : Manages auth state.
+-   : Centralized API utility.
+    -   **Changes**: Added Xero API functions (, , , ),  and utility for .
+-   : Login form.
+    -   **Changes**: Updated to use  for the Adela Merchants logo.
+-   : Overall layout, sidebar navigation.
+    -   **Changes**: Updated to include Invoicing in the main navigation. Added Xero connection buttons (Connect/Disconnect) to the sidebar, positioned them under the INTEGRATION section. Updated to use  for the Adela Merchants logo in the sidebar header.
+-   : Client list.
+-   : Order list.
+    -   **Changes**: Import error (initial task) was resolved implicitly or not observed.
+-   : Form for adding new clients.
+    -   **Changes**: Added input fields for  and  in a Business Terms section.
+-   : Form for creating new orders.
+-   : New component for invoicing.
+    -   **Changes**: Implemented UI for Live Jobs, Archived Jobs, Monthly Reports. Added Invoice buttons, and download icons for Invoice/Packing Slip PDFs. Implemented download logic using  (after  issues) and later direct  calls to backend endpoints. Added a red 🔧 Test PDF Download button and a blue 📄 Direct PDF Link button for debugging.
+-   : New component to handle Xero OAuth callbacks.
 </code_architecture>
 
 <pending_tasks>
--   **Xero Integration**: The user explicitly requested to hold off on this but intends to integrate it down the track.
+-   **Xero Integration**: Complete the Xero OAuth flow. The user needs to ensure their Xero app redirect URI and status are correctly configured.
+-   **PDF Branding**: Reintegrate the Adela Merchants letterhead branding into all generated PDFs. Currently, PDFs are generated with simplified templates to ensure basic functionality.
+-   **UI Refinement**: Change the packing slip icon on the invoicing page to something like a box, to easily distinguish it from the invoice icon.
+-   **Archived Jobs & Reports**: Implement the full functionality for viewing archived jobs and generating monthly reports, as described in product requirements.
+-   **Xero Auto Invoice Number**: Implement fetching the next invoice number from Xero.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was addressing the user's feedback that the Add Client and Add Order functionalities were not working, as the forms were merely placeholders. The AI acknowledged this and began implementing the necessary frontend components to make these features fully operational.
+Immediately before this summary, the AI engineer successfully resolved all issues related to PDF document generation and downloading. Previously, the system faced multiple challenges including Chrome blocking automatic downloads, blank screens for blob URLs, and  from the backend due to missing custom styles () and color definitions. CORS errors were also a recurring issue, preventing frontend access to backend PDF endpoints.
 
-Specifically, the AI has:
-1.  Created  to handle adding new client details.
-2.  Modified  to integrate and display the .
-3.  Created  for creating new orders.
-4.  Modified  to integrate and display the .
-5.  Updated  to include the  function for API calls.
+The AI systematically debugged these, moving from  to , then  for direct links, and finally temporarily disabling authentication for all PDF endpoints to ensure they worked with simple direct links. Backend errors were traced to the  file, where custom styles were not correctly applied or defined; these were fixed by using  with fallbacks to simpler styles.
 
-The current activity is focused on fixing a missing import in the OrderManagement component to ensure the  file correctly uses its dependencies and can render the  and interact with the backend API. The system currently has the UI framework and backend APIs largely complete for both manufacturing and payroll, but the interactive forms for data entry are being actively developed to enable full functionality.
+The Adela Merchants logo was also correctly extracted from a provided PDF and integrated into both the login page and the sidebar, replacing a generic placeholder.
+
+At this point, all Invoice PDFs, Packing Slip PDFs, Order Acknowledgment PDFs, Job Card PDFs, and test PDFs are confirmed by the user to be generated and downloadable using the direct link method. However, these PDFs currently use simplified templates and do not yet incorporate the full Adela Merchants letterhead branding.
+
+The user's very last explicit request was to change the packing slip icon to a box to differentiate it from the invoice icon, which the AI has acknowledged.
 </current_work>
 
 <optional_next_step>
-Fix the missing import in the  component.
+Change the packing slip icon on the invoicing page to a box icon for better differentiation.
 </optional_next_step>
