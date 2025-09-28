@@ -631,6 +631,11 @@ async def get_current_stocktake(current_user: dict = Depends(require_manager_or_
             }
         )
     
+    # Convert ObjectId to string if stocktake exists
+    if stocktake:
+        stocktake["id"] = str(stocktake["_id"])
+        del stocktake["_id"]
+    
     return StandardResponse(
         success=True, 
         message="Stocktake status retrieved", 
