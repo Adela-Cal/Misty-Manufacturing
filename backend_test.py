@@ -6851,6 +6851,10 @@ class InvoicingAPITester:
         """Test safety protections against deleting orders in production"""
         print("\n--- Testing Order Deletion Safety Protections ---")
         
+        # First verify the order is actually in a production stage
+        actual_stage = self.verify_order_stage(production_order_id)
+        print(f"Order {production_order_id} is in stage: {actual_stage}")
+        
         try:
             response = self.session.delete(f"{API_BASE}/orders/{production_order_id}")
             
@@ -6862,7 +6866,7 @@ class InvoicingAPITester:
                     self.log_result(
                         "Safety Protection - Production Stage", 
                         True, 
-                        "Correctly prevented deletion of order in production stage",
+                        f"Correctly prevented deletion of order in {actual_stage} stage",
                         f"Order ID: {production_order_id}, Message: {message}"
                     )
                 else:
@@ -6875,8 +6879,8 @@ class InvoicingAPITester:
                 self.log_result(
                     "Safety Protection - Production Stage", 
                     False, 
-                    f"Expected 400 status but got {response.status_code}",
-                    response.text
+                    f"Expected 400 status but got {response.status_code} for order in {actual_stage} stage",
+                    f"Response: {response.text}"
                 )
                 
         except Exception as e:
