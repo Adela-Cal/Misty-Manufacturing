@@ -310,46 +310,32 @@ const MaterialsManagement = () => {
                   <th>Unit</th>
                   <th>Delivery Time</th>
                   <th>Raw Substrate</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredMaterials.map((material) => (
-                  <tr key={material.id}>
-                    <td className="font-medium">{material.supplier}</td>
-                    <td>{material.product_code}</td>
-                    <td className="text-gray-300 max-w-xs truncate" title={material.material_description || 'No description'}>
+                  <tr 
+                    key={material.id}
+                    onDoubleClick={() => handleEdit(material)}
+                    className="cursor-pointer hover:bg-gray-700/50 transition-colors"
+                    title="Double-click to edit"
+                  >
+                    <td className="font-medium text-sm">{material.supplier}</td>
+                    <td className="text-sm">{material.product_code}</td>
+                    <td className="text-gray-300 max-w-xs truncate text-sm" title={material.material_description || 'No description'}>
                       {material.material_description || '—'}
                     </td>
-                    <td className="text-yellow-400 font-medium">
+                    <td className="text-yellow-400 font-medium text-sm">
                       {material.currency || 'AUD'} ${material.price.toFixed(2)}
                     </td>
-                    <td>{material.unit}</td>
-                    <td>{material.order_to_delivery_time}</td>
-                    <td>
+                    <td className="text-sm">{material.unit}</td>
+                    <td className="text-sm">{material.order_to_delivery_time}</td>
+                    <td className="text-center">
                       {material.raw_substrate ? (
-                        <CheckIcon className="h-4 w-4 text-green-400" />
+                        <CheckIcon className="h-4 w-4 text-green-400 mx-auto" />
                       ) : (
                         <span className="text-gray-400">—</span>
                       )}
-                    </td>
-                    <td>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => handleEdit(material)}
-                          className="text-gray-400 hover:text-yellow-400 transition-colors"
-                          title="Edit material"
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(material)}
-                          className="text-gray-400 hover:text-red-400 transition-colors"
-                          title="Delete material"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
                     </td>
                   </tr>
                 ))}
