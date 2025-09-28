@@ -25,6 +25,7 @@ const SuppliersManagement = () => {
     currency_accepted: 'AUD',
     bank_name: '',
     bank_address: '',
+    account_name: '',  // New field
     bank_account_number: '',
     swift_code: ''
   });
