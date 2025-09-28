@@ -423,6 +423,11 @@ class UserCreate(BaseModel):
     department: Optional[str] = None
     phone: Optional[str] = None
 
+class EmploymentType(str, Enum):
+    FULL_TIME = "full_time"
+    PART_TIME = "part_time"
+    CASUAL = "casual"
+
 class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -430,6 +435,7 @@ class UserUpdate(BaseModel):
     role: Optional[UserRole] = None
     department: Optional[str] = None
     phone: Optional[str] = None
+    employment_type: Optional[EmploymentType] = None
     is_active: Optional[bool] = None
 
 class PasswordChangeRequest(BaseModel):
