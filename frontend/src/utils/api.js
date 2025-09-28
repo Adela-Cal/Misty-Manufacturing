@@ -83,6 +83,17 @@ export const apiHelpers = {
   getProductSpecification: (id) => api.get(`/product-specifications/${id}`),
   deleteProductSpecification: (id) => api.delete(`/product-specifications/${id}`),
   
+  // Calculators
+  calculateMaterialConsumptionByClient: (data) => api.post('/calculators/material-consumption-by-client', data),
+  calculateMaterialPermutation: (data) => api.post('/calculators/material-permutation', data),
+  calculateSpiralCoreConsumption: (data) => api.post('/calculators/spiral-core-consumption', data),
+  
+  // Stocktake
+  getCurrentStocktake: () => api.get('/stocktake/current'),
+  createStocktake: (data) => api.post('/stocktake', data),
+  updateStocktakeEntry: (stocktakeId, data) => api.put(`/stocktake/${stocktakeId}/entry`, data),
+  completeStocktake: (stocktakeId) => api.post(`/stocktake/${stocktakeId}/complete`),
+  
   // Client Product Catalog
   getClientCatalog: (clientId) => api.get(`/clients/${clientId}/catalog`),
   createClientProduct: (clientId, data) => api.post(`/clients/${clientId}/catalog`, data),
