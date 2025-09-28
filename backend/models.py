@@ -311,6 +311,7 @@ class Supplier(BaseModel):
     # Bank details
     bank_name: str
     bank_address: str
+    account_name: str  # New field
     bank_account_number: str
     swift_code: Optional[str] = None
     is_active: bool = True
@@ -327,6 +328,7 @@ class SupplierCreate(BaseModel):
     currency_accepted: str = "AUD"
     bank_name: str
     bank_address: str
+    account_name: str  # New field
     bank_account_number: str
     swift_code: Optional[str] = None
 
