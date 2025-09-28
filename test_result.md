@@ -466,6 +466,8 @@ metadata:
 test_plan:
   current_focus:
     - "Staff & Security User Management API endpoints"
+    - "Product Specifications Modal Scroll Enhancement"
+    - "Manufacturing Calculator Enhancements"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
