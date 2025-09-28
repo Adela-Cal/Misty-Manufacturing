@@ -107,40 +107,7 @@ const ProductionBoard = () => {
   };
 
   const getDeliveryLocationDot = (deliveryAddress) => {
-    // Simple mapping of states/cities to approximate coordinates on Australia map
-    // These are rough percentages for positioning on a 200x150 SVG map
-    const locationMap = {
-      'NSW': { x: 75, y: 60 },
-      'VIC': { x: 70, y: 80 },
-      'QLD': { x: 80, y: 40 },
-      'SA': { x: 55, y: 70 },
-      'WA': { x: 20, y: 50 },
-      'TAS': { x: 70, y: 95 },
-      'NT': { x: 55, y: 25 },
-      'ACT': { x: 75, y: 65 },
-      // Major cities
-      'Sydney': { x: 78, y: 58 },
-      'Melbourne': { x: 70, y: 78 },
-      'Brisbane': { x: 82, y: 38 },
-      'Perth': { x: 18, y: 52 },
-      'Adelaide': { x: 58, y: 68 },
-      'Darwin': { x: 55, y: 15 },
-      'Hobart': { x: 70, y: 92 },
-      'Canberra': { x: 76, y: 62 }
-    };
-
-    if (!deliveryAddress) return { x: 60, y: 60 }; // Default center
-
-    const address = deliveryAddress.toUpperCase();
-    
-    // Try to find state or city match
-    for (const [location, coords] of Object.entries(locationMap)) {
-      if (address.includes(location.toUpperCase())) {
-        return coords;
-      }
-    }
-    
-    // Default to center if no match
+    // Removed Australia map functionality as requested
     return { x: 60, y: 60 };
   };
 
