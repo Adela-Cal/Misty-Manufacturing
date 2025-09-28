@@ -306,6 +306,7 @@ class Material(BaseModel):
     order_to_delivery_time: str
     material_description: str  # New field
     price: float
+    currency: str = "AUD"  # New field with default
     unit: str  # m2, By the Box, Single Unit
     raw_substrate: bool = False
     # Raw substrate fields (only if raw_substrate is True)
