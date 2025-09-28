@@ -478,7 +478,7 @@ const StaffSecurity = () => {
                         required
                       />
                       {errors.email && (
-                        <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+                        <p className="text-red-400 text-sm mt-1">{String(errors.email)}</p>
                       )}
                     </div>
 
