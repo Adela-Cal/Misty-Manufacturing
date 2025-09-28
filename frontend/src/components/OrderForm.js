@@ -6,6 +6,7 @@ import { XMarkIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 const OrderForm = ({ order, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     client_id: '',
+    purchase_order_number: '',
     due_date: '',
     delivery_address: '',
     delivery_instructions: '',
