@@ -3050,6 +3050,614 @@ class InvoicingAPITester:
             except Exception as e:
                 self.log_result("PUT /api/materials - Update Material", False, f"Error: {str(e)}")
 
+    def test_suppliers_api_endpoints(self):
+        """Test all Suppliers API endpoints"""
+        print("\n=== SUPPLIERS API ENDPOINTS TEST ===")
+        
+        # Test 1: GET /api/suppliers - Retrieve all suppliers
+        try:
+            response = self.session.get(f"{API_BASE}/suppliers")
+            
+            if response.status_code == 200:
+                suppliers = response.json()
+                self.log_result(
+                    "GET /api/suppliers", 
+                    True, 
+                    f"Successfully retrieved {len(suppliers)} suppliers"
+                )
+            else:
+                self.log_result(
+                    "GET /api/suppliers", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("GET /api/suppliers", False, f"Error: {str(e)}")
+        
+        # Test 2: POST /api/suppliers - Create new supplier
+        supplier_data = {
+            "supplier_name": "Test Paper Supplies Ltd",
+            "contact_person": "John Smith",
+            "phone_number": "+61 3 9876 5432",
+            "email": "john.smith@testpapersupplies.com.au",
+            "physical_address": "123 Industrial Drive, Melbourne VIC 3000",
+            "post_code": "3000",
+            "currency_accepted": "AUD",
+            "bank_name": "Commonwealth Bank of Australia",
+            "bank_address": "456 Collins Street, Melbourne VIC 3000",
+            "bank_account_number": "123456789",
+            "swift_code": "CTBAAU2S"
+        }
+        
+        created_supplier_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/suppliers", json=supplier_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                created_supplier_id = result.get('data', {}).get('id')
+                
+                if created_supplier_id:
+                    self.log_result(
+                        "POST /api/suppliers", 
+                        True, 
+                        f"Successfully created supplier with all required fields",
+                        f"Supplier ID: {created_supplier_id}"
+                    )
+                else:
+                    self.log_result(
+                        "POST /api/suppliers", 
+                        False, 
+                        "Supplier creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "POST /api/suppliers", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("POST /api/suppliers", False, f"Error: {str(e)}")
+        
+        # Test 3: GET /api/suppliers/{id} - Get specific supplier
+        if created_supplier_id:
+            try:
+                response = self.session.get(f"{API_BASE}/suppliers/{created_supplier_id}")
+                
+                if response.status_code == 200:
+                    supplier = response.json()
+                    
+                    # Verify all required fields are present
+                    required_fields = ['supplier_name', 'phone_number', 'email', 'physical_address', 
+                                     'post_code', 'bank_name', 'bank_account_number']
+                    missing_fields = [field for field in required_fields if field not in supplier]
+                    
+                    if not missing_fields:
+                        self.log_result(
+                            "GET /api/suppliers/{id}", 
+                            True, 
+                            f"Successfully retrieved supplier with all required fields",
+                            f"Supplier: {supplier.get('supplier_name')}"
+                        )
+                    else:
+                        self.log_result(
+                            "GET /api/suppliers/{id}", 
+                            False, 
+                            f"Supplier missing required fields: {missing_fields}"
+                        )
+                else:
+                    self.log_result(
+                        "GET /api/suppliers/{id}", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("GET /api/suppliers/{id}", False, f"Error: {str(e)}")
+        
+        # Test 4: PUT /api/suppliers/{id} - Update supplier
+        if created_supplier_id:
+            updated_supplier_data = {
+                "supplier_name": "Test Paper Supplies Ltd (Updated)",
+                "contact_person": "Jane Smith",
+                "phone_number": "+61 3 9876 5433",
+                "email": "jane.smith@testpapersupplies.com.au",
+                "physical_address": "456 Industrial Drive, Melbourne VIC 3000",
+                "post_code": "3000",
+                "currency_accepted": "AUD",
+                "bank_name": "ANZ Bank",
+                "bank_address": "789 Collins Street, Melbourne VIC 3000",
+                "bank_account_number": "987654321",
+                "swift_code": "ANZBAU3M"
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/suppliers/{created_supplier_id}", json=updated_supplier_data)
+                
+                if response.status_code == 200:
+                    # Verify the update by retrieving the supplier
+                    get_response = self.session.get(f"{API_BASE}/suppliers/{created_supplier_id}")
+                    if get_response.status_code == 200:
+                        updated_supplier = get_response.json()
+                        
+                        if (updated_supplier.get('supplier_name') == "Test Paper Supplies Ltd (Updated)" and
+                            updated_supplier.get('contact_person') == "Jane Smith"):
+                            self.log_result(
+                                "PUT /api/suppliers/{id}", 
+                                True, 
+                                "Successfully updated supplier information"
+                            )
+                        else:
+                            self.log_result(
+                                "PUT /api/suppliers/{id}", 
+                                False, 
+                                "Supplier update did not persist correctly"
+                            )
+                    else:
+                        self.log_result(
+                            "PUT /api/suppliers/{id}", 
+                            False, 
+                            "Failed to retrieve updated supplier for verification"
+                        )
+                else:
+                    self.log_result(
+                        "PUT /api/suppliers/{id}", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("PUT /api/suppliers/{id}", False, f"Error: {str(e)}")
+        
+        # Test 5: DELETE /api/suppliers/{id} - Soft delete supplier
+        if created_supplier_id:
+            try:
+                response = self.session.delete(f"{API_BASE}/suppliers/{created_supplier_id}")
+                
+                if response.status_code == 200:
+                    # Verify soft delete by trying to retrieve the supplier
+                    get_response = self.session.get(f"{API_BASE}/suppliers/{created_supplier_id}")
+                    if get_response.status_code == 404:
+                        self.log_result(
+                            "DELETE /api/suppliers/{id}", 
+                            True, 
+                            "Successfully soft deleted supplier (no longer accessible)"
+                        )
+                    else:
+                        self.log_result(
+                            "DELETE /api/suppliers/{id}", 
+                            False, 
+                            "Supplier still accessible after delete (soft delete may not be working)"
+                        )
+                else:
+                    self.log_result(
+                        "DELETE /api/suppliers/{id}", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("DELETE /api/suppliers/{id}", False, f"Error: {str(e)}")
+    
+    def test_product_specifications_api_endpoints(self):
+        """Test all Product Specifications API endpoints"""
+        print("\n=== PRODUCT SPECIFICATIONS API ENDPOINTS TEST ===")
+        
+        # Test 1: GET /api/product-specifications - Retrieve all specifications
+        try:
+            response = self.session.get(f"{API_BASE}/product-specifications")
+            
+            if response.status_code == 200:
+                specifications = response.json()
+                self.log_result(
+                    "GET /api/product-specifications", 
+                    True, 
+                    f"Successfully retrieved {len(specifications)} product specifications"
+                )
+            else:
+                self.log_result(
+                    "GET /api/product-specifications", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("GET /api/product-specifications", False, f"Error: {str(e)}")
+        
+        # Test 2: POST /api/product-specifications - Create Paper Core specification
+        paper_core_spec = {
+            "product_name": "Standard Paper Core",
+            "product_type": "Paper Core",
+            "specifications": {
+                "inner_diameter": "76mm",
+                "wall_thickness": "3.2mm",
+                "length": "1000mm",
+                "crush_strength": "450 N/cm",
+                "moisture_content": "8%",
+                "surface_finish": "Smooth"
+            },
+            "materials_composition": [
+                {
+                    "material_name": "Recycled Kraft Paper",
+                    "percentage": 85,
+                    "grade": "High strength"
+                },
+                {
+                    "material_name": "Adhesive",
+                    "percentage": 15,
+                    "type": "Water-based"
+                }
+            ],
+            "manufacturing_notes": "Standard production process with quality control at each stage"
+        }
+        
+        created_paper_core_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=paper_core_spec)
+            
+            if response.status_code == 200:
+                result = response.json()
+                created_paper_core_id = result.get('data', {}).get('id')
+                
+                if created_paper_core_id:
+                    self.log_result(
+                        "POST /api/product-specifications (Paper Core)", 
+                        True, 
+                        f"Successfully created Paper Core specification",
+                        f"Spec ID: {created_paper_core_id}"
+                    )
+                else:
+                    self.log_result(
+                        "POST /api/product-specifications (Paper Core)", 
+                        False, 
+                        "Specification creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "POST /api/product-specifications (Paper Core)", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("POST /api/product-specifications (Paper Core)", False, f"Error: {str(e)}")
+        
+        # Test 3: POST /api/product-specifications - Create Spiral Paper Core specification
+        spiral_core_spec = {
+            "product_name": "Heavy Duty Spiral Paper Core",
+            "product_type": "Spiral Paper Core",
+            "specifications": {
+                "inner_diameter": "152mm",
+                "wall_thickness": "6.5mm",
+                "length": "1500mm",
+                "spiral_angle": "45 degrees",
+                "crush_strength": "800 N/cm",
+                "moisture_content": "7%",
+                "surface_finish": "Textured",
+                "end_caps": "Plastic reinforced"
+            },
+            "materials_composition": [
+                {
+                    "material_name": "Virgin Kraft Paper",
+                    "percentage": 70,
+                    "grade": "Extra high strength"
+                },
+                {
+                    "material_name": "Recycled Kraft Paper",
+                    "percentage": 20,
+                    "grade": "Medium strength"
+                },
+                {
+                    "material_name": "Spiral Adhesive",
+                    "percentage": 10,
+                    "type": "Hot-melt"
+                }
+            ],
+            "manufacturing_notes": "Spiral winding process with reinforced end caps for heavy-duty applications"
+        }
+        
+        created_spiral_core_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=spiral_core_spec)
+            
+            if response.status_code == 200:
+                result = response.json()
+                created_spiral_core_id = result.get('data', {}).get('id')
+                
+                if created_spiral_core_id:
+                    self.log_result(
+                        "POST /api/product-specifications (Spiral Paper Core)", 
+                        True, 
+                        f"Successfully created Spiral Paper Core specification",
+                        f"Spec ID: {created_spiral_core_id}"
+                    )
+                else:
+                    self.log_result(
+                        "POST /api/product-specifications (Spiral Paper Core)", 
+                        False, 
+                        "Specification creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "POST /api/product-specifications (Spiral Paper Core)", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("POST /api/product-specifications (Spiral Paper Core)", False, f"Error: {str(e)}")
+        
+        # Test 4: GET /api/product-specifications/{id} - Get specific specification
+        if created_paper_core_id:
+            try:
+                response = self.session.get(f"{API_BASE}/product-specifications/{created_paper_core_id}")
+                
+                if response.status_code == 200:
+                    specification = response.json()
+                    
+                    # Verify flexible specifications dict storage
+                    specs = specification.get('specifications', {})
+                    materials = specification.get('materials_composition', [])
+                    
+                    if (specs.get('inner_diameter') == "76mm" and 
+                        specs.get('crush_strength') == "450 N/cm" and
+                        len(materials) == 2):
+                        self.log_result(
+                            "GET /api/product-specifications/{id}", 
+                            True, 
+                            f"Successfully retrieved specification with flexible dict storage",
+                            f"Product: {specification.get('product_name')}, Specs: {len(specs)} fields, Materials: {len(materials)} items"
+                        )
+                    else:
+                        self.log_result(
+                            "GET /api/product-specifications/{id}", 
+                            False, 
+                            "Specification data not stored/retrieved correctly"
+                        )
+                else:
+                    self.log_result(
+                        "GET /api/product-specifications/{id}", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("GET /api/product-specifications/{id}", False, f"Error: {str(e)}")
+        
+        # Test 5: PUT /api/product-specifications/{id} - Update specification
+        if created_spiral_core_id:
+            updated_spiral_spec = {
+                "product_name": "Heavy Duty Spiral Paper Core (Updated)",
+                "product_type": "Spiral Paper Core",
+                "specifications": {
+                    "inner_diameter": "152mm",
+                    "wall_thickness": "7.0mm",  # Updated thickness
+                    "length": "1500mm",
+                    "spiral_angle": "50 degrees",  # Updated angle
+                    "crush_strength": "900 N/cm",  # Updated strength
+                    "moisture_content": "6%",  # Updated moisture
+                    "surface_finish": "Smooth",  # Updated finish
+                    "end_caps": "Metal reinforced",  # Updated caps
+                    "color": "Brown"  # New field added
+                },
+                "materials_composition": [
+                    {
+                        "material_name": "Virgin Kraft Paper",
+                        "percentage": 75,  # Updated percentage
+                        "grade": "Extra high strength"
+                    },
+                    {
+                        "material_name": "Recycled Kraft Paper",
+                        "percentage": 15,  # Updated percentage
+                        "grade": "Medium strength"
+                    },
+                    {
+                        "material_name": "Spiral Adhesive",
+                        "percentage": 10,
+                        "type": "Hot-melt"
+                    }
+                ],
+                "manufacturing_notes": "Updated spiral winding process with metal-reinforced end caps for extra heavy-duty applications"
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/product-specifications/{created_spiral_core_id}", json=updated_spiral_spec)
+                
+                if response.status_code == 200:
+                    # Verify the update by retrieving the specification
+                    get_response = self.session.get(f"{API_BASE}/product-specifications/{created_spiral_core_id}")
+                    if get_response.status_code == 200:
+                        updated_spec = get_response.json()
+                        
+                        updated_specs = updated_spec.get('specifications', {})
+                        if (updated_spec.get('product_name') == "Heavy Duty Spiral Paper Core (Updated)" and
+                            updated_specs.get('wall_thickness') == "7.0mm" and
+                            updated_specs.get('color') == "Brown"):
+                            self.log_result(
+                                "PUT /api/product-specifications/{id}", 
+                                True, 
+                                "Successfully updated specification with flexible dict storage"
+                            )
+                        else:
+                            self.log_result(
+                                "PUT /api/product-specifications/{id}", 
+                                False, 
+                                "Specification update did not persist correctly"
+                            )
+                    else:
+                        self.log_result(
+                            "PUT /api/product-specifications/{id}", 
+                            False, 
+                            "Failed to retrieve updated specification for verification"
+                        )
+                else:
+                    self.log_result(
+                        "PUT /api/product-specifications/{id}", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("PUT /api/product-specifications/{id}", False, f"Error: {str(e)}")
+        
+        # Test 6: DELETE /api/product-specifications/{id} - Soft delete specification
+        if created_paper_core_id:
+            try:
+                response = self.session.delete(f"{API_BASE}/product-specifications/{created_paper_core_id}")
+                
+                if response.status_code == 200:
+                    # Verify soft delete by trying to retrieve the specification
+                    get_response = self.session.get(f"{API_BASE}/product-specifications/{created_paper_core_id}")
+                    if get_response.status_code == 404:
+                        self.log_result(
+                            "DELETE /api/product-specifications/{id}", 
+                            True, 
+                            "Successfully soft deleted specification (no longer accessible)"
+                        )
+                    else:
+                        self.log_result(
+                            "DELETE /api/product-specifications/{id}", 
+                            False, 
+                            "Specification still accessible after delete (soft delete may not be working)"
+                        )
+                else:
+                    self.log_result(
+                        "DELETE /api/product-specifications/{id}", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("DELETE /api/product-specifications/{id}", False, f"Error: {str(e)}")
+    
+    def test_new_endpoints_authentication_requirements(self):
+        """Test that Suppliers and Product Specifications endpoints require proper authentication"""
+        print("\n=== NEW ENDPOINTS AUTHENTICATION REQUIREMENTS TEST ===")
+        
+        # Test without authentication
+        temp_session = requests.Session()
+        
+        endpoints_to_test = [
+            ("GET /api/suppliers", "get", "/suppliers"),
+            ("POST /api/suppliers", "post", "/suppliers"),
+            ("GET /api/product-specifications", "get", "/product-specifications"),
+            ("POST /api/product-specifications", "post", "/product-specifications")
+        ]
+        
+        authenticated_endpoints = 0
+        total_endpoints = len(endpoints_to_test)
+        
+        for endpoint_name, method, path in endpoints_to_test:
+            try:
+                if method == "get":
+                    response = temp_session.get(f"{API_BASE}{path}")
+                elif method == "post":
+                    response = temp_session.post(f"{API_BASE}{path}", json={})
+                
+                if response.status_code in [401, 403]:
+                    authenticated_endpoints += 1
+                    self.log_result(
+                        f"Auth Required - {endpoint_name}", 
+                        True, 
+                        f"Properly requires authentication (status: {response.status_code})"
+                    )
+                else:
+                    self.log_result(
+                        f"Auth Required - {endpoint_name}", 
+                        False, 
+                        f"Expected 401/403 but got {response.status_code}",
+                        "Endpoint should require admin/production_manager authentication"
+                    )
+                    
+            except Exception as e:
+                self.log_result(f"Auth Required - {endpoint_name}", False, f"Error: {str(e)}")
+        
+        # Overall authentication summary
+        if authenticated_endpoints == total_endpoints:
+            self.log_result(
+                "New Endpoints Authentication Requirements", 
+                True, 
+                f"All {total_endpoints} new endpoints properly require authentication"
+            )
+        else:
+            self.log_result(
+                "New Endpoints Authentication Requirements", 
+                False, 
+                f"Only {authenticated_endpoints}/{total_endpoints} new endpoints require authentication"
+            )
+    
+    def test_new_endpoints_validation_requirements(self):
+        """Test validation of required fields for Suppliers and Product Specifications"""
+        print("\n=== NEW ENDPOINTS VALIDATION REQUIREMENTS TEST ===")
+        
+        # Test 1: Supplier validation - missing required fields
+        incomplete_supplier = {
+            "supplier_name": "Test Supplier",
+            # Missing phone_number, email, physical_address, post_code, bank_name, bank_account_number
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/suppliers", json=incomplete_supplier)
+            
+            if response.status_code == 422:  # Validation error
+                self.log_result(
+                    "Supplier Validation - Required Fields", 
+                    True, 
+                    "Correctly validates required fields (422 validation error)",
+                    response.text[:200]
+                )
+            elif response.status_code == 400:
+                self.log_result(
+                    "Supplier Validation - Required Fields", 
+                    True, 
+                    "Correctly validates required fields (400 bad request)",
+                    response.text[:200]
+                )
+            else:
+                self.log_result(
+                    "Supplier Validation - Required Fields", 
+                    False, 
+                    f"Expected validation error but got {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Supplier Validation - Required Fields", False, f"Error: {str(e)}")
+        
+        # Test 2: Product Specification validation - missing required fields
+        incomplete_spec = {
+            "product_name": "Test Product",
+            # Missing product_type, specifications
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=incomplete_spec)
+            
+            if response.status_code == 422:  # Validation error
+                self.log_result(
+                    "Product Specification Validation - Required Fields", 
+                    True, 
+                    "Correctly validates required fields (422 validation error)",
+                    response.text[:200]
+                )
+            elif response.status_code == 400:
+                self.log_result(
+                    "Product Specification Validation - Required Fields", 
+                    True, 
+                    "Correctly validates required fields (400 bad request)",
+                    response.text[:200]
+                )
+            else:
+                self.log_result(
+                    "Product Specification Validation - Required Fields", 
+                    False, 
+                    f"Expected validation error but got {response.status_code}",
+                    response.text[:200]
+                )
+        except Exception as e:
+            self.log_result("Product Specification Validation - Required Fields", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend API tests with PRIMARY FOCUS on Materials API Fix"""
         print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Materials API Fix")
