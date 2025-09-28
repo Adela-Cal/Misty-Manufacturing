@@ -101,6 +101,8 @@ export const apiHelpers = {
   disconnectXero: () => api.delete('/xero/disconnect'),
   getNextXeroInvoiceNumber: () => api.get('/xero/next-invoice-number'),
   createXeroDraftInvoice: (invoiceData) => api.post('/xero/create-draft-invoice', invoiceData),
+  getXeroAccountCodes: () => api.get('/xero/account-codes'),
+  getXeroTaxRates: () => api.get('/xero/tax-rates'),
 };
 
 // File download helper
