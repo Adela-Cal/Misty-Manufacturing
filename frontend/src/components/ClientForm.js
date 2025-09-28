@@ -259,13 +259,25 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
             <h2 className="text-2xl font-bold text-white">
               {client ? 'Edit Client' : 'Add New Client'}
             </h2>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
+            <div className="flex items-center space-x-3">
+              {client && (
+                <button
+                  type="button"
+                  onClick={() => setShowProductCatalog(true)}
+                  className="misty-button misty-button-secondary flex items-center"
+                >
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  Add Products
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
           </div>
 
           {/* Basic Information */}
