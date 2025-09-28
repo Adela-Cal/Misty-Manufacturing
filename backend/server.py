@@ -337,7 +337,7 @@ async def update_supplier(supplier_id: str, supplier_data: SupplierCreate, curre
     return StandardResponse(success=True, message="Supplier updated successfully")
 
 @api_router.delete("/suppliers/{supplier_id}", response_model=StandardResponse)
-async def delete_supplier(supplier_id: str, current_user: dict = Depends(require_admin_or_production_manager)):
+async def delete_supplier(supplier_id: str, current_user: dict = Depends(require_admin_or_manager)):
     """Soft delete supplier"""
     result = await db.suppliers.update_one(
         {"id": supplier_id, "is_active": True},
