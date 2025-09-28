@@ -733,11 +733,11 @@ async def generate_invoice_pdf(order_id: str):
 
 # ============= XERO INTEGRATION ENDPOINTS =============
 
-# Xero credentials (provided by user)
-XERO_CLIENT_ID = "0C765F92708046D5B625162E5D42C5FB"
-XERO_CLIENT_SECRET = "nOLpzNnYonx6SCW6SKw-SINB8cSX2wMIL0OWbsvXeXkj4P--"
-XERO_CALLBACK_URL = "http://localhost:3000/api/xero/callback"
-XERO_SCOPES = "accounting.transactions accounting.contacts.read accounting.invoices.read accounting.settings.read"
+# Xero credentials from environment variables
+XERO_CLIENT_ID = os.getenv("XERO_CLIENT_ID")
+XERO_CLIENT_SECRET = os.getenv("XERO_CLIENT_SECRET")  
+XERO_CALLBACK_URL = os.getenv("XERO_REDIRECT_URI", "https://app.emergent.sh/api/xero/callback")
+XERO_SCOPES = "accounting.transactions accounting.contacts.read accounting.invoices.read accounting.settings.read accounting.transactions.read accounting.settings openid profile email offline_access"
 
 # Debug endpoint for testing
 @api_router.get("/xero/debug")
