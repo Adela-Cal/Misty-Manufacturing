@@ -198,7 +198,7 @@ const MaterialsManagement = () => {
     
     try {
       const submitData = {
-        supplier: formData.supplier,
+        supplier: formData.supplier_name,  // Send supplier name to backend
         product_code: formData.product_code,
         order_to_delivery_time: formData.order_to_delivery_time,
         material_description: formData.material_description,  // New field
