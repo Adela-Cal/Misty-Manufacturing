@@ -1129,10 +1129,13 @@ app.include_router(api_router)
 app.include_router(payroll_router)
 
 # Add CORS middleware
+cors_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
+print(f"CORS Origins configured: {cors_origins}")  # Debug logging
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
