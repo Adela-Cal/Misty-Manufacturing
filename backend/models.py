@@ -304,7 +304,7 @@ class Material(BaseModel):
     supplier: str
     product_code: str
     order_to_delivery_time: str
-    material_description: str  # New field
+    material_description: Optional[str] = None  # Made optional for backward compatibility
     price: float
     currency: str = "AUD"  # New field with default
     unit: str  # m2, By the Box, Single Unit
