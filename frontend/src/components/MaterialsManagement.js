@@ -303,13 +303,13 @@ const MaterialsManagement = () => {
             <table className="w-full">
               <thead>
                 <tr>
-                  <th>Supplier</th>
-                  <th>Product Code</th>
-                  <th>Description</th>
-                  <th>Price</th>
-                  <th>Unit</th>
-                  <th>Delivery Time</th>
-                  <th>Raw Substrate</th>
+                  <th className="py-2 text-sm">Supplier</th>
+                  <th className="py-2 text-sm">Product Code</th>
+                  <th className="py-2 text-sm">Description</th>
+                  <th className="py-2 text-sm">Price</th>
+                  <th className="py-2 text-sm">Unit</th>
+                  <th className="py-2 text-sm">Delivery Time</th>
+                  <th className="py-2 text-sm">Raw Substrate</th>
                 </tr>
               </thead>
               <tbody>
@@ -317,20 +317,20 @@ const MaterialsManagement = () => {
                   <tr 
                     key={material.id}
                     onDoubleClick={() => handleEdit(material)}
-                    className="cursor-pointer hover:bg-gray-700/50 transition-colors"
+                    className="cursor-pointer hover:bg-gray-700/50 transition-colors border-b border-gray-700/50"
                     title="Double-click to edit"
                   >
-                    <td className="font-medium text-sm">{material.supplier}</td>
-                    <td className="text-sm">{material.product_code}</td>
-                    <td className="text-gray-300 max-w-xs truncate text-sm" title={material.material_description || 'No description'}>
+                    <td className="font-medium text-sm py-2 px-3">{material.supplier}</td>
+                    <td className="text-sm py-2 px-3">{material.product_code}</td>
+                    <td className="text-gray-300 max-w-xs truncate text-sm py-2 px-3" title={material.material_description || 'No description'}>
                       {material.material_description || '—'}
                     </td>
-                    <td className="text-yellow-400 font-medium text-sm">
+                    <td className="text-yellow-400 font-medium text-sm py-2 px-3">
                       {material.currency || 'AUD'} ${material.price.toFixed(2)}
                     </td>
-                    <td className="text-sm">{material.unit}</td>
-                    <td className="text-sm">{material.order_to_delivery_time}</td>
-                    <td className="text-center">
+                    <td className="text-sm py-2 px-3">{material.unit}</td>
+                    <td className="text-sm py-2 px-3">{material.order_to_delivery_time}</td>
+                    <td className="text-center py-2 px-3">
                       {material.raw_substrate ? (
                         <CheckIcon className="h-4 w-4 text-green-400 mx-auto" />
                       ) : (
