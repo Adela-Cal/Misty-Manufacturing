@@ -1254,6 +1254,11 @@ class InvoicingAPITester:
         self.test_xero_auth_callback(state_param)
         self.test_xero_disconnect()
         
+        # Test NEW Xero Integration Endpoints
+        print("\n🆕 TESTING NEW XERO INTEGRATION ENDPOINTS")
+        self.test_xero_next_invoice_number()
+        self.test_xero_create_draft_invoice()
+        
         # Test jobs ready for invoicing and get delivery jobs for document testing
         delivery_jobs = self.test_jobs_ready_for_invoicing()
         
