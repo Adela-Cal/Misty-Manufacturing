@@ -1229,6 +1229,369 @@ class InvoicingAPITester:
             self.log_result("Jobs Ready for Invoicing", False, f"Error: {str(e)}")
         
         return []
+    
+    def test_material_currency_field(self):
+        """Test the new currency field functionality in Material model"""
+        print("\n=== MATERIAL CURRENCY FIELD TEST ===")
+        
+        # Test 1: Create Material with Default Currency (should default to "AUD")
+        material_default_currency = {
+            "supplier": "Australian Paper Co",
+            "product_code": "APC-DEFAULT-001",
+            "order_to_delivery_time": "5-7 business days",
+            "material_description": "Premium Australian paper with default currency",
+            "price": 35.50,
+            "unit": "m2",
+            "raw_substrate": False
+            # Note: currency field not specified - should default to "AUD"
+        }
+        
+        default_currency_material_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/materials", json=material_default_currency)
+            
+            if response.status_code == 200:
+                result = response.json()
+                default_currency_material_id = result.get('data', {}).get('id')
+                
+                # Verify the material was created and retrieve it to check currency
+                if default_currency_material_id:
+                    get_response = self.session.get(f"{API_BASE}/materials/{default_currency_material_id}")
+                    if get_response.status_code == 200:
+                        material = get_response.json()
+                        currency = material.get('currency')
+                        
+                        if currency == "AUD":
+                            self.log_result(
+                                "Create Material with Default Currency", 
+                                True, 
+                                f"Material created with default currency 'AUD' as expected",
+                                f"Material ID: {default_currency_material_id}, Currency: {currency}"
+                            )
+                        else:
+                            self.log_result(
+                                "Create Material with Default Currency", 
+                                False, 
+                                f"Expected default currency 'AUD' but got '{currency}'",
+                                f"Material ID: {default_currency_material_id}"
+                            )
+                    else:
+                        self.log_result(
+                            "Create Material with Default Currency", 
+                            False, 
+                            "Failed to retrieve created material for currency verification"
+                        )
+                else:
+                    self.log_result(
+                        "Create Material with Default Currency", 
+                        False, 
+                        "Material creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create Material with Default Currency", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Material with Default Currency", False, f"Error: {str(e)}")
+        
+        # Test 2: Create Material with Specific Currency (USD)
+        material_usd_currency = {
+            "supplier": "US Paper Imports",
+            "product_code": "USPI-USD-001",
+            "order_to_delivery_time": "10-14 business days",
+            "material_description": "Imported US paper priced in USD",
+            "price": 28.75,
+            "currency": "USD",  # Explicitly set currency to USD
+            "unit": "m2",
+            "raw_substrate": False
+        }
+        
+        usd_currency_material_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/materials", json=material_usd_currency)
+            
+            if response.status_code == 200:
+                result = response.json()
+                usd_currency_material_id = result.get('data', {}).get('id')
+                
+                # Verify the material was created with USD currency
+                if usd_currency_material_id:
+                    get_response = self.session.get(f"{API_BASE}/materials/{usd_currency_material_id}")
+                    if get_response.status_code == 200:
+                        material = get_response.json()
+                        currency = material.get('currency')
+                        
+                        if currency == "USD":
+                            self.log_result(
+                                "Create Material with Specific Currency (USD)", 
+                                True, 
+                                f"Material created with specified currency 'USD' as expected",
+                                f"Material ID: {usd_currency_material_id}, Currency: {currency}"
+                            )
+                        else:
+                            self.log_result(
+                                "Create Material with Specific Currency (USD)", 
+                                False, 
+                                f"Expected currency 'USD' but got '{currency}'",
+                                f"Material ID: {usd_currency_material_id}"
+                            )
+                    else:
+                        self.log_result(
+                            "Create Material with Specific Currency (USD)", 
+                            False, 
+                            "Failed to retrieve created material for currency verification"
+                        )
+                else:
+                    self.log_result(
+                        "Create Material with Specific Currency (USD)", 
+                        False, 
+                        "Material creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create Material with Specific Currency (USD)", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Material with Specific Currency (USD)", False, f"Error: {str(e)}")
+        
+        # Test 3: Create Material with EUR Currency
+        material_eur_currency = {
+            "supplier": "European Materials Ltd",
+            "product_code": "EML-EUR-001",
+            "order_to_delivery_time": "12-16 business days",
+            "material_description": "European specialty paper priced in EUR",
+            "price": 42.30,
+            "currency": "EUR",  # Explicitly set currency to EUR
+            "unit": "m2",
+            "raw_substrate": False
+        }
+        
+        eur_currency_material_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/materials", json=material_eur_currency)
+            
+            if response.status_code == 200:
+                result = response.json()
+                eur_currency_material_id = result.get('data', {}).get('id')
+                
+                # Verify the material was created with EUR currency
+                if eur_currency_material_id:
+                    get_response = self.session.get(f"{API_BASE}/materials/{eur_currency_material_id}")
+                    if get_response.status_code == 200:
+                        material = get_response.json()
+                        currency = material.get('currency')
+                        
+                        if currency == "EUR":
+                            self.log_result(
+                                "Create Material with Specific Currency (EUR)", 
+                                True, 
+                                f"Material created with specified currency 'EUR' as expected",
+                                f"Material ID: {eur_currency_material_id}, Currency: {currency}"
+                            )
+                        else:
+                            self.log_result(
+                                "Create Material with Specific Currency (EUR)", 
+                                False, 
+                                f"Expected currency 'EUR' but got '{currency}'",
+                                f"Material ID: {eur_currency_material_id}"
+                            )
+                    else:
+                        self.log_result(
+                            "Create Material with Specific Currency (EUR)", 
+                            False, 
+                            "Failed to retrieve created material for currency verification"
+                        )
+                else:
+                    self.log_result(
+                        "Create Material with Specific Currency (EUR)", 
+                        False, 
+                        "Material creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create Material with Specific Currency (EUR)", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Material with Specific Currency (EUR)", False, f"Error: {str(e)}")
+        
+        # Test 4: Update Material Currency (from AUD to GBP)
+        if default_currency_material_id:
+            update_currency_data = {
+                "supplier": "Australian Paper Co",
+                "product_code": "APC-DEFAULT-001-UPDATED",
+                "order_to_delivery_time": "5-7 business days",
+                "material_description": "Premium Australian paper now priced in GBP",
+                "price": 22.75,
+                "currency": "GBP",  # Update currency from AUD to GBP
+                "unit": "m2",
+                "raw_substrate": False
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/materials/{default_currency_material_id}", json=update_currency_data)
+                
+                if response.status_code == 200:
+                    # Verify the currency was updated
+                    get_response = self.session.get(f"{API_BASE}/materials/{default_currency_material_id}")
+                    if get_response.status_code == 200:
+                        updated_material = get_response.json()
+                        updated_currency = updated_material.get('currency')
+                        
+                        if updated_currency == "GBP":
+                            self.log_result(
+                                "Update Material Currency (AUD to GBP)", 
+                                True, 
+                                f"Successfully updated material currency from AUD to GBP",
+                                f"Material ID: {default_currency_material_id}, New Currency: {updated_currency}"
+                            )
+                        else:
+                            self.log_result(
+                                "Update Material Currency (AUD to GBP)", 
+                                False, 
+                                f"Currency update failed - expected 'GBP' but got '{updated_currency}'"
+                            )
+                    else:
+                        self.log_result(
+                            "Update Material Currency (AUD to GBP)", 
+                            False, 
+                            "Failed to retrieve updated material for currency verification"
+                        )
+                else:
+                    self.log_result(
+                        "Update Material Currency (AUD to GBP)", 
+                        False, 
+                        f"Update failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Update Material Currency (AUD to GBP)", False, f"Error: {str(e)}")
+        
+        # Test 5: Verify Currency Field in GET All Materials Response
+        try:
+            response = self.session.get(f"{API_BASE}/materials")
+            
+            if response.status_code == 200:
+                materials = response.json()
+                
+                # Check if any materials have currency field
+                materials_with_currency = [m for m in materials if 'currency' in m and m.get('currency')]
+                
+                if len(materials_with_currency) > 0:
+                    # Check for our test materials
+                    test_currencies = []
+                    for material in materials_with_currency:
+                        if material.get('id') in [default_currency_material_id, usd_currency_material_id, eur_currency_material_id]:
+                            test_currencies.append(f"{material.get('product_code', 'Unknown')}: {material.get('currency')}")
+                    
+                    if len(test_currencies) > 0:
+                        self.log_result(
+                            "Retrieve Materials with Currency Field", 
+                            True, 
+                            f"Currency field included in GET /api/materials response",
+                            f"Test materials found: {', '.join(test_currencies)}"
+                        )
+                    else:
+                        self.log_result(
+                            "Retrieve Materials with Currency Field", 
+                            True, 
+                            f"Currency field present in materials list ({len(materials_with_currency)} materials have currency)"
+                        )
+                else:
+                    self.log_result(
+                        "Retrieve Materials with Currency Field", 
+                        False, 
+                        "No materials found with currency field in GET /api/materials response",
+                        f"Total materials: {len(materials)}"
+                    )
+            else:
+                self.log_result(
+                    "Retrieve Materials with Currency Field", 
+                    False, 
+                    f"Failed to retrieve materials list: {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Retrieve Materials with Currency Field", False, f"Error: {str(e)}")
+        
+        # Test 6: Test Raw Substrate Material with Currency
+        raw_substrate_with_currency = {
+            "supplier": "International Raw Materials",
+            "product_code": "IRM-RAW-CAD-001",
+            "order_to_delivery_time": "14-21 business days",
+            "material_description": "Canadian corrugated substrate priced in CAD",
+            "price": 52.80,
+            "currency": "CAD",  # Canadian Dollar
+            "unit": "By the Box",
+            "raw_substrate": True,
+            "gsm": "300",
+            "thickness_mm": 3.2,
+            "burst_strength_kpa": 950.0,
+            "ply_bonding_jm2": 135.0,
+            "moisture_percent": 7.8,
+            "supplied_roll_weight": 1400.0,
+            "master_deckle_width_mm": 1800.0
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/materials", json=raw_substrate_with_currency)
+            
+            if response.status_code == 200:
+                result = response.json()
+                raw_material_id = result.get('data', {}).get('id')
+                
+                if raw_material_id:
+                    # Verify raw substrate material has correct currency
+                    get_response = self.session.get(f"{API_BASE}/materials/{raw_material_id}")
+                    if get_response.status_code == 200:
+                        material = get_response.json()
+                        currency = material.get('currency')
+                        is_raw_substrate = material.get('raw_substrate')
+                        
+                        if currency == "CAD" and is_raw_substrate:
+                            self.log_result(
+                                "Create Raw Substrate Material with Currency", 
+                                True, 
+                                f"Raw substrate material created with currency 'CAD' successfully",
+                                f"Material ID: {raw_material_id}, Currency: {currency}, Raw Substrate: {is_raw_substrate}"
+                            )
+                        else:
+                            self.log_result(
+                                "Create Raw Substrate Material with Currency", 
+                                False, 
+                                f"Raw substrate material currency or type incorrect",
+                                f"Expected: CAD/True, Got: {currency}/{is_raw_substrate}"
+                            )
+                    else:
+                        self.log_result(
+                            "Create Raw Substrate Material with Currency", 
+                            False, 
+                            "Failed to retrieve created raw substrate material"
+                        )
+                else:
+                    self.log_result(
+                        "Create Raw Substrate Material with Currency", 
+                        False, 
+                        "Raw substrate material creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create Raw Substrate Material with Currency", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Raw Substrate Material with Currency", False, f"Error: {str(e)}")
+    
     def test_materials_management_api(self):
         """Test Materials Management API endpoints with new fields"""
         print("\n=== MATERIALS MANAGEMENT API TEST (WITH NEW FIELDS) ===")
