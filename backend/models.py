@@ -159,6 +159,7 @@ class OrderItem(BaseModel):
     unit_price: float
     total_price: float
     specifications: Optional[ProductSpecification] = None
+    is_completed: bool = False  # Track if this item is completed
 
 class Order(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
