@@ -776,11 +776,6 @@ async def test_pdf_download():
         headers={"Content-Disposition": "attachment; filename=test.pdf"}
     )
 
-import secrets
-import requests
-import base64
-from urllib.parse import urlencode
-
 @api_router.get("/xero/status")
 async def check_xero_connection_status(current_user: dict = Depends(require_admin_or_production_manager)):
     """Check if user has active Xero connection"""
