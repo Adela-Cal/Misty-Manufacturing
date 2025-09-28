@@ -674,7 +674,7 @@ async def update_materials_status(
     update_data = {
         "materials_ready": status_update.materials_ready,
         "materials_checklist": status_update.materials_checklist,
-        "updated_by": current_user["username"],
+        "updated_by": current_user["sub"],
         "updated_at": datetime.utcnow()
     }
     
