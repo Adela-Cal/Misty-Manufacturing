@@ -290,6 +290,7 @@ const MaterialsManagement = () => {
                 <tr>
                   <th>Supplier</th>
                   <th>Product Code</th>
+                  <th>Description</th>
                   <th>Price</th>
                   <th>Unit</th>
                   <th>Delivery Time</th>
