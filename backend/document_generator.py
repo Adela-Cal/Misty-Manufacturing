@@ -511,13 +511,13 @@ class DocumentGenerator:
         story.append(Spacer(1, 20))
         
         # Bill to section
-        story.append(Paragraph("Bill To:", self.styles['SectionHeader']))
+        story.append(Paragraph("Bill To:", self.styles.get('SectionHeader', self.styles['Heading2'])))
         bill_to_info = f"""
         <b>{invoice_data.get('client_name', 'N/A')}</b><br/>
         {invoice_data.get('client_address', 'N/A')}<br/>
         ABN: {invoice_data.get('client_abn', 'N/A')}
         """
-        story.append(Paragraph(bill_to_info, self.styles['AdelaBodyText']))
+        story.append(Paragraph(bill_to_info, self.styles.get('AdelaBodyText', self.styles['Normal'])))
         story.append(Spacer(1, 20))
         
         # Invoice items
