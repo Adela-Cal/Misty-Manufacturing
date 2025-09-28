@@ -83,7 +83,7 @@ require_production_staff_or_higher = require_role([UserRole.ADMIN, UserRole.MANA
 
 # New payroll permission dependencies
 require_manager = require_role([UserRole.ADMIN, UserRole.MANAGER])
-require_payroll_access = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.PRODUCTION_MANAGER])
+require_payroll_access = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR])
 require_employee_or_manager = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.PRODUCTION_MANAGER, UserRole.EMPLOYEE])
 
 # Permission checking functions
