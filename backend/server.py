@@ -1221,7 +1221,7 @@ async def delete_order(order_id: str, current_user: dict = Depends(require_admin
         raise HTTPException(status_code=404, detail="Order not found")
     
     # Check if order is in production (not safe to delete if in progress)
-    unsafe_stages = ["cutting", "paper_slitting", "spiral_winding", "finishing", "quality_control", "packing"]
+    unsafe_stages = ["paper_slitting", "winding", "finishing"]
     current_stage = existing_order.get("current_stage", "order_entered")
     if current_stage in unsafe_stages:
         raise HTTPException(status_code=400, detail="Cannot delete order in production. Contact manager to halt production first.")
