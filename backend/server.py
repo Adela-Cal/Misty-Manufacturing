@@ -697,7 +697,7 @@ async def update_stocktake_entry(
         material_name=f"{material['supplier']} - {material['product_code']}",
         current_quantity=entry_data.current_quantity,
         unit=material["unit"],
-        counted_by=current_user["username"]
+        counted_by=current_user["sub"]
     )
     
     # Update stocktake entries
