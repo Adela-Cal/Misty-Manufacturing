@@ -990,6 +990,182 @@ async def disconnect_xero(current_user: dict = Depends(require_admin_or_producti
     else:
         return {"message": "No Xero connection found to disconnect"}
 
+@api_router.get("/xero/next-invoice-number")
+async def get_next_xero_invoice_number(current_user: dict = Depends(require_admin_or_production_manager)):
+    """Get the next available invoice number from Xero"""
+    try:
+        api_client, tenant_id = await get_xero_api_client(current_user["user_id"])
+        
+        if not tenant_id:
+            # Get tenant info if not stored
+            from xero_python.identity import IdentityApi
+            identity_api = IdentityApi(api_client)
+            connections = identity_api.get_connections()
+            
+            if not connections or not connections[0]:
+                raise HTTPException(status_code=400, detail="No Xero organization connected")
+            
+            tenant_id = connections[0].tenant_id
+            
+            # Update stored token record with tenant_id
+            await db.xero_tokens.update_one(
+                {"user_id": current_user["user_id"]},
+                {"$set": {"tenant_id": tenant_id}}
+            )
+        
+        # Get invoices to determine next number
+        accounting_api = AccountingApi(api_client)
+        
+        # Get recent invoices ordered by invoice number descending
+        invoices_response = accounting_api.get_invoices(
+            xero_tenant_id=tenant_id,
+            order="InvoiceNumber DESC",
+            page=1
+        )
+        
+        next_number = 1
+        if invoices_response.invoices and len(invoices_response.invoices) > 0:
+            # Extract numeric part from the last invoice number
+            last_invoice = invoices_response.invoices[0]
+            if last_invoice.invoice_number:
+                # Try to extract number from invoice number (handle different formats)
+                import re
+                numbers = re.findall(r'\d+', last_invoice.invoice_number)
+                if numbers:
+                    next_number = int(numbers[-1]) + 1
+        
+        # Format as INV-XXXXXX
+        formatted_number = f"INV-{next_number:06d}"
+        
+        return {
+            "next_number": next_number,
+            "formatted_number": formatted_number,
+            "tenant_id": tenant_id
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get next invoice number from Xero: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get next invoice number: {str(e)}")
+
+@api_router.post("/xero/create-draft-invoice")
+async def create_xero_draft_invoice(
+    invoice_data: dict,
+    current_user: dict = Depends(require_admin_or_production_manager)
+):
+    """Create a draft invoice in Xero"""
+    try:
+        api_client, tenant_id = await get_xero_api_client(current_user["user_id"])
+        
+        if not tenant_id:
+            raise HTTPException(status_code=400, detail="No Xero tenant ID found")
+        
+        accounting_api = AccountingApi(api_client)
+        
+        # Get or create contact in Xero
+        contact_name = invoice_data.get("client_name", "Unknown Client")
+        contact_email = invoice_data.get("client_email")
+        
+        # Search for existing contact
+        contact_id = None
+        if contact_email:
+            try:
+                contacts_response = accounting_api.get_contacts(
+                    xero_tenant_id=tenant_id,
+                    where=f'EmailAddress="{contact_email}"'
+                )
+                if contacts_response.contacts and len(contacts_response.contacts) > 0:
+                    contact_id = contacts_response.contacts[0].contact_id
+            except:
+                pass
+        
+        # Create contact if not found
+        if not contact_id:
+            try:
+                new_contact = Contact(
+                    name=contact_name,
+                    email_address=contact_email if contact_email else None
+                )
+                contacts_request = Contacts(contacts=[new_contact])
+                contacts_response = accounting_api.create_contacts(
+                    xero_tenant_id=tenant_id,
+                    contacts=contacts_request
+                )
+                if contacts_response.contacts and len(contacts_response.contacts) > 0:
+                    contact_id = contacts_response.contacts[0].contact_id
+                else:
+                    raise Exception("Failed to create contact")
+            except Exception as e:
+                logger.error(f"Failed to create contact in Xero: {str(e)}")
+                # Use default contact or create a simple one
+                contact_id = None
+        
+        # Prepare line items
+        line_items = []
+        items = invoice_data.get("items", [])
+        
+        for item in items:
+            line_item = LineItem(
+                description=item.get("description", "Product/Service"),
+                quantity=float(item.get("quantity", 1)),
+                unit_amount=float(item.get("unit_price", 0)),
+                account_code="200"  # Default sales account - should be configurable
+            )
+            line_items.append(line_item)
+        
+        # If no items provided, create a default line item
+        if not line_items:
+            total_amount = float(invoice_data.get("total_amount", 0))
+            line_item = LineItem(
+                description=f"Services for {contact_name}",
+                quantity=1,
+                unit_amount=total_amount,
+                account_code="200"
+            )
+            line_items.append(line_item)
+        
+        # Create invoice object
+        invoice = Invoice(
+            type="ACCREC",  # Accounts Receivable
+            contact=Contact(contact_id=contact_id) if contact_id else Contact(name=contact_name),
+            line_items=line_items,
+            date=datetime.now().date(),
+            due_date=invoice_data.get("due_date"),
+            invoice_number=invoice_data.get("invoice_number"),
+            reference=invoice_data.get("reference", invoice_data.get("order_number")),
+            status="DRAFT"
+        )
+        
+        # Create invoice in Xero
+        invoices_request = Invoices(invoices=[invoice])
+        invoices_response = accounting_api.create_invoices(
+            xero_tenant_id=tenant_id,
+            invoices=invoices_request
+        )
+        
+        if not invoices_response.invoices or len(invoices_response.invoices) == 0:
+            raise Exception("No invoice returned from Xero API")
+        
+        created_invoice = invoices_response.invoices[0]
+        
+        # Check for validation errors
+        if hasattr(created_invoice, 'validation_errors') and created_invoice.validation_errors:
+            error_messages = [error.message for error in created_invoice.validation_errors]
+            raise Exception(f"Invoice validation failed: {', '.join(error_messages)}")
+        
+        return {
+            "success": True,
+            "message": "Draft invoice created in Xero",
+            "invoice_id": created_invoice.invoice_id,
+            "invoice_number": created_invoice.invoice_number,
+            "status": created_invoice.status,
+            "total": str(created_invoice.total) if created_invoice.total else "0",
+            "xero_url": f"https://go.xero.com/AccountsReceivable/View.aspx?InvoiceID={created_invoice.invoice_id}"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to create draft invoice in Xero: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create draft invoice: {str(e)}")
+
 # ============= INVOICING ENDPOINTS =============
 
 @api_router.get("/invoicing/live-jobs")
