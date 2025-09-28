@@ -4880,9 +4880,342 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result("Stocktake Authentication", False, f"Error: {str(e)}")
 
+    def test_username_editing_functionality(self):
+        """Test the username editing functionality fix in Staff & Security system"""
+        print("\n=== USERNAME EDITING FUNCTIONALITY TEST ===")
+        
+        # Test 1: Create a test user for username editing tests
+        test_user_data = {
+            "username": "testuser_username_edit",
+            "email": "testuser.username@example.com",
+            "password": "TestPassword123",
+            "full_name": "Test User for Username Editing",
+            "role": "production_staff",
+            "department": "Testing",
+            "phone": "0412345678"
+        }
+        
+        test_user_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/users", json=test_user_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                test_user_id = result.get('data', {}).get('id')
+                
+                if test_user_id:
+                    self.log_result(
+                        "Create Test User for Username Editing", 
+                        True, 
+                        f"Successfully created test user with ID: {test_user_id}"
+                    )
+                else:
+                    self.log_result(
+                        "Create Test User for Username Editing", 
+                        False, 
+                        "User creation response missing ID"
+                    )
+                    return
+            else:
+                self.log_result(
+                    "Create Test User for Username Editing", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                return
+                
+        except Exception as e:
+            self.log_result("Create Test User for Username Editing", False, f"Error: {str(e)}")
+            return
+        
+        # Test 2: Update username to a new unique value
+        new_username = f"updated_username_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        try:
+            update_data = {
+                "username": new_username
+            }
+            
+            response = self.session.put(f"{API_BASE}/users/{test_user_id}", json=update_data)
+            
+            if response.status_code == 200:
+                # Verify the username was updated in database
+                get_response = self.session.get(f"{API_BASE}/users/{test_user_id}")
+                if get_response.status_code == 200:
+                    user = get_response.json()
+                    updated_username = user.get('username')
+                    
+                    if updated_username == new_username:
+                        self.log_result(
+                            "Update Username to Unique Value", 
+                            True, 
+                            f"Successfully updated username from 'testuser_username_edit' to '{new_username}'"
+                        )
+                    else:
+                        self.log_result(
+                            "Update Username to Unique Value", 
+                            False, 
+                            f"Username not updated correctly - expected '{new_username}' but got '{updated_username}'"
+                        )
+                else:
+                    self.log_result(
+                        "Update Username to Unique Value", 
+                        False, 
+                        "Failed to retrieve updated user for verification"
+                    )
+            else:
+                self.log_result(
+                    "Update Username to Unique Value", 
+                    False, 
+                    f"Username update failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Update Username to Unique Value", False, f"Error: {str(e)}")
+        
+        # Test 3: Test username uniqueness validation (try to update to existing username)
+        try:
+            # Try to update to an existing username (use "Callum" which should exist)
+            duplicate_update_data = {
+                "username": "Callum"  # This should already exist in the system
+            }
+            
+            response = self.session.put(f"{API_BASE}/users/{test_user_id}", json=duplicate_update_data)
+            
+            if response.status_code == 400:
+                error_text = response.text
+                if "Username already exists" in error_text:
+                    self.log_result(
+                        "Username Uniqueness Validation", 
+                        True, 
+                        "Correctly prevented duplicate username with 400 error and proper message",
+                        f"Error message: {error_text}"
+                    )
+                else:
+                    self.log_result(
+                        "Username Uniqueness Validation", 
+                        False, 
+                        "Got 400 error but wrong error message",
+                        f"Expected 'Username already exists' but got: {error_text}"
+                    )
+            else:
+                self.log_result(
+                    "Username Uniqueness Validation", 
+                    False, 
+                    f"Expected 400 status for duplicate username but got {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Username Uniqueness Validation", False, f"Error: {str(e)}")
+        
+        # Test 4: Test combined updates (username with other fields)
+        combined_username = f"combined_update_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        try:
+            combined_update_data = {
+                "username": combined_username,
+                "full_name": "Updated Full Name for Combined Test",
+                "email": "updated.combined@example.com",
+                "role": "supervisor",
+                "department": "Updated Department",
+                "phone": "0487654321"
+            }
+            
+            response = self.session.put(f"{API_BASE}/users/{test_user_id}", json=combined_update_data)
+            
+            if response.status_code == 200:
+                # Verify all fields were updated
+                get_response = self.session.get(f"{API_BASE}/users/{test_user_id}")
+                if get_response.status_code == 200:
+                    user = get_response.json()
+                    
+                    checks = [
+                        ("username", user.get('username') == combined_username),
+                        ("full_name", user.get('full_name') == "Updated Full Name for Combined Test"),
+                        ("email", user.get('email') == "updated.combined@example.com"),
+                        ("role", user.get('role') == "supervisor"),
+                        ("department", user.get('department') == "Updated Department"),
+                        ("phone", user.get('phone') == "0487654321")
+                    ]
+                    
+                    passed_checks = [field for field, passed in checks if passed]
+                    failed_checks = [field for field, passed in checks if not passed]
+                    
+                    if len(failed_checks) == 0:
+                        self.log_result(
+                            "Combined Updates (Username + Other Fields)", 
+                            True, 
+                            f"Successfully updated all fields including username",
+                            f"Updated fields: {', '.join(passed_checks)}"
+                        )
+                    else:
+                        self.log_result(
+                            "Combined Updates (Username + Other Fields)", 
+                            False, 
+                            f"Some fields failed to update",
+                            f"Passed: {', '.join(passed_checks)}, Failed: {', '.join(failed_checks)}"
+                        )
+                else:
+                    self.log_result(
+                        "Combined Updates (Username + Other Fields)", 
+                        False, 
+                        "Failed to retrieve updated user for verification"
+                    )
+            else:
+                self.log_result(
+                    "Combined Updates (Username + Other Fields)", 
+                    False, 
+                    f"Combined update failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Combined Updates (Username + Other Fields)", False, f"Error: {str(e)}")
+        
+        # Test 5: Test updating username to same value (should work)
+        try:
+            same_value_data = {
+                "username": combined_username  # Same as current username
+            }
+            
+            response = self.session.put(f"{API_BASE}/users/{test_user_id}", json=same_value_data)
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Update Username to Same Value", 
+                    True, 
+                    "Successfully updated username to same value (no conflict)"
+                )
+            else:
+                self.log_result(
+                    "Update Username to Same Value", 
+                    False, 
+                    f"Failed to update username to same value with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Update Username to Same Value", False, f"Error: {str(e)}")
+        
+        # Test 6: Test with empty/null username (should be ignored)
+        try:
+            empty_username_data = {
+                "username": None,
+                "full_name": "Updated with Null Username"
+            }
+            
+            response = self.session.put(f"{API_BASE}/users/{test_user_id}", json=empty_username_data)
+            
+            if response.status_code == 200:
+                # Verify username wasn't changed but full_name was
+                get_response = self.session.get(f"{API_BASE}/users/{test_user_id}")
+                if get_response.status_code == 200:
+                    user = get_response.json()
+                    
+                    username_unchanged = user.get('username') == combined_username
+                    full_name_updated = user.get('full_name') == "Updated with Null Username"
+                    
+                    if username_unchanged and full_name_updated:
+                        self.log_result(
+                            "Update with Null Username", 
+                            True, 
+                            "Null username correctly ignored while other fields updated"
+                        )
+                    else:
+                        self.log_result(
+                            "Update with Null Username", 
+                            False, 
+                            f"Unexpected behavior - username unchanged: {username_unchanged}, full_name updated: {full_name_updated}"
+                        )
+                else:
+                    self.log_result(
+                        "Update with Null Username", 
+                        False, 
+                        "Failed to retrieve user for null username test verification"
+                    )
+            else:
+                self.log_result(
+                    "Update with Null Username", 
+                    False, 
+                    f"Update with null username failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Update with Null Username", False, f"Error: {str(e)}")
+        
+        # Test 7: Verify existing functionality still works (email updates, role updates, etc.)
+        try:
+            existing_functionality_data = {
+                "email": "existing.functionality@example.com",
+                "role": "manager",
+                "is_active": True
+            }
+            
+            response = self.session.put(f"{API_BASE}/users/{test_user_id}", json=existing_functionality_data)
+            
+            if response.status_code == 200:
+                # Verify the updates
+                get_response = self.session.get(f"{API_BASE}/users/{test_user_id}")
+                if get_response.status_code == 200:
+                    user = get_response.json()
+                    
+                    email_updated = user.get('email') == "existing.functionality@example.com"
+                    role_updated = user.get('role') == "manager"
+                    is_active_updated = user.get('is_active') == True
+                    
+                    if email_updated and role_updated and is_active_updated:
+                        self.log_result(
+                            "Verify Existing Functionality", 
+                            True, 
+                            "All existing update functionality still works correctly"
+                        )
+                    else:
+                        self.log_result(
+                            "Verify Existing Functionality", 
+                            False, 
+                            f"Some existing functionality broken - email: {email_updated}, role: {role_updated}, is_active: {is_active_updated}"
+                        )
+                else:
+                    self.log_result(
+                        "Verify Existing Functionality", 
+                        False, 
+                        "Failed to retrieve user for existing functionality verification"
+                    )
+            else:
+                self.log_result(
+                    "Verify Existing Functionality", 
+                    False, 
+                    f"Existing functionality test failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Verify Existing Functionality", False, f"Error: {str(e)}")
+        
+        # Cleanup: Delete the test user
+        if test_user_id:
+            try:
+                delete_response = self.session.delete(f"{API_BASE}/users/{test_user_id}")
+                if delete_response.status_code == 200:
+                    self.log_result(
+                        "Cleanup Test User", 
+                        True, 
+                        "Successfully cleaned up test user"
+                    )
+                else:
+                    self.log_result(
+                        "Cleanup Test User", 
+                        False, 
+                        f"Failed to cleanup test user: {delete_response.status_code}"
+                    )
+            except Exception as e:
+                self.log_result("Cleanup Test User", False, f"Cleanup error: {str(e)}")
+
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on new Calculator and Stocktake endpoints"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: New Calculator and Stocktake API Endpoints")
+        """Run backend API tests with PRIMARY FOCUS on Username Editing functionality"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Username Editing Functionality")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 80)
         
@@ -4891,27 +5224,10 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test NEW Calculator API endpoints
-        print("\n🧮 TESTING NEW CALCULATOR API ENDPOINTS - PRIMARY FOCUS")
+        # PRIMARY FOCUS: Test Username Editing functionality
+        print("\n👤 TESTING USERNAME EDITING FUNCTIONALITY - PRIMARY FOCUS")
         print("=" * 60)
-        self.test_calculator_material_consumption_by_client()
-        self.test_calculator_material_permutation()
-        self.test_calculator_spiral_core_consumption()
-        self.test_calculator_authentication()
-        
-        # PRIMARY FOCUS: Test NEW Stocktake API endpoints
-        print("\n📦 TESTING NEW STOCKTAKE API ENDPOINTS - PRIMARY FOCUS")
-        print("=" * 60)
-        self.test_stocktake_current_status()
-        stocktake_id = self.test_stocktake_creation()
-        self.test_stocktake_entry_update(stocktake_id)
-        self.test_stocktake_completion(stocktake_id)
-        self.test_stocktake_authentication()
-        
-        # SECONDARY: Test Product Specifications API endpoints for stability
-        print("\n📋 TESTING PRODUCT SPECIFICATIONS API - SECONDARY FOCUS")
-        print("=" * 60)
-        self.test_product_specifications_api()
+        self.test_username_editing_functionality()
         
         return self.generate_report()
     
