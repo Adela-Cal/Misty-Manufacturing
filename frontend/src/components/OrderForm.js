@@ -198,6 +198,33 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!order) return;
+    
+    try {
+      setLoading(true);
+      await apiHelpers.deleteOrder(order.id);
+      toast.success('Order deleted successfully');
+      setShowDeleteConfirm(false);
+      onSuccess?.();
+      onClose();
+    } catch (error) {
+      console.error('Failed to delete order:', error);
+      const message = error.response?.data?.detail || 'Failed to delete order';
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
