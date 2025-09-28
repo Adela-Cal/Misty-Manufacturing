@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from './Layout';
+import TimesheetEntry from './TimesheetEntry';
 import { useAuth } from '../contexts/AuthContext';
 import { apiHelpers, formatCurrency, formatDate } from '../utils/api';
 import { toast } from 'sonner';
