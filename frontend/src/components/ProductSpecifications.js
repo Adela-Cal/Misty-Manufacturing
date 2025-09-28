@@ -86,7 +86,13 @@ const ProductSpecifications = () => {
       product_type: spec.product_type,
       specifications: spec.specifications || {},
       materials_composition: spec.materials_composition || [],
-      manufacturing_notes: spec.manufacturing_notes || ''
+      manufacturing_notes: spec.manufacturing_notes || '',
+      // Spiral Paper Core specific fields
+      internal_diameter: spec.specifications?.internal_diameter || '',
+      wall_thickness_required: spec.specifications?.wall_thickness_required || '',
+      selected_material_id: spec.specifications?.selected_material_id || '',
+      layers_required: spec.specifications?.layers_required || 0,
+      layer_specifications: spec.specifications?.layer_specifications || []
     });
     setErrors({});
     setShowModal(true);
