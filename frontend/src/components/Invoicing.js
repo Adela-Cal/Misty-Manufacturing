@@ -211,31 +211,45 @@ const Invoicing = () => {
 
   const testPdfDownload = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/debug/test-pdf`);
+      // First try: Direct browser navigation (forces download)
+      const downloadUrl = `${process.env.REACT_APP_BACKEND_URL}/api/debug/test-pdf`;
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // Create a temporary iframe for download
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = downloadUrl;
+      document.body.appendChild(iframe);
       
-      const blob = await response.blob();
-      
-      // Create download link and trigger download
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = 'test.pdf';
-      
-      document.body.appendChild(a);
-      a.click();
-      
-      // Cleanup
-      setTimeout(() => {
+      // Also try the blob method
+      const response = await fetch(downloadUrl);
+      if (response.ok) {
+        const blob = await response.blob();
+        
+        // Multiple download attempts
+        const url = URL.createObjectURL(blob);
+        
+        // Method 1: Hidden link click
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'test.pdf';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
         document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 100);
-      
-      toast.success('Test PDF downloaded to your Downloads folder');
+        
+        // Method 2: Force navigation
+        setTimeout(() => {
+          window.location.href = url;
+        }, 500);
+        
+        // Cleanup
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url);
+        }, 2000);
+        
+        toast.success('PDF download initiated - check Downloads folder or adjust Chrome settings if needed');
+      }
     } catch (error) {
       console.error('Download failed:', error);
       toast.error(`Download failed: ${error.message}`);
