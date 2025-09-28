@@ -32,6 +32,7 @@ const Layout = ({ children }) => {
     { name: 'Invoicing', href: '/invoicing', icon: DocumentCurrencyDollarIcon, permission: 'view_reports' },
     { name: 'Payroll', href: '/payroll', icon: BanknotesIcon, permission: null },
     { name: 'Reports', href: '/reports', icon: ChartBarIcon, permission: 'view_reports' },
+    { name: 'Products & Materials', href: '/materials', icon: CubeIcon, permission: 'view_reports' },
   ];
 
   // Xero connection item (separate from main navigation)
