@@ -80,6 +80,7 @@ const MaterialsManagement = () => {
       supplier: material.supplier,
       product_code: material.product_code,
       order_to_delivery_time: material.order_to_delivery_time,
+      material_description: material.material_description || '',  // New field
       price: material.price.toString(),
       unit: material.unit,
       raw_substrate: material.raw_substrate || false,
@@ -87,7 +88,9 @@ const MaterialsManagement = () => {
       thickness_mm: material.thickness_mm ? material.thickness_mm.toString() : '',
       burst_strength_kpa: material.burst_strength_kpa ? material.burst_strength_kpa.toString() : '',
       ply_bonding_jm2: material.ply_bonding_jm2 ? material.ply_bonding_jm2.toString() : '',
-      moisture_percent: material.moisture_percent ? material.moisture_percent.toString() : ''
+      moisture_percent: material.moisture_percent ? material.moisture_percent.toString() : '',
+      supplied_roll_weight: material.supplied_roll_weight ? material.supplied_roll_weight.toString() : '',  // New field
+      master_deckle_width_mm: material.master_deckle_width_mm ? material.master_deckle_width_mm.toString() : ''  // New field
     });
     setErrors({});
     setShowModal(true);
