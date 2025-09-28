@@ -4,7 +4,7 @@ from datetime import datetime, date, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 import os
-from auth import require_admin, require_admin_or_production_manager, get_current_user, require_any_role, require_manager, require_payroll_access
+from auth import require_admin, require_admin_or_manager, get_current_user, require_any_role, require_manager, require_payroll_access
 from payroll_models import *
 from payroll_service import PayrollCalculationService, TimesheetService, LeaveManagementService, PayrollReportingService
 import logging
