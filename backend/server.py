@@ -690,46 +690,7 @@ async def generate_packing_list(order_id: str, token: str = None, current_user: 
         headers={"Content-Disposition": f"attachment; filename=packing_list_{order['order_number']}.pdf"}
     )
 
-async def optional_auth_dependency(token: str = None, authorization: str = Header(None)):
-    """Handle authentication via token parameter or Authorization header"""
-    from auth import SECRET_KEY, ALGORITHM
-    from jose import jwt, JWTError
-    
-    try:
-        # Try token from query parameter first
-        if token:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            user_id = payload.get("user_id") or payload.get("sub")
-            if not user_id:
-                raise HTTPException(status_code=401, detail="Invalid token")
-            
-            # Get user details
-            user = await db.users.find_one({"user_id": user_id})
-            if not user:
-                raise HTTPException(status_code=401, detail="User not found")
-            
-            return user
-            
-        # Fallback to Authorization header
-        elif authorization and authorization.startswith("Bearer "):
-            token_header = authorization.split(" ")[1]
-            payload = jwt.decode(token_header, SECRET_KEY, algorithms=[ALGORITHM])
-            user_id = payload.get("user_id") or payload.get("sub")
-            if not user_id:
-                raise HTTPException(status_code=401, detail="Invalid token")
-            
-            user = await db.users.find_one({"user_id": user_id})
-            if not user:
-                raise HTTPException(status_code=401, detail="User not found")
-            
-            return user
-        else:
-            raise HTTPException(status_code=401, detail="Authentication required")
-            
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+# Moved this function above document endpoints
 
 @api_router.get("/documents/invoice/{order_id}")
 async def generate_invoice_pdf(order_id: str, token: str = None, current_user: dict = Depends(optional_auth_dependency)):
