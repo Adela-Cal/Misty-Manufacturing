@@ -2791,6 +2791,265 @@ class InvoicingAPITester:
             except Exception as e:
                 self.log_result(test_name, False, f"Error: {str(e)}")
 
+    def test_materials_api_fix(self):
+        """Test the Materials API fix for material_description Optional field"""
+        print("\n=== MATERIALS API FIX TEST ===")
+        
+        # Test 1: GET /api/materials - Should work now with Optional material_description
+        try:
+            response = self.session.get(f"{API_BASE}/materials")
+            
+            if response.status_code == 200:
+                materials = response.json()
+                
+                # Check if we get a list of materials
+                if isinstance(materials, list):
+                    # Check for materials with and without material_description
+                    materials_with_desc = [m for m in materials if m.get('material_description') is not None]
+                    materials_without_desc = [m for m in materials if m.get('material_description') is None]
+                    
+                    self.log_result(
+                        "GET /api/materials - Backward Compatibility", 
+                        True, 
+                        f"Successfully retrieved {len(materials)} materials (with desc: {len(materials_with_desc)}, without desc: {len(materials_without_desc)})",
+                        f"Fix working: existing materials without material_description load correctly"
+                    )
+                else:
+                    self.log_result(
+                        "GET /api/materials - Backward Compatibility", 
+                        False, 
+                        "Response is not a list of materials",
+                        f"Response type: {type(materials)}"
+                    )
+            else:
+                self.log_result(
+                    "GET /api/materials - Backward Compatibility", 
+                    False, 
+                    f"GET /api/materials failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("GET /api/materials - Backward Compatibility", False, f"Error: {str(e)}")
+        
+        # Test 2: POST /api/materials - Create new material WITH material_description
+        material_with_desc = {
+            "supplier": "Test Materials Fix Co",
+            "product_code": "TMF-WITH-DESC-001",
+            "order_to_delivery_time": "3-5 business days",
+            "material_description": "Test material with description for API fix verification",
+            "price": 45.75,
+            "currency": "AUD",
+            "unit": "m2",
+            "raw_substrate": False
+        }
+        
+        material_with_desc_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/materials", json=material_with_desc)
+            
+            if response.status_code == 200:
+                result = response.json()
+                material_with_desc_id = result.get('data', {}).get('id')
+                
+                if material_with_desc_id:
+                    # Verify the material was created correctly
+                    get_response = self.session.get(f"{API_BASE}/materials/{material_with_desc_id}")
+                    if get_response.status_code == 200:
+                        material = get_response.json()
+                        desc = material.get('material_description')
+                        
+                        if desc == "Test material with description for API fix verification":
+                            self.log_result(
+                                "POST /api/materials - With Description", 
+                                True, 
+                                "Successfully created material with material_description field",
+                                f"Material ID: {material_with_desc_id}, Description: {desc}"
+                            )
+                        else:
+                            self.log_result(
+                                "POST /api/materials - With Description", 
+                                False, 
+                                f"Material created but description mismatch",
+                                f"Expected: 'Test material...', Got: '{desc}'"
+                            )
+                    else:
+                        self.log_result(
+                            "POST /api/materials - With Description", 
+                            False, 
+                            "Failed to retrieve created material"
+                        )
+                else:
+                    self.log_result(
+                        "POST /api/materials - With Description", 
+                        False, 
+                        "Material creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "POST /api/materials - With Description", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("POST /api/materials - With Description", False, f"Error: {str(e)}")
+        
+        # Test 3: POST /api/materials - Try to create material WITHOUT material_description (should fail validation)
+        material_without_desc = {
+            "supplier": "Test Materials Fix Co",
+            "product_code": "TMF-WITHOUT-DESC-001",
+            "order_to_delivery_time": "3-5 business days",
+            # Note: material_description field intentionally omitted
+            "price": 35.50,
+            "currency": "AUD",
+            "unit": "m2",
+            "raw_substrate": False
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/materials", json=material_without_desc)
+            
+            if response.status_code == 422:  # Validation error expected
+                self.log_result(
+                    "POST /api/materials - Without Description (Validation)", 
+                    True, 
+                    "Correctly rejects material creation without required material_description field",
+                    f"Status: {response.status_code} (validation error as expected)"
+                )
+            elif response.status_code == 200:
+                self.log_result(
+                    "POST /api/materials - Without Description (Validation)", 
+                    False, 
+                    "Material creation should have failed validation but succeeded",
+                    "MaterialCreate model should require material_description field"
+                )
+            else:
+                self.log_result(
+                    "POST /api/materials - Without Description (Validation)", 
+                    False, 
+                    f"Unexpected status code: {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("POST /api/materials - Without Description (Validation)", False, f"Error: {str(e)}")
+        
+        # Test 4: Verify existing materials load correctly with null material_description
+        try:
+            response = self.session.get(f"{API_BASE}/materials")
+            
+            if response.status_code == 200:
+                materials = response.json()
+                
+                # Look for materials with null/None material_description
+                legacy_materials = [m for m in materials if m.get('material_description') is None]
+                
+                if len(legacy_materials) > 0:
+                    # Test retrieving a specific legacy material
+                    legacy_material = legacy_materials[0]
+                    legacy_id = legacy_material.get('id')
+                    
+                    if legacy_id:
+                        get_response = self.session.get(f"{API_BASE}/materials/{legacy_id}")
+                        if get_response.status_code == 200:
+                            material = get_response.json()
+                            desc = material.get('material_description')
+                            
+                            if desc is None:
+                                self.log_result(
+                                    "Legacy Materials Compatibility", 
+                                    True, 
+                                    "Legacy materials without material_description load correctly with null values",
+                                    f"Legacy Material ID: {legacy_id}, Description: {desc}"
+                                )
+                            else:
+                                self.log_result(
+                                    "Legacy Materials Compatibility", 
+                                    False, 
+                                    f"Expected null description but got: {desc}"
+                                )
+                        else:
+                            self.log_result(
+                                "Legacy Materials Compatibility", 
+                                False, 
+                                f"Failed to retrieve legacy material: {get_response.status_code}"
+                            )
+                    else:
+                        self.log_result(
+                            "Legacy Materials Compatibility", 
+                            False, 
+                            "Legacy material missing ID field"
+                        )
+                else:
+                    self.log_result(
+                        "Legacy Materials Compatibility", 
+                        True, 
+                        "No legacy materials found (all materials have material_description)",
+                        "This is expected if database was cleaned or all materials have been updated"
+                    )
+            else:
+                self.log_result(
+                    "Legacy Materials Compatibility", 
+                    False, 
+                    f"Failed to retrieve materials for legacy test: {response.status_code}"
+                )
+        except Exception as e:
+            self.log_result("Legacy Materials Compatibility", False, f"Error: {str(e)}")
+        
+        # Test 5: Update existing material - should work regardless of whether it has material_description
+        if material_with_desc_id:
+            update_data = {
+                "supplier": "Updated Test Materials Fix Co",
+                "product_code": "TMF-WITH-DESC-001-UPDATED",
+                "order_to_delivery_time": "2-4 business days",
+                "material_description": "Updated test material description for API fix verification",
+                "price": 50.25,
+                "currency": "AUD",
+                "unit": "m2",
+                "raw_substrate": False
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/materials/{material_with_desc_id}", json=update_data)
+                
+                if response.status_code == 200:
+                    # Verify the update worked
+                    get_response = self.session.get(f"{API_BASE}/materials/{material_with_desc_id}")
+                    if get_response.status_code == 200:
+                        updated_material = get_response.json()
+                        updated_desc = updated_material.get('material_description')
+                        updated_price = updated_material.get('price')
+                        
+                        if updated_desc == "Updated test material description for API fix verification" and updated_price == 50.25:
+                            self.log_result(
+                                "PUT /api/materials - Update Material", 
+                                True, 
+                                "Successfully updated material with material_description field",
+                                f"Updated Description: {updated_desc}, Updated Price: {updated_price}"
+                            )
+                        else:
+                            self.log_result(
+                                "PUT /api/materials - Update Material", 
+                                False, 
+                                "Material update did not persist correctly",
+                                f"Description: {updated_desc}, Price: {updated_price}"
+                            )
+                    else:
+                        self.log_result(
+                            "PUT /api/materials - Update Material", 
+                            False, 
+                            "Failed to retrieve updated material for verification"
+                        )
+                else:
+                    self.log_result(
+                        "PUT /api/materials - Update Material", 
+                        False, 
+                        f"Update failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("PUT /api/materials - Update Material", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend API tests including new Materials and Client Product Catalog APIs"""
         print("🚀 Starting Backend API Tests - Materials Management & Client Product Catalog")
