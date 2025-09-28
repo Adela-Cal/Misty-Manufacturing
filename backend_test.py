@@ -6324,8 +6324,8 @@ class InvoicingAPITester:
                     pass  # Ignore cleanup errors
 
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on User Deletion functionality"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: User Deletion Functionality")
+        """Run backend API tests with PRIMARY FOCUS on Enhanced Staff & Security with Employment Type"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Enhanced Staff & Security with Employment Type")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 80)
         
@@ -6334,8 +6334,13 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test User Deletion functionality
-        print("\n👤 TESTING USER DELETION FUNCTIONALITY - PRIMARY FOCUS")
+        # PRIMARY FOCUS: Test Enhanced Staff & Security with Employment Type functionality
+        print("\n👤 TESTING ENHANCED STAFF & SECURITY WITH EMPLOYMENT TYPE - PRIMARY FOCUS")
+        print("=" * 60)
+        self.test_staff_security_employment_type()
+        
+        # SECONDARY: Test User Deletion functionality
+        print("\n🗑️ TESTING USER DELETION FUNCTIONALITY - SECONDARY")
         print("=" * 60)
         self.test_user_deletion_functionality()
         
