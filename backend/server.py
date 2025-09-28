@@ -644,6 +644,11 @@ async def move_order_stage(
 @api_router.get("/production/materials-status/{order_id}")
 async def get_materials_status(order_id: str, current_user: dict = Depends(require_any_role)):
     """Get materials status for order"""
+    # Check if order exists first
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
     status = await db.materials_status.find_one({"order_id": order_id})
     if not status:
         # Create default status if not exists
