@@ -50,6 +50,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     if (order) {
       setFormData({
         client_id: order.client_id || '',
+        purchase_order_number: order.purchase_order_number || '',
         due_date: order.due_date ? new Date(order.due_date).toISOString().split('T')[0] : '',
         delivery_address: order.delivery_address || '',
         delivery_instructions: order.delivery_instructions || '',
