@@ -189,6 +189,7 @@ class OrderCreate(BaseModel):
     due_date: datetime
     delivery_address: Optional[str] = None
     delivery_instructions: Optional[str] = None
+    runtime_estimate: Optional[str] = None
     notes: Optional[str] = None
 
 # Production Stage Tracking
