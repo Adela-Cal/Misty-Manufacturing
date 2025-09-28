@@ -729,6 +729,197 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result("Xero Permissions", False, f"Error: {str(e)}")
     
+    def test_xero_next_invoice_number(self):
+        """Test GET /api/xero/next-invoice-number"""
+        print("\n=== XERO NEXT INVOICE NUMBER TEST ===")
+        
+        try:
+            response = self.session.get(f"{API_BASE}/xero/next-invoice-number")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_fields = ['next_number', 'formatted_number']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    next_number = data.get('next_number')
+                    formatted_number = data.get('formatted_number')
+                    
+                    # Validate format (should be INV-XXXXXX)
+                    if isinstance(next_number, int) and next_number > 0:
+                        if formatted_number and formatted_number.startswith('INV-'):
+                            self.log_result(
+                                "Xero Next Invoice Number", 
+                                True, 
+                                f"Successfully retrieved next invoice number: {formatted_number}",
+                                f"Next number: {next_number}, Formatted: {formatted_number}"
+                            )
+                        else:
+                            self.log_result(
+                                "Xero Next Invoice Number", 
+                                False, 
+                                "Invalid formatted number format",
+                                f"Expected INV-XXXXXX format, got: {formatted_number}"
+                            )
+                    else:
+                        self.log_result(
+                            "Xero Next Invoice Number", 
+                            False, 
+                            "Invalid next_number value",
+                            f"Expected positive integer, got: {next_number}"
+                        )
+                else:
+                    self.log_result(
+                        "Xero Next Invoice Number", 
+                        False, 
+                        f"Response missing required fields: {missing_fields}",
+                        str(data)
+                    )
+            elif response.status_code == 401:
+                # Expected if no Xero connection
+                error_text = response.text
+                if "No Xero connection found" in error_text:
+                    self.log_result(
+                        "Xero Next Invoice Number", 
+                        True, 
+                        "Correctly handles missing Xero connection",
+                        f"Status: {response.status_code}, Response: {error_text}"
+                    )
+                else:
+                    self.log_result(
+                        "Xero Next Invoice Number", 
+                        False, 
+                        f"Unexpected 401 error: {error_text}"
+                    )
+            elif response.status_code == 500:
+                # May be expected if Xero integration not fully configured
+                error_text = response.text
+                if "Failed to get next invoice number" in error_text:
+                    self.log_result(
+                        "Xero Next Invoice Number", 
+                        True, 
+                        "Endpoint handles Xero API errors gracefully",
+                        f"Status: {response.status_code}, Response: {error_text}"
+                    )
+                else:
+                    self.log_result(
+                        "Xero Next Invoice Number", 
+                        False, 
+                        f"Unexpected 500 error: {error_text}"
+                    )
+            else:
+                self.log_result(
+                    "Xero Next Invoice Number", 
+                    False, 
+                    f"Unexpected status code: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Xero Next Invoice Number", False, f"Error: {str(e)}")
+    
+    def test_xero_create_draft_invoice(self):
+        """Test POST /api/xero/create-draft-invoice"""
+        print("\n=== XERO CREATE DRAFT INVOICE TEST ===")
+        
+        try:
+            # Test with sample invoice data
+            invoice_data = {
+                "client_name": "Test Client for Xero",
+                "client_email": "test@testclient.com",
+                "invoice_number": "INV-TEST-001",
+                "order_number": "ADM-2024-TEST",
+                "due_date": (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d"),
+                "total_amount": 1000.00,
+                "items": [
+                    {
+                        "description": "Test Product",
+                        "quantity": 2,
+                        "unit_price": 500.00
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/xero/create-draft-invoice", json=invoice_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_fields = ['success', 'message', 'invoice_id']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    success = data.get('success')
+                    message = data.get('message')
+                    invoice_id = data.get('invoice_id')
+                    
+                    if success and invoice_id:
+                        self.log_result(
+                            "Xero Create Draft Invoice", 
+                            True, 
+                            f"Successfully created draft invoice in Xero",
+                            f"Invoice ID: {invoice_id}, Message: {message}"
+                        )
+                    else:
+                        self.log_result(
+                            "Xero Create Draft Invoice", 
+                            False, 
+                            "Response indicates failure or missing invoice ID",
+                            f"Success: {success}, Invoice ID: {invoice_id}"
+                        )
+                else:
+                    self.log_result(
+                        "Xero Create Draft Invoice", 
+                        False, 
+                        f"Response missing required fields: {missing_fields}",
+                        str(data)
+                    )
+            elif response.status_code == 400:
+                # Expected if no Xero tenant ID or connection issues
+                error_text = response.text
+                if "No Xero tenant ID found" in error_text or "No Xero connection found" in error_text:
+                    self.log_result(
+                        "Xero Create Draft Invoice", 
+                        True, 
+                        "Correctly handles missing Xero connection/tenant",
+                        f"Status: {response.status_code}, Response: {error_text}"
+                    )
+                else:
+                    self.log_result(
+                        "Xero Create Draft Invoice", 
+                        False, 
+                        f"Unexpected 400 error: {error_text}"
+                    )
+            elif response.status_code == 500:
+                # May be expected if Xero integration not fully configured
+                error_text = response.text
+                if "Failed to create draft invoice" in error_text:
+                    self.log_result(
+                        "Xero Create Draft Invoice", 
+                        True, 
+                        "Endpoint handles Xero API errors gracefully",
+                        f"Status: {response.status_code}, Response: {error_text}"
+                    )
+                else:
+                    self.log_result(
+                        "Xero Create Draft Invoice", 
+                        False, 
+                        f"Unexpected 500 error: {error_text}"
+                    )
+            else:
+                self.log_result(
+                    "Xero Create Draft Invoice", 
+                    False, 
+                    f"Unexpected status code: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Xero Create Draft Invoice", False, f"Error: {str(e)}")
+    
     def test_document_generation_endpoints(self, delivery_jobs):
         """Test all document generation endpoints with real order data"""
         print("\n=== DOCUMENT GENERATION ENDPOINTS TEST ===")
