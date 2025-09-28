@@ -603,16 +603,14 @@ const ProductSpecifications = () => {
                           onChange={(e) => {
                             setFormData(prev => ({ 
                               ...prev, 
-                              wall_thickness_required: e.target.value,
-                              specifications: { ...prev.specifications, wall_thickness_required: e.target.value }
+                              wall_thickness_required: e.target.value
                             }));
                             // Recalculate layers if material is selected
                             if (formData.selected_material_id) {
                               const layers = calculateLayers(formData.selected_material_id, e.target.value);
                               setFormData(prev => ({ 
                                 ...prev, 
-                                layers_required: layers,
-                                specifications: { ...prev.specifications, layers_required: layers }
+                                layers_required: layers
                               }));
                             }
                           }}
