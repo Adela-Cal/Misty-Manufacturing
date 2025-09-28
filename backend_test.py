@@ -3658,111 +3658,273 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result("Product Specification Validation - Required Fields", False, f"Error: {str(e)}")
 
+    def test_suppliers_account_name_field(self):
+        """Test the new account_name field in Suppliers API"""
+        print("\n=== SUPPLIERS ACCOUNT NAME FIELD TEST ===")
+        
+        # Test 1: Create supplier with account_name field
+        supplier_with_account_name = {
+            "supplier_name": "Acme Manufacturing Pty Ltd",
+            "contact_person": "John Smith",
+            "phone_number": "0412345678",
+            "email": "john@acmemanufacturing.com.au",
+            "physical_address": "123 Industrial Drive",
+            "post_code": "3000",
+            "currency_accepted": "AUD",
+            "bank_name": "Commonwealth Bank",
+            "bank_address": "456 Collins Street, Melbourne VIC 3000",
+            "account_name": "Acme Manufacturing Pty Ltd",  # New required field
+            "bank_account_number": "123456789",
+            "swift_code": "CTBAAU2S"
+        }
+        
+        supplier_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/suppliers", json=supplier_with_account_name)
+            
+            if response.status_code == 200:
+                result = response.json()
+                supplier_id = result.get('data', {}).get('id')
+                
+                if supplier_id:
+                    self.log_result(
+                        "Create Supplier with Account Name", 
+                        True, 
+                        f"Successfully created supplier with account_name field",
+                        f"Supplier ID: {supplier_id}, Account Name: {supplier_with_account_name['account_name']}"
+                    )
+                else:
+                    self.log_result(
+                        "Create Supplier with Account Name", 
+                        False, 
+                        "Supplier creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create Supplier with Account Name", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Supplier with Account Name", False, f"Error: {str(e)}")
+        
+        # Test 2: Verify account_name appears in GET response
+        if supplier_id:
+            try:
+                response = self.session.get(f"{API_BASE}/suppliers/{supplier_id}")
+                
+                if response.status_code == 200:
+                    supplier = response.json()
+                    account_name = supplier.get('account_name')
+                    
+                    if account_name == "Acme Manufacturing Pty Ltd":
+                        self.log_result(
+                            "GET Supplier includes Account Name", 
+                            True, 
+                            f"Account name field correctly returned in GET response",
+                            f"Account Name: {account_name}"
+                        )
+                    else:
+                        self.log_result(
+                            "GET Supplier includes Account Name", 
+                            False, 
+                            f"Account name field missing or incorrect in GET response",
+                            f"Expected: 'Acme Manufacturing Pty Ltd', Got: {account_name}"
+                        )
+                else:
+                    self.log_result(
+                        "GET Supplier includes Account Name", 
+                        False, 
+                        f"Failed to retrieve supplier: {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("GET Supplier includes Account Name", False, f"Error: {str(e)}")
+        
+        # Test 3: Update supplier account_name field
+        if supplier_id:
+            updated_account_name = "John Smith Trading Account"
+            update_data = {
+                "supplier_name": "Acme Manufacturing Pty Ltd",
+                "contact_person": "John Smith",
+                "phone_number": "0412345678",
+                "email": "john@acmemanufacturing.com.au",
+                "physical_address": "123 Industrial Drive",
+                "post_code": "3000",
+                "currency_accepted": "AUD",
+                "bank_name": "Commonwealth Bank",
+                "bank_address": "456 Collins Street, Melbourne VIC 3000",
+                "account_name": updated_account_name,  # Updated account name
+                "bank_account_number": "123456789",
+                "swift_code": "CTBAAU2S"
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/suppliers/{supplier_id}", json=update_data)
+                
+                if response.status_code == 200:
+                    # Verify the update
+                    get_response = self.session.get(f"{API_BASE}/suppliers/{supplier_id}")
+                    if get_response.status_code == 200:
+                        updated_supplier = get_response.json()
+                        updated_account_name_value = updated_supplier.get('account_name')
+                        
+                        if updated_account_name_value == updated_account_name:
+                            self.log_result(
+                                "Update Supplier Account Name", 
+                                True, 
+                                f"Successfully updated account_name field",
+                                f"New Account Name: {updated_account_name_value}"
+                            )
+                        else:
+                            self.log_result(
+                                "Update Supplier Account Name", 
+                                False, 
+                                f"Account name update failed",
+                                f"Expected: '{updated_account_name}', Got: '{updated_account_name_value}'"
+                            )
+                    else:
+                        self.log_result(
+                            "Update Supplier Account Name", 
+                            False, 
+                            "Failed to retrieve updated supplier for verification"
+                        )
+                else:
+                    self.log_result(
+                        "Update Supplier Account Name", 
+                        False, 
+                        f"Update failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Update Supplier Account Name", False, f"Error: {str(e)}")
+        
+        # Test 4: Try creating supplier without account_name (should fail validation)
+        supplier_without_account_name = {
+            "supplier_name": "Test Supplier Without Account Name",
+            "contact_person": "Jane Doe",
+            "phone_number": "0487654321",
+            "email": "jane@testsupplier.com",
+            "physical_address": "789 Test Street",
+            "post_code": "3001",
+            "currency_accepted": "AUD",
+            "bank_name": "ANZ Bank",
+            "bank_address": "123 Bank Street, Melbourne VIC 3000",
+            # account_name field intentionally missing
+            "bank_account_number": "987654321",
+            "swift_code": "ANZBAU3M"
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/suppliers", json=supplier_without_account_name)
+            
+            if response.status_code == 422:  # Validation error expected
+                self.log_result(
+                    "Validation - Account Name Required", 
+                    True, 
+                    "Correctly rejected supplier creation without required account_name field",
+                    f"Status: {response.status_code} (Validation Error)"
+                )
+            elif response.status_code == 200:
+                self.log_result(
+                    "Validation - Account Name Required", 
+                    False, 
+                    "Supplier creation should have failed without account_name field",
+                    "Field validation not working properly"
+                )
+            else:
+                self.log_result(
+                    "Validation - Account Name Required", 
+                    False, 
+                    f"Unexpected status code: {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Validation - Account Name Required", False, f"Error: {str(e)}")
+        
+        # Test 5: Verify account_name field position in GET all suppliers response
+        try:
+            response = self.session.get(f"{API_BASE}/suppliers")
+            
+            if response.status_code == 200:
+                suppliers = response.json()
+                
+                if suppliers and len(suppliers) > 0:
+                    # Check if any supplier has account_name field
+                    suppliers_with_account_name = [s for s in suppliers if 'account_name' in s]
+                    
+                    if suppliers_with_account_name:
+                        # Check field positioning (should be between bank_name and bank_account_number)
+                        sample_supplier = suppliers_with_account_name[0]
+                        supplier_keys = list(sample_supplier.keys())
+                        
+                        try:
+                            bank_name_index = supplier_keys.index('bank_name')
+                            account_name_index = supplier_keys.index('account_name')
+                            bank_account_number_index = supplier_keys.index('bank_account_number')
+                            
+                            # Check if account_name is positioned between bank_name and bank_account_number
+                            correct_position = bank_name_index < account_name_index < bank_account_number_index
+                            
+                            self.log_result(
+                                "Account Name Field Position", 
+                                correct_position, 
+                                f"Account name field positioned correctly between bank_name and bank_account_number" if correct_position else "Account name field not in expected position",
+                                f"Field order: bank_name({bank_name_index}) -> account_name({account_name_index}) -> bank_account_number({bank_account_number_index})"
+                            )
+                        except ValueError as ve:
+                            self.log_result(
+                                "Account Name Field Position", 
+                                False, 
+                                "Could not verify field positioning - missing expected fields",
+                                str(ve)
+                            )
+                        
+                        self.log_result(
+                            "GET All Suppliers includes Account Name", 
+                            True, 
+                            f"Found {len(suppliers_with_account_name)} suppliers with account_name field out of {len(suppliers)} total suppliers"
+                        )
+                    else:
+                        self.log_result(
+                            "GET All Suppliers includes Account Name", 
+                            False, 
+                            "No suppliers found with account_name field in GET all suppliers response",
+                            f"Total suppliers: {len(suppliers)}"
+                        )
+                else:
+                    self.log_result(
+                        "GET All Suppliers includes Account Name", 
+                        False, 
+                        "No suppliers found in database for field verification"
+                    )
+            else:
+                self.log_result(
+                    "GET All Suppliers includes Account Name", 
+                    False, 
+                    f"Failed to retrieve suppliers list: {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("GET All Suppliers includes Account Name", False, f"Error: {str(e)}")
+        
+        return supplier_id
+
     def run_all_tests(self):
-        """Run all backend API tests with PRIMARY FOCUS on NEW Suppliers and Product Specifications APIs"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: NEW Suppliers & Product Specifications APIs")
+        """Run backend API tests with PRIMARY FOCUS on Suppliers Account Name Field"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Suppliers Account Name Field")
         print(f"Backend URL: {BACKEND_URL}")
-        print("=" * 60)
+        print("=" * 80)
         
         # Test authentication first
         if not self.authenticate():
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test NEW Suppliers and Product Specifications API endpoints
-        print("\n🏭 TESTING NEW SUPPLIERS API ENDPOINTS - PRIMARY FOCUS")
-        self.test_suppliers_api_endpoints()
-        
-        print("\n📋 TESTING NEW PRODUCT SPECIFICATIONS API ENDPOINTS - PRIMARY FOCUS")
-        self.test_product_specifications_api_endpoints()
-        
-        print("\n🔐 TESTING NEW ENDPOINTS AUTHENTICATION & VALIDATION - PRIMARY FOCUS")
-        self.test_new_endpoints_authentication_requirements()
-        self.test_new_endpoints_validation_requirements()
-        
-        # SECONDARY: Test Materials API Fix
-        print("\n🔧 TESTING MATERIALS API FIX - SECONDARY")
-        self.test_materials_api_fix()
-        
-        # Test authentication requirements for new endpoints
-        self.test_authentication_requirements()
-        
-        # NEW FOCUS: Test Production Board API Enhancements
-        print("\n🏭 TESTING PRODUCTION BOARD API ENHANCEMENTS")
-        self.test_production_board_authentication()
-        order_id = self.test_production_board_enhancements()
-        
-        if order_id:
-            self.test_stage_movement_api(order_id)
-            self.test_materials_status_api(order_id)
-            self.test_order_item_status_api(order_id)
-        
-        # Test error handling for invalid order IDs
-        self.test_invalid_order_ids()
-        
-        # NEW FOCUS: Test Materials Management APIs
-        print("\n🧱 TESTING MATERIALS MANAGEMENT APIs")
-        material_id = self.test_materials_management_api()
-        
-        # NEW FOCUS: Test Material Currency Field
-        print("\n💰 TESTING MATERIAL CURRENCY FIELD")
-        self.test_material_currency_field()
-        
-        # Test client model updates and get client ID for product catalog tests
-        client_id = self.test_client_model_updates()
-        
-        # NEW FOCUS: Test Client Product Catalog APIs
-        print("\n📦 TESTING CLIENT PRODUCT CATALOG APIs")
-        finished_product_id, paper_cores_product_id = self.test_client_product_catalog_api(client_id, material_id)
-        
-        # Test copy functionality between clients
-        if client_id and finished_product_id:
-            self.test_client_product_copy_functionality(client_id, finished_product_id)
-        
-        # Test delete functionality
-        if client_id and paper_cores_product_id:
-            self.test_client_product_delete_functionality(client_id, paper_cores_product_id)
-        
-        # Test validation errors
-        self.test_validation_errors(client_id)
-        
-        # Test ReportLab PDF generation capability
-        self.test_reportlab_pdf_generation()
-        
-        # Test role permissions
-        self.test_role_permissions()
-        
-        # Test Xero Integration APIs
-        print("\n🔗 TESTING XERO INTEGRATION ENDPOINTS")
-        self.test_xero_permissions()
-        self.test_xero_connection_status()
-        state_param = self.test_xero_auth_url()
-        self.test_xero_auth_callback(state_param)
-        self.test_xero_disconnect()
-        
-        # Test NEW Xero Integration Endpoints
-        print("\n🆕 TESTING NEW XERO INTEGRATION ENDPOINTS")
-        self.test_xero_next_invoice_number()
-        self.test_xero_create_draft_invoice()
-        
-        # Test jobs ready for invoicing and get delivery jobs for document testing
-        delivery_jobs = self.test_jobs_ready_for_invoicing()
-        
-        # Test invoicing APIs
-        self.test_live_jobs_api()
-        self.test_archived_jobs_api()
-        self.test_monthly_report_api()
-        
-        # Test invoice generation if we have a client
-        if client_id:
-            self.test_invoice_generation_api(client_id)
-            self.test_document_generation(client_id)
-        
-        # Test document generation endpoints with real data
-        print("\n📄 TESTING DOCUMENT GENERATION ENDPOINTS")
-        self.test_document_generation_endpoints(delivery_jobs)
-        self.test_pdf_download_functionality(delivery_jobs)
-        self.test_document_branding_and_content(delivery_jobs)
+        # PRIMARY FOCUS: Test NEW Account Name field in Suppliers API
+        print("\n🏭 TESTING SUPPLIERS ACCOUNT NAME FIELD - PRIMARY FOCUS")
+        supplier_id = self.test_suppliers_account_name_field()
         
         return self.generate_report()
     
