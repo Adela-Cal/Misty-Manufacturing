@@ -7142,8 +7142,8 @@ class InvoicingAPITester:
                     self.log_result(f"Edge Case - Prevent Delete in {stage.title()} Stage", False, f"Error: {str(e)}")
 
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on Client Deletion Functionality"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Client Deletion Functionality")
+        """Run backend API tests with PRIMARY FOCUS on Order Deletion Functionality"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Order Deletion Functionality")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 80)
         
@@ -7152,10 +7152,10 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test Client Deletion functionality
-        print("\n🗑️ TESTING CLIENT DELETION FUNCTIONALITY - PRIMARY FOCUS")
+        # PRIMARY FOCUS: Test Order Deletion functionality
+        print("\n🗑️ TESTING ORDER DELETION FUNCTIONALITY - PRIMARY FOCUS")
         print("=" * 60)
-        self.test_client_deletion_functionality()
+        self.test_order_deletion_functionality()
         
         return self.generate_report()
     
