@@ -64,47 +64,46 @@ const ProductionBoard = () => {
 
   const moveJobStage = async (jobId, currentStage, direction) => {
     try {
-      // Get stage order
-      const stageOrder = [
-        'order_entered',
-        'pending_material', 
-        'paper_slitting',
-        'winding',
-        'finishing',
-        'delivery',
-        'invoicing',
-        'cleared'
-      ];
-      
-      const currentIndex = stageOrder.indexOf(currentStage);
-      let newIndex;
-      
-      if (direction === 'forward') {
-        newIndex = Math.min(currentIndex + 1, stageOrder.length - 1);
-      } else {
-        newIndex = Math.max(currentIndex - 1, 0);
-      }
-      
-      if (newIndex === currentIndex) {
-        toast.info('Job is already at the first/last stage');
-        return;
-      }
-      
-      const newStage = stageOrder[newIndex];
-      
-      // TODO: Add API call to update job stage
-      toast.success(`Job moved to ${newStage.replace('_', ' ')}`);
+      await apiHelpers.moveOrderStage(jobId, { direction });
+      toast.success(`Job moved ${direction}`);
       loadProductionBoard(); // Refresh the board
     } catch (error) {
       console.error('Failed to move job stage:', error);
-      toast.error('Failed to move job stage');
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error('Failed to move job stage');
+      }
     }
   };
 
   const getMaterialsStatus = (job) => {
-    // TODO: Integrate with actual materials data
-    // For now, return random status for demo
-    return Math.random() > 0.5 ? 'ready' : 'pending';
+    return job.materials_ready ? 'ready' : 'pending';
+  };
+
+  const toggleMaterialsModal = async (jobId) => {
+    try {
+      const response = await apiHelpers.getMaterialsStatus(jobId);
+      // TODO: Open modal to show/edit materials checklist
+      toast.info('Materials modal feature coming soon');
+    } catch (error) {
+      console.error('Failed to load materials status:', error);
+      toast.error('Failed to load materials status');
+    }
+  };
+
+  const toggleOrderItemStatus = async (jobId, itemIndex, currentStatus) => {
+    try {
+      await apiHelpers.updateOrderItemStatus(jobId, {
+        item_index: itemIndex,
+        is_completed: !currentStatus
+      });
+      toast.success('Item status updated');
+      loadProductionBoard(); // Refresh to show updated status
+    } catch (error) {
+      console.error('Failed to update item status:', error);
+      toast.error('Failed to update item status');
+    }
   };
 
   const getDeliveryLocationDot = (deliveryAddress) => {
