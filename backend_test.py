@@ -6777,6 +6777,17 @@ class InvoicingAPITester:
         
         return None
     
+    def verify_order_stage(self, order_id):
+        """Verify what stage an order is actually in"""
+        try:
+            response = self.session.get(f"{API_BASE}/orders/{order_id}")
+            if response.status_code == 200:
+                order = response.json()
+                return order.get('current_stage', 'unknown')
+        except Exception as e:
+            print(f"Error verifying order stage: {str(e)}")
+        return 'unknown'
+    
     def test_order_deletion_endpoint(self, order_id):
         """Test DELETE /api/orders/{order_id} with admin credentials"""
         print("\n--- Testing Order Deletion Endpoint ---")
