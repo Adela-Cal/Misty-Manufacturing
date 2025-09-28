@@ -681,20 +681,34 @@ const MaterialsManagement = () => {
                 )}
 
                 {/* Form Actions */}
-                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-700">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="misty-button misty-button-secondary"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="misty-button misty-button-primary"
-                  >
-                    {selectedMaterial ? 'Update Material' : 'Create Material'}
-                  </button>
+                <div className="flex justify-between pt-6 border-t border-gray-700">
+                  <div>
+                    {selectedMaterial && (
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(selectedMaterial)}
+                        className="misty-button misty-button-danger"
+                      >
+                        <TrashIcon className="h-4 w-4 mr-2" />
+                        Delete Material
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowModal(false)}
+                      className="misty-button misty-button-secondary"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="misty-button misty-button-primary"
+                    >
+                      {selectedMaterial ? 'Update Material' : 'Create Material'}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
