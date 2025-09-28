@@ -534,7 +534,12 @@ const StaffSecurity = () => {
                     {selectedUser && (
                       <button
                         type="button"
-                        onClick={() => handleDelete(selectedUser)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('Delete button clicked, selectedUser:', selectedUser);
+                          handleDelete(selectedUser);
+                        }}
                         className="misty-button misty-button-danger"
                       >
                         <TrashIcon className="h-4 w-4 mr-2" />
