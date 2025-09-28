@@ -472,24 +472,15 @@ const PayrollManagement = () => {
         </div>
       )}
 
-      {/* Timesheet Modal Placeholder */}
-      {showTimesheetModal && selectedEmployee && (
-        <div className="modal-overlay">
-          <div className="modal-content max-w-6xl">
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-white mb-4">
-                Timesheet - {selectedEmployee.first_name} {selectedEmployee.last_name}
-              </h2>
-              <p className="text-gray-400 mb-4">Timesheet interface will be implemented here</p>
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => setShowTimesheetModal(false)}
-                  className="misty-button misty-button-secondary"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
+      {/* Timesheet Modal */}
+      {showTimesheetModal && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowTimesheetModal(false)}>
+          <div className="modal-content max-w-6xl max-h-[90vh] overflow-y-auto">
+            <TimesheetEntry
+              employeeId={selectedEmployee?.id || user?.user_id || user?.sub}
+              onClose={() => setShowTimesheetModal(false)}
+              isManager={user?.role === 'admin' || user?.role === 'manager'}
+            />
           </div>
         </div>
       )}
