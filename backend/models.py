@@ -332,7 +332,7 @@ class ClientProduct(BaseModel):
     updated_at: Optional[datetime] = None
 
 class ClientProductCreate(BaseModel):
-    client_id: str
+    client_id: Optional[str] = None  # Will be set from URL path
     product_type: ClientProductType
     product_code: str
     product_description: str
