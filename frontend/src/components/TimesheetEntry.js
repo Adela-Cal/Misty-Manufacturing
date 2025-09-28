@@ -489,35 +489,24 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
                     </td>
                     
                     <td className="px-4 py-3 text-center">
-                      <input
-                        type="number"
-                        min="0"
-                        max="24"
-                        step="0.25"
-                        value={entry.leave_hours?.annual_leave || ''}
-                        onChange={(e) => updateEntry(index, 'leave_annual_leave', e.target.value)}
-                        disabled={!canEdit()}
-                        className={`w-20 text-center misty-input ${
-                          errors[`${index}_leave_annual_leave`] ? 'border-red-500' : ''
-                        }`}
-                        data-testid={`annual-leave-${index}`}
-                      />
-                    </td>
-                    
-                    <td className="px-4 py-3 text-center">
-                      <input
-                        type="number"
-                        min="0"
-                        max="24"
-                        step="0.25"
-                        value={entry.leave_hours?.sick_leave || ''}
-                        onChange={(e) => updateEntry(index, 'leave_sick_leave', e.target.value)}
-                        disabled={!canEdit()}
-                        className={`w-20 text-center misty-input ${
-                          errors[`${index}_leave_sick_leave`] ? 'border-red-500' : ''
-                        }`}
-                        data-testid={`sick-leave-${index}`}
-                      />
+                      <div className="text-sm">
+                        {Object.keys(entry.leave_hours || {}).length > 0 ? (
+                          <div className="space-y-1">
+                            {Object.entries(entry.leave_hours).map(([type, hours]) => 
+                              hours > 0 && (
+                                <div key={type} className="flex items-center justify-center space-x-2">
+                                  <span className="text-yellow-400 font-medium">{hours}h</span>
+                                  <span className="text-gray-400 text-xs">
+                                    {payrollUtils.leaveTypeDisplayNames[type] || type}
+                                  </span>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-500">—</span>
+                        )}
+                      </div>
                     </td>
                     
                     <td className="px-4 py-3">
