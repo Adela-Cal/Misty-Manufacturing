@@ -65,7 +65,7 @@ const ProductSpecifications = () => {
     setFormData({
       product_name: '',
       product_type: 'Paper Core',
-      specifications: {},
+      specifications: {},  // Start with empty specifications
       materials_composition: [],
       manufacturing_notes: '',
       // Spiral Paper Core specific fields
