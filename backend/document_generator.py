@@ -410,17 +410,11 @@ class DocumentGenerator:
         return buffer.getvalue()
     
     def generate_packing_list(self, order_data: Dict[str, Any]) -> bytes:
-        """Generate packing list PDF with Adela Merchants letterhead"""
+        """Generate packing list PDF"""
         buffer = BytesIO()
-        
-        # Create document with letterhead template
-        def add_letterhead_template(canvas_obj, doc):
-            self.draw_letterhead_header(canvas_obj, doc)
-            self.draw_letterhead_footer(canvas_obj, doc)
-        
         doc = SimpleDocTemplate(buffer, pagesize=A4,
                               rightMargin=self.margin, leftMargin=self.margin,
-                              topMargin=100*mm, bottomMargin=100*mm)
+                              topMargin=60*mm, bottomMargin=40*mm)
         
         story = []
         
