@@ -440,6 +440,27 @@ const SpiralCoreConsumption = ({ productSpecs, loading, setLoading }) => {
   });
   const [results, setResults] = useState(null);
 
+  // Handle product specification selection and auto-populate fields
+  const handleSpecificationChange = (specId) => {
+    const selectedSpec = productSpecs.find(spec => spec.id === specId);
+    
+    if (selectedSpec && selectedSpec.specifications) {
+      setFormData(prev => ({
+        ...prev,
+        product_specification_id: specId,
+        core_internal_diameter: selectedSpec.specifications.internal_diameter || '',
+        wall_thickness_required: selectedSpec.specifications.wall_thickness_required || ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        product_specification_id: specId,
+        core_internal_diameter: '',
+        wall_thickness_required: ''
+      }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
