@@ -1212,6 +1212,31 @@ async def get_job_specification_by_order(order_id: str, current_user: dict = Dep
     
     return JobSpecification(**spec)
 
+@api_router.delete("/orders/{order_id}", response_model=StandardResponse)
+async def delete_order(order_id: str, current_user: dict = Depends(require_admin)):
+    """Delete order (soft delete - Admin only)"""
+    # Check if order exists
+    existing_order = await db.orders.find_one({"id": order_id})
+    if not existing_order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Check if order is in production (not safe to delete if in progress)
+    unsafe_stages = ["cutting", "paper_slitting", "spiral_winding", "finishing", "quality_control", "packing"]
+    current_stage = existing_order.get("current_stage", "order_entered")
+    if current_stage in unsafe_stages:
+        raise HTTPException(status_code=400, detail="Cannot delete order in production. Contact manager to halt production first.")
+    
+    # Perform soft delete
+    result = await db.orders.update_one(
+        {"id": order_id},
+        {"$set": {"status": "cancelled", "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    return StandardResponse(success=True, message="Order deleted successfully")
+
 # ============= PRODUCTION BOARD ENDPOINTS =============
 
 @api_router.get("/production/board")
