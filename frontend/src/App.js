@@ -49,6 +49,7 @@ function AppRoutes() {
         <Route path="/calculators" element={<Calculators />} />
         <Route path="/stocktake" element={<Stocktake />} />
         <Route path="/payroll" element={<PayrollManagement />} />
+        <Route path="/staff-security" element={<StaffSecurity />} />
         <Route path="/xero/callback" element={<XeroCallback />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
