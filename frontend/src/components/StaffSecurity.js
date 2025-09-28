@@ -67,7 +67,8 @@ const StaffSecurity = () => {
       full_name: '',
       role: 'production_staff',
       department: '',
-      phone: ''
+      phone: '',
+      employment_type: 'full_time'
     });
     setErrors({});
     setShowModal(true);
