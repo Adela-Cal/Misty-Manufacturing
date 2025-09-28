@@ -74,6 +74,7 @@ def require_role(allowed_roles: list[UserRole]):
 require_admin = require_role([UserRole.ADMIN])
 require_admin_or_manager = require_role([UserRole.ADMIN, UserRole.MANAGER])
 require_manager_or_admin = require_role([UserRole.ADMIN, UserRole.MANAGER])
+require_admin_or_sales = require_role([UserRole.ADMIN, UserRole.SALES])  # Added
 require_production_access = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.PRODUCTION_STAFF])
 require_any_role = require_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.PRODUCTION_STAFF, UserRole.SALES])
 
