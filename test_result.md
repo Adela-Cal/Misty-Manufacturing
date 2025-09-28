@@ -246,7 +246,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Xero Integration APIs"
+    - "Xero Integration Completion"
+    - "Fetch Next Invoice Number from Xero"
+    - "Create Draft Invoices in Xero"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
