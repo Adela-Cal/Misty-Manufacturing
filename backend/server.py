@@ -240,6 +240,168 @@ async def update_product(product_id: str, product_data: ProductCreate, current_u
     
     return StandardResponse(success=True, message="Product updated successfully")
 
+# ============= MATERIALS MANAGEMENT ENDPOINTS =============
+
+@api_router.get("/materials", response_model=List[Material])
+async def get_materials(current_user: dict = Depends(require_any_role)):
+    """Get all materials"""
+    materials = await db.materials.find({"is_active": True}).to_list(1000)
+    return [Material(**material) for material in materials]
+
+@api_router.post("/materials", response_model=StandardResponse)
+async def create_material(material_data: MaterialCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+    """Create new material"""
+    new_material = Material(**material_data.dict())
+    await db.materials.insert_one(new_material.dict())
+    
+    return StandardResponse(success=True, message="Material created successfully", data={"id": new_material.id})
+
+@api_router.get("/materials/{material_id}", response_model=Material)
+async def get_material(material_id: str, current_user: dict = Depends(require_any_role)):
+    """Get specific material"""
+    material = await db.materials.find_one({"id": material_id, "is_active": True})
+    if not material:
+        raise HTTPException(status_code=404, detail="Material not found")
+    
+    return Material(**material)
+
+@api_router.put("/materials/{material_id}", response_model=StandardResponse)
+async def update_material(material_id: str, material_data: MaterialCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+    """Update material"""
+    update_data = material_data.dict()
+    update_data["updated_at"] = datetime.utcnow()
+    
+    result = await db.materials.update_one(
+        {"id": material_id, "is_active": True},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Material not found")
+    
+    return StandardResponse(success=True, message="Material updated successfully")
+
+@api_router.delete("/materials/{material_id}", response_model=StandardResponse)
+async def delete_material(material_id: str, current_user: dict = Depends(require_admin_or_production_manager)):
+    """Delete material (soft delete)"""
+    result = await db.materials.update_one(
+        {"id": material_id, "is_active": True},
+        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Material not found")
+    
+    return StandardResponse(success=True, message="Material deleted successfully")
+
+# ============= CLIENT PRODUCT CATALOG ENDPOINTS =============
+
+@api_router.get("/clients/{client_id}/catalog", response_model=List[ClientProduct])
+async def get_client_product_catalog(client_id: str, current_user: dict = Depends(require_any_role)):
+    """Get product catalog for specific client"""
+    products = await db.client_products.find({"client_id": client_id, "is_active": True}).to_list(1000)
+    return [ClientProduct(**product) for product in products]
+
+@api_router.post("/clients/{client_id}/catalog", response_model=StandardResponse)
+async def create_client_product(client_id: str, product_data: ClientProductCreate, current_user: dict = Depends(require_admin_or_sales)):
+    """Create new product for client catalog"""
+    # Verify client exists
+    client = await db.clients.find_one({"id": client_id, "is_active": True})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Set client_id from URL
+    product_data.client_id = client_id
+    new_product = ClientProduct(**product_data.dict())
+    await db.client_products.insert_one(new_product.dict())
+    
+    return StandardResponse(success=True, message="Client product created successfully", data={"id": new_product.id})
+
+@api_router.get("/clients/{client_id}/catalog/{product_id}", response_model=ClientProduct)
+async def get_client_product(client_id: str, product_id: str, current_user: dict = Depends(require_any_role)):
+    """Get specific client product"""
+    product = await db.client_products.find_one({
+        "id": product_id, 
+        "client_id": client_id,
+        "is_active": True
+    })
+    if not product:
+        raise HTTPException(status_code=404, detail="Client product not found")
+    
+    return ClientProduct(**product)
+
+@api_router.put("/clients/{client_id}/catalog/{product_id}", response_model=StandardResponse)
+async def update_client_product(client_id: str, product_id: str, product_data: ClientProductCreate, current_user: dict = Depends(require_admin_or_sales)):
+    """Update client product"""
+    # Verify client exists
+    client = await db.clients.find_one({"id": client_id, "is_active": True})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    update_data = product_data.dict()
+    update_data["client_id"] = client_id  # Ensure client_id is correct
+    update_data["updated_at"] = datetime.utcnow()
+    
+    result = await db.client_products.update_one(
+        {"id": product_id, "client_id": client_id, "is_active": True},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Client product not found")
+    
+    return StandardResponse(success=True, message="Client product updated successfully")
+
+@api_router.delete("/clients/{client_id}/catalog/{product_id}", response_model=StandardResponse)
+async def delete_client_product(client_id: str, product_id: str, current_user: dict = Depends(require_admin_or_sales)):
+    """Delete client product (soft delete)"""
+    result = await db.client_products.update_one(
+        {"id": product_id, "client_id": client_id, "is_active": True},
+        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Client product not found")
+    
+    return StandardResponse(success=True, message="Client product deleted successfully")
+
+@api_router.post("/clients/{client_id}/catalog/{product_id}/copy-to/{target_client_id}", response_model=StandardResponse)
+async def copy_client_product(client_id: str, product_id: str, target_client_id: str, current_user: dict = Depends(require_admin_or_sales)):
+    """Copy product to another client catalog"""
+    # Verify both clients exist
+    source_client = await db.clients.find_one({"id": client_id, "is_active": True})
+    target_client = await db.clients.find_one({"id": target_client_id, "is_active": True})
+    
+    if not source_client:
+        raise HTTPException(status_code=404, detail="Source client not found")
+    if not target_client:
+        raise HTTPException(status_code=404, detail="Target client not found")
+    
+    # Get source product
+    source_product = await db.client_products.find_one({
+        "id": product_id,
+        "client_id": client_id,
+        "is_active": True
+    })
+    
+    if not source_product:
+        raise HTTPException(status_code=404, detail="Source product not found")
+    
+    # Create copy for target client
+    copied_product = ClientProduct(**source_product)
+    copied_product.id = str(uuid.uuid4())  # Generate new ID
+    copied_product.client_id = target_client_id
+    copied_product.created_at = datetime.utcnow()
+    copied_product.updated_at = None
+    
+    await db.client_products.insert_one(copied_product.dict())
+    
+    return StandardResponse(
+        success=True, 
+        message=f"Product copied successfully to {target_client['company_name']}", 
+        data={"id": copied_product.id}
+    )
+
 # ============= ORDER MANAGEMENT ENDPOINTS =============
 
 @api_router.get("/orders", response_model=List[Order])
