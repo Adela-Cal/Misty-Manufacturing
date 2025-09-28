@@ -322,7 +322,7 @@ const MaterialsManagement = () => {
                       {material.material_description || '—'}
                     </td>
                     <td className="text-yellow-400 font-medium">
-                      ${material.price.toFixed(2)}
+                      {material.currency || 'AUD'} ${material.price.toFixed(2)}
                     </td>
                     <td>{material.unit}</td>
                     <td>{material.order_to_delivery_time}</td>
