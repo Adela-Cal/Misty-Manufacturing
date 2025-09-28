@@ -851,6 +851,8 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = 
         update_data["department"] = user_data.department
     if user_data.phone is not None:
         update_data["phone"] = user_data.phone
+    if user_data.employment_type is not None:
+        update_data["employment_type"] = user_data.employment_type.value
     if user_data.is_active is not None:
         update_data["is_active"] = user_data.is_active
     
