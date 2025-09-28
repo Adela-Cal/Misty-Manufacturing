@@ -34,7 +34,18 @@ const ProductSpecifications = () => {
 
   useEffect(() => {
     loadSpecifications();
+    loadMaterials();
   }, []);
+
+  const loadMaterials = async () => {
+    try {
+      const response = await apiHelpers.getMaterials();
+      setMaterials(response.data);
+    } catch (error) {
+      console.error('Failed to load materials:', error);
+      toast.error('Failed to load materials');
+    }
+  };
 
   const loadSpecifications = async () => {
     try {
