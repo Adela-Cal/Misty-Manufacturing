@@ -829,6 +829,13 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = 
     
     # Prepare update data
     update_data = {}
+    if user_data.username is not None:
+        # Check if username is already used by another user
+        username_user = await db.users.find_one({"username": user_data.username, "id": {"$ne": user_id}})
+        if username_user:
+            raise HTTPException(status_code=400, detail="Username already exists")
+        update_data["username"] = user_data.username
+    
     if user_data.email is not None:
         # Check if email is already used by another user
         email_user = await db.users.find_one({"email": user_data.email, "id": {"$ne": user_id}})
