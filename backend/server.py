@@ -860,7 +860,7 @@ async def get_orders(status_filter: Optional[str] = None, current_user: dict = D
     return [Order(**order) for order in orders]
 
 @api_router.post("/orders", response_model=StandardResponse)
-async def create_order(order_data: OrderCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+async def create_order(order_data: OrderCreate, current_user: dict = Depends(require_admin_or_manager)):
     """Create new order"""
     # Get client details
     client = await db.clients.find_one({"id": order_data.client_id, "is_active": True})
@@ -961,7 +961,7 @@ async def update_production_stage(order_id: str, stage_update: ProductionStageUp
 # ============= JOB SPECIFICATION ENDPOINTS =============
 
 @api_router.post("/job-specifications", response_model=StandardResponse)
-async def create_job_specification(spec_data: JobSpecificationCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+async def create_job_specification(spec_data: JobSpecificationCreate, current_user: dict = Depends(require_admin_or_manager)):
     """Create job specification"""
     new_spec = JobSpecification(**spec_data.dict(), created_by=current_user["user_id"])
     await db.job_specifications.insert_one(new_spec.dict())
@@ -1028,7 +1028,7 @@ async def get_production_logs(order_id: str, current_user: dict = Depends(requir
 async def move_order_stage(
     order_id: str, 
     request: StageMovementRequest, 
-    current_user: dict = Depends(require_admin_or_production_manager)
+    current_user: dict = Depends(require_admin_or_manager)
 ):
     """Move order to next or previous production stage"""
     # Get current order
@@ -1116,7 +1116,7 @@ async def get_materials_status(order_id: str, current_user: dict = Depends(requi
 async def update_materials_status(
     order_id: str, 
     status_update: MaterialsStatusUpdate,
-    current_user: dict = Depends(require_admin_or_production_manager)
+    current_user: dict = Depends(require_admin_or_manager)
 ):
     """Update materials status for order"""
     # Check if order exists
@@ -1144,7 +1144,7 @@ async def update_materials_status(
 async def update_order_item_status(
     order_id: str,
     item_update: OrderItemStatusUpdate,
-    current_user: dict = Depends(require_admin_or_production_manager)
+    current_user: dict = Depends(require_admin_or_manager)
 ):
     """Update completion status of specific order item"""
     # Get the order
@@ -1173,7 +1173,7 @@ async def update_order_item_status(
 # ============= REPORTS ENDPOINTS =============
 
 @api_router.get("/reports/outstanding-jobs")
-async def get_outstanding_jobs_report(current_user: dict = Depends(require_admin_or_production_manager)):
+async def get_outstanding_jobs_report(current_user: dict = Depends(require_admin_or_manager)):
     """Generate outstanding jobs report"""
     # Count jobs by stage
     jobs_by_stage = {}
@@ -1216,7 +1216,7 @@ async def get_outstanding_jobs_report(current_user: dict = Depends(require_admin
     return {"success": True, "data": report.dict()}
 
 @api_router.get("/reports/late-deliveries")
-async def get_late_deliveries_report(current_user: dict = Depends(require_admin_or_production_manager)):
+async def get_late_deliveries_report(current_user: dict = Depends(require_admin_or_manager)):
     """Generate late deliveries report"""
     # Get completed orders that were delivered late
     completed_orders = await db.orders.find({"status": OrderStatus.COMPLETED}).to_list(1000)
@@ -1269,7 +1269,7 @@ async def get_late_deliveries_report(current_user: dict = Depends(require_admin_
     return {"success": True, "data": report.dict()}
 
 @api_router.get("/reports/customer-annual/{client_id}")
-async def get_customer_annual_report(client_id: str, year: int, current_user: dict = Depends(require_admin_or_production_manager)):
+async def get_customer_annual_report(client_id: str, year: int, current_user: dict = Depends(require_admin_or_manager)):
     """Generate customer annual report"""
     # Get client info
     client = await db.clients.find_one({"id": client_id})
@@ -1548,7 +1548,7 @@ async def test_pdf_download():
     )
 
 @api_router.get("/xero/status")
-async def check_xero_connection_status(current_user: dict = Depends(require_admin_or_production_manager)):
+async def check_xero_connection_status(current_user: dict = Depends(require_admin_or_manager)):
     """Check if user has active Xero connection"""
     # Check if user has stored Xero tokens
     user_tokens = await db.xero_tokens.find_one({"user_id": current_user["user_id"]})
@@ -1630,7 +1630,7 @@ async def refresh_xero_token(user_id: str, refresh_token: str):
     return token_record
 
 @api_router.get("/xero/auth/url")
-async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_production_manager)):
+async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_manager)):
     """Get Xero OAuth authorization URL"""
     # Generate secure state parameter
     state = secrets.token_urlsafe(32)
@@ -1681,7 +1681,7 @@ async def handle_xero_oauth_redirect(code: str = None, state: str = None, error:
 @api_router.post("/xero/auth/callback")
 async def handle_xero_callback(
     callback_data: dict,
-    current_user: dict = Depends(require_admin_or_production_manager)
+    current_user: dict = Depends(require_admin_or_manager)
 ):
     """Handle Xero OAuth callback and exchange code for tokens"""
     auth_code = callback_data.get("code")
@@ -1751,7 +1751,7 @@ async def handle_xero_callback(
         raise HTTPException(status_code=400, detail="Failed to exchange authorization code")
 
 @api_router.delete("/xero/disconnect")
-async def disconnect_xero(current_user: dict = Depends(require_admin_or_production_manager)):
+async def disconnect_xero(current_user: dict = Depends(require_admin_or_manager)):
     """Disconnect from Xero"""
     # Remove stored tokens
     result = await db.xero_tokens.delete_one({"user_id": current_user["user_id"]})
@@ -1762,7 +1762,7 @@ async def disconnect_xero(current_user: dict = Depends(require_admin_or_producti
         return {"message": "No Xero connection found to disconnect"}
 
 @api_router.get("/xero/next-invoice-number")
-async def get_next_xero_invoice_number(current_user: dict = Depends(require_admin_or_production_manager)):
+async def get_next_xero_invoice_number(current_user: dict = Depends(require_admin_or_manager)):
     """Get the next available invoice number from Xero"""
     try:
         api_client, tenant_id = await get_xero_api_client(current_user["user_id"])
@@ -1819,7 +1819,7 @@ async def get_next_xero_invoice_number(current_user: dict = Depends(require_admi
         raise HTTPException(status_code=500, detail=f"Failed to get next invoice number: {str(e)}")
 
 @api_router.get("/xero/account-codes")
-async def get_xero_account_codes(current_user: dict = Depends(require_admin_or_production_manager)):
+async def get_xero_account_codes(current_user: dict = Depends(require_admin_or_manager)):
     """Get available account codes from Xero for setup verification"""
     try:
         api_client, tenant_id = await get_xero_api_client(current_user["user_id"])
@@ -1859,7 +1859,7 @@ async def get_xero_account_codes(current_user: dict = Depends(require_admin_or_p
         raise HTTPException(status_code=500, detail=f"Failed to get account codes: {str(e)}")
 
 @api_router.get("/xero/tax-rates")
-async def get_xero_tax_rates(current_user: dict = Depends(require_admin_or_production_manager)):
+async def get_xero_tax_rates(current_user: dict = Depends(require_admin_or_manager)):
     """Get available tax rates from Xero"""
     try:
         api_client, tenant_id = await get_xero_api_client(current_user["user_id"])
@@ -1943,7 +1943,7 @@ async def validate_sales_account(accounting_api, tenant_id: str) -> str:
 @api_router.post("/xero/create-draft-invoice")
 async def create_xero_draft_invoice(
     invoice_data: dict,
-    current_user: dict = Depends(require_admin_or_production_manager)
+    current_user: dict = Depends(require_admin_or_manager)
 ):
     """Create a draft invoice in Xero"""
     try:
@@ -2067,7 +2067,7 @@ async def create_xero_draft_invoice(
 # ============= INVOICING ENDPOINTS =============
 
 @api_router.get("/invoicing/live-jobs")
-async def get_live_jobs(current_user: dict = Depends(require_admin_or_production_manager)):
+async def get_live_jobs(current_user: dict = Depends(require_admin_or_manager)):
     """Get all jobs ready for invoicing (completed production, not yet invoiced)"""
     live_jobs = await db.orders.find({
         "current_stage": "delivery", 
@@ -2091,7 +2091,7 @@ async def get_live_jobs(current_user: dict = Depends(require_admin_or_production
 async def generate_job_invoice(
     job_id: str,
     invoice_data: dict,
-    current_user: dict = Depends(require_admin_or_production_manager)
+    current_user: dict = Depends(require_admin_or_manager)
 ):
     """Generate invoice for a completed job"""
     # Get job/order
@@ -2161,7 +2161,7 @@ async def generate_job_invoice(
 async def get_archived_jobs(
     month: Optional[int] = None, 
     year: Optional[int] = None,
-    current_user: dict = Depends(require_admin_or_production_manager)
+    current_user: dict = Depends(require_admin_or_manager)
 ):
     """Get archived jobs (completed and invoiced)"""
     # Build query filter
@@ -2205,7 +2205,7 @@ async def get_archived_jobs(
 async def get_monthly_invoicing_report(
     month: int,
     year: int,
-    current_user: dict = Depends(require_admin_or_production_manager)
+    current_user: dict = Depends(require_admin_or_manager)
 ):
     """Generate monthly invoicing report"""
     start_date = datetime(year, month, 1)
