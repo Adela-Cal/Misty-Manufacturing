@@ -21,6 +21,7 @@ const MaterialsManagement = () => {
     supplier: '',
     product_code: '',
     order_to_delivery_time: '',
+    material_description: '',  // New field
     price: '',
     unit: 'm2',
     raw_substrate: false,
@@ -28,7 +29,9 @@ const MaterialsManagement = () => {
     thickness_mm: '',
     burst_strength_kpa: '',
     ply_bonding_jm2: '',
-    moisture_percent: ''
+    moisture_percent: '',
+    supplied_roll_weight: '',  // New field
+    master_deckle_width_mm: ''  // New field
   });
   const [errors, setErrors] = useState({});
 
