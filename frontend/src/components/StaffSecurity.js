@@ -49,7 +49,19 @@ const StaffSecurity = () => {
     try {
       setLoading(true);
       const response = await apiHelpers.getUsers();
-      setUsers(response.data);
+      // Ensure all user fields are properly defined
+      const cleanUsers = response.data.map(user => ({
+        ...user,
+        username: user.username || '',
+        email: user.email || '',
+        full_name: user.full_name || '',
+        role: user.role || 'production_team',
+        department: user.department || '',
+        phone: user.phone || '',
+        employment_type: user.employment_type || 'full_time',
+        is_active: user.is_active !== undefined ? user.is_active : true
+      }));
+      setUsers(cleanUsers);
     } catch (error) {
       console.error('Failed to load users:', error);
       toast.error('Failed to load users');
