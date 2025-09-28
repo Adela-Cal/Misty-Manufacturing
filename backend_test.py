@@ -7167,6 +7167,394 @@ class InvoicingAPITester:
                 except Exception as e:
                     self.log_result(f"Edge Case - Prevent Delete in {stage.title()} Stage", False, f"Error: {str(e)}")
 
+    def test_order_creation_with_purchase_order_number(self):
+        """Test order creation endpoint with purchase_order_number field"""
+        print("\n=== ORDER CREATION WITH PURCHASE ORDER NUMBER TEST ===")
+        
+        # First, get a client to use for testing
+        try:
+            clients_response = self.session.get(f"{API_BASE}/clients")
+            if clients_response.status_code != 200:
+                self.log_result(
+                    "Order Creation - Get Clients", 
+                    False, 
+                    f"Failed to get clients: {clients_response.status_code}"
+                )
+                return
+            
+            clients = clients_response.json()
+            if not clients:
+                self.log_result(
+                    "Order Creation - Get Clients", 
+                    False, 
+                    "No clients available for testing"
+                )
+                return
+            
+            test_client_id = clients[0]['id']
+            test_client_name = clients[0]['company_name']
+            
+            self.log_result(
+                "Order Creation - Get Clients", 
+                True, 
+                f"Using client: {test_client_name} (ID: {test_client_id})"
+            )
+            
+        except Exception as e:
+            self.log_result("Order Creation - Get Clients", False, f"Error: {str(e)}")
+            return
+        
+        # Test 1: Create order WITH purchase_order_number
+        print("\n--- Test 1: Order with Purchase Order Number ---")
+        order_with_po = {
+            "client_id": test_client_id,
+            "purchase_order_number": "PO-2024-TEST-001",  # Include PO number
+            "due_date": (datetime.now() + timedelta(days=14)).isoformat(),
+            "delivery_address": "123 Test Street, Melbourne VIC 3000",
+            "delivery_instructions": "Handle with care - testing PO number functionality",
+            "notes": "Test order with purchase order number",
+            "items": [
+                {
+                    "product_id": "test-product-po-1",
+                    "product_name": "Test Product with PO",
+                    "description": "Test product for PO number testing",
+                    "quantity": 3,
+                    "unit_price": 150.0,
+                    "total_price": 450.0
+                }
+            ]
+        }
+        
+        order_with_po_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/orders", json=order_with_po)
+            
+            if response.status_code == 200:
+                result = response.json()
+                order_with_po_id = result.get('data', {}).get('id')
+                order_number = result.get('data', {}).get('order_number')
+                
+                if order_with_po_id:
+                    # Verify the order was created and retrieve it to check PO number
+                    get_response = self.session.get(f"{API_BASE}/orders/{order_with_po_id}")
+                    if get_response.status_code == 200:
+                        order = get_response.json()
+                        stored_po_number = order.get('purchase_order_number')
+                        
+                        if stored_po_number == "PO-2024-TEST-001":
+                            self.log_result(
+                                "Create Order WITH Purchase Order Number", 
+                                True, 
+                                f"Order created successfully with PO number stored correctly",
+                                f"Order: {order_number}, PO Number: {stored_po_number}"
+                            )
+                        else:
+                            self.log_result(
+                                "Create Order WITH Purchase Order Number", 
+                                False, 
+                                f"PO number not stored correctly - expected 'PO-2024-TEST-001' but got '{stored_po_number}'"
+                            )
+                    else:
+                        self.log_result(
+                            "Create Order WITH Purchase Order Number", 
+                            False, 
+                            "Failed to retrieve created order for PO verification"
+                        )
+                else:
+                    self.log_result(
+                        "Create Order WITH Purchase Order Number", 
+                        False, 
+                        "Order creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create Order WITH Purchase Order Number", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Order WITH Purchase Order Number", False, f"Error: {str(e)}")
+        
+        # Test 2: Create order WITHOUT purchase_order_number (should handle null values)
+        print("\n--- Test 2: Order without Purchase Order Number ---")
+        order_without_po = {
+            "client_id": test_client_id,
+            # Note: purchase_order_number field is intentionally omitted
+            "due_date": (datetime.now() + timedelta(days=21)).isoformat(),
+            "delivery_address": "456 Another Test Street, Sydney NSW 2000",
+            "delivery_instructions": "Standard delivery - no PO number",
+            "notes": "Test order without purchase order number",
+            "items": [
+                {
+                    "product_id": "test-product-no-po-1",
+                    "product_name": "Test Product without PO",
+                    "description": "Test product for null PO number testing",
+                    "quantity": 2,
+                    "unit_price": 200.0,
+                    "total_price": 400.0
+                }
+            ]
+        }
+        
+        order_without_po_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/orders", json=order_without_po)
+            
+            if response.status_code == 200:
+                result = response.json()
+                order_without_po_id = result.get('data', {}).get('id')
+                order_number = result.get('data', {}).get('order_number')
+                
+                if order_without_po_id:
+                    # Verify the order was created and check PO number is null/None
+                    get_response = self.session.get(f"{API_BASE}/orders/{order_without_po_id}")
+                    if get_response.status_code == 200:
+                        order = get_response.json()
+                        stored_po_number = order.get('purchase_order_number')
+                        
+                        if stored_po_number is None or stored_po_number == "":
+                            self.log_result(
+                                "Create Order WITHOUT Purchase Order Number", 
+                                True, 
+                                f"Order created successfully with null PO number handled correctly",
+                                f"Order: {order_number}, PO Number: {stored_po_number}"
+                            )
+                        else:
+                            self.log_result(
+                                "Create Order WITHOUT Purchase Order Number", 
+                                False, 
+                                f"Expected null/empty PO number but got '{stored_po_number}'"
+                            )
+                    else:
+                        self.log_result(
+                            "Create Order WITHOUT Purchase Order Number", 
+                            False, 
+                            "Failed to retrieve created order for PO verification"
+                        )
+                else:
+                    self.log_result(
+                        "Create Order WITHOUT Purchase Order Number", 
+                        False, 
+                        "Order creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create Order WITHOUT Purchase Order Number", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Order WITHOUT Purchase Order Number", False, f"Error: {str(e)}")
+        
+        # Test 3: Create order with explicit null purchase_order_number
+        print("\n--- Test 3: Order with Explicit Null Purchase Order Number ---")
+        order_explicit_null_po = {
+            "client_id": test_client_id,
+            "purchase_order_number": None,  # Explicitly set to null
+            "due_date": (datetime.now() + timedelta(days=28)).isoformat(),
+            "delivery_address": "789 Explicit Null Street, Brisbane QLD 4000",
+            "delivery_instructions": "Testing explicit null PO number",
+            "notes": "Test order with explicit null purchase order number",
+            "items": [
+                {
+                    "product_id": "test-product-null-po-1",
+                    "product_name": "Test Product with Null PO",
+                    "description": "Test product for explicit null PO testing",
+                    "quantity": 1,
+                    "unit_price": 300.0,
+                    "total_price": 300.0
+                }
+            ]
+        }
+        
+        order_explicit_null_po_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/orders", json=order_explicit_null_po)
+            
+            if response.status_code == 200:
+                result = response.json()
+                order_explicit_null_po_id = result.get('data', {}).get('id')
+                order_number = result.get('data', {}).get('order_number')
+                
+                if order_explicit_null_po_id:
+                    # Verify the order was created and check PO number is null
+                    get_response = self.session.get(f"{API_BASE}/orders/{order_explicit_null_po_id}")
+                    if get_response.status_code == 200:
+                        order = get_response.json()
+                        stored_po_number = order.get('purchase_order_number')
+                        
+                        if stored_po_number is None:
+                            self.log_result(
+                                "Create Order with Explicit Null PO Number", 
+                                True, 
+                                f"Order created successfully with explicit null PO number handled correctly",
+                                f"Order: {order_number}, PO Number: {stored_po_number}"
+                            )
+                        else:
+                            self.log_result(
+                                "Create Order with Explicit Null PO Number", 
+                                False, 
+                                f"Expected null PO number but got '{stored_po_number}'"
+                            )
+                    else:
+                        self.log_result(
+                            "Create Order with Explicit Null PO Number", 
+                            False, 
+                            "Failed to retrieve created order for PO verification"
+                        )
+                else:
+                    self.log_result(
+                        "Create Order with Explicit Null PO Number", 
+                        False, 
+                        "Order creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create Order with Explicit Null PO Number", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Order with Explicit Null PO Number", False, f"Error: {str(e)}")
+        
+        # Test 4: Verify existing functionality still works (client selection, due dates, items, etc.)
+        print("\n--- Test 4: Verify Existing Order Functionality ---")
+        
+        # Test with comprehensive order data including all existing fields
+        comprehensive_order = {
+            "client_id": test_client_id,
+            "purchase_order_number": "PO-COMPREHENSIVE-TEST",
+            "due_date": (datetime.now() + timedelta(days=35)).isoformat(),
+            "delivery_address": "999 Comprehensive Test Avenue, Perth WA 6000",
+            "delivery_instructions": "Comprehensive test - verify all existing functionality works with PO number",
+            "runtime_estimate": "3-4 days",
+            "notes": "Comprehensive test order to verify existing functionality",
+            "items": [
+                {
+                    "product_id": "comprehensive-product-1",
+                    "product_name": "Comprehensive Test Product 1",
+                    "description": "First product for comprehensive testing",
+                    "quantity": 5,
+                    "unit_price": 100.0,
+                    "total_price": 500.0
+                },
+                {
+                    "product_id": "comprehensive-product-2",
+                    "product_name": "Comprehensive Test Product 2",
+                    "description": "Second product for comprehensive testing",
+                    "quantity": 3,
+                    "unit_price": 250.0,
+                    "total_price": 750.0
+                }
+            ]
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/orders", json=comprehensive_order)
+            
+            if response.status_code == 200:
+                result = response.json()
+                comprehensive_order_id = result.get('data', {}).get('id')
+                order_number = result.get('data', {}).get('order_number')
+                
+                if comprehensive_order_id:
+                    # Verify all fields were stored correctly
+                    get_response = self.session.get(f"{API_BASE}/orders/{comprehensive_order_id}")
+                    if get_response.status_code == 200:
+                        order = get_response.json()
+                        
+                        # Check all key fields
+                        checks = []
+                        checks.append(("Client ID", order.get('client_id') == test_client_id))
+                        checks.append(("Purchase Order Number", order.get('purchase_order_number') == "PO-COMPREHENSIVE-TEST"))
+                        checks.append(("Delivery Address", order.get('delivery_address') == "999 Comprehensive Test Avenue, Perth WA 6000"))
+                        checks.append(("Delivery Instructions", "Comprehensive test" in order.get('delivery_instructions', "")))
+                        checks.append(("Runtime Estimate", order.get('runtime_estimate') == "3-4 days"))
+                        checks.append(("Notes", "Comprehensive test order" in order.get('notes', "")))
+                        checks.append(("Items Count", len(order.get('items', [])) == 2))
+                        checks.append(("Total Amount", order.get('total_amount') > 0))  # Should have calculated totals
+                        checks.append(("Order Number", order.get('order_number') is not None))
+                        checks.append(("Created At", order.get('created_at') is not None))
+                        
+                        passed_checks = [name for name, passed in checks if passed]
+                        failed_checks = [name for name, passed in checks if not passed]
+                        
+                        if len(failed_checks) == 0:
+                            self.log_result(
+                                "Verify Existing Order Functionality", 
+                                True, 
+                                f"All existing functionality working correctly with PO number field",
+                                f"Order: {order_number}, All {len(checks)} checks passed"
+                            )
+                        else:
+                            self.log_result(
+                                "Verify Existing Order Functionality", 
+                                False, 
+                                f"Some existing functionality issues detected",
+                                f"Passed: {', '.join(passed_checks)}, Failed: {', '.join(failed_checks)}"
+                            )
+                    else:
+                        self.log_result(
+                            "Verify Existing Order Functionality", 
+                            False, 
+                            "Failed to retrieve comprehensive order for verification"
+                        )
+                else:
+                    self.log_result(
+                        "Verify Existing Order Functionality", 
+                        False, 
+                        "Comprehensive order creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Verify Existing Order Functionality", 
+                    False, 
+                    f"Comprehensive order creation failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Verify Existing Order Functionality", False, f"Error: {str(e)}")
+        
+        # Test 5: Test order retrieval includes purchase_order_number in response
+        print("\n--- Test 5: Verify PO Number in Order List ---")
+        try:
+            response = self.session.get(f"{API_BASE}/orders")
+            
+            if response.status_code == 200:
+                orders = response.json()
+                
+                # Find our test orders
+                test_orders = [order for order in orders if order.get('purchase_order_number') in [
+                    "PO-2024-TEST-001", "PO-COMPREHENSIVE-TEST"
+                ]]
+                
+                if len(test_orders) >= 2:
+                    po_numbers_found = [order.get('purchase_order_number') for order in test_orders]
+                    self.log_result(
+                        "Verify PO Number in Order List", 
+                        True, 
+                        f"Purchase order numbers correctly included in order list responses",
+                        f"Found PO numbers: {', '.join(po_numbers_found)}"
+                    )
+                else:
+                    self.log_result(
+                        "Verify PO Number in Order List", 
+                        False, 
+                        f"Expected to find test orders with PO numbers in order list, found {len(test_orders)}"
+                    )
+            else:
+                self.log_result(
+                    "Verify PO Number in Order List", 
+                    False, 
+                    f"Failed to retrieve order list: {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Verify PO Number in Order List", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run backend API tests with PRIMARY FOCUS on Order Deletion Functionality"""
         print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Order Deletion Functionality")
