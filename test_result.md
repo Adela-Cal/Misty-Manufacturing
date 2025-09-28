@@ -226,17 +226,17 @@ frontend:
         agent: "main"
         comment: "Need to create archived jobs view and reporting functionality"
 
-  - task: "Packing Slip Icon Differentiation"
+  - task: "Xero Integration Completion"
     implemented: true
     working: true
-    file: "frontend/src/components/Invoicing.js"
+    file: "backend/server.py"
     stuck_count: 0
-    priority: "low"
-    needs_retesting: false
+    priority: "high"
+    needs_retesting: true
     status_history:
       - working: true
         agent: "main"
-        comment: "Changed packing slip icon from DocumentArrowDownIcon to CubeIcon for better visual differentiation from invoice download icon. Verified through screenshot that distinct icons now display correctly."
+        comment: "Implemented complete Xero integration with OAuth flow, get next invoice number from Xero, and create draft invoices in Xero. Added proper environment variable configuration, Xero Python SDK, token refresh logic, and enhanced invoicing UI to automatically create Xero draft invoices. Ready for testing."
 
 metadata:
   created_by: "main_agent"
