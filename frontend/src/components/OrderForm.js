@@ -588,6 +588,60 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
           </div>
         </form>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && order && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && cancelDelete()}>
+          <div className="modal-content max-w-md">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0">
+                  <TrashIcon className="h-8 w-8 text-red-400" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-white">Delete Order</h3>
+                  <p className="text-sm text-gray-400">This action cannot be undone.</p>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-300">
+                  Are you sure you wish to delete order <span className="font-semibold text-white">"{order.order_number}"</span>?
+                </p>
+                <p className="text-sm text-gray-400 mt-2">
+                  This will cancel the order and remove it from active production. Orders in production cannot be deleted.
+                </p>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={cancelDelete}
+                  className="misty-button misty-button-secondary"
+                  disabled={loading}
+                >
+                  No, Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDelete}
+                  className="misty-button misty-button-danger"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Deleting...
+                    </div>
+                  ) : (
+                    'Yes, Delete Order'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
