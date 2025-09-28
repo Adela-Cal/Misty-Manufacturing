@@ -6,7 +6,11 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   ExclamationTriangleIcon,
-  DocumentArrowDownIcon
+  DocumentArrowDownIcon,
+  BookOpenIcon,
+  ChevronLeftIcon,
+  ArrowRightIcon,
+  ArrowLeftIcon
 } from '@heroicons/react/24/outline';
 
 const ProductionBoard = () => {
