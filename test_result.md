@@ -418,6 +418,30 @@ metadata:
         agent: "testing"
         comment: "BACKEND API STABILITY VERIFICATION COMPLETED - ALL PRODUCT SPECIFICATIONS ENDPOINTS CONFIRMED WORKING AFTER FRONTEND CHANGES: ✅ GET /api/product-specifications (successfully retrieved 1 existing specification), ✅ POST /api/product-specifications - Regular Paper Core (created Standard Paper Core with traditional fields: inner_diameter_mm, outer_diameter_mm, length_mm, wall_thickness_mm), ✅ POST /api/product-specifications - Spiral Paper Core (created Premium Spiral Paper Core with new fields: internal_diameter, wall_thickness_required, spiral_angle_degrees, adhesive_type, compression_strength_kpa, etc.), ✅ GET /api/product-specifications/{id} - Both Types Retrieved (regular Paper Core with 6 spec fields + 2 materials, Spiral Paper Core with 12 spec fields + 3 materials), ✅ Flexible Specifications Dict Handling (backend seamlessly handles both Paper Core and Spiral Paper Core types with different field sets), ✅ Authentication Working (API properly requires admin/production_manager permissions with 403 status for unauthenticated requests). BACKEND STABILITY CONFIRMED: The flexible specifications dict successfully stores and retrieves both regular Paper Core specifications and new Spiral Paper Core specifications with enhanced fields (internal_diameter, wall_thickness_required, spiral_angle_degrees, adhesive_type, surface_finish, compression_strength_kpa, moisture_content_max, spiral_overlap_mm, end_cap_type, color). All existing functionality continues working seamlessly. SUCCESS RATE: 8/8 tests passed (100%)."
 
+  - task: "Calculators Frontend Component"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/components/Calculators.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented comprehensive Calculators component with 3 calculator types: Material Consumption by Client (client dropdown, material dropdown, date range inputs), Material Permutation (core IDs multi-select, sizes input, master deckle width), and Spiral Core Consumption (product specifications dropdown, diameter/length/quantity inputs). Component includes calculator selection screen with cards, form validation, loading states, and results display. Integrated with backend calculator APIs."
+
+  - task: "Stocktake Frontend Component"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/components/Stocktake.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented comprehensive Stocktake component with monthly status check, stocktake creation functionality, material counting interface with quantity input fields (up to 2 decimal places), progress tracking with progress bar, and auto-save functionality. Component handles different states: no stocktake required, stocktake required, in progress, and completed. Integrated with backend stocktake APIs."
+
 test_plan:
   current_focus:
     - "Suppliers API endpoints"
