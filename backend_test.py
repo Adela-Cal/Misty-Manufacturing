@@ -6673,7 +6673,7 @@ class InvoicingAPITester:
         
         # Test 1: Create test orders in different stages
         safe_stage_order_id = self.create_test_order_in_stage(test_client_id, "order_entered")
-        production_stage_order_id = self.create_test_order_in_stage(test_client_id, "cutting")
+        production_stage_order_id = self.create_test_order_in_stage(test_client_id, "paper_slitting")
         
         if not safe_stage_order_id or not production_stage_order_id:
             self.log_result(
