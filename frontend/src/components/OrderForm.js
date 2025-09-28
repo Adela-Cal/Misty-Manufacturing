@@ -24,6 +24,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [loadingClients, setLoadingClients] = useState(true);
   const [errors, setErrors] = useState({});
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [orderTotals, setOrderTotals] = useState({
     subtotal: 0,
     gst: 0,
