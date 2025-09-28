@@ -811,9 +811,11 @@ async def get_user(user_id: str, current_user: dict = Depends(require_admin)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Remove password hash from response
+    # Remove password hash and ObjectId from response
     if "password_hash" in user:
         del user["password_hash"]
+    if "_id" in user:
+        del user["_id"]  # Remove MongoDB ObjectId
     
     return user
 
