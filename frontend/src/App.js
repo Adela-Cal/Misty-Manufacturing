@@ -9,6 +9,8 @@ import OrderManagement from './components/OrderManagement';
 import ProductionBoard from './components/ProductionBoard';
 import Reports from './components/Reports';
 import MaterialsManagement from './components/MaterialsManagement';
+import SuppliersManagement from './components/SuppliersManagement';
+import ProductSpecifications from './components/ProductSpecifications';
 import PayrollManagement from './components/PayrollManagement';
 import Invoicing from './components/Invoicing';
 import XeroCallback from './components/XeroCallback';
