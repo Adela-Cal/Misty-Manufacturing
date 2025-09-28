@@ -67,7 +67,13 @@ const ProductSpecifications = () => {
       product_type: 'Paper Core',
       specifications: {},
       materials_composition: [],
-      manufacturing_notes: ''
+      manufacturing_notes: '',
+      // Spiral Paper Core specific fields
+      internal_diameter: '',
+      wall_thickness_required: '',
+      selected_material_id: '',
+      layers_required: 0,
+      layer_specifications: []
     });
     setErrors({});
     setShowModal(true);
