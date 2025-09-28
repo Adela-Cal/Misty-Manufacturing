@@ -4200,6 +4200,664 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result("Product Specifications API Authentication", False, f"Error: {str(e)}")
 
+    def test_calculator_material_consumption_by_client(self):
+        """Test POST /api/calculators/material-consumption-by-client"""
+        print("\n=== CALCULATOR: MATERIAL CONSUMPTION BY CLIENT TEST ===")
+        
+        try:
+            # First, get available clients and materials
+            clients_response = self.session.get(f"{API_BASE}/clients")
+            materials_response = self.session.get(f"{API_BASE}/materials")
+            
+            if clients_response.status_code != 200 or materials_response.status_code != 200:
+                self.log_result(
+                    "Calculator: Material Consumption by Client", 
+                    False, 
+                    "Failed to get required data (clients/materials) for test"
+                )
+                return
+            
+            clients = clients_response.json()
+            materials = materials_response.json()
+            
+            if not clients or not materials:
+                self.log_result(
+                    "Calculator: Material Consumption by Client", 
+                    False, 
+                    "No clients or materials available for testing"
+                )
+                return
+            
+            # Use first available client and material
+            client_id = clients[0]['id']
+            material_id = materials[0]['id']
+            
+            # Test calculation request
+            calculation_data = {
+                "client_id": client_id,
+                "material_id": material_id,
+                "start_date": "2024-01-01",
+                "end_date": "2024-12-31"
+            }
+            
+            response = self.session.post(f"{API_BASE}/calculators/material-consumption-by-client", json=calculation_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success') and 'data' in data:
+                    result = data['data']
+                    required_fields = ['calculation_type', 'input_parameters', 'results', 'calculated_by']
+                    missing_fields = [field for field in required_fields if field not in result]
+                    
+                    if not missing_fields:
+                        results = result.get('results', {})
+                        if 'total_consumption' in results and 'material_name' in results:
+                            self.log_result(
+                                "Calculator: Material Consumption by Client", 
+                                True, 
+                                f"Successfully calculated material consumption",
+                                f"Total consumption: {results.get('total_consumption')}, Material: {results.get('material_name')}, Orders: {results.get('order_count', 0)}"
+                            )
+                        else:
+                            self.log_result(
+                                "Calculator: Material Consumption by Client", 
+                                False, 
+                                "Calculation results missing expected fields",
+                                f"Results: {results}"
+                            )
+                    else:
+                        self.log_result(
+                            "Calculator: Material Consumption by Client", 
+                            False, 
+                            f"Response missing required fields: {missing_fields}"
+                        )
+                else:
+                    self.log_result(
+                        "Calculator: Material Consumption by Client", 
+                        False, 
+                        "Response missing success flag or data",
+                        str(data)
+                    )
+            else:
+                self.log_result(
+                    "Calculator: Material Consumption by Client", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Calculator: Material Consumption by Client", False, f"Error: {str(e)}")
+    
+    def test_calculator_material_permutation(self):
+        """Test POST /api/calculators/material-permutation"""
+        print("\n=== CALCULATOR: MATERIAL PERMUTATION TEST ===")
+        
+        try:
+            # Test permutation calculation request
+            permutation_data = {
+                "core_ids": ["core-001", "core-002"],
+                "sizes_to_manufacture": [
+                    {"width": 100.0, "priority": 1},
+                    {"width": 150.0, "priority": 2},
+                    {"width": 200.0, "priority": 1}
+                ],
+                "master_deckle_width": 1000.0,
+                "acceptable_waste_percentage": 15.0
+            }
+            
+            response = self.session.post(f"{API_BASE}/calculators/material-permutation", json=permutation_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success') and 'data' in data:
+                    result = data['data']
+                    required_fields = ['calculation_type', 'input_parameters', 'results', 'calculated_by']
+                    missing_fields = [field for field in required_fields if field not in result]
+                    
+                    if not missing_fields:
+                        results = result.get('results', {})
+                        if 'permutation_options' in results and 'total_options_found' in results:
+                            options_count = results.get('total_options_found', 0)
+                            permutation_options = results.get('permutation_options', [])
+                            
+                            self.log_result(
+                                "Calculator: Material Permutation", 
+                                True, 
+                                f"Successfully calculated material permutations",
+                                f"Total options found: {options_count}, Top options returned: {len(permutation_options)}"
+                            )
+                        else:
+                            self.log_result(
+                                "Calculator: Material Permutation", 
+                                False, 
+                                "Permutation results missing expected fields",
+                                f"Results: {results}"
+                            )
+                    else:
+                        self.log_result(
+                            "Calculator: Material Permutation", 
+                            False, 
+                            f"Response missing required fields: {missing_fields}"
+                        )
+                else:
+                    self.log_result(
+                        "Calculator: Material Permutation", 
+                        False, 
+                        "Response missing success flag or data",
+                        str(data)
+                    )
+            else:
+                self.log_result(
+                    "Calculator: Material Permutation", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Calculator: Material Permutation", False, f"Error: {str(e)}")
+    
+    def test_calculator_spiral_core_consumption(self):
+        """Test POST /api/calculators/spiral-core-consumption"""
+        print("\n=== CALCULATOR: SPIRAL CORE CONSUMPTION TEST ===")
+        
+        try:
+            # First, get available product specifications
+            specs_response = self.session.get(f"{API_BASE}/product-specifications")
+            
+            if specs_response.status_code != 200:
+                self.log_result(
+                    "Calculator: Spiral Core Consumption", 
+                    False, 
+                    "Failed to get product specifications for test"
+                )
+                return
+            
+            specs = specs_response.json()
+            
+            # Find a Spiral Paper Core specification
+            spiral_spec = None
+            for spec in specs:
+                if spec.get('product_type') == 'Spiral Paper Core':
+                    spiral_spec = spec
+                    break
+            
+            if not spiral_spec:
+                # Create a test Spiral Paper Core specification
+                test_spec_data = {
+                    "product_name": "Test Spiral Core for Calculator",
+                    "product_type": "Spiral Paper Core",
+                    "specifications": {
+                        "internal_diameter": 76.0,
+                        "wall_thickness_required": 3.0,
+                        "spiral_angle_degrees": 45.0,
+                        "adhesive_type": "PVA",
+                        "selected_material_id": "test-material-id"
+                    },
+                    "materials_composition": [
+                        {"material_name": "Test Paper", "percentage": 100.0, "grade": "Premium"}
+                    ]
+                }
+                
+                create_response = self.session.post(f"{API_BASE}/product-specifications", json=test_spec_data)
+                if create_response.status_code == 200:
+                    spiral_spec = {"id": create_response.json().get('data', {}).get('id')}
+                else:
+                    self.log_result(
+                        "Calculator: Spiral Core Consumption", 
+                        False, 
+                        "No Spiral Paper Core specifications available and failed to create test spec"
+                    )
+                    return
+            
+            # Test spiral core consumption calculation
+            consumption_data = {
+                "product_specification_id": spiral_spec['id'],
+                "core_internal_diameter": 76.0,
+                "core_length": 1000.0,
+                "quantity": 100
+            }
+            
+            response = self.session.post(f"{API_BASE}/calculators/spiral-core-consumption", json=consumption_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success') and 'data' in data:
+                    result = data['data']
+                    required_fields = ['calculation_type', 'input_parameters', 'results', 'calculated_by']
+                    missing_fields = [field for field in required_fields if field not in result]
+                    
+                    if not missing_fields:
+                        results = result.get('results', {})
+                        expected_result_fields = ['material_name', 'total_material_weight_kg', 'material_weight_per_core_kg', 'quantity']
+                        
+                        if all(field in results for field in expected_result_fields):
+                            total_weight = results.get('total_material_weight_kg')
+                            per_core_weight = results.get('material_weight_per_core_kg')
+                            
+                            self.log_result(
+                                "Calculator: Spiral Core Consumption", 
+                                True, 
+                                f"Successfully calculated spiral core material consumption",
+                                f"Total weight: {total_weight}kg, Per core: {per_core_weight}kg, Quantity: {results.get('quantity')}"
+                            )
+                        else:
+                            missing_result_fields = [field for field in expected_result_fields if field not in results]
+                            self.log_result(
+                                "Calculator: Spiral Core Consumption", 
+                                False, 
+                                f"Calculation results missing expected fields: {missing_result_fields}",
+                                f"Results: {results}"
+                            )
+                    else:
+                        self.log_result(
+                            "Calculator: Spiral Core Consumption", 
+                            False, 
+                            f"Response missing required fields: {missing_fields}"
+                        )
+                else:
+                    self.log_result(
+                        "Calculator: Spiral Core Consumption", 
+                        False, 
+                        "Response missing success flag or data",
+                        str(data)
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Calculator: Spiral Core Consumption", 
+                    False, 
+                    "Product specification not found",
+                    response.text
+                )
+            elif response.status_code == 400:
+                error_text = response.text
+                if "not for Spiral Paper Cores" in error_text or "No material selected" in error_text:
+                    self.log_result(
+                        "Calculator: Spiral Core Consumption", 
+                        True, 
+                        "Correctly validates specification requirements",
+                        f"Validation error: {error_text}"
+                    )
+                else:
+                    self.log_result(
+                        "Calculator: Spiral Core Consumption", 
+                        False, 
+                        f"Unexpected validation error: {error_text}"
+                    )
+            else:
+                self.log_result(
+                    "Calculator: Spiral Core Consumption", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Calculator: Spiral Core Consumption", False, f"Error: {str(e)}")
+    
+    def test_stocktake_current_status(self):
+        """Test GET /api/stocktake/current"""
+        print("\n=== STOCKTAKE: CURRENT STATUS TEST ===")
+        
+        try:
+            response = self.session.get(f"{API_BASE}/stocktake/current")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success') and 'data' in data:
+                    stocktake_data = data['data']
+                    required_fields = ['stocktake_required', 'first_business_day']
+                    missing_fields = [field for field in required_fields if field not in stocktake_data]
+                    
+                    if not missing_fields:
+                        stocktake_required = stocktake_data.get('stocktake_required')
+                        first_business_day = stocktake_data.get('first_business_day')
+                        existing_stocktake = stocktake_data.get('stocktake')
+                        
+                        if existing_stocktake:
+                            self.log_result(
+                                "Stocktake: Current Status", 
+                                True, 
+                                f"Current stocktake exists for this month",
+                                f"Stocktake ID: {existing_stocktake.get('id')}, Status: {existing_stocktake.get('status')}"
+                            )
+                        else:
+                            self.log_result(
+                                "Stocktake: Current Status", 
+                                True, 
+                                f"Stocktake status retrieved successfully",
+                                f"Required: {stocktake_required}, First business day: {first_business_day}"
+                            )
+                    else:
+                        self.log_result(
+                            "Stocktake: Current Status", 
+                            False, 
+                            f"Response missing required fields: {missing_fields}"
+                        )
+                else:
+                    self.log_result(
+                        "Stocktake: Current Status", 
+                        False, 
+                        "Response missing success flag or data",
+                        str(data)
+                    )
+            else:
+                self.log_result(
+                    "Stocktake: Current Status", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Stocktake: Current Status", False, f"Error: {str(e)}")
+    
+    def test_stocktake_creation(self):
+        """Test POST /api/stocktake"""
+        print("\n=== STOCKTAKE: CREATION TEST ===")
+        
+        try:
+            # Create stocktake for current month
+            from datetime import date
+            current_date = date.today()
+            
+            stocktake_data = {
+                "stocktake_date": current_date.isoformat()
+            }
+            
+            response = self.session.post(f"{API_BASE}/stocktake", json=stocktake_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success') and 'data' in data:
+                    stocktake_info = data['data']
+                    required_fields = ['stocktake_id', 'materials_count', 'materials']
+                    missing_fields = [field for field in required_fields if field not in stocktake_info]
+                    
+                    if not missing_fields:
+                        stocktake_id = stocktake_info.get('stocktake_id')
+                        materials_count = stocktake_info.get('materials_count')
+                        materials = stocktake_info.get('materials', [])
+                        
+                        self.log_result(
+                            "Stocktake: Creation", 
+                            True, 
+                            f"Successfully created stocktake with {materials_count} materials",
+                            f"Stocktake ID: {stocktake_id}, Materials available: {len(materials)}"
+                        )
+                        return stocktake_id  # Return for use in other tests
+                    else:
+                        self.log_result(
+                            "Stocktake: Creation", 
+                            False, 
+                            f"Response missing required fields: {missing_fields}"
+                        )
+                else:
+                    self.log_result(
+                        "Stocktake: Creation", 
+                        False, 
+                        "Response missing success flag or data",
+                        str(data)
+                    )
+            elif response.status_code == 400:
+                error_text = response.text
+                if "already exists for this month" in error_text:
+                    self.log_result(
+                        "Stocktake: Creation", 
+                        True, 
+                        "Correctly prevents duplicate stocktakes for same month",
+                        f"Validation error: {error_text}"
+                    )
+                else:
+                    self.log_result(
+                        "Stocktake: Creation", 
+                        False, 
+                        f"Unexpected validation error: {error_text}"
+                    )
+            else:
+                self.log_result(
+                    "Stocktake: Creation", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Stocktake: Creation", False, f"Error: {str(e)}")
+        
+        return None
+    
+    def test_stocktake_entry_update(self, stocktake_id):
+        """Test PUT /api/stocktake/{stocktake_id}/entry"""
+        print("\n=== STOCKTAKE: ENTRY UPDATE TEST ===")
+        
+        if not stocktake_id:
+            self.log_result(
+                "Stocktake: Entry Update", 
+                False, 
+                "No stocktake ID available for entry update test"
+            )
+            return
+        
+        try:
+            # First, get available materials
+            materials_response = self.session.get(f"{API_BASE}/materials")
+            
+            if materials_response.status_code != 200:
+                self.log_result(
+                    "Stocktake: Entry Update", 
+                    False, 
+                    "Failed to get materials for entry update test"
+                )
+                return
+            
+            materials = materials_response.json()
+            
+            if not materials:
+                self.log_result(
+                    "Stocktake: Entry Update", 
+                    False, 
+                    "No materials available for entry update test"
+                )
+                return
+            
+            # Use first available material
+            material_id = materials[0]['id']
+            
+            # Test entry update
+            entry_data = {
+                "material_id": material_id,
+                "current_quantity": 150.75
+            }
+            
+            response = self.session.put(f"{API_BASE}/stocktake/{stocktake_id}/entry", json=entry_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success'):
+                    message = data.get('message', '')
+                    
+                    if 'updated' in message.lower():
+                        self.log_result(
+                            "Stocktake: Entry Update", 
+                            True, 
+                            f"Successfully updated stocktake entry",
+                            f"Material ID: {material_id}, Quantity: {entry_data['current_quantity']}"
+                        )
+                    else:
+                        self.log_result(
+                            "Stocktake: Entry Update", 
+                            False, 
+                            f"Unexpected success message: {message}"
+                        )
+                else:
+                    self.log_result(
+                        "Stocktake: Entry Update", 
+                        False, 
+                        "Response indicates failure",
+                        str(data)
+                    )
+            elif response.status_code == 404:
+                error_text = response.text
+                if "Stocktake not found" in error_text or "Material not found" in error_text:
+                    self.log_result(
+                        "Stocktake: Entry Update", 
+                        True, 
+                        "Correctly validates stocktake and material existence",
+                        f"Validation error: {error_text}"
+                    )
+                else:
+                    self.log_result(
+                        "Stocktake: Entry Update", 
+                        False, 
+                        f"Unexpected 404 error: {error_text}"
+                    )
+            else:
+                self.log_result(
+                    "Stocktake: Entry Update", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Stocktake: Entry Update", False, f"Error: {str(e)}")
+    
+    def test_stocktake_completion(self, stocktake_id):
+        """Test POST /api/stocktake/{stocktake_id}/complete"""
+        print("\n=== STOCKTAKE: COMPLETION TEST ===")
+        
+        if not stocktake_id:
+            self.log_result(
+                "Stocktake: Completion", 
+                False, 
+                "No stocktake ID available for completion test"
+            )
+            return
+        
+        try:
+            response = self.session.post(f"{API_BASE}/stocktake/{stocktake_id}/complete")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success'):
+                    message = data.get('message', '')
+                    
+                    if 'completed' in message.lower():
+                        self.log_result(
+                            "Stocktake: Completion", 
+                            True, 
+                            f"Successfully completed stocktake",
+                            f"Stocktake ID: {stocktake_id}, Message: {message}"
+                        )
+                    else:
+                        self.log_result(
+                            "Stocktake: Completion", 
+                            False, 
+                            f"Unexpected success message: {message}"
+                        )
+                else:
+                    self.log_result(
+                        "Stocktake: Completion", 
+                        False, 
+                        "Response indicates failure",
+                        str(data)
+                    )
+            elif response.status_code == 404:
+                error_text = response.text
+                if "Stocktake not found" in error_text:
+                    self.log_result(
+                        "Stocktake: Completion", 
+                        True, 
+                        "Correctly validates stocktake existence",
+                        f"Validation error: {error_text}"
+                    )
+                else:
+                    self.log_result(
+                        "Stocktake: Completion", 
+                        False, 
+                        f"Unexpected 404 error: {error_text}"
+                    )
+            else:
+                self.log_result(
+                    "Stocktake: Completion", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Stocktake: Completion", False, f"Error: {str(e)}")
+    
+    def test_calculator_authentication(self):
+        """Test that calculator endpoints require proper authentication"""
+        print("\n=== CALCULATOR AUTHENTICATION TEST ===")
+        
+        # Test without authentication
+        temp_session = requests.Session()
+        
+        try:
+            test_data = {
+                "client_id": "test-client",
+                "material_id": "test-material",
+                "start_date": "2024-01-01",
+                "end_date": "2024-12-31"
+            }
+            
+            response = temp_session.post(f"{API_BASE}/calculators/material-consumption-by-client", json=test_data)
+            
+            if response.status_code in [401, 403]:
+                self.log_result(
+                    "Calculator Authentication", 
+                    True, 
+                    f"Calculator endpoints properly require authentication (status: {response.status_code})"
+                )
+            else:
+                self.log_result(
+                    "Calculator Authentication", 
+                    False, 
+                    f"Expected 401/403 but got {response.status_code}",
+                    "Calculator endpoints should require authentication"
+                )
+                
+        except Exception as e:
+            self.log_result("Calculator Authentication", False, f"Error: {str(e)}")
+    
+    def test_stocktake_authentication(self):
+        """Test that stocktake endpoints require proper authentication (admin/manager)"""
+        print("\n=== STOCKTAKE AUTHENTICATION TEST ===")
+        
+        # Test without authentication
+        temp_session = requests.Session()
+        
+        try:
+            response = temp_session.get(f"{API_BASE}/stocktake/current")
+            
+            if response.status_code in [401, 403]:
+                self.log_result(
+                    "Stocktake Authentication", 
+                    True, 
+                    f"Stocktake endpoints properly require admin/manager authentication (status: {response.status_code})"
+                )
+            else:
+                self.log_result(
+                    "Stocktake Authentication", 
+                    False, 
+                    f"Expected 401/403 but got {response.status_code}",
+                    "Stocktake endpoints should require admin/manager authentication"
+                )
+                
+        except Exception as e:
+            self.log_result("Stocktake Authentication", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run backend API tests with PRIMARY FOCUS on Product Specifications API"""
         print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Product Specifications API Stability")
