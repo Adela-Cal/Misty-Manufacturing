@@ -404,6 +404,341 @@ async def delete_product_specification(spec_id: str, current_user: dict = Depend
     
     return StandardResponse(success=True, message="Product specification deleted successfully")
 
+# ============= CALCULATORS ENDPOINTS =============
+
+@api_router.post("/calculators/material-consumption-by-client", response_model=StandardResponse)
+async def calculate_material_consumption_by_client(
+    request: MaterialConsumptionByClientRequest, 
+    current_user: dict = Depends(require_any_role)
+):
+    """Calculate material consumption for a client within date range"""
+    try:
+        # Get orders for client within date range
+        orders = await db.orders.find({
+            "client_id": request.client_id,
+            "created_at": {
+                "$gte": datetime.combine(request.start_date, datetime.min.time()),
+                "$lte": datetime.combine(request.end_date, datetime.max.time())
+            },
+            "status": {"$ne": "cancelled"}
+        }).to_list(1000)
+        
+        # Get material info
+        material = await db.materials.find_one({"id": request.material_id})
+        if not material:
+            raise HTTPException(status_code=404, detail="Material not found")
+        
+        total_consumption = 0
+        order_breakdown = []
+        
+        for order in orders:
+            # Calculate material usage based on order items and product specifications
+            order_consumption = 0
+            for item in order["items"]:
+                # This is a simplified calculation - you may need to enhance based on your business logic
+                order_consumption += item["quantity"] * 1.0  # Placeholder calculation
+            
+            total_consumption += order_consumption
+            order_breakdown.append({
+                "order_number": order["order_number"],
+                "order_date": order["created_at"],
+                "consumption": order_consumption
+            })
+        
+        result = CalculationResult(
+            calculation_type="material_consumption_by_client",
+            input_parameters={
+                "client_id": request.client_id,
+                "material_id": request.material_id,
+                "start_date": request.start_date.isoformat(),
+                "end_date": request.end_date.isoformat()
+            },
+            results={
+                "total_consumption": total_consumption,
+                "material_name": material["product_code"],
+                "unit": material["unit"],
+                "order_count": len(orders),
+                "order_breakdown": order_breakdown
+            },
+            calculated_by=current_user["username"]
+        )
+        
+        return StandardResponse(success=True, message="Calculation completed", data=result.dict())
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Calculation failed: {str(e)}")
+
+@api_router.post("/calculators/material-permutation", response_model=StandardResponse)
+async def calculate_material_permutation(
+    request: MaterialPermutationRequest,
+    current_user: dict = Depends(require_any_role)
+):
+    """Calculate optimal material permutation for core IDs"""
+    try:
+        # Get product specifications for the core IDs
+        core_specs = await db.product_specifications.find({
+            "specifications.core_id": {"$in": request.core_ids},
+            "is_active": True
+        }).to_list(1000)
+        
+        # Calculate permutation options
+        permutation_options = []
+        for arrangement in _generate_permutations(request.sizes_to_manufacture, request.master_deckle_width):
+            waste_percentage = _calculate_waste(arrangement, request.master_deckle_width)
+            if waste_percentage <= request.acceptable_waste_percentage:
+                permutation_options.append({
+                    "arrangement": arrangement,
+                    "waste_percentage": waste_percentage,
+                    "efficiency": 100 - waste_percentage
+                })
+        
+        # Sort by efficiency
+        permutation_options.sort(key=lambda x: x["efficiency"], reverse=True)
+        
+        result = CalculationResult(
+            calculation_type="material_permutation",
+            input_parameters=request.dict(),
+            results={
+                "permutation_options": permutation_options[:10],  # Top 10 options
+                "total_options_found": len(permutation_options)
+            },
+            calculated_by=current_user["username"]
+        )
+        
+        return StandardResponse(success=True, message="Permutation calculation completed", data=result.dict())
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Permutation calculation failed: {str(e)}")
+
+@api_router.post("/calculators/spiral-core-consumption", response_model=StandardResponse)
+async def calculate_spiral_core_consumption(
+    request: SpiralCoreConsumptionRequest,
+    current_user: dict = Depends(require_any_role)
+):
+    """Calculate material consumption for Spiral Paper Cores"""
+    try:
+        # Get product specification
+        spec = await db.product_specifications.find_one({"id": request.product_specification_id})
+        if not spec:
+            raise HTTPException(status_code=404, detail="Product specification not found")
+        
+        if spec["product_type"] != "Spiral Paper Core":
+            raise HTTPException(status_code=400, detail="Specification is not for Spiral Paper Cores")
+        
+        specifications = spec["specifications"]
+        
+        # Get material information
+        material_id = specifications.get("selected_material_id")
+        if not material_id:
+            raise HTTPException(status_code=400, detail="No material selected in specification")
+            
+        material = await db.materials.find_one({"id": material_id})
+        if not material:
+            raise HTTPException(status_code=404, detail="Material not found")
+        
+        # Calculate consumption
+        internal_diameter = float(specifications.get("internal_diameter", 0))
+        wall_thickness = float(specifications.get("wall_thickness_required", 0))
+        gsm = float(material.get("gsm", 0))
+        material_thickness = float(material.get("thickness_mm", 1))
+        
+        # Calculate surface area per core
+        outer_diameter = internal_diameter + (2 * wall_thickness)
+        circumference = 3.14159 * outer_diameter
+        surface_area = circumference * request.core_length  # mm²
+        surface_area_m2 = surface_area / 1000000  # Convert to m²
+        
+        # Calculate material weight per core
+        layers_required = max(1, round(wall_thickness / material_thickness))
+        material_weight_per_core = surface_area_m2 * gsm * layers_required / 1000  # kg
+        
+        # Total consumption
+        total_weight = material_weight_per_core * request.quantity
+        
+        result = CalculationResult(
+            calculation_type="spiral_core_consumption",
+            input_parameters=request.dict(),
+            results={
+                "material_name": material["product_code"],
+                "gsm": gsm,
+                "material_thickness_mm": material_thickness,
+                "layers_required": layers_required,
+                "internal_diameter_mm": internal_diameter,
+                "outer_diameter_mm": outer_diameter,
+                "wall_thickness_mm": wall_thickness,
+                "core_length_mm": request.core_length,
+                "surface_area_m2_per_core": round(surface_area_m2, 4),
+                "material_weight_per_core_kg": round(material_weight_per_core, 4),
+                "quantity": request.quantity,
+                "total_material_weight_kg": round(total_weight, 2),
+                "unit": material["unit"]
+            },
+            calculated_by=current_user["username"]
+        )
+        
+        return StandardResponse(success=True, message="Spiral core consumption calculated", data=result.dict())
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Spiral core calculation failed: {str(e)}")
+
+# Helper functions for calculations
+def _generate_permutations(sizes, master_width):
+    """Generate possible arrangements of sizes within master width"""
+    # Simplified permutation logic - you can enhance this
+    arrangements = []
+    for size_combo in _get_size_combinations(sizes, master_width):
+        arrangements.append(size_combo)
+    return arrangements
+
+def _get_size_combinations(sizes, master_width):
+    """Get combinations of sizes that fit within master width"""
+    combinations = []
+    # This is a simplified algorithm - implement more sophisticated logic as needed
+    for size in sizes:
+        width = size.get("width", 0)
+        if width <= master_width:
+            combinations.append([size])
+    return combinations
+
+def _calculate_waste(arrangement, master_width):
+    """Calculate waste percentage for an arrangement"""
+    used_width = sum(item.get("width", 0) for item in arrangement)
+    waste = master_width - used_width
+    return (waste / master_width) * 100 if master_width > 0 else 100
+
+# ============= STOCKTAKE ENDPOINTS =============
+
+@api_router.get("/stocktake/current", response_model=StandardResponse)
+async def get_current_stocktake(current_user: dict = Depends(require_manager_or_admin)):
+    """Get current month's stocktake or check if one is needed"""
+    current_date = date.today()
+    current_month = current_date.strftime("%Y-%m")
+    
+    # Check if stocktake exists for current month
+    stocktake = await db.stocktakes.find_one({"month": current_month})
+    
+    # Check if it's first business day and stocktake is needed
+    is_first_business_day = _is_first_business_day(current_date)
+    
+    if not stocktake and is_first_business_day:
+        return StandardResponse(
+            success=True, 
+            message="Stocktake required", 
+            data={
+                "stocktake_required": True,
+                "month": current_month,
+                "first_business_day": True
+            }
+        )
+    
+    return StandardResponse(
+        success=True, 
+        message="Stocktake status retrieved", 
+        data={
+            "stocktake": stocktake,
+            "stocktake_required": not bool(stocktake),
+            "first_business_day": is_first_business_day
+        }
+    )
+
+@api_router.post("/stocktake", response_model=StandardResponse)
+async def create_stocktake(
+    stocktake_data: StocktakeCreate,
+    current_user: dict = Depends(require_manager_or_admin)
+):
+    """Create new stocktake with all materials"""
+    current_month = stocktake_data.stocktake_date.strftime("%Y-%m")
+    
+    # Check if stocktake already exists for this month
+    existing = await db.stocktakes.find_one({"month": current_month})
+    if existing:
+        raise HTTPException(status_code=400, detail="Stocktake already exists for this month")
+    
+    # Get all active materials
+    materials = await db.materials.find({"is_active": True}).to_list(1000)
+    
+    new_stocktake = Stocktake(
+        stocktake_date=stocktake_data.stocktake_date,
+        month=current_month,
+        created_by=current_user["username"]
+    )
+    
+    await db.stocktakes.insert_one(new_stocktake.dict())
+    
+    return StandardResponse(
+        success=True, 
+        message="Stocktake created", 
+        data={
+            "stocktake_id": new_stocktake.id,
+            "materials_count": len(materials),
+            "materials": [{"id": m["id"], "name": f"{m['supplier']} - {m['product_code']}", "unit": m["unit"]} for m in materials]
+        }
+    )
+
+@api_router.put("/stocktake/{stocktake_id}/entry", response_model=StandardResponse)
+async def update_stocktake_entry(
+    stocktake_id: str,
+    entry_data: StocktakeEntryUpdate,
+    current_user: dict = Depends(require_manager_or_admin)
+):
+    """Update stocktake entry for a material"""
+    stocktake = await db.stocktakes.find_one({"id": stocktake_id})
+    if not stocktake:
+        raise HTTPException(status_code=404, detail="Stocktake not found")
+    
+    material = await db.materials.find_one({"id": entry_data.material_id})
+    if not material:
+        raise HTTPException(status_code=404, detail="Material not found")
+    
+    # Create or update entry
+    entry = StocktakeEntry(
+        stocktake_id=stocktake_id,
+        material_id=entry_data.material_id,
+        material_name=f"{material['supplier']} - {material['product_code']}",
+        current_quantity=entry_data.current_quantity,
+        unit=material["unit"],
+        counted_by=current_user["username"]
+    )
+    
+    # Update stocktake entries
+    await db.stocktake_entries.replace_one(
+        {"stocktake_id": stocktake_id, "material_id": entry_data.material_id},
+        entry.dict(),
+        upsert=True
+    )
+    
+    return StandardResponse(success=True, message="Stocktake entry updated")
+
+@api_router.post("/stocktake/{stocktake_id}/complete", response_model=StandardResponse)
+async def complete_stocktake(
+    stocktake_id: str,
+    current_user: dict = Depends(require_manager_or_admin)
+):
+    """Complete stocktake"""
+    result = await db.stocktakes.update_one(
+        {"id": stocktake_id},
+        {
+            "$set": {
+                "status": "completed",
+                "completed_by": current_user["username"],
+                "completed_at": datetime.utcnow()
+            }
+        }
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Stocktake not found")
+    
+    return StandardResponse(success=True, message="Stocktake completed")
+
+def _is_first_business_day(check_date):
+    """Check if given date is first business day of month"""
+    first_day = check_date.replace(day=1)
+    # Skip weekends
+    while first_day.weekday() >= 5:  # 5=Saturday, 6=Sunday
+        first_day += timedelta(days=1)
+    return check_date == first_day
+
 # ============= CLIENT PRODUCT CATALOG ENDPOINTS =============
 
 @api_router.get("/clients/{client_id}/catalog", response_model=List[ClientProduct])
