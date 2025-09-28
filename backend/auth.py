@@ -22,6 +22,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
+def hash_password(password: str) -> str:
+    """Alias for get_password_hash for consistency"""
+    return get_password_hash(password)
+
 # JWT token functions
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
