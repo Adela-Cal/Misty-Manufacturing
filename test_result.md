@@ -102,9 +102,21 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "User wants to: 1) Enhance client management with client-specific product catalog system, 2) Add 'Products & Materials' management under Reports with searchable materials database, 3) Support two product types: Finished Goods and Paper Cores with different specifications, 4) Enable copying products between clients with price modifications, 5) Integration with order management for auto-population of client products"
+user_problem_statement: "User wants to enhance the Production Board with: 1) Change from column layout to row layout, 2) Add hexagon icon for materials ready status, 3) Remove job value display, 4) Add runtime value to tiles, 5) Add Australia map with delivery location dots, 6) Add book icon for order items with completion checkboxes, 7) Add navigation arrows to move jobs between stages"
 
 backend:
+  - task: "Production Board API enhancements"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py, backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added new API endpoints for Production Board enhancements: /production/move-stage/{order_id} for stage movement, /production/materials-status/{order_id} for materials ready tracking, /production/order-item-status/{order_id} for item completion tracking. Updated Order model with runtime_estimate field and OrderItem with is_completed field. Added MaterialsStatus, MaterialsStatusUpdate, OrderItemStatusUpdate, and StageMovementRequest models. Enhanced production board endpoint to include runtime and materials_ready fields in response."
+
   - task: "Materials Management API endpoints"
     implemented: true
     working: true
