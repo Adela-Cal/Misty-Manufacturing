@@ -16,6 +16,7 @@ ADELA_BLACK = HexColor('#000000')   # Pure black for curves
 ADELA_LIGHT_YELLOW = HexColor('#FFF3A3')  # Light watermark yellow
 ADELA_WHITE = HexColor('#FFFFFF')   # White background
 ADELA_DARK_GRAY = HexColor('#333333')  # Dark text
+ADELA_LIGHT_GRAY = HexColor('#F5F5F5')  # Light gray for backgrounds
 
 class DocumentGenerator:
     def __init__(self):
