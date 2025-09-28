@@ -682,6 +682,52 @@ const StaffSecurity = () => {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && userToDelete && (
+          <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && cancelDelete()}>
+            <div className="modal-content max-w-md">
+              <div className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="flex-shrink-0">
+                    <TrashIcon className="h-8 w-8 text-red-400" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-semibold text-white">Delete User</h3>
+                    <p className="text-sm text-gray-400">This action cannot be undone.</p>
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <p className="text-gray-300">
+                    Are you sure you wish to delete user <span className="font-semibold text-white">"{userToDelete.username}"</span>?
+                  </p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    This will permanently remove the user account and all associated data.
+                  </p>
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={cancelDelete}
+                    className="misty-button misty-button-secondary"
+                  >
+                    No, Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmDelete}
+                    className="misty-button misty-button-danger"
+                  >
+                    Yes, Delete User
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </Layout>
   );
