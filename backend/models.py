@@ -414,6 +414,11 @@ class UserRole(str, Enum):
     PRODUCTION_STAFF = "production_staff"
     SALES = "sales"
 
+class EmploymentType(str, Enum):
+    FULL_TIME = "full_time"
+    PART_TIME = "part_time"
+    CASUAL = "casual"
+
 class UserCreate(BaseModel):
     username: str
     email: EmailStr
@@ -423,11 +428,6 @@ class UserCreate(BaseModel):
     department: Optional[str] = None
     phone: Optional[str] = None
     employment_type: EmploymentType = EmploymentType.FULL_TIME
-
-class EmploymentType(str, Enum):
-    FULL_TIME = "full_time"
-    PART_TIME = "part_time"
-    CASUAL = "casual"
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
