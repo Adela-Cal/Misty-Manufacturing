@@ -2822,6 +2822,10 @@ class InvoicingAPITester:
         print("\n🧱 TESTING MATERIALS MANAGEMENT APIs")
         material_id = self.test_materials_management_api()
         
+        # NEW FOCUS: Test Material Currency Field
+        print("\n💰 TESTING MATERIAL CURRENCY FIELD")
+        self.test_material_currency_field()
+        
         # Test client model updates and get client ID for product catalog tests
         client_id = self.test_client_model_updates()
         
