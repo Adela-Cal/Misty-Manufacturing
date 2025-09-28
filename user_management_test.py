@@ -126,9 +126,11 @@ class UserManagementTester:
         """Test POST /api/users - Create new user account (Admin only) with password hashing"""
         print("\n=== CREATE USER TEST ===")
         
+        # Create unique username with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         test_user_data = {
-            "username": "teststaff001",
-            "email": "teststaff001@adelamerchants.com.au",
+            "username": f"teststaff_{timestamp}",
+            "email": f"teststaff_{timestamp}@adelamerchants.com.au",
             "password": "SecurePass123!",
             "full_name": "Test Staff Member",
             "role": "production_staff",
