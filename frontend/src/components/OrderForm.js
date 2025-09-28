@@ -538,26 +538,28 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
             </div>
           )}
 
-          {/* Order Totals */}
-          <div className="mb-8">
-            <div className="misty-card p-4 bg-gray-700">
-              <h3 className="text-lg font-semibold text-white mb-4">Order Summary</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Subtotal:</span>
-                  <span className="text-white font-medium">${orderTotals.subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">GST (10%):</span>
-                  <span className="text-white font-medium">${orderTotals.gst.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold border-t border-gray-600 pt-2">
-                  <span className="text-white">Total:</span>
-                  <span className="text-yellow-400">${orderTotals.total.toFixed(2)}</span>
+          {/* Order Totals - Only show when client is selected and has items */}
+          {formData.client_id && formData.items.some(item => item.product_name && item.quantity > 0) && (
+            <div className="mb-8">
+              <div className="misty-card p-4 bg-gray-700">
+                <h3 className="text-lg font-semibold text-white mb-4">Order Summary</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Subtotal:</span>
+                    <span className="text-white font-medium">${orderTotals.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">GST (10%):</span>
+                    <span className="text-white font-medium">${orderTotals.gst.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-bold border-t border-gray-600 pt-2">
+                    <span className="text-white">Total:</span>
+                    <span className="text-yellow-400">${orderTotals.total.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Notes */}
           <div className="mb-8">
