@@ -8,7 +8,8 @@ import {
   CalendarDaysIcon,
   CurrencyDollarIcon,
   ClipboardDocumentListIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  CubeIcon
 } from '@heroicons/react/24/outline';
 
 const Invoicing = () => {
