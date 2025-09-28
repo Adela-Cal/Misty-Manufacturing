@@ -240,6 +240,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "XERO INTEGRATION TESTING COMPLETED SUCCESSFULLY: Comprehensive testing of all Xero integration endpoints shows 100% success rate (10/10 tests passed). PRIMARY FOCUS ENDPOINTS TESTED: ✅ GET /api/xero/status (correctly reports connection status), ✅ GET /api/xero/auth/url (generates proper OAuth URL with correct client ID 0C765F92708046D5B625162E5D42C5FB and callback URL https://app.emergent.sh/api/xero/callback), ✅ POST /api/xero/auth/callback (properly validates authorization codes and state parameters), ✅ DELETE /api/xero/disconnect (successfully handles disconnection). NEW INTEGRATION ENDPOINTS TESTED: ✅ GET /api/xero/next-invoice-number (handles Xero API errors gracefully), ✅ POST /api/xero/create-draft-invoice (handles Xero API errors gracefully). REGRESSION TESTING: ✅ All existing invoicing endpoints (live-jobs, archived-jobs) working correctly with no regressions. AUTHENTICATION: ✅ All endpoints properly require admin/manager role permissions. ENVIRONMENT CONFIGURATION: ✅ Real Xero credentials configured correctly. Fixed minor document generation issue (missing SectionHeader style) during testing. System ready for production Xero OAuth flow."
+      - working: true
+        agent: "main"
+        comment: "XERO OAUTH CONNECTION SUCCESS: Resolved OAuth scope and redirect URI issues. Fixed invalid scopes (removed duplicates, corrected format from accounting.contacts.read to accounting.contacts, etc.). Updated Xero Developer Portal configuration to match production URLs. OAuth flow now working successfully - user confirmed 'It is working!'. Xero integration fully operational and ready for invoice creation testing."
 
 metadata:
   created_by: "main_agent"
