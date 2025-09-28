@@ -266,7 +266,7 @@ async def get_material(material_id: str, current_user: dict = Depends(require_an
     return Material(**material)
 
 @api_router.put("/materials/{material_id}", response_model=StandardResponse)
-async def update_material(material_id: str, material_data: MaterialCreate, current_user: dict = Depends(require_admin_or_production_manager)):
+async def update_material(material_id: str, material_data: MaterialCreate, current_user: dict = Depends(require_admin_or_manager)):
     """Update material"""
     update_data = material_data.dict()
     update_data["updated_at"] = datetime.utcnow()
