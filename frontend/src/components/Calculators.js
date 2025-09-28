@@ -433,8 +433,10 @@ const SpiralCoreConsumption = ({ productSpecs, loading, setLoading }) => {
   const [formData, setFormData] = useState({
     product_specification_id: '',
     core_internal_diameter: '',
+    wall_thickness_required: '',
     core_length: '',
-    quantity: ''
+    quantity: '',
+    master_tube_length: ''
   });
   const [results, setResults] = useState(null);
 
