@@ -38,7 +38,6 @@ const Layout = ({ children }) => {
     { name: 'Suppliers List', href: '/suppliers', icon: TruckIcon, permission: 'view_reports' },
     { name: 'Product Specifications', href: '/product-specifications', icon: DocumentTextIcon, permission: 'view_reports' },
   ];
-  ];
 
   // Xero connection item (separate from main navigation)
   const xeroConnectionItem = { 
