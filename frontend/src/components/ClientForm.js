@@ -188,6 +188,33 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!client) return;
+    
+    try {
+      setLoading(true);
+      await apiHelpers.deleteClient(client.id);
+      toast.success('Client deleted successfully');
+      setShowDeleteConfirm(false);
+      onSuccess?.();
+      onClose();
+    } catch (error) {
+      console.error('Failed to delete client:', error);
+      const message = error.response?.data?.detail || 'Failed to delete client';
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
