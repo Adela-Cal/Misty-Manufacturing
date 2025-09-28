@@ -422,6 +422,7 @@ class UserCreate(BaseModel):
     role: UserRole = UserRole.PRODUCTION_STAFF
     department: Optional[str] = None
     phone: Optional[str] = None
+    employment_type: EmploymentType = EmploymentType.FULL_TIME
 
 class EmploymentType(str, Enum):
     FULL_TIME = "full_time"
