@@ -283,12 +283,14 @@ const Invoicing = () => {
             <p className="text-gray-400">Generate invoices and manage completed jobs</p>
           </div>
           <div className="space-x-2">
-            <button
-              onClick={testPdfDownload}
-              className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white text-sm"
+            <a
+              href={`${process.env.REACT_APP_BACKEND_URL}/api/debug/test-pdf`}
+              target="_blank"
+              className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white text-sm inline-block"
+              onClick={() => toast.success('Test PDF opened!')}
             >
-              🔧 Test PDF Download
-            </button>
+              🔧 Test PDF (Simple)
+            </a>
             <a
               href={`${process.env.REACT_APP_BACKEND_URL}/api/debug/test-pdf`}
               download="test.pdf"
