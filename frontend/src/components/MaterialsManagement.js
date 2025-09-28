@@ -272,7 +272,7 @@ const MaterialsManagement = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">Products & Materials</h1>
-            <p className="text-gray-400">Manage your materials database and specifications</p>
+            <p className="text-gray-400">Manage your materials database and specifications • Double-click any material to edit</p>
           </div>
           <button
             onClick={handleCreate}
