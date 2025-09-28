@@ -86,8 +86,11 @@ const StaffSecurity = () => {
   };
 
   const handleDelete = async (user) => {
+    console.log('Delete button clicked for user:', user);
+    
     if (window.confirm(`Are you sure you wish to delete user "${user.username}"? This action cannot be undone.`)) {
       try {
+        console.log('User confirmed deletion, calling API...');
         await apiHelpers.deleteUser(user.id);
         toast.success('User deleted successfully');
         setShowModal(false);
@@ -96,6 +99,8 @@ const StaffSecurity = () => {
         console.error('Failed to delete user:', error);
         toast.error('Failed to delete user');
       }
+    } else {
+      console.log('User cancelled deletion');
     }
   };
 
