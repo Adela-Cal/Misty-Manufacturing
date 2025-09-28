@@ -19,6 +19,9 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
   const [totalHours, setTotalHours] = useState({ regular: 0, overtime: 0, leave: {} });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [selectedDayIndex, setSelectedDayIndex] = useState(null);
+  const [selectedLeaveType, setSelectedLeaveType] = useState('');
 
   useEffect(() => {
     loadTimesheet();
