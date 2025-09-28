@@ -233,6 +233,7 @@ const ProductionBoard = () => {
           <div className="flex items-center space-x-2">
             {/* Materials Status Hexagon */}
             <button
+              onClick={() => toggleMaterialsModal(job.id)}
               className="text-gray-400 hover:text-yellow-400 transition-colors"
               title={`Materials ${materialsStatus === 'ready' ? 'Ready' : 'Pending'}`}
             >
