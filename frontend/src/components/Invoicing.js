@@ -68,27 +68,102 @@ const Invoicing = () => {
       
       toast.success(`Invoice ${response.data.invoice_number} generated successfully`);
       
-      // Show download prompt instead of automatic download
-      toast.success(
-        <div>
-          <p>📄 Documents ready for download:</p>
-          <div className="mt-2 space-x-2">
-            <button 
-              onClick={() => downloadInvoice(selectedJob.id, selectedJob.order_number)}
-              className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs text-white"
-            >
-              📄 Invoice PDF
-            </button>
-            <button 
-              onClick={() => downloadPackingSlip(selectedJob.id, selectedJob.order_number)}
-              className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs text-white"
-            >
-              📦 Packing Slip
-            </button>
-          </div>
-        </div>,
-        { duration: 10000 }
-      );
+      // Also create draft invoice in Xero if connected
+      try {
+        const xeroStatus = await apiHelpers.checkXeroConnection();
+        if (xeroStatus.data.connected) {
+          const nextNumber = await apiHelpers.getNextXeroInvoiceNumber();
+          
+          const xeroInvoiceData = {
+            client_name: selectedJob.client_name,
+            client_email: selectedJob.client_email,
+            invoice_number: nextNumber.data.formatted_number,
+            order_number: selectedJob.order_number,
+            items: selectedJob.items,
+            total_amount: selectedJob.total_amount,
+            due_date: invoiceData.due_date,
+            reference: selectedJob.order_number
+          };
+          
+          const xeroResponse = await apiHelpers.createXeroDraftInvoice(xeroInvoiceData);
+          
+          toast.success(
+            <div>
+              <p>📄 Invoice created locally and in Xero!</p>
+              <div className="mt-2 space-x-2">
+                <button 
+                  onClick={() => downloadInvoice(selectedJob.id, selectedJob.order_number)}
+                  className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs text-white"
+                >
+                  📄 Invoice PDF
+                </button>
+                <button 
+                  onClick={() => downloadPackingSlip(selectedJob.id, selectedJob.order_number)}
+                  className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs text-white"
+                >
+                  📦 Packing Slip
+                </button>
+                <a
+                  href={xeroResponse.data.xero_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs text-white inline-block"
+                >
+                  🔗 View in Xero
+                </a>
+              </div>
+            </div>,
+            { duration: 15000 }
+          );
+        } else {
+          // Show download prompt if no Xero connection
+          toast.success(
+            <div>
+              <p>📄 Documents ready for download:</p>
+              <div className="mt-2 space-x-2">
+                <button 
+                  onClick={() => downloadInvoice(selectedJob.id, selectedJob.order_number)}
+                  className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs text-white"
+                >
+                  📄 Invoice PDF
+                </button>
+                <button 
+                  onClick={() => downloadPackingSlip(selectedJob.id, selectedJob.order_number)}
+                  className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs text-white"
+                >
+                  📦 Packing Slip
+                </button>
+              </div>
+              <p className="text-xs mt-2 text-gray-300">💡 Connect to Xero to automatically create draft invoices</p>
+            </div>,
+            { duration: 10000 }
+          );
+        }
+      } catch (xeroError) {
+        console.error('Xero integration error:', xeroError);
+        // Still show local documents
+        toast.success(
+          <div>
+            <p>📄 Documents ready for download:</p>
+            <div className="mt-2 space-x-2">
+              <button 
+                onClick={() => downloadInvoice(selectedJob.id, selectedJob.order_number)}
+                className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs text-white"
+              >
+                📄 Invoice PDF
+              </button>
+              <button 
+                onClick={() => downloadPackingSlip(selectedJob.id, selectedJob.order_number)}
+                className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs text-white"
+              >
+                📦 Packing Slip
+              </button>
+            </div>
+            <p className="text-xs mt-2 text-orange-300">⚠️ Xero integration unavailable</p>
+          </div>,
+          { duration: 10000 }
+        );
+      }
       
       setShowInvoiceModal(false);
       setSelectedJob(null);
