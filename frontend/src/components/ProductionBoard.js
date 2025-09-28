@@ -189,11 +189,6 @@ const ProductionBoard = () => {
               <p className="text-sm text-gray-400">{job.client_name}</p>
             </div>
             
-            {/* Australia Map */}
-            <div className="mx-3">
-              <AustraliaMap deliveryAddress={job.delivery_address} />
-            </div>
-            
             {isOverdue && (
               <ExclamationTriangleIcon className="h-5 w-5 text-red-400 ml-2" />
             )}
