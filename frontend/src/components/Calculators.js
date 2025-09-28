@@ -489,7 +489,7 @@ const SpiralCoreConsumption = ({ productSpecs, loading, setLoading }) => {
           <label className="block text-sm font-medium text-gray-300 mb-1">Product Specification</label>
           <select
             value={formData.product_specification_id}
-            onChange={(e) => setFormData({...formData, product_specification_id: e.target.value})}
+            onChange={(e) => handleSpecificationChange(e.target.value)}
             className="misty-select w-full"
             required
           >
@@ -501,15 +501,31 @@ const SpiralCoreConsumption = ({ productSpecs, loading, setLoading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Internal Diameter (mm)</label>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Internal Diameter (mm) *</label>
           <input
             type="number"
             step="0.1"
             value={formData.core_internal_diameter}
             onChange={(e) => setFormData({...formData, core_internal_diameter: e.target.value})}
-            className="misty-input w-full"
-            required
+            className="misty-input w-full bg-gray-700"
+            placeholder="Auto-populated from product spec"
+            readOnly
           />
+          <p className="text-xs text-gray-500 mt-1">Automatically filled from selected product specification</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Wall Thickness (mm) *</label>
+          <input
+            type="number"
+            step="0.1"
+            value={formData.wall_thickness_required}
+            onChange={(e) => setFormData({...formData, wall_thickness_required: e.target.value})}
+            className="misty-input w-full bg-gray-700"
+            placeholder="Auto-populated from product spec"  
+            readOnly
+          />
+          <p className="text-xs text-gray-500 mt-1">Automatically filled from selected product specification</p>
         </div>
 
         <div>
