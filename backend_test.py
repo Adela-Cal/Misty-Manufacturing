@@ -5789,6 +5789,540 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result("Verify Permanent Deletion", False, f"Error: {str(e)}")
 
+    def test_staff_security_employment_type(self):
+        """Test enhanced Staff & Security system with employment type functionality"""
+        print("\n=== STAFF & SECURITY EMPLOYMENT TYPE TESTS ===")
+        
+        # Test 1: Create User with Employment Type (Full Time)
+        user_full_time = {
+            "username": f"testuser_fulltime_{int(datetime.now().timestamp())}",
+            "email": f"fulltime_{int(datetime.now().timestamp())}@test.com",
+            "password": "TestPassword123",
+            "full_name": "Full Time Test User",
+            "role": "production_staff",
+            "department": "Manufacturing",
+            "phone": "0412345678",
+            "employment_type": "full_time"
+        }
+        
+        full_time_user_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/users", json=user_full_time)
+            
+            if response.status_code == 200:
+                result = response.json()
+                full_time_user_id = result.get('data', {}).get('id')
+                
+                if full_time_user_id:
+                    # Verify user was created with employment_type
+                    get_response = self.session.get(f"{API_BASE}/users/{full_time_user_id}")
+                    if get_response.status_code == 200:
+                        user = get_response.json()
+                        employment_type = user.get('employment_type')
+                        
+                        if employment_type == "full_time":
+                            self.log_result(
+                                "Create User with Employment Type (Full Time)", 
+                                True, 
+                                f"Successfully created full-time user with employment_type field",
+                                f"User ID: {full_time_user_id}, Employment Type: {employment_type}"
+                            )
+                        else:
+                            self.log_result(
+                                "Create User with Employment Type (Full Time)", 
+                                False, 
+                                f"Expected employment_type 'full_time' but got '{employment_type}'"
+                            )
+                    else:
+                        self.log_result(
+                            "Create User with Employment Type (Full Time)", 
+                            False, 
+                            "Failed to retrieve created user for employment_type verification"
+                        )
+                else:
+                    self.log_result(
+                        "Create User with Employment Type (Full Time)", 
+                        False, 
+                        "User creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create User with Employment Type (Full Time)", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create User with Employment Type (Full Time)", False, f"Error: {str(e)}")
+        
+        # Test 2: Create User with Employment Type (Part Time)
+        user_part_time = {
+            "username": f"testuser_parttime_{int(datetime.now().timestamp())}",
+            "email": f"parttime_{int(datetime.now().timestamp())}@test.com",
+            "password": "TestPassword123",
+            "full_name": "Part Time Test User",
+            "role": "production_staff",
+            "department": "Quality Control",
+            "phone": "0412345679",
+            "employment_type": "part_time"
+        }
+        
+        part_time_user_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/users", json=user_part_time)
+            
+            if response.status_code == 200:
+                result = response.json()
+                part_time_user_id = result.get('data', {}).get('id')
+                
+                if part_time_user_id:
+                    # Verify user was created with employment_type
+                    get_response = self.session.get(f"{API_BASE}/users/{part_time_user_id}")
+                    if get_response.status_code == 200:
+                        user = get_response.json()
+                        employment_type = user.get('employment_type')
+                        
+                        if employment_type == "part_time":
+                            self.log_result(
+                                "Create User with Employment Type (Part Time)", 
+                                True, 
+                                f"Successfully created part-time user with employment_type field",
+                                f"User ID: {part_time_user_id}, Employment Type: {employment_type}"
+                            )
+                        else:
+                            self.log_result(
+                                "Create User with Employment Type (Part Time)", 
+                                False, 
+                                f"Expected employment_type 'part_time' but got '{employment_type}'"
+                            )
+                    else:
+                        self.log_result(
+                            "Create User with Employment Type (Part Time)", 
+                            False, 
+                            "Failed to retrieve created user for employment_type verification"
+                        )
+                else:
+                    self.log_result(
+                        "Create User with Employment Type (Part Time)", 
+                        False, 
+                        "User creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create User with Employment Type (Part Time)", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create User with Employment Type (Part Time)", False, f"Error: {str(e)}")
+        
+        # Test 3: Create User with Employment Type (Casual)
+        user_casual = {
+            "username": f"testuser_casual_{int(datetime.now().timestamp())}",
+            "email": f"casual_{int(datetime.now().timestamp())}@test.com",
+            "password": "TestPassword123",
+            "full_name": "Casual Test User",
+            "role": "production_staff",
+            "department": "Warehouse",
+            "phone": "0412345680",
+            "employment_type": "casual"
+        }
+        
+        casual_user_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/users", json=user_casual)
+            
+            if response.status_code == 200:
+                result = response.json()
+                casual_user_id = result.get('data', {}).get('id')
+                
+                if casual_user_id:
+                    # Verify user was created with employment_type
+                    get_response = self.session.get(f"{API_BASE}/users/{casual_user_id}")
+                    if get_response.status_code == 200:
+                        user = get_response.json()
+                        employment_type = user.get('employment_type')
+                        
+                        if employment_type == "casual":
+                            self.log_result(
+                                "Create User with Employment Type (Casual)", 
+                                True, 
+                                f"Successfully created casual user with employment_type field",
+                                f"User ID: {casual_user_id}, Employment Type: {employment_type}"
+                            )
+                        else:
+                            self.log_result(
+                                "Create User with Employment Type (Casual)", 
+                                False, 
+                                f"Expected employment_type 'casual' but got '{employment_type}'"
+                            )
+                    else:
+                        self.log_result(
+                            "Create User with Employment Type (Casual)", 
+                            False, 
+                            "Failed to retrieve created user for employment_type verification"
+                        )
+                else:
+                    self.log_result(
+                        "Create User with Employment Type (Casual)", 
+                        False, 
+                        "User creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create User with Employment Type (Casual)", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create User with Employment Type (Casual)", False, f"Error: {str(e)}")
+        
+        # Test 4: Create User with Default Employment Type (should default to full_time)
+        user_default = {
+            "username": f"testuser_default_{int(datetime.now().timestamp())}",
+            "email": f"default_{int(datetime.now().timestamp())}@test.com",
+            "password": "TestPassword123",
+            "full_name": "Default Employment Type User",
+            "role": "production_staff",
+            "department": "Administration",
+            "phone": "0412345681"
+            # Note: employment_type not specified - should default to full_time
+        }
+        
+        default_user_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/users", json=user_default)
+            
+            if response.status_code == 200:
+                result = response.json()
+                default_user_id = result.get('data', {}).get('id')
+                
+                if default_user_id:
+                    # Verify user was created with default employment_type
+                    get_response = self.session.get(f"{API_BASE}/users/{default_user_id}")
+                    if get_response.status_code == 200:
+                        user = get_response.json()
+                        employment_type = user.get('employment_type')
+                        
+                        if employment_type == "full_time":
+                            self.log_result(
+                                "Create User with Default Employment Type", 
+                                True, 
+                                f"Successfully created user with default employment_type 'full_time'",
+                                f"User ID: {default_user_id}, Employment Type: {employment_type}"
+                            )
+                        else:
+                            self.log_result(
+                                "Create User with Default Employment Type", 
+                                False, 
+                                f"Expected default employment_type 'full_time' but got '{employment_type}'"
+                            )
+                    else:
+                        self.log_result(
+                            "Create User with Default Employment Type", 
+                            False, 
+                            "Failed to retrieve created user for employment_type verification"
+                        )
+                else:
+                    self.log_result(
+                        "Create User with Default Employment Type", 
+                        False, 
+                        "User creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create User with Default Employment Type", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create User with Default Employment Type", False, f"Error: {str(e)}")
+        
+        # Test 5: Update User Employment Type (from full_time to part_time)
+        if full_time_user_id:
+            update_employment_data = {
+                "employment_type": "part_time",
+                "department": "Updated Department"
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/users/{full_time_user_id}", json=update_employment_data)
+                
+                if response.status_code == 200:
+                    # Verify the employment_type was updated
+                    get_response = self.session.get(f"{API_BASE}/users/{full_time_user_id}")
+                    if get_response.status_code == 200:
+                        updated_user = get_response.json()
+                        updated_employment_type = updated_user.get('employment_type')
+                        updated_department = updated_user.get('department')
+                        
+                        if updated_employment_type == "part_time" and updated_department == "Updated Department":
+                            self.log_result(
+                                "Update User Employment Type", 
+                                True, 
+                                f"Successfully updated user employment_type from full_time to part_time",
+                                f"User ID: {full_time_user_id}, New Employment Type: {updated_employment_type}, Department: {updated_department}"
+                            )
+                        else:
+                            self.log_result(
+                                "Update User Employment Type", 
+                                False, 
+                                f"Update failed - expected part_time but got '{updated_employment_type}'"
+                            )
+                    else:
+                        self.log_result(
+                            "Update User Employment Type", 
+                            False, 
+                            "Failed to retrieve updated user for employment_type verification"
+                        )
+                else:
+                    self.log_result(
+                        "Update User Employment Type", 
+                        False, 
+                        f"Update failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Update User Employment Type", False, f"Error: {str(e)}")
+        
+        # Test 6: Test Hard Delete Functionality
+        if casual_user_id:
+            try:
+                # First verify user exists
+                get_response = self.session.get(f"{API_BASE}/users/{casual_user_id}")
+                if get_response.status_code == 200:
+                    # Perform hard delete
+                    delete_response = self.session.delete(f"{API_BASE}/users/{casual_user_id}")
+                    
+                    if delete_response.status_code == 200:
+                        delete_result = delete_response.json()
+                        delete_message = delete_result.get('message', '')
+                        
+                        if 'deleted successfully' in delete_message:
+                            # Verify user is completely removed from database
+                            verify_response = self.session.get(f"{API_BASE}/users/{casual_user_id}")
+                            
+                            if verify_response.status_code == 404:
+                                self.log_result(
+                                    "Hard Delete User", 
+                                    True, 
+                                    f"Successfully performed hard delete - user completely removed from database",
+                                    f"User ID: {casual_user_id}, Delete Message: {delete_message}"
+                                )
+                            else:
+                                self.log_result(
+                                    "Hard Delete User", 
+                                    False, 
+                                    f"Delete claimed success but user still exists (status: {verify_response.status_code})"
+                                )
+                        else:
+                            self.log_result(
+                                "Hard Delete User", 
+                                False, 
+                                f"Unexpected delete response message: {delete_message}"
+                            )
+                    else:
+                        self.log_result(
+                            "Hard Delete User", 
+                            False, 
+                            f"Delete failed with status {delete_response.status_code}",
+                            delete_response.text
+                        )
+                else:
+                    self.log_result(
+                        "Hard Delete User", 
+                        False, 
+                        "Test user not found before delete test"
+                    )
+            except Exception as e:
+                self.log_result("Hard Delete User", False, f"Error: {str(e)}")
+        
+        # Test 7: Test Self-Deletion Protection
+        try:
+            # Try to delete current user (should be prevented)
+            current_user_response = self.session.get(f"{API_BASE}/auth/me")
+            if current_user_response.status_code == 200:
+                current_user_data = current_user_response.json()
+                current_user_id = current_user_data.get('id')
+                
+                if current_user_id:
+                    delete_response = self.session.delete(f"{API_BASE}/users/{current_user_id}")
+                    
+                    if delete_response.status_code == 400:
+                        error_text = delete_response.text
+                        if "Cannot delete your own account" in error_text:
+                            self.log_result(
+                                "Self-Deletion Protection", 
+                                True, 
+                                "Successfully prevented admin from deleting their own account",
+                                f"Error message: {error_text}"
+                            )
+                        else:
+                            self.log_result(
+                                "Self-Deletion Protection", 
+                                False, 
+                                f"Expected 'Cannot delete your own account' error but got: {error_text}"
+                            )
+                    else:
+                        self.log_result(
+                            "Self-Deletion Protection", 
+                            False, 
+                            f"Expected 400 status but got {delete_response.status_code}",
+                            "Self-deletion should be prevented"
+                        )
+                else:
+                    self.log_result(
+                        "Self-Deletion Protection", 
+                        False, 
+                        "Could not get current user ID for self-deletion test"
+                    )
+            else:
+                self.log_result(
+                    "Self-Deletion Protection", 
+                    False, 
+                    "Could not get current user info for self-deletion test"
+                )
+        except Exception as e:
+            self.log_result("Self-Deletion Protection", False, f"Error: {str(e)}")
+        
+        # Test 8: Test Employment Type Validation (invalid value)
+        user_invalid_employment = {
+            "username": f"testuser_invalid_{int(datetime.now().timestamp())}",
+            "email": f"invalid_{int(datetime.now().timestamp())}@test.com",
+            "password": "TestPassword123",
+            "full_name": "Invalid Employment Type User",
+            "role": "production_staff",
+            "employment_type": "invalid_type"  # Invalid employment type
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/users", json=user_invalid_employment)
+            
+            if response.status_code == 422:  # Validation error expected
+                self.log_result(
+                    "Employment Type Validation", 
+                    True, 
+                    "Correctly rejected invalid employment_type with validation error",
+                    f"Status: {response.status_code}, Response: {response.text}"
+                )
+            else:
+                self.log_result(
+                    "Employment Type Validation", 
+                    False, 
+                    f"Expected 422 validation error but got {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Employment Type Validation", False, f"Error: {str(e)}")
+        
+        # Test 9: Test Combined Update (username, employment_type, role)
+        if part_time_user_id:
+            combined_update_data = {
+                "username": f"updated_user_{int(datetime.now().timestamp())}",
+                "employment_type": "casual",
+                "role": "supervisor",
+                "full_name": "Updated Combined User",
+                "department": "Combined Update Department"
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/users/{part_time_user_id}", json=combined_update_data)
+                
+                if response.status_code == 200:
+                    # Verify all fields were updated
+                    get_response = self.session.get(f"{API_BASE}/users/{part_time_user_id}")
+                    if get_response.status_code == 200:
+                        updated_user = get_response.json()
+                        
+                        checks = [
+                            ("username", updated_user.get('username') == combined_update_data['username']),
+                            ("employment_type", updated_user.get('employment_type') == combined_update_data['employment_type']),
+                            ("role", updated_user.get('role') == combined_update_data['role']),
+                            ("full_name", updated_user.get('full_name') == combined_update_data['full_name']),
+                            ("department", updated_user.get('department') == combined_update_data['department'])
+                        ]
+                        
+                        passed_checks = [field for field, passed in checks if passed]
+                        failed_checks = [field for field, passed in checks if not passed]
+                        
+                        if len(failed_checks) == 0:
+                            self.log_result(
+                                "Combined Update (username, employment_type, role)", 
+                                True, 
+                                f"Successfully updated all fields in combined update",
+                                f"Updated fields: {', '.join(passed_checks)}"
+                            )
+                        else:
+                            self.log_result(
+                                "Combined Update (username, employment_type, role)", 
+                                False, 
+                                f"Some fields failed to update: {', '.join(failed_checks)}",
+                                f"Passed: {', '.join(passed_checks)}"
+                            )
+                    else:
+                        self.log_result(
+                            "Combined Update (username, employment_type, role)", 
+                            False, 
+                            "Failed to retrieve updated user for verification"
+                        )
+                else:
+                    self.log_result(
+                        "Combined Update (username, employment_type, role)", 
+                        False, 
+                        f"Combined update failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Combined Update (username, employment_type, role)", False, f"Error: {str(e)}")
+        
+        # Test 10: Verify Employment Type in User List
+        try:
+            response = self.session.get(f"{API_BASE}/users")
+            
+            if response.status_code == 200:
+                users = response.json()
+                
+                # Check if employment_type field is present in user list
+                users_with_employment_type = [user for user in users if 'employment_type' in user]
+                
+                if len(users_with_employment_type) > 0:
+                    # Check for different employment types
+                    employment_types_found = set(user.get('employment_type') for user in users_with_employment_type if user.get('employment_type'))
+                    
+                    self.log_result(
+                        "Employment Type in User List", 
+                        True, 
+                        f"Employment type field present in user list responses",
+                        f"Users with employment_type: {len(users_with_employment_type)}, Types found: {list(employment_types_found)}"
+                    )
+                else:
+                    self.log_result(
+                        "Employment Type in User List", 
+                        False, 
+                        "No users found with employment_type field in list response"
+                    )
+            else:
+                self.log_result(
+                    "Employment Type in User List", 
+                    False, 
+                    f"Failed to get user list: {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Employment Type in User List", False, f"Error: {str(e)}")
+        
+        # Cleanup: Delete remaining test users
+        cleanup_user_ids = [full_time_user_id, part_time_user_id, default_user_id]
+        for user_id in cleanup_user_ids:
+            if user_id:
+                try:
+                    self.session.delete(f"{API_BASE}/users/{user_id}")
+                except:
+                    pass  # Ignore cleanup errors
+
     def run_all_tests(self):
         """Run backend API tests with PRIMARY FOCUS on User Deletion functionality"""
         print("🚀 Starting Backend API Tests - PRIMARY FOCUS: User Deletion Functionality")
