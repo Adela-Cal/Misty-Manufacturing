@@ -462,20 +462,6 @@ const ProductSpecifications = () => {
                 </div>
               </div>
               <form onSubmit={handleSubmit} className="px-6 pb-6">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-white">
-                    {selectedSpec ? 'Edit Product Specification' : 'Add New Product Specification'}
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    <XMarkIcon className="h-6 w-6" />
-                  </button>
-                </div>
-
                 {/* Basic Information */}
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold text-white mb-4">Basic Information</h3>
