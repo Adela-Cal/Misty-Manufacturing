@@ -35,6 +35,7 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
   const [errors, setErrors] = useState({});
   const [showBankDetails, setShowBankDetails] = useState(false);
   const [showContacts, setShowContacts] = useState(false);
+  const [showProductCatalog, setShowProductCatalog] = useState(false);
 
   useEffect(() => {
     if (client) {
