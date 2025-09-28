@@ -153,8 +153,8 @@ const MaterialsManagement = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.supplier.trim()) {
-      newErrors.supplier = 'Supplier is required';
+    if (!formData.supplier_id) {
+      newErrors.supplier_id = 'Supplier is required';
     }
     
     if (!formData.product_code.trim()) {
