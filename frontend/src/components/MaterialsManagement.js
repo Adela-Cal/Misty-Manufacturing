@@ -19,7 +19,8 @@ const MaterialsManagement = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
   const [formData, setFormData] = useState({
-    supplier: '',
+    supplier_id: '',  // Changed from supplier to supplier_id
+    supplier_name: '',  // Keep for display purposes
     product_code: '',
     order_to_delivery_time: '',
     material_description: '',  // New field
