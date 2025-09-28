@@ -88,7 +88,7 @@ const StaffSecurity = () => {
   const handleDelete = async (user) => {
     if (window.confirm(`Are you sure you want to deactivate user "${user.username}"?`)) {
       try {
-        await apiHelpers.updateUser(user.id, { is_active: false });
+        await apiHelpers.deleteUser(user.id);
         toast.success('User deactivated successfully');
         setShowModal(false);
         loadUsers();
