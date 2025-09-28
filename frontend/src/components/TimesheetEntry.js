@@ -109,20 +109,59 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
       if (!newEntries[index].leave_hours) {
         newEntries[index].leave_hours = {};
       }
-      newEntries[index].leave_hours[leaveType] = parseFloat(value) || 0;
+      newEntries[index].leave_hours[leaveType] = value;
     } else {
-      newEntries[index][field] = field.includes('hours') ? parseFloat(value) || 0 : value;
+      newEntries[index][field] = value;
     }
     
     setEntries(newEntries);
-    
-    // Clear errors for this field
-    const errorKey = `${index}_${field}`;
-    if (errors[errorKey]) {
-      const newErrors = { ...errors };
-      delete newErrors[errorKey];
-      setErrors(newErrors);
+  };
+
+  const handleDayClick = (dayIndex) => {
+    if (!canEdit()) return;
+    setSelectedDayIndex(dayIndex);
+    setSelectedLeaveType('');
+    setShowLeaveModal(true);
+  };
+
+  const applyLeaveToDay = () => {
+    if (selectedDayIndex !== null && selectedLeaveType) {
+      const newEntries = [...entries];
+      
+      // Clear all work hours and set 8 hours of selected leave type
+      newEntries[selectedDayIndex].regular_hours = 0;
+      newEntries[selectedDayIndex].overtime_hours = 0;
+      newEntries[selectedDayIndex].leave_hours = {
+        [selectedLeaveType]: 8
+      };
+      
+      setEntries(newEntries);
+      setShowLeaveModal(false);
+      setSelectedDayIndex(null);
+      setSelectedLeaveType('');
     }
+  };
+
+  const clearLeaveFromDay = () => {
+    if (selectedDayIndex !== null) {
+      const newEntries = [...entries];
+      newEntries[selectedDayIndex].leave_hours = {};
+      setEntries(newEntries);
+      setShowLeaveModal(false);
+      setSelectedDayIndex(null);
+    }
+  };
+
+  const calculateAnnualLeaveAccrual = (employmentType, totalRegularHours) => {
+    // Annual leave accrual rates per hour worked (Australian standards)
+    const accrualRates = {
+      full_time: 0.0769, // 4 weeks per year (152 hours) / 1976 standard hours
+      part_time: 0.0769, // Same rate as full time (pro-rata)
+      casual: 0.0962     // Additional 17.5% loading in lieu of leave entitlements
+    };
+    
+    const rate = accrualRates[employmentType] || accrualRates.full_time;
+    return (totalRegularHours * rate).toFixed(2);
   };
 
   const validateTimesheet = () => {
