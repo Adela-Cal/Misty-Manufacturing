@@ -479,6 +479,24 @@ const MaterialsManagement = () => {
                         <p className="text-red-400 text-sm mt-1">{errors.order_to_delivery_time}</p>
                       )}
                     </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Material Description *
+                      </label>
+                      <textarea
+                        name="material_description"
+                        value={formData.material_description}
+                        onChange={handleInputChange}
+                        className={`misty-input w-full ${errors.material_description ? 'border-red-500' : ''}`}
+                        placeholder="Enter detailed material description"
+                        rows="3"
+                        required
+                      />
+                      {errors.material_description && (
+                        <p className="text-red-400 text-sm mt-1">{errors.material_description}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
