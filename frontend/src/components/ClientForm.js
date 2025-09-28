@@ -796,6 +796,14 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
           </div>
         </form>
       </div>
+      
+      {/* Product Catalog Modal */}
+      {showProductCatalog && client && (
+        <ClientProductCatalog
+          clientId={client.id}
+          onClose={() => setShowProductCatalog(false)}
+        />
+      )}
     </div>
   );
 };
