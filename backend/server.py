@@ -1128,14 +1128,16 @@ async def health_check():
 app.include_router(api_router)
 app.include_router(payroll_router)
 
-# Add CORS middleware
-cors_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
-print(f"CORS Origins configured: {cors_origins}")  # Debug logging
+# Add CORS middleware with debug logging
+cors_origins_str = os.environ.get('CORS_ORIGINS', '*')
+print(f"CORS Origins string from env: '{cors_origins_str}'")
+cors_origins = cors_origins_str.split(',') if cors_origins_str != '*' else ["*"]
+print(f"CORS Origins configured: {cors_origins}")
 
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=cors_origins,
+    allow_origins=["*"],  # Temporarily allow all origins for testing
     allow_methods=["*"],
     allow_headers=["*"],
 )
