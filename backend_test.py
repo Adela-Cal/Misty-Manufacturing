@@ -6323,9 +6323,343 @@ class InvoicingAPITester:
                 except:
                     pass  # Ignore cleanup errors
 
+    def test_client_deletion_functionality(self):
+        """Test comprehensive client deletion functionality"""
+        print("\n=== CLIENT DELETION FUNCTIONALITY TEST ===")
+        
+        # Test 1: Create a test client for deletion testing
+        test_client_data = {
+            "company_name": "Test Client for Deletion",
+            "contact_name": "John Delete",
+            "email": "john.delete@testclient.com",
+            "phone": "0412345678",
+            "address": "123 Delete Street",
+            "city": "Melbourne",
+            "state": "VIC",
+            "postal_code": "3000",
+            "abn": "98765432101",
+            "payment_terms": "Net 30 days",
+            "lead_time_days": 7
+        }
+        
+        test_client_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/clients", json=test_client_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                test_client_id = result.get('data', {}).get('id')
+                
+                if test_client_id:
+                    self.log_result(
+                        "Create Test Client for Deletion", 
+                        True, 
+                        f"Successfully created test client for deletion testing",
+                        f"Client ID: {test_client_id}"
+                    )
+                else:
+                    self.log_result(
+                        "Create Test Client for Deletion", 
+                        False, 
+                        "Client creation response missing ID"
+                    )
+                    return
+            else:
+                self.log_result(
+                    "Create Test Client for Deletion", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                return
+        except Exception as e:
+            self.log_result("Create Test Client for Deletion", False, f"Error: {str(e)}")
+            return
+        
+        # Test 2: Test DELETE endpoint with admin credentials
+        try:
+            response = self.session.delete(f"{API_BASE}/clients/{test_client_id}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                message = result.get('message', '')
+                
+                if 'Client deleted successfully' in message:
+                    self.log_result(
+                        "Client Deletion Endpoint (Admin Access)", 
+                        True, 
+                        f"Successfully deleted client with proper response message",
+                        f"Response: {message}"
+                    )
+                else:
+                    self.log_result(
+                        "Client Deletion Endpoint (Admin Access)", 
+                        False, 
+                        f"Unexpected response message: {message}"
+                    )
+            else:
+                self.log_result(
+                    "Client Deletion Endpoint (Admin Access)", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Client Deletion Endpoint (Admin Access)", False, f"Error: {str(e)}")
+        
+        # Test 3: Verify client is soft deleted (is_active set to false)
+        try:
+            response = self.session.get(f"{API_BASE}/clients/{test_client_id}")
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Client Soft Delete Verification", 
+                    True, 
+                    "Client correctly returns 404 after deletion (soft delete working)",
+                    "Client is no longer accessible via GET /api/clients/{id}"
+                )
+            else:
+                # If we can still get the client, check if it's marked as inactive
+                if response.status_code == 200:
+                    client_data = response.json()
+                    is_active = client_data.get('is_active', True)
+                    
+                    if is_active == False:
+                        self.log_result(
+                            "Client Soft Delete Verification", 
+                            True, 
+                            "Client marked as inactive (is_active: false) - soft delete working"
+                        )
+                    else:
+                        self.log_result(
+                            "Client Soft Delete Verification", 
+                            False, 
+                            "Client still active after deletion - soft delete not working",
+                            f"is_active: {is_active}"
+                        )
+                else:
+                    self.log_result(
+                        "Client Soft Delete Verification", 
+                        False, 
+                        f"Unexpected response status: {response.status_code}",
+                        response.text
+                    )
+        except Exception as e:
+            self.log_result("Client Soft Delete Verification", False, f"Error: {str(e)}")
+        
+        # Test 4: Verify deleted client doesn't appear in GET /api/clients list
+        try:
+            response = self.session.get(f"{API_BASE}/clients")
+            
+            if response.status_code == 200:
+                clients = response.json()
+                deleted_client_in_list = any(client.get('id') == test_client_id for client in clients)
+                
+                if not deleted_client_in_list:
+                    self.log_result(
+                        "Deleted Client Not in List", 
+                        True, 
+                        "Deleted client correctly filtered out from GET /api/clients list",
+                        f"Total active clients: {len(clients)}"
+                    )
+                else:
+                    self.log_result(
+                        "Deleted Client Not in List", 
+                        False, 
+                        "Deleted client still appears in active clients list"
+                    )
+            else:
+                self.log_result(
+                    "Deleted Client Not in List", 
+                    False, 
+                    f"Failed to get clients list: {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Deleted Client Not in List", False, f"Error: {str(e)}")
+        
+        # Test 5: Test deleting non-existent client (should return 404)
+        fake_client_id = "non-existent-client-id-12345"
+        try:
+            response = self.session.delete(f"{API_BASE}/clients/{fake_client_id}")
+            
+            if response.status_code == 404:
+                result = response.json()
+                message = result.get('detail', '')
+                
+                if 'Client not found' in message:
+                    self.log_result(
+                        "Delete Non-Existent Client", 
+                        True, 
+                        "Correctly returns 404 for non-existent client",
+                        f"Response: {message}"
+                    )
+                else:
+                    self.log_result(
+                        "Delete Non-Existent Client", 
+                        False, 
+                        f"Unexpected error message: {message}"
+                    )
+            else:
+                self.log_result(
+                    "Delete Non-Existent Client", 
+                    False, 
+                    f"Expected 404 but got {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Delete Non-Existent Client", False, f"Error: {str(e)}")
+        
+        # Test 6: Test deleting already deleted client
+        try:
+            response = self.session.delete(f"{API_BASE}/clients/{test_client_id}")
+            
+            if response.status_code == 404:
+                result = response.json()
+                message = result.get('detail', '')
+                
+                if 'Client not found' in message:
+                    self.log_result(
+                        "Delete Already Deleted Client", 
+                        True, 
+                        "Correctly returns 404 when trying to delete already deleted client",
+                        f"Response: {message}"
+                    )
+                else:
+                    self.log_result(
+                        "Delete Already Deleted Client", 
+                        False, 
+                        f"Unexpected error message: {message}"
+                    )
+            else:
+                self.log_result(
+                    "Delete Already Deleted Client", 
+                    False, 
+                    f"Expected 404 but got {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Delete Already Deleted Client", False, f"Error: {str(e)}")
+        
+        # Test 7: Test unauthorized access (without admin credentials)
+        temp_session = requests.Session()
+        try:
+            response = temp_session.delete(f"{API_BASE}/clients/{test_client_id}")
+            
+            if response.status_code in [401, 403]:
+                self.log_result(
+                    "Client Deletion Authentication Required", 
+                    True, 
+                    f"Correctly requires authentication for client deletion (status: {response.status_code})"
+                )
+            else:
+                self.log_result(
+                    "Client Deletion Authentication Required", 
+                    False, 
+                    f"Expected 401/403 but got {response.status_code}",
+                    "Client deletion should require admin authentication"
+                )
+        except Exception as e:
+            self.log_result("Client Deletion Authentication Required", False, f"Error: {str(e)}")
+        
+        # Test 8: Test safety protection - client with active orders
+        # First create a client with an active order
+        client_with_orders_data = {
+            "company_name": "Client with Active Orders",
+            "contact_name": "Jane Orders",
+            "email": "jane.orders@testclient.com",
+            "phone": "0412345679",
+            "address": "456 Orders Street",
+            "city": "Sydney",
+            "state": "NSW",
+            "postal_code": "2000",
+            "abn": "11223344556",
+            "payment_terms": "Net 14 days",
+            "lead_time_days": 5
+        }
+        
+        client_with_orders_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/clients", json=client_with_orders_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                client_with_orders_id = result.get('data', {}).get('id')
+                
+                if client_with_orders_id:
+                    # Create an active order for this client
+                    order_data = {
+                        "client_id": client_with_orders_id,
+                        "due_date": (datetime.now() + timedelta(days=14)).isoformat(),
+                        "delivery_address": "456 Orders Street, Sydney NSW 2000",
+                        "delivery_instructions": "Handle with care",
+                        "notes": "Test order to prevent client deletion",
+                        "items": [
+                            {
+                                "product_id": "test-product-1",
+                                "product_name": "Test Product",
+                                "description": "Test product for deletion protection",
+                                "quantity": 1,
+                                "unit_price": 50.0,
+                                "total_price": 50.0
+                            }
+                        ]
+                    }
+                    
+                    order_response = self.session.post(f"{API_BASE}/orders", json=order_data)
+                    
+                    if order_response.status_code == 200:
+                        # Now try to delete the client - should fail with 400 error
+                        delete_response = self.session.delete(f"{API_BASE}/clients/{client_with_orders_id}")
+                        
+                        if delete_response.status_code == 400:
+                            result = delete_response.json()
+                            message = result.get('detail', '')
+                            
+                            if 'Cannot delete client with active orders' in message:
+                                self.log_result(
+                                    "Safety Protection - Client with Active Orders", 
+                                    True, 
+                                    "Correctly prevents deletion of client with active orders",
+                                    f"Response: {message}"
+                                )
+                            else:
+                                self.log_result(
+                                    "Safety Protection - Client with Active Orders", 
+                                    False, 
+                                    f"Unexpected error message: {message}"
+                                )
+                        else:
+                            self.log_result(
+                                "Safety Protection - Client with Active Orders", 
+                                False, 
+                                f"Expected 400 but got {delete_response.status_code}",
+                                delete_response.text
+                            )
+                    else:
+                        self.log_result(
+                            "Safety Protection - Client with Active Orders", 
+                            False, 
+                            "Failed to create test order for safety protection test"
+                        )
+                else:
+                    self.log_result(
+                        "Safety Protection - Client with Active Orders", 
+                        False, 
+                        "Failed to create client for safety protection test"
+                    )
+            else:
+                self.log_result(
+                    "Safety Protection - Client with Active Orders", 
+                    False, 
+                    f"Failed to create client for safety test: {response.status_code}"
+                )
+        except Exception as e:
+            self.log_result("Safety Protection - Client with Active Orders", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on Enhanced Staff & Security with Employment Type"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Enhanced Staff & Security with Employment Type")
+        """Run backend API tests with PRIMARY FOCUS on Client Deletion Functionality"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Client Deletion Functionality")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 80)
         
@@ -6334,15 +6668,10 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test Enhanced Staff & Security with Employment Type functionality
-        print("\n👤 TESTING ENHANCED STAFF & SECURITY WITH EMPLOYMENT TYPE - PRIMARY FOCUS")
+        # PRIMARY FOCUS: Test Client Deletion functionality
+        print("\n🗑️ TESTING CLIENT DELETION FUNCTIONALITY - PRIMARY FOCUS")
         print("=" * 60)
-        self.test_staff_security_employment_type()
-        
-        # SECONDARY: Test User Deletion functionality
-        print("\n🗑️ TESTING USER DELETION FUNCTIONALITY - SECONDARY")
-        print("=" * 60)
-        self.test_user_deletion_functionality()
+        self.test_client_deletion_functionality()
         
         return self.generate_report()
     
