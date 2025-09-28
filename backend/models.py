@@ -272,6 +272,80 @@ class DocumentTemplate(BaseModel):
     template_data: Dict[str, Any]
     generated_at: datetime = Field(default_factory=datetime.utcnow)
 
+# Materials & Products Models
+class Material(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    supplier: str
+    product_code: str
+    order_to_delivery_time: str
+    price: float
+    unit: str  # m2, By the Box, Single Unit
+    raw_substrate: bool = False
+    # Raw substrate fields (only if raw_substrate is True)
+    gsm: Optional[str] = None
+    thickness_mm: Optional[float] = None
+    burst_strength_kpa: Optional[float] = None
+    ply_bonding_jm2: Optional[float] = None
+    moisture_percent: Optional[float] = None
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+class MaterialCreate(BaseModel):
+    supplier: str
+    product_code: str
+    order_to_delivery_time: str
+    price: float
+    unit: str
+    raw_substrate: bool = False
+    gsm: Optional[str] = None
+    thickness_mm: Optional[float] = None
+    burst_strength_kpa: Optional[float] = None
+    ply_bonding_jm2: Optional[float] = None
+    moisture_percent: Optional[float] = None
+
+# Client Product Types
+class ClientProductType(str, Enum):
+    FINISHED_GOODS = "finished_goods"
+    PAPER_CORES = "paper_cores"
+
+class ClientProduct(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    client_id: str
+    product_type: ClientProductType
+    product_code: str
+    product_description: str
+    price_ex_gst: float
+    minimum_order_quantity: int
+    consignment: bool = False
+    
+    # Paper Cores specific fields
+    material_used: Optional[List[str]] = []  # List of material IDs
+    core_id: Optional[str] = None
+    core_width: Optional[str] = None
+    core_thickness: Optional[str] = None
+    strength_quality_important: Optional[bool] = False
+    delivery_included: Optional[bool] = False
+    
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+class ClientProductCreate(BaseModel):
+    client_id: str
+    product_type: ClientProductType
+    product_code: str
+    product_description: str
+    price_ex_gst: float
+    minimum_order_quantity: int
+    consignment: bool = False
+    material_used: Optional[List[str]] = []
+    core_id: Optional[str] = None
+    core_width: Optional[str] = None
+    core_thickness: Optional[str] = None
+    strength_quality_important: Optional[bool] = False
+    delivery_included: Optional[bool] = False
+
 # Response Models
 class StandardResponse(BaseModel):
     success: bool
