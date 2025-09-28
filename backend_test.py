@@ -6755,14 +6755,20 @@ class InvoicingAPITester:
                 order_id = result.get('data', {}).get('id')
                 
                 if order_id and stage != "order_entered":
-                    # Move order to specified stage by updating directly
+                    # Use the proper stage update endpoint
                     stage_update = {
-                        "current_stage": stage,
-                        "updated_at": datetime.utcnow().isoformat()
+                        "order_id": order_id,
+                        "from_stage": "order_entered",
+                        "to_stage": stage,
+                        "updated_by": "test-user",
+                        "notes": f"Moving to {stage} for deletion testing"
                     }
                     
-                    # Use direct database update approach via orders endpoint
-                    update_response = self.session.put(f"{API_BASE}/orders/{order_id}", json=stage_update)
+                    update_response = self.session.put(f"{API_BASE}/orders/{order_id}/stage", json=stage_update)
+                    
+                    if update_response.status_code != 200:
+                        print(f"Warning: Failed to update order stage to {stage}: {update_response.status_code}")
+                        print(f"Response: {update_response.text}")
                     
                 return order_id
                 
