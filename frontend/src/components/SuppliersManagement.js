@@ -143,6 +143,10 @@ const SuppliersManagement = () => {
       newErrors.bank_name = 'Bank name is required';
     }
     
+    if (!formData.account_name.trim()) {
+      newErrors.account_name = 'Account name is required';
+    }
+    
     if (!formData.bank_account_number.trim()) {
       newErrors.bank_account_number = 'Bank account number is required';
     }
