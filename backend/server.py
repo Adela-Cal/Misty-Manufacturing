@@ -591,6 +591,48 @@ async def get_customer_annual_report(client_id: str, year: int, current_user: di
 
 # ============= DOCUMENT GENERATION ENDPOINTS =============
 
+# Authentication dependency that handles both token parameter and Authorization header
+async def optional_auth_dependency(token: str = None, authorization: str = Header(None)):
+    """Handle authentication via token parameter or Authorization header"""
+    from auth import SECRET_KEY, ALGORITHM
+    from jose import jwt, JWTError
+    
+    try:
+        # Try token from query parameter first
+        if token:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("user_id") or payload.get("sub")
+            if not user_id:
+                raise HTTPException(status_code=401, detail="Invalid token")
+            
+            # Get user details
+            user = await db.users.find_one({"user_id": user_id})
+            if not user:
+                raise HTTPException(status_code=401, detail="User not found")
+            
+            return user
+            
+        # Fallback to Authorization header
+        elif authorization and authorization.startswith("Bearer "):
+            token_header = authorization.split(" ")[1]
+            payload = jwt.decode(token_header, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("user_id") or payload.get("sub")
+            if not user_id:
+                raise HTTPException(status_code=401, detail="Invalid token")
+            
+            user = await db.users.find_one({"user_id": user_id})
+            if not user:
+                raise HTTPException(status_code=401, detail="User not found")
+            
+            return user
+        else:
+            raise HTTPException(status_code=401, detail="Authentication required")
+            
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
 @api_router.get("/documents/acknowledgment/{order_id}")
 async def generate_acknowledgment(order_id: str, current_user: dict = Depends(require_any_role)):
     """Generate order acknowledgment PDF"""
