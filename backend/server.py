@@ -754,7 +754,13 @@ async def debug_xero_config():
         "client_id": XERO_CLIENT_ID,
         "callback_url": XERO_CALLBACK_URL,
         "scopes": XERO_SCOPES,
-        "expected_auth_url_start": "https://login.xero.com/identity/connect/authorize"
+        "expected_auth_url_start": "https://login.xero.com/identity/connect/authorize",
+        "frontend_url": os.getenv("FRONTEND_URL", "https://app.emergent.sh"),
+        "environment_check": {
+            "client_id_set": bool(XERO_CLIENT_ID),
+            "client_secret_set": bool(XERO_CLIENT_SECRET),
+            "redirect_uri": XERO_CALLBACK_URL
+        }
     }
 
 @api_router.get("/debug/test-pdf")
