@@ -303,6 +303,9 @@ const MaterialsManagement = () => {
                   <tr key={material.id}>
                     <td className="font-medium">{material.supplier}</td>
                     <td>{material.product_code}</td>
+                    <td className="text-gray-300 max-w-xs truncate" title={material.material_description}>
+                      {material.material_description || '—'}
+                    </td>
                     <td className="text-yellow-400 font-medium">
                       ${material.price.toFixed(2)}
                     </td>
