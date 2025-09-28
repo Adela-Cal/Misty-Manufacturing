@@ -6657,6 +6657,490 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result("Safety Protection - Client with Active Orders", False, f"Error: {str(e)}")
 
+    def test_order_deletion_functionality(self):
+        """Test the new order deletion functionality comprehensively"""
+        print("\n=== ORDER DELETION FUNCTIONALITY TEST ===")
+        
+        # First, create a test client for our orders
+        test_client_id = self.create_test_client_for_orders()
+        if not test_client_id:
+            self.log_result(
+                "Order Deletion Setup", 
+                False, 
+                "Failed to create test client for order deletion tests"
+            )
+            return
+        
+        # Test 1: Create test orders in different stages
+        safe_stage_order_id = self.create_test_order_in_stage(test_client_id, "order_entered")
+        production_stage_order_id = self.create_test_order_in_stage(test_client_id, "cutting")
+        
+        if not safe_stage_order_id or not production_stage_order_id:
+            self.log_result(
+                "Order Deletion Setup", 
+                False, 
+                "Failed to create test orders for deletion tests"
+            )
+            return
+        
+        # Test 2: Order Deletion Endpoint with Admin Credentials
+        self.test_order_deletion_endpoint(safe_stage_order_id)
+        
+        # Test 3: Safety Protections - Production Stage Orders
+        self.test_order_deletion_safety_protections(production_stage_order_id)
+        
+        # Test 4: Authentication & Authorization
+        self.test_order_deletion_authentication()
+        
+        # Test 5: Order Soft Delete Behavior
+        self.test_order_soft_delete_behavior(test_client_id)
+        
+        # Test 6: Edge Cases
+        self.test_order_deletion_edge_cases(test_client_id)
+    
+    def create_test_client_for_orders(self):
+        """Create a test client for order deletion tests"""
+        try:
+            client_data = {
+                "company_name": "Order Deletion Test Client",
+                "contact_name": "Test Manager",
+                "email": "test@orderdeletion.com",
+                "phone": "0412345678",
+                "address": "123 Test Street",
+                "city": "Melbourne",
+                "state": "VIC",
+                "postal_code": "3000",
+                "abn": "12345678901",
+                "payment_terms": "Net 30 days",
+                "lead_time_days": 7
+            }
+            
+            response = self.session.post(f"{API_BASE}/clients", json=client_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                return result.get('data', {}).get('id')
+            
+        except Exception as e:
+            print(f"Error creating test client: {str(e)}")
+        
+        return None
+    
+    def create_test_order_in_stage(self, client_id, stage):
+        """Create a test order and move it to specified stage"""
+        try:
+            # Create order
+            order_data = {
+                "client_id": client_id,
+                "due_date": (datetime.now() + timedelta(days=14)).isoformat(),
+                "delivery_address": "456 Test Delivery Street, Melbourne VIC 3000",
+                "delivery_instructions": "Test order for deletion testing",
+                "notes": f"Test order for stage {stage}",
+                "items": [
+                    {
+                        "product_id": "test-product-deletion",
+                        "product_name": "Test Product for Deletion",
+                        "description": "Test product for order deletion testing",
+                        "quantity": 1,
+                        "unit_price": 50.0,
+                        "total_price": 50.0
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=order_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                order_id = result.get('data', {}).get('id')
+                
+                if order_id and stage != "order_entered":
+                    # Move order to specified stage by updating directly
+                    stage_update = {
+                        "current_stage": stage,
+                        "updated_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    # Use direct database update approach via orders endpoint
+                    update_response = self.session.put(f"{API_BASE}/orders/{order_id}", json=stage_update)
+                    
+                return order_id
+                
+        except Exception as e:
+            print(f"Error creating test order: {str(e)}")
+        
+        return None
+    
+    def test_order_deletion_endpoint(self, order_id):
+        """Test DELETE /api/orders/{order_id} with admin credentials"""
+        print("\n--- Testing Order Deletion Endpoint ---")
+        
+        try:
+            response = self.session.delete(f"{API_BASE}/orders/{order_id}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                message = result.get('message', '')
+                
+                if "Order deleted successfully" in message:
+                    self.log_result(
+                        "Order Deletion Endpoint", 
+                        True, 
+                        "Successfully deleted order with admin credentials",
+                        f"Order ID: {order_id}, Message: {message}"
+                    )
+                    
+                    # Verify order is marked as cancelled
+                    get_response = self.session.get(f"{API_BASE}/orders/{order_id}")
+                    if get_response.status_code == 200:
+                        order = get_response.json()
+                        if order.get('status') == 'cancelled':
+                            self.log_result(
+                                "Order Soft Delete Verification", 
+                                True, 
+                                "Order correctly marked as cancelled (soft delete)",
+                                f"Order status: {order.get('status')}"
+                            )
+                        else:
+                            self.log_result(
+                                "Order Soft Delete Verification", 
+                                False, 
+                                f"Order status is '{order.get('status')}', expected 'cancelled'"
+                            )
+                    else:
+                        self.log_result(
+                            "Order Soft Delete Verification", 
+                            False, 
+                            f"Could not retrieve order after deletion: {get_response.status_code}"
+                        )
+                else:
+                    self.log_result(
+                        "Order Deletion Endpoint", 
+                        False, 
+                        f"Unexpected response message: {message}"
+                    )
+            else:
+                self.log_result(
+                    "Order Deletion Endpoint", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Order Deletion Endpoint", False, f"Error: {str(e)}")
+    
+    def test_order_deletion_safety_protections(self, production_order_id):
+        """Test safety protections against deleting orders in production"""
+        print("\n--- Testing Order Deletion Safety Protections ---")
+        
+        try:
+            response = self.session.delete(f"{API_BASE}/orders/{production_order_id}")
+            
+            if response.status_code == 400:
+                result = response.json()
+                message = result.get('detail', '')
+                
+                if "Cannot delete order in production" in message:
+                    self.log_result(
+                        "Safety Protection - Production Stage", 
+                        True, 
+                        "Correctly prevented deletion of order in production stage",
+                        f"Order ID: {production_order_id}, Message: {message}"
+                    )
+                else:
+                    self.log_result(
+                        "Safety Protection - Production Stage", 
+                        False, 
+                        f"Wrong error message for production stage deletion: {message}"
+                    )
+            else:
+                self.log_result(
+                    "Safety Protection - Production Stage", 
+                    False, 
+                    f"Expected 400 status but got {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Safety Protection - Production Stage", False, f"Error: {str(e)}")
+        
+        # Test deleting non-existent order
+        try:
+            fake_order_id = "non-existent-order-id-12345"
+            response = self.session.delete(f"{API_BASE}/orders/{fake_order_id}")
+            
+            if response.status_code == 404:
+                result = response.json()
+                message = result.get('detail', '')
+                
+                if "Order not found" in message:
+                    self.log_result(
+                        "Safety Protection - Non-existent Order", 
+                        True, 
+                        "Correctly returned 404 for non-existent order",
+                        f"Message: {message}"
+                    )
+                else:
+                    self.log_result(
+                        "Safety Protection - Non-existent Order", 
+                        False, 
+                        f"Wrong error message for non-existent order: {message}"
+                    )
+            else:
+                self.log_result(
+                    "Safety Protection - Non-existent Order", 
+                    False, 
+                    f"Expected 404 status but got {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Safety Protection - Non-existent Order", False, f"Error: {str(e)}")
+    
+    def test_order_deletion_authentication(self):
+        """Test authentication and authorization for order deletion"""
+        print("\n--- Testing Order Deletion Authentication ---")
+        
+        # Test without authentication
+        temp_session = requests.Session()
+        
+        try:
+            fake_order_id = "test-order-for-auth"
+            response = temp_session.delete(f"{API_BASE}/orders/{fake_order_id}")
+            
+            if response.status_code in [401, 403]:
+                self.log_result(
+                    "Order Deletion Authentication", 
+                    True, 
+                    f"Correctly requires admin authentication (status: {response.status_code})"
+                )
+            else:
+                self.log_result(
+                    "Order Deletion Authentication", 
+                    False, 
+                    f"Expected 401/403 but got {response.status_code}",
+                    "Order deletion should require admin authentication"
+                )
+                
+        except Exception as e:
+            self.log_result("Order Deletion Authentication", False, f"Error: {str(e)}")
+    
+    def test_order_soft_delete_behavior(self, client_id):
+        """Test that order deletion is soft delete (status = cancelled)"""
+        print("\n--- Testing Order Soft Delete Behavior ---")
+        
+        # Create a new order for soft delete testing
+        test_order_id = self.create_test_order_in_stage(client_id, "acknowledged")
+        
+        if not test_order_id:
+            self.log_result(
+                "Order Soft Delete Behavior", 
+                False, 
+                "Failed to create test order for soft delete testing"
+            )
+            return
+        
+        try:
+            # Get original order data
+            get_response = self.session.get(f"{API_BASE}/orders/{test_order_id}")
+            if get_response.status_code != 200:
+                self.log_result(
+                    "Order Soft Delete Behavior", 
+                    False, 
+                    "Could not retrieve order before deletion"
+                )
+                return
+            
+            original_order = get_response.json()
+            original_data = {
+                'order_number': original_order.get('order_number'),
+                'client_id': original_order.get('client_id'),
+                'total_amount': original_order.get('total_amount')
+            }
+            
+            # Delete the order
+            delete_response = self.session.delete(f"{API_BASE}/orders/{test_order_id}")
+            
+            if delete_response.status_code == 200:
+                # Verify order still exists but is marked as cancelled
+                get_after_response = self.session.get(f"{API_BASE}/orders/{test_order_id}")
+                
+                if get_after_response.status_code == 200:
+                    deleted_order = get_after_response.json()
+                    
+                    # Check that data is preserved
+                    data_preserved = (
+                        deleted_order.get('order_number') == original_data['order_number'] and
+                        deleted_order.get('client_id') == original_data['client_id'] and
+                        deleted_order.get('total_amount') == original_data['total_amount']
+                    )
+                    
+                    # Check that status is cancelled
+                    status_cancelled = deleted_order.get('status') == 'cancelled'
+                    
+                    # Check that updated_at is recent
+                    updated_at = deleted_order.get('updated_at')
+                    has_recent_update = updated_at is not None
+                    
+                    if data_preserved and status_cancelled and has_recent_update:
+                        self.log_result(
+                            "Order Soft Delete Behavior", 
+                            True, 
+                            "Order data preserved, status set to cancelled, datetime updated",
+                            f"Status: {deleted_order.get('status')}, Data preserved: {data_preserved}"
+                        )
+                    else:
+                        issues = []
+                        if not data_preserved:
+                            issues.append("Data not preserved")
+                        if not status_cancelled:
+                            issues.append(f"Status is '{deleted_order.get('status')}', not 'cancelled'")
+                        if not has_recent_update:
+                            issues.append("No recent update timestamp")
+                        
+                        self.log_result(
+                            "Order Soft Delete Behavior", 
+                            False, 
+                            f"Soft delete issues: {', '.join(issues)}"
+                        )
+                else:
+                    self.log_result(
+                        "Order Soft Delete Behavior", 
+                        False, 
+                        f"Order not accessible after deletion: {get_after_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Order Soft Delete Behavior", 
+                    False, 
+                    f"Order deletion failed: {delete_response.status_code}",
+                    delete_response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Order Soft Delete Behavior", False, f"Error: {str(e)}")
+    
+    def test_order_deletion_edge_cases(self, client_id):
+        """Test edge cases for order deletion"""
+        print("\n--- Testing Order Deletion Edge Cases ---")
+        
+        # Test 1: Delete already cancelled order
+        cancelled_order_id = self.create_test_order_in_stage(client_id, "order_entered")
+        
+        if cancelled_order_id:
+            try:
+                # First deletion
+                first_delete = self.session.delete(f"{API_BASE}/orders/{cancelled_order_id}")
+                
+                if first_delete.status_code == 200:
+                    # Second deletion attempt
+                    second_delete = self.session.delete(f"{API_BASE}/orders/{cancelled_order_id}")
+                    
+                    if second_delete.status_code == 200:
+                        result = second_delete.json()
+                        message = result.get('message', '')
+                        
+                        self.log_result(
+                            "Edge Case - Delete Already Cancelled Order", 
+                            True, 
+                            "Successfully handled deletion of already cancelled order",
+                            f"Message: {message}"
+                        )
+                    elif second_delete.status_code == 400:
+                        # Also acceptable if it prevents re-deletion
+                        result = second_delete.json()
+                        message = result.get('detail', '')
+                        
+                        self.log_result(
+                            "Edge Case - Delete Already Cancelled Order", 
+                            True, 
+                            "Correctly prevented re-deletion of cancelled order",
+                            f"Message: {message}"
+                        )
+                    else:
+                        self.log_result(
+                            "Edge Case - Delete Already Cancelled Order", 
+                            False, 
+                            f"Unexpected status for second deletion: {second_delete.status_code}",
+                            second_delete.text
+                        )
+                else:
+                    self.log_result(
+                        "Edge Case - Delete Already Cancelled Order", 
+                        False, 
+                        f"First deletion failed: {first_delete.status_code}"
+                    )
+                    
+            except Exception as e:
+                self.log_result("Edge Case - Delete Already Cancelled Order", False, f"Error: {str(e)}")
+        
+        # Test 2: Test different safe stages
+        safe_stages = ["order_entered", "acknowledged"]
+        
+        for stage in safe_stages:
+            stage_order_id = self.create_test_order_in_stage(client_id, stage)
+            
+            if stage_order_id:
+                try:
+                    response = self.session.delete(f"{API_BASE}/orders/{stage_order_id}")
+                    
+                    if response.status_code == 200:
+                        self.log_result(
+                            f"Edge Case - Delete Order in {stage.title()} Stage", 
+                            True, 
+                            f"Successfully deleted order in {stage} stage (safe stage)",
+                            f"Order ID: {stage_order_id}"
+                        )
+                    else:
+                        self.log_result(
+                            f"Edge Case - Delete Order in {stage.title()} Stage", 
+                            False, 
+                            f"Failed to delete order in safe stage {stage}: {response.status_code}",
+                            response.text
+                        )
+                        
+                except Exception as e:
+                    self.log_result(f"Edge Case - Delete Order in {stage.title()} Stage", False, f"Error: {str(e)}")
+        
+        # Test 3: Test different unsafe stages
+        unsafe_stages = ["cutting", "paper_slitting", "spiral_winding", "finishing", "quality_control", "packing"]
+        
+        for stage in unsafe_stages[:2]:  # Test first 2 to avoid too many test orders
+            unsafe_order_id = self.create_test_order_in_stage(client_id, stage)
+            
+            if unsafe_order_id:
+                try:
+                    response = self.session.delete(f"{API_BASE}/orders/{unsafe_order_id}")
+                    
+                    if response.status_code == 400:
+                        result = response.json()
+                        message = result.get('detail', '')
+                        
+                        if "Cannot delete order in production" in message:
+                            self.log_result(
+                                f"Edge Case - Prevent Delete in {stage.title()} Stage", 
+                                True, 
+                                f"Correctly prevented deletion in {stage} stage (unsafe stage)",
+                                f"Message: {message}"
+                            )
+                        else:
+                            self.log_result(
+                                f"Edge Case - Prevent Delete in {stage.title()} Stage", 
+                                False, 
+                                f"Wrong error message for {stage} stage: {message}"
+                            )
+                    else:
+                        self.log_result(
+                            f"Edge Case - Prevent Delete in {stage.title()} Stage", 
+                            False, 
+                            f"Expected 400 but got {response.status_code} for unsafe stage {stage}",
+                            response.text
+                        )
+                        
+                except Exception as e:
+                    self.log_result(f"Edge Case - Prevent Delete in {stage.title()} Stage", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run backend API tests with PRIMARY FOCUS on Client Deletion Functionality"""
         print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Client Deletion Functionality")
