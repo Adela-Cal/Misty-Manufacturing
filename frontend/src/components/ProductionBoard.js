@@ -342,10 +342,10 @@ const ProductionBoard = () => {
     const overdueCount = jobs.filter(job => job.is_overdue).length;
     
     return (
-      <div className="flex-1 min-w-80" data-testid={`stage-${stageKey}`}>
-        <div className={`bg-gray-700 rounded-t-lg p-4 border-b-4 ${stageColors[stageKey] || 'border-gray-500'}`}>
+      <div className="mb-6" data-testid={`stage-${stageKey}`}>
+        <div className={`bg-gray-700 rounded-t-lg p-4 border-l-4 ${stageColors[stageKey] || 'border-gray-500'}`}>
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-white">{stageName}</h3>
+            <h3 className="font-semibold text-white text-lg">{stageName}</h3>
             <div className="flex items-center space-x-2">
               <span className="bg-gray-600 text-white text-sm px-2 py-1 rounded">
                 {jobs.length}
@@ -360,11 +360,13 @@ const ProductionBoard = () => {
           </div>
         </div>
         
-        <div className="bg-gray-700/50 rounded-b-lg p-4 space-y-3 min-h-96 max-h-96 overflow-y-auto">
+        <div className="bg-gray-700/30 rounded-b-lg p-4 min-h-32">
           {jobs.length > 0 ? (
-            jobs.map((job) => (
-              <JobCard key={job.id} job={job} stageKey={stageKey} />
-            ))
+            <div className="space-y-0">
+              {jobs.map((job) => (
+                <JobCard key={job.id} job={job} stageKey={stageKey} />
+              ))}
+            </div>
           ) : (
             <p className="text-gray-400 text-center py-8">No jobs in this stage</p>
           )}
