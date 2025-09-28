@@ -174,26 +174,28 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       }
     }
     
-    // Validate items
-    let hasValidItems = false;
-    formData.items.forEach((item, index) => {
-      if (!item.product_name.trim()) {
-        newErrors[`item_${index}_product_name`] = 'Product name is required';
-      }
-      if (!item.quantity || item.quantity <= 0) {
-        newErrors[`item_${index}_quantity`] = 'Quantity must be greater than 0';
-      }
-      if (!item.unit_price || item.unit_price <= 0) {
-        newErrors[`item_${index}_unit_price`] = 'Unit price must be greater than 0';
-      }
+    // Only validate items if client is selected
+    if (formData.client_id) {
+      let hasValidItems = false;
+      formData.items.forEach((item, index) => {
+        if (!item.product_name.trim()) {
+          newErrors[`item_${index}_product_name`] = 'Please select a product';
+        }
+        if (!item.quantity || item.quantity <= 0) {
+          newErrors[`item_${index}_quantity`] = 'Quantity must be greater than 0';
+        }
+        if (!item.unit_price || item.unit_price <= 0) {
+          newErrors[`item_${index}_unit_price`] = 'Unit price must be greater than 0';
+        }
+        
+        if (item.product_name.trim() && item.quantity > 0 && item.unit_price > 0) {
+          hasValidItems = true;
+        }
+      });
       
-      if (item.product_name.trim() && item.quantity > 0 && item.unit_price > 0) {
-        hasValidItems = true;
+      if (!hasValidItems) {
+        newErrors.items = 'At least one valid item is required';
       }
-    });
-    
-    if (!hasValidItems) {
-      newErrors.items = 'At least one valid item is required';
     }
     
     setErrors(newErrors);
