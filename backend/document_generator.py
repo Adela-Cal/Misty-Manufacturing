@@ -10,11 +10,12 @@ from typing import Dict, Any, List
 import os
 from io import BytesIO
 
-# Adela Merchants brand colors (from letterhead analysis)
-ADELA_YELLOW = HexColor('#FFD700')  # Bright yellow
-ADELA_BLACK = HexColor('#000000')   # Black
-ADELA_DARK_GRAY = HexColor('#333333')
-ADELA_LIGHT_GRAY = HexColor('#F5F5F5')
+# Adela Merchants brand colors (exact from letterhead analysis)
+ADELA_YELLOW = HexColor('#FFEA00')  # Bright vibrant yellow from letterhead
+ADELA_BLACK = HexColor('#000000')   # Pure black for curves
+ADELA_LIGHT_YELLOW = HexColor('#FFF3A3')  # Light watermark yellow
+ADELA_WHITE = HexColor('#FFFFFF')   # White background
+ADELA_DARK_GRAY = HexColor('#333333')  # Dark text
 
 class DocumentGenerator:
     def __init__(self):
