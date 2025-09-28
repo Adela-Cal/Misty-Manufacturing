@@ -563,6 +563,24 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
         </div>
       </div>
 
+      {/* Annual Leave Accrual */}
+      <div className="mt-6">
+        <div className="misty-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-400">Annual Leave Accrued</p>
+              <p className="text-xl font-bold text-green-400">
+                {calculateAnnualLeaveAccrual(employee?.employment_type || user?.employment_type || 'full_time', totalHours.regular)} hours
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Based on {employee?.employment_type?.replace('_', ' ') || user?.employment_type?.replace('_', ' ') || 'full time'} employment
+              </p>
+            </div>
+            <CheckCircleIcon className="h-8 w-8 text-green-400" />
+          </div>
+        </div>
+      </div>
+
       {/* Leave Summary */}
       {Object.keys(totalHours.leave).length > 0 && (
         <div className="mt-6">
