@@ -13,6 +13,7 @@ import {
 
 const MaterialsManagement = () => {
   const [materials, setMaterials] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
