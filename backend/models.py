@@ -304,6 +304,7 @@ class Material(BaseModel):
     supplier: str
     product_code: str
     order_to_delivery_time: str
+    material_description: str  # New field
     price: float
     unit: str  # m2, By the Box, Single Unit
     raw_substrate: bool = False
@@ -313,6 +314,8 @@ class Material(BaseModel):
     burst_strength_kpa: Optional[float] = None
     ply_bonding_jm2: Optional[float] = None
     moisture_percent: Optional[float] = None
+    supplied_roll_weight: Optional[float] = None  # New field
+    master_deckle_width_mm: Optional[float] = None  # New field
     is_active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
