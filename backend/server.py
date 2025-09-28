@@ -460,7 +460,7 @@ async def calculate_material_consumption_by_client(
                 "order_count": len(orders),
                 "order_breakdown": order_breakdown
             },
-            calculated_by=current_user["username"]
+            calculated_by=current_user["sub"]
         )
         
         return StandardResponse(success=True, message="Calculation completed", data=result.dict())
