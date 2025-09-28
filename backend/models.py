@@ -166,6 +166,7 @@ class Order(BaseModel):
     order_number: str
     client_id: str
     client_name: str
+    purchase_order_number: Optional[str] = None  # Client's PO number
     items: List[OrderItem]
     subtotal: float
     gst: float
@@ -185,6 +186,7 @@ class Order(BaseModel):
 
 class OrderCreate(BaseModel):
     client_id: str
+    purchase_order_number: Optional[str] = None  # Client's PO number
     items: List[OrderItem]
     due_date: datetime
     delivery_address: Optional[str] = None
