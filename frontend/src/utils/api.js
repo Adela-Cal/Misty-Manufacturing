@@ -62,6 +62,21 @@ export const apiHelpers = {
   updateProduct: (id, data) => api.put(`/products/${id}`, data),
   getProduct: (id) => api.get(`/products/${id}`),
   
+  // Materials
+  getMaterials: () => api.get('/materials'),
+  createMaterial: (data) => api.post('/materials', data),
+  updateMaterial: (id, data) => api.put(`/materials/${id}`, data),
+  getMaterial: (id) => api.get(`/materials/${id}`),
+  deleteMaterial: (id) => api.delete(`/materials/${id}`),
+  
+  // Client Product Catalog
+  getClientCatalog: (clientId) => api.get(`/clients/${clientId}/catalog`),
+  createClientProduct: (clientId, data) => api.post(`/clients/${clientId}/catalog`, data),
+  updateClientProduct: (clientId, productId, data) => api.put(`/clients/${clientId}/catalog/${productId}`, data),
+  getClientProduct: (clientId, productId) => api.get(`/clients/${clientId}/catalog/${productId}`),
+  deleteClientProduct: (clientId, productId) => api.delete(`/clients/${clientId}/catalog/${productId}`),
+  copyClientProduct: (clientId, productId, targetClientId) => api.post(`/clients/${clientId}/catalog/${productId}/copy-to/${targetClientId}`),
+  
   // Orders
   getOrders: (statusFilter) => api.get('/orders', { params: { status_filter: statusFilter } }),
   createOrder: (data) => api.post('/orders', data),
