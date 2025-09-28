@@ -1182,16 +1182,20 @@ async def create_xero_draft_invoice(
                 # Use default contact or create a simple one
                 contact_id = None
         
-        # Prepare line items
+        # Prepare line items with Sales account
         line_items = []
         items = invoice_data.get("items", [])
+        
+        # Validate that Sales account code "200" exists
+        sales_account_code = await validate_sales_account(accounting_api, tenant_id)
         
         for item in items:
             line_item = LineItem(
                 description=item.get("description", "Product/Service"),
                 quantity=float(item.get("quantity", 1)),
                 unit_amount=float(item.get("unit_price", 0)),
-                account_code="200"  # Default sales account - should be configurable
+                account_code=sales_account_code,
+                tax_type=XERO_DEFAULT_TAX_TYPE
             )
             line_items.append(line_item)
         
@@ -1202,7 +1206,8 @@ async def create_xero_draft_invoice(
                 description=f"Services for {contact_name}",
                 quantity=1,
                 unit_amount=total_amount,
-                account_code="200"
+                account_code=sales_account_code,
+                tax_type=XERO_DEFAULT_TAX_TYPE
             )
             line_items.append(line_item)
         
