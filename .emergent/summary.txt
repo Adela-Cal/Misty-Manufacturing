@@ -1,100 +1,66 @@
 <analysis>
-The AI engineer successfully established the Misty manufacturing management MVP, addressing core client, order, production, and reporting features. A major part of the work involved robust debugging of backend issues, particularly around  and database interactions, and then expanding the application to include payroll and leave management.
+The AI engineer focused on enhancing the Misty manufacturing management system. Initial efforts involved debugging PDF generation issues (Chrome blocking downloads, backend , CORS) and integrating the Adela Merchants logo. The PDF generation was simplified to ensure basic functionality while addressing core issues.
 
-Subsequent development focused on making interactive forms operational for clients and orders, refining document generation (PDFs), and integrating Xero. Key challenges included:
-1.  **Xero Integration**: Extensive troubleshooting for OAuth (, ) due to redirect URI mismatches and webhook configuration issues on the user's Xero developer portal, alongside frontend button placement.
-2.  **Logo Update**: Initial incorrect implementation of the Adela Merchants logo, later corrected from user-provided PDF.
-3.  **PDF Generation**: Persistent issues with Chrome blocking blob downloads, requiring multiple iterations: from automatic downloads to interactive prompts, direct links, and finally disabling authentication for PDF endpoints and simplifying templates to ensure downloads worked.
-4.  **Backend Errors**: Debugging  in the document generator ( style missing) and CORS issues which required temporarily simplifying PDF generation.
+Subsequently, the work shifted to Xero integration. Key challenges included troubleshooting OAuth errors (, , ) and redirect URI mismatches. The AI systematically moved Xero credentials to environment variables, installed the  SDK, corrected OAuth scopes, and implemented backend endpoints for fetching account codes and tax rates.
 
-By the end of the trajectory, all core PDF downloads are functional, the correct logo is integrated, and the Xero UI is in place, awaiting successful OAuth.
+The most recent work centered on configuring Xero account codes for invoice creation, specifically ensuring the system correctly uses a Sales account (code 200) with a smart fallback. A minor UI task of changing the packing slip icon to a box was also completed. The trajectory concludes with the AI engineer awaiting user feedback on the Xero invoice creation flow after these account code adjustments.
 </analysis>
 
 <product_requirements>
-The user required Misty, a manufacturing business management system with dark mode and Adela Merchants branding (yellow/black, curved design, ABN). It needs multi-role logins (Admin, Production Manager, Sales, Production Team) with specific permissions.
-
-Core features include:
-1.  **Client Management**: Add clients with bank info, notes, point of contact, client-specific product pricing, **payment terms, and lead time**.
-2.  **Order Management**: Enter orders, generate order acknowledgements (PDF), track order quantities, due dates, and delivery.
-3.  **Job Card/Production Board**: Generate printable job cards (PDF). A 7-stage production board, job tiles showing customer logo, quantities, due date, delivery.
-4.  **Document Generation (PDF)**: Order Acknowledgements, Job Cards, Packing Lists, Invoices, all incorporating the Adela Merchants letterhead. Documents must show order/invoice number, customer details, order specifics, and bank details. **Invoices and Packing Slips must be generated with relevant information**.
-5.  **Reports System**: Outstanding jobs, late deliveries, customer annual purchases, and **monthly archived jobs reports**.
-6.  **Job Specification Window**: Detailed notes, specifications, delivery times, contact points for products.
-7.  **Admin User**: 'Callum' / 'Peach7510'.
-8.  **Payroll & Leave Management**: Annual, Sick, Personal, Maternity/Paternity, Training leave types. User accounts with hourly rates, leave entitlements. Weekly timesheets generated for input, calculating pay, leave, super. Manager access to payroll/leave.
-9.  **Invoicing & Job Closure**: Function to invoice and close live jobs (Full invoice/Part Supply). **Archived jobs menu option**.
-10. **Xero Integration**: Automatically connect to Xero; generate draft invoices in Xero with client/product info; **get next invoice number from Xero**.
+The Misty application is a manufacturing business management system for Adela Merchants requiring dark mode, specific branding, and multi-role logins (Admin, Production Manager, Sales, Production Team) with permissions. Core features include Client Management (with bank info, contacts, pricing, payment terms, lead time), Order Management (order acknowledgements, tracking), and a 7-stage Production Board (job cards, job tiles). Document Generation is critical, requiring PDFs for Order Acknowledgements, Job Cards, Packing Lists, and Invoices, all with Adela Merchants letterhead, order details, and bank information. The system also needs a Reports System for outstanding/late jobs, customer purchases, and monthly archived job reports. Payroll and Leave Management (annual, sick, personal, maternity/paternity, training leave, timesheets, pay/super calculation) are essential. Invoicing and Job Closure involve full/part invoicing, with an Archived jobs menu. Xero Integration is a key requirement, encompassing automatic connection, generation of draft invoices in Xero with client/product info, and fetching the next invoice number from Xero.
 </product_requirements>
 
 <key_technical_concepts>
--   **FastAPI**: Python web framework for backend API.
+-   **FastAPI**: Python web framework for backend.
 -   **React**: JavaScript library for frontend UI.
--   **MongoDB**: NoSQL database for data storage (using UUIDs, not ObjectIDs).
--   **JWT (JSON Web Tokens)**: For secure, role-based authentication.
--   **Tailwind CSS & Radix UI**: For styling and UI components.
--   **ReportLab**: Python library for PDF document generation.
+-   **MongoDB**: NoSQL database, using UUIDs for IDs.
+-   **JWT**: For secure, role-based authentication.
+-   **ReportLab**: Python library for PDF generation.
 -   **Bcrypt**: For password hashing.
--   **User Roles & Permissions (RBAC)**: Granular access control.
--   **Xero API**: Third-party integration for accounting/invoicing.
+-   **Xero API & **: Third-party integration for accounting/invoicing.
+-   **Tailwind CSS & Radix UI**: For styling.
 </key_technical_concepts>
 
 <code_architecture>
-The application follows a standard full-stack architecture with separate  and  directories.
+The application has a standard full-stack structure with  and  directories.
 
 
 
--   : Updated to include , , , , , , , , .
--   : Main FastAPI app. Integrated endpoints for client, order, production, reports, payroll, Xero. CORS configured.
-    -   **Changes**: Added Xero integration endpoints (), modified document generation endpoints to use , added debug PDF endpoint, fixed CORS configuration for .
--   : Defines MongoDB ODM models.
-    -   **Changes**:  and  models updated to include  and .
--   : Handles JWT auth.
-    -   **Changes**: Imports updated for  and ,  added for token-based authentication in query parameters for direct PDF links.
+-   : Updated to include .
+-   : Main FastAPI app.
+    -   **Changes**: Added Xero integration endpoints, debug endpoint for Xero configuration, updated Xero client ID/secret to use environment variables, fixed Xero OAuth scopes, implemented logic to fetch Xero account codes and tax rates, and integrated these into invoice creation.
+-   :
+    -   **Changes**: Added , , , , and  for Xero configuration.
 -   : Manages PDF generation.
-    -   **Changes**: Initial attempts to integrate Adela Merchants letterhead. Temporarily reverted to simplified PDF generation to fix core issues (KeyError, missing styles, missing color ). ,  methods simplified, removed reliance on custom styles for  and  by using  with fallbacks.  and  methods are present but not currently utilized in the simplified PDF generation.
--   , , , , : New files for payroll, leave, user management features.
--   : New file for the Adela Merchants logo.
-    -   **Changes**: Created to store the correct SVG logo.
--   : Main React component, configures routes.
-    -   **Changes**: Added routes for  and .
--   : Manages auth state.
+    -   **Changes**: Simplified PDF generation to resolve errors, using fallbacks for missing styles/colors. Logo integration (Adela Merchants) was implemented.
+-   : Stores the Adela Merchants logo.
+    -   **Changes**: Created to hold the new SVG logo.
+-   : Main React component for routing.
+    -   **Changes**: Added routes for Xero callback and invoicing.
 -   : Centralized API utility.
-    -   **Changes**: Added Xero API functions (, , , ),  and utility for .
+    -   **Changes**: Added Xero API functions (, , , , , ), , and .
 -   : Login form.
-    -   **Changes**: Updated to use  for the Adela Merchants logo.
--   : Overall layout, sidebar navigation.
-    -   **Changes**: Updated to include Invoicing in the main navigation. Added Xero connection buttons (Connect/Disconnect) to the sidebar, positioned them under the INTEGRATION section. Updated to use  for the Adela Merchants logo in the sidebar header.
--   : Client list.
--   : Order list.
-    -   **Changes**: Import error (initial task) was resolved implicitly or not observed.
--   : Form for adding new clients.
-    -   **Changes**: Added input fields for  and  in a Business Terms section.
--   : Form for creating new orders.
+    -   **Changes**: Uses  for branding.
+-   : Overall layout with navigation.
+    -   **Changes**: Added Invoicing to nav, Xero connect/disconnect buttons, and uses  in sidebar.
+-   : Form for new clients.
+    -   **Changes**: Added  and  fields.
 -   : New component for invoicing.
-    -   **Changes**: Implemented UI for Live Jobs, Archived Jobs, Monthly Reports. Added Invoice buttons, and download icons for Invoice/Packing Slip PDFs. Implemented download logic using  (after  issues) and later direct  calls to backend endpoints. Added a red 🔧 Test PDF Download button and a blue 📄 Direct PDF Link button for debugging.
+    -   **Changes**: Implemented UI for jobs, download buttons for Invoice/Packing Slip PDFs. **Crucially, the packing slip icon was changed from  to  for better visual distinction.** Enhanced to call new Xero endpoints for account/tax rates.
 -   : New component to handle Xero OAuth callbacks.
 </code_architecture>
 
 <pending_tasks>
--   **Xero Integration**: Complete the Xero OAuth flow. The user needs to ensure their Xero app redirect URI and status are correctly configured.
--   **PDF Branding**: Reintegrate the Adela Merchants letterhead branding into all generated PDFs. Currently, PDFs are generated with simplified templates to ensure basic functionality.
--   **UI Refinement**: Change the packing slip icon on the invoicing page to something like a box, to easily distinguish it from the invoice icon.
+-   **PDF Branding**: Reintegrate the full Adela Merchants letterhead branding into all generated PDFs. Currently, simplified templates are used.
 -   **Archived Jobs & Reports**: Implement the full functionality for viewing archived jobs and generating monthly reports, as described in product requirements.
--   **Xero Auto Invoice Number**: Implement fetching the next invoice number from Xero.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary, the AI engineer successfully resolved all issues related to PDF document generation and downloading. Previously, the system faced multiple challenges including Chrome blocking automatic downloads, blank screens for blob URLs, and  from the backend due to missing custom styles () and color definitions. CORS errors were also a recurring issue, preventing frontend access to backend PDF endpoints.
+Immediately before this summary, the AI engineer was focused on finalizing the Xero integration, specifically the account code mapping for invoice creation. The user had inquired about necessary Xero configurations for correct data transfer. The AI responded by explaining the need for specific Chart of Accounts (e.g., 200 for Sales), tax rates, and confirmed customer/invoice number matching is auto-handled.
 
-The AI systematically debugged these, moving from  to , then  for direct links, and finally temporarily disabling authentication for all PDF endpoints to ensure they worked with simple direct links. Backend errors were traced to the  file, where custom styles were not correctly applied or defined; these were fixed by using  with fallbacks to simpler styles.
-
-The Adela Merchants logo was also correctly extracted from a provided PDF and integrated into both the login page and the sidebar, replacing a generic placeholder.
-
-At this point, all Invoice PDFs, Packing Slip PDFs, Order Acknowledgment PDFs, Job Card PDFs, and test PDFs are confirmed by the user to be generated and downloadable using the direct link method. However, these PDFs currently use simplified templates and do not yet incorporate the full Adela Merchants letterhead branding.
-
-The user's very last explicit request was to change the packing slip icon to a box to differentiate it from the invoice icon, which the AI has acknowledged.
+Upon user request to use a Sales account with code 200, the AI modified the backend. This involved updating  to make the account code configurable via an environment variable () and implementing logic to prioritize a Sales account with code 200, or intelligently fall back to the best available Sales/Revenue account if 200 is not present. New endpoints were added (, ) and integrated into the frontend API helpers to allow checking Xero's configuration. The backend was restarted to apply these changes. The AI then provided instructions for the user to test the invoice creation flow again, expecting draft invoices to be created in Xero with proper account categorization.
 </current_work>
 
 <optional_next_step>
-Change the packing slip icon on the invoicing page to a box icon for better differentiation.
+Await user feedback on Xero invoice creation after the account code configuration changes.
 </optional_next_step>
