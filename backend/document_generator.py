@@ -438,7 +438,7 @@ class DocumentGenerator:
         story.append(Spacer(1, 25))
         
         # Items to pack
-        story.append(Paragraph("Items to Pack", self.styles['SectionHeader']))
+        story.append(Paragraph("Items to Pack", self.styles.get('SectionHeader', self.styles['Heading2'])))
         
         items_data = [['Item', 'Quantity', 'Packed', 'Notes']]
         
