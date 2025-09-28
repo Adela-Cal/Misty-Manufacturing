@@ -83,7 +83,8 @@ const StaffSecurity = () => {
       full_name: user.full_name,
       role: user.role,
       department: user.department || '',
-      phone: user.phone || ''
+      phone: user.phone || '',
+      employment_type: user.employment_type || 'full_time'
     });
     setErrors({});
     setShowModal(true);
