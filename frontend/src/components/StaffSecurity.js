@@ -184,8 +184,30 @@ const StaffSecurity = () => {
       loadUsers();
     } catch (error) {
       console.error('Failed to save user:', error);
-      const message = error.response?.data?.detail || 'Failed to save user';
-      toast.error(message);
+      
+      // Handle validation errors
+      if (error.response?.status === 422 && error.response?.data?.detail) {
+        const validationErrors = error.response.data.detail;
+        const newErrors = {};
+        
+        if (Array.isArray(validationErrors)) {
+          validationErrors.forEach(err => {
+            if (err.loc && err.loc.length > 1) {
+              const field = err.loc[err.loc.length - 1];
+              newErrors[field] = err.msg || 'Invalid value';
+            }
+          });
+          setErrors(newErrors);
+          toast.error('Please fix the validation errors');
+        } else if (typeof validationErrors === 'string') {
+          toast.error(validationErrors);
+        } else {
+          toast.error('Failed to save user');
+        }
+      } else {
+        const message = error.response?.data?.detail || 'Failed to save user';
+        toast.error(message);
+      }
     }
   };
 
