@@ -601,6 +601,76 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
           </div>
         </div>
       )}
+
+      {/* Leave Selection Modal */}
+      {showLeaveModal && selectedDayIndex !== null && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowLeaveModal(false)}>
+          <div className="modal-content max-w-md">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <CalendarDaysIcon className="h-8 w-8 text-yellow-400 mr-3" />
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Select Leave Type</h3>
+                  <p className="text-sm text-gray-400">
+                    {getDayName(entries[selectedDayIndex]?.date)} - {formatDate(entries[selectedDayIndex]?.date)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-300 mb-3">Leave Type</label>
+                <div className="space-y-2">
+                  {[
+                    'annual_leave',
+                    'sick_leave', 
+                    'compassionate_leave',
+                    'maternity_leave'
+                  ].map((leaveType) => (
+                    <label key={leaveType} className="flex items-center">
+                      <input
+                        type="radio"
+                        name="leaveType"
+                        value={leaveType}
+                        checked={selectedLeaveType === leaveType}
+                        onChange={(e) => setSelectedLeaveType(e.target.value)}
+                        className="mr-3 text-yellow-400 focus:ring-yellow-400"
+                      />
+                      <span className="text-white">
+                        {payrollUtils.leaveTypeDisplayNames[leaveType] || leaveType}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-between space-x-3">
+                <button
+                  type="button"
+                  onClick={clearLeaveFromDay}
+                  className="misty-button misty-button-secondary flex-1"
+                >
+                  Clear Leave
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowLeaveModal(false)}
+                  className="misty-button misty-button-secondary flex-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={applyLeaveToDay}
+                  disabled={!selectedLeaveType}
+                  className="misty-button misty-button-primary flex-1"
+                >
+                  Apply Leave
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
