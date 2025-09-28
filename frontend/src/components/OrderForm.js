@@ -145,17 +145,6 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     }
   };
 
-  const selectProduct = (index, productId) => {
-    const product = clientProducts.find(p => p.id === productId);
-    if (product) {
-      handleItemChange(index, 'product_name', product.product_name);
-      handleItemChange(index, 'unit_price', product.unit_price);
-      // Recalculate total with current quantity
-      const newTotal = formData.items[index].quantity * product.unit_price;
-      handleItemChange(index, 'total_price', newTotal);
-    }
-  };
-
   const validateForm = () => {
     const newErrors = {};
     
