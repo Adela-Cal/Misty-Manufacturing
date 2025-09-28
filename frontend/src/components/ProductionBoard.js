@@ -62,6 +62,136 @@ const ProductionBoard = () => {
     }
   };
 
+  const moveJobStage = async (jobId, currentStage, direction) => {
+    try {
+      // Get stage order
+      const stageOrder = [
+        'order_entered',
+        'pending_material', 
+        'paper_slitting',
+        'winding',
+        'finishing',
+        'delivery',
+        'invoicing',
+        'cleared'
+      ];
+      
+      const currentIndex = stageOrder.indexOf(currentStage);
+      let newIndex;
+      
+      if (direction === 'forward') {
+        newIndex = Math.min(currentIndex + 1, stageOrder.length - 1);
+      } else {
+        newIndex = Math.max(currentIndex - 1, 0);
+      }
+      
+      if (newIndex === currentIndex) {
+        toast.info('Job is already at the first/last stage');
+        return;
+      }
+      
+      const newStage = stageOrder[newIndex];
+      
+      // TODO: Add API call to update job stage
+      toast.success(`Job moved to ${newStage.replace('_', ' ')}`);
+      loadProductionBoard(); // Refresh the board
+    } catch (error) {
+      console.error('Failed to move job stage:', error);
+      toast.error('Failed to move job stage');
+    }
+  };
+
+  const getMaterialsStatus = (job) => {
+    // TODO: Integrate with actual materials data
+    // For now, return random status for demo
+    return Math.random() > 0.5 ? 'ready' : 'pending';
+  };
+
+  const getDeliveryLocationDot = (deliveryAddress) => {
+    // Simple mapping of states/cities to approximate coordinates on Australia map
+    // These are rough percentages for positioning on a 200x150 SVG map
+    const locationMap = {
+      'NSW': { x: 75, y: 60 },
+      'VIC': { x: 70, y: 80 },
+      'QLD': { x: 80, y: 40 },
+      'SA': { x: 55, y: 70 },
+      'WA': { x: 20, y: 50 },
+      'TAS': { x: 70, y: 95 },
+      'NT': { x: 55, y: 25 },
+      'ACT': { x: 75, y: 65 },
+      // Major cities
+      'Sydney': { x: 78, y: 58 },
+      'Melbourne': { x: 70, y: 78 },
+      'Brisbane': { x: 82, y: 38 },
+      'Perth': { x: 18, y: 52 },
+      'Adelaide': { x: 58, y: 68 },
+      'Darwin': { x: 55, y: 15 },
+      'Hobart': { x: 70, y: 92 },
+      'Canberra': { x: 76, y: 62 }
+    };
+
+    if (!deliveryAddress) return { x: 60, y: 60 }; // Default center
+
+    const address = deliveryAddress.toUpperCase();
+    
+    // Try to find state or city match
+    for (const [location, coords] of Object.entries(locationMap)) {
+      if (address.includes(location.toUpperCase())) {
+        return coords;
+      }
+    }
+    
+    // Default to center if no match
+    return { x: 60, y: 60 };
+  };
+
+  const HexagonIcon = ({ status }) => (
+    <svg 
+      width="20" 
+      height="20" 
+      viewBox="0 0 24 24" 
+      className={`${status === 'ready' ? 'text-green-500' : 'text-red-500'}`}
+    >
+      <path 
+        fill="currentColor" 
+        d="M17.5 3.5L22 12l-4.5 8.5h-11L2 12l4.5-8.5h11z"
+      />
+    </svg>
+  );
+
+  const AustraliaMap = ({ deliveryAddress }) => {
+    const location = getDeliveryLocationDot(deliveryAddress);
+    
+    return (
+      <div className="relative" title={`Delivery: ${deliveryAddress || 'Unknown'}`}>
+        <svg width="60" height="45" viewBox="0 0 200 150" className="text-gray-400">
+          {/* Simplified Australia outline */}
+          <path 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2"
+            d="M30,40 L50,20 L80,15 L120,20 L150,25 L170,40 L180,60 L175,80 L170,100 L160,120 L140,130 L100,135 L70,130 L50,125 L35,110 L25,90 L20,70 L25,50 Z"
+          />
+          {/* Tasmania */}
+          <path 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2"
+            d="M125,130 L135,125 L140,135 L130,140 Z"
+          />
+          {/* Delivery location dot */}
+          <circle 
+            cx={location.x * 2} 
+            cy={location.y * 1.5} 
+            r="3" 
+            fill="red" 
+            className="animate-pulse"
+          />
+        </svg>
+      </div>
+    );
+  };
+
   const JobCard = ({ job, stageKey }) => {
     const isExpanded = expandedJobs[job.id];
     const isOverdue = job.is_overdue;
