@@ -448,6 +448,21 @@ metadata:
         agent: "testing"
         comment: "COMPREHENSIVE STOCKTAKE TESTING COMPLETED - ALL FEATURES WORKING CORRECTLY: ✅ NAVIGATION INTEGRATION: Stocktake appears in sidebar navigation and routes correctly to /stocktake, ✅ MONTHLY STATUS CHECK: Successfully detects and displays 'No Stocktake Required' status for September 2025, ✅ UI DISPLAY: Professional interface with Monthly Stocktake header, inventory count subtitle, and proper status messaging, ✅ BACKEND INTEGRATION: Fixed ObjectId serialization issue in /api/stocktake/current endpoint - now working without errors, ✅ STATUS HANDLING: Component properly handles different stocktake states (required, in progress, completed, not required), ✅ ERROR HANDLING: No error messages visible after backend fix, clean user experience, ✅ RESPONSIVE DESIGN: Professional dark theme consistent with application design. The Stocktake component successfully integrates with backend APIs and provides proper status detection. Ready for testing stocktake creation and material counting functionality when stocktake is required. Fixed critical backend ObjectId serialization bug during testing."
 
+  - task: "Staff & Security User Management API endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py, backend/auth.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "User management API endpoints implemented with proper password hashing using hash_password function from auth.py. Endpoints include GET /api/users (get all users), POST /api/users (create user), GET /api/users/{user_id} (get specific user), PUT /api/users/{user_id} (update user), DELETE /api/users/{user_id} (soft delete), and POST /api/users/change-password (change own password). All endpoints require admin authentication except change-password which allows users to change their own password."
+      - working: true
+        agent: "testing"
+        comment: "STAFF & SECURITY USER MANAGEMENT API TESTING COMPLETED - ALL ENDPOINTS WORKING PERFECTLY: ✅ GET /api/users: Successfully retrieved users without password hashes (security compliant), ✅ POST /api/users: Successfully created user with proper password hashing using hash_password function from auth.py, ✅ GET /api/users/{user_id}: Successfully retrieved specific user without password hash, ✅ PUT /api/users/{user_id}: Successfully updated user account with role and department changes, ✅ DELETE /api/users/{user_id}: Successfully soft deleted user (marked as inactive), ✅ POST /api/users/change-password: Successfully changed user's own password with proper hashing and verification, ✅ AUTHENTICATION & AUTHORIZATION: All admin-only endpoints properly require admin authentication (403 status for unauthorized), ✅ VALIDATION: Correctly prevents duplicate username/email creation, ✅ PASSWORD SECURITY: Password hashing working correctly with both login verification and password changes. CRITICAL FIXES APPLIED: Fixed MongoDB ObjectId serialization issues in user retrieval endpoints, resolved password field name inconsistency (password_hash vs hashed_password), corrected JWT token field access for password changes. SUCCESS RATE: 100% (10/10 tests passed). All Staff & Security user management functionality is fully operational and ready for production use."
+
 test_plan:
   current_focus:
     - "Calculators Frontend Component"
