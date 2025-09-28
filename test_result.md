@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "User wants to: 1) Fix missing import in OrderManagement.js component, 2) Update AM logo to new Adela Merchants logo from PDF, 3) Implement comprehensive invoicing & job closure functionality with Xero integration, 4) Add archived jobs management, 5) Enhance role-based permissions for production board and reporting"
+user_problem_statement: "User wants to: 1) Enhance client management with client-specific product catalog system, 2) Add 'Products & Materials' management under Reports with searchable materials database, 3) Support two product types: Finished Goods and Paper Cores with different specifications, 4) Enable copying products between clients with price modifications, 5) Integration with order management for auto-population of client products"
 
 backend:
   - task: "Order Management API endpoints"
