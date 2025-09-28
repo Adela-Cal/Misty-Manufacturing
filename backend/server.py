@@ -1131,6 +1131,56 @@ async def get_xero_tax_rates(current_user: dict = Depends(require_admin_or_produ
     except Exception as e:
         logger.error(f"Failed to get Xero tax rates: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get tax rates: {str(e)}")
+
+async def validate_sales_account(accounting_api, tenant_id: str) -> str:
+    """Validate that Sales account with code 200 exists, or find suitable alternative"""
+    try:
+        # First, try to find account with code "200"
+        accounts_response = accounting_api.get_accounts(
+            xero_tenant_id=tenant_id,
+            where=f'Code="{XERO_DEFAULT_SALES_ACCOUNT_CODE}" AND Status=="ACTIVE"'
+        )
+        
+        if accounts_response.accounts and len(accounts_response.accounts) > 0:
+            account = accounts_response.accounts[0]
+            logger.info(f"Found Sales account: {account.name} (Code: {account.code})")
+            return account.code
+        
+        # If code "200" doesn't exist, look for any Sales or Revenue account
+        logger.warning(f"Sales account with code {XERO_DEFAULT_SALES_ACCOUNT_CODE} not found. Looking for alternatives...")
+        
+        # Try to find Sales or Revenue accounts
+        sales_accounts = accounting_api.get_accounts(
+            xero_tenant_id=tenant_id,
+            where='(Type=="REVENUE" OR Type=="SALES") AND Status=="ACTIVE"'
+        )
+        
+        if sales_accounts.accounts and len(sales_accounts.accounts) > 0:
+            # Use the first available sales/revenue account
+            account = sales_accounts.accounts[0]
+            logger.info(f"Using alternative Sales account: {account.name} (Code: {account.code})")
+            return account.code
+        
+        # Last resort: look for any income account
+        income_accounts = accounting_api.get_accounts(
+            xero_tenant_id=tenant_id,
+            where='Type=="REVENUE" AND Status=="ACTIVE"'
+        )
+        
+        if income_accounts.accounts and len(income_accounts.accounts) > 0:
+            account = income_accounts.accounts[0]
+            logger.info(f"Using fallback Revenue account: {account.name} (Code: {account.code})")
+            return account.code
+        
+        # If nothing found, return the default and let Xero handle the error
+        logger.error("No suitable Sales or Revenue accounts found in Xero")
+        return XERO_DEFAULT_SALES_ACCOUNT_CODE
+        
+    except Exception as e:
+        logger.error(f"Error validating sales account: {str(e)}")
+        return XERO_DEFAULT_SALES_ACCOUNT_CODE
+
+@api_router.post("/xero/create-draft-invoice")
 async def create_xero_draft_invoice(
     invoice_data: dict,
     current_user: dict = Depends(require_admin_or_production_manager)
