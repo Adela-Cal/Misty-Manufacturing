@@ -69,6 +69,20 @@ export const apiHelpers = {
   getMaterial: (id) => api.get(`/materials/${id}`),
   deleteMaterial: (id) => api.delete(`/materials/${id}`),
   
+  // Suppliers  
+  getSuppliers: () => api.get('/suppliers'),
+  createSupplier: (data) => api.post('/suppliers', data),
+  updateSupplier: (id, data) => api.put(`/suppliers/${id}`, data),
+  getSupplier: (id) => api.get(`/suppliers/${id}`),
+  deleteSupplier: (id) => api.delete(`/suppliers/${id}`),
+  
+  // Product Specifications
+  getProductSpecifications: () => api.get('/product-specifications'),
+  createProductSpecification: (data) => api.post('/product-specifications', data),
+  updateProductSpecification: (id, data) => api.put(`/product-specifications/${id}`, data),
+  getProductSpecification: (id) => api.get(`/product-specifications/${id}`),
+  deleteProductSpecification: (id) => api.delete(`/product-specifications/${id}`),
+  
   // Client Product Catalog
   getClientCatalog: (clientId) => api.get(`/clients/${clientId}/catalog`),
   createClientProduct: (clientId, data) => api.post(`/clients/${clientId}/catalog`, data),
