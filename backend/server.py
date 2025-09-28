@@ -872,8 +872,12 @@ async def delete_user(user_id: str, current_user: dict = Depends(require_admin))
 @api_router.post("/users/change-password", response_model=StandardResponse)
 async def change_user_password(password_data: PasswordChangeRequest, current_user: dict = Depends(get_current_user)):
     """Change user's own password"""
-    # Get current user from database
-    user = await db.users.find_one({"id": current_user["sub"]})
+    # Get current user from database using user_id from JWT token
+    user_id = current_user.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User ID not found in token")
+    
+    user = await db.users.find_one({"id": user_id})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -886,7 +890,7 @@ async def change_user_password(password_data: PasswordChangeRequest, current_use
     
     # Update password
     await db.users.update_one(
-        {"id": current_user["sub"]},
+        {"id": user_id},
         {"$set": {
             "password_hash": new_password_hash,
             "updated_at": datetime.utcnow()
