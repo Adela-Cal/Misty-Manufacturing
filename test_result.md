@@ -342,8 +342,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Materials Management API endpoints"
-    - "Client Product Catalog API endpoints"
+    - "Production Board API enhancements"
+    - "Production Board Enhancement - Row Layout & New Features" 
     - "Materials Management Component"
     - "Client Product Catalog Management"
   stuck_tasks: []
