@@ -785,9 +785,79 @@ async def check_xero_connection_status(current_user: dict = Depends(require_admi
     
     if user_tokens and user_tokens.get("access_token"):
         # TODO: Validate token is still active with Xero API
-        return {"connected": True, "message": "Xero connection active"}
+        return {"connected": True, "message": "Xero connection active", "tenant_id": user_tokens.get("tenant_id")}
     else:
         return {"connected": False, "message": "No Xero connection found"}
+
+# Helper function to get authenticated Xero API client
+async def get_xero_api_client(user_id: str):
+    """Get authenticated Xero API client for user"""
+    user_tokens = await db.xero_tokens.find_one({"user_id": user_id})
+    if not user_tokens or not user_tokens.get("access_token"):
+        raise HTTPException(status_code=401, detail="No Xero connection found")
+    
+    # Check if token is expired
+    if user_tokens.get("expires_at") and user_tokens["expires_at"] < datetime.utcnow():
+        # Try to refresh token
+        try:
+            refreshed_tokens = await refresh_xero_token(user_id, user_tokens["refresh_token"])
+            user_tokens = refreshed_tokens
+        except Exception as e:
+            raise HTTPException(status_code=401, detail="Xero token expired and refresh failed")
+    
+    # Create OAuth2 token object
+    oauth2_token = OAuth2Token(
+        client_id=XERO_CLIENT_ID,
+        client_secret=XERO_CLIENT_SECRET
+    )
+    oauth2_token.access_token = user_tokens["access_token"]
+    oauth2_token.refresh_token = user_tokens.get("refresh_token")
+    oauth2_token.expires_at = user_tokens.get("expires_at")
+    
+    # Create API client
+    configuration = Configuration(oauth2_token=oauth2_token)
+    api_client = ApiClient(configuration, pool_threads=1)
+    
+    return api_client, user_tokens.get("tenant_id")
+
+async def refresh_xero_token(user_id: str, refresh_token: str):
+    """Refresh expired Xero access token"""
+    token_url = "https://identity.xero.com/connect/token"
+    
+    auth_string = f"{XERO_CLIENT_ID}:{XERO_CLIENT_SECRET}"
+    auth_bytes = auth_string.encode('ascii')
+    auth_b64 = base64.b64encode(auth_bytes).decode('ascii')
+    
+    headers = {
+        "Authorization": f"Basic {auth_b64}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    
+    token_data = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token
+    }
+    
+    response = requests.post(token_url, headers=headers, data=token_data)
+    response.raise_for_status()
+    
+    tokens = response.json()
+    
+    # Update stored tokens
+    token_record = {
+        "user_id": user_id,
+        "access_token": tokens["access_token"],
+        "refresh_token": tokens.get("refresh_token", refresh_token),
+        "expires_at": datetime.utcnow() + timedelta(seconds=tokens.get("expires_in", 1800)),
+        "updated_at": datetime.utcnow()
+    }
+    
+    await db.xero_tokens.update_one(
+        {"user_id": user_id},
+        {"$set": token_record}
+    )
+    
+    return token_record
 
 @api_router.get("/xero/auth/url")
 async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_production_manager)):
