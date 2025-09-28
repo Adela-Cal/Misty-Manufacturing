@@ -500,9 +500,7 @@ const StaffSecurity = () => {
                       >
                         <option value="full_time">Full Time</option>
                         <option value="part_time">Part Time</option>
-                        <option value="contract">Contract</option>
-                        <option value="temporary">Temporary</option>
-                        <option value="intern">Intern</option>
+                        <option value="casual">Casual</option>
                       </select>
                     </div>
 
