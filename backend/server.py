@@ -661,6 +661,10 @@ async def get_materials_status(order_id: str, current_user: dict = Depends(requi
         await db.materials_status.insert_one(default_status.dict())
         return {"success": True, "data": default_status.dict()}
     
+    # Remove MongoDB _id field to avoid serialization issues
+    if "_id" in status:
+        del status["_id"]
+    
     return {"success": True, "data": status}
 
 @api_router.put("/production/materials-status/{order_id}")
