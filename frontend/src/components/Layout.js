@@ -15,7 +15,9 @@ import {
   UserIcon,
   LinkIcon,
   XMarkIcon,
-  CubeIcon
+  CubeIcon,
+  TruckIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 
 const Layout = ({ children }) => {
