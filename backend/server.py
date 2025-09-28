@@ -1123,6 +1123,7 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(req
         due_date=order_data.due_date,
         delivery_address=order_data.delivery_address,
         delivery_instructions=order_data.delivery_instructions,
+        runtime_estimate=order_data.runtime_estimate,
         notes=order_data.notes,
         created_by=current_user["user_id"]
     )
