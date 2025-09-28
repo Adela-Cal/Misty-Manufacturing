@@ -1214,7 +1214,7 @@ async def get_job_specification_by_order(order_id: str, current_user: dict = Dep
 
 @api_router.delete("/orders/{order_id}", response_model=StandardResponse)
 async def delete_order(order_id: str, current_user: dict = Depends(require_admin)):
-    """Delete order (soft delete - Admin only)"""
+    """Delete order permanently (Admin only)"""
     # Check if order exists
     existing_order = await db.orders.find_one({"id": order_id})
     if not existing_order:
@@ -1226,13 +1226,20 @@ async def delete_order(order_id: str, current_user: dict = Depends(require_admin
     if current_stage in unsafe_stages:
         raise HTTPException(status_code=400, detail="Cannot delete order in production. Contact manager to halt production first.")
     
-    # Perform soft delete
-    result = await db.orders.update_one(
-        {"id": order_id},
-        {"$set": {"status": "cancelled", "updated_at": datetime.utcnow()}}
-    )
+    # Clean up related data first
+    # Remove job specifications
+    await db.job_specifications.delete_many({"order_id": order_id})
     
-    if result.matched_count == 0:
+    # Remove materials status
+    await db.materials_status.delete_many({"order_id": order_id})
+    
+    # Remove order items status
+    await db.order_items_status.delete_many({"order_id": order_id})
+    
+    # Perform hard delete - completely remove the order
+    result = await db.orders.delete_one({"id": order_id})
+    
+    if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Order not found")
     
     return StandardResponse(success=True, message="Order deleted successfully")
