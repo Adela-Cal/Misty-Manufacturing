@@ -571,12 +571,8 @@ class DocumentGenerator:
         story.append(Paragraph("Payment Terms: Net 30 days", self.styles['AdelaBodyText']))
         story.append(Paragraph("Thank you for your business!", self.styles['AdelaBodyText']))
         
-        # Build PDF
-        def add_header_footer(canvas_obj, doc):
-            self._draw_header(canvas_obj, "INVOICE")
-            self._draw_footer(canvas_obj)
-        
-        doc.build(story, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
+        # Build PDF with letterhead
+        doc.build(story, onFirstPage=add_letterhead_template, onLaterPages=add_letterhead_template)
         
         buffer.seek(0)
         return buffer.getvalue()
