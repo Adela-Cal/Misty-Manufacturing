@@ -180,7 +180,7 @@ const Invoicing = () => {
       setTimeout(() => {
         window.open(url, '_blank');
         window.URL.revokeObjectURL(url);
-        toast.success(`Packing Slip ${orderNumber} ready for download`);
+        toast.success(`📦 Packing Slip ${orderNumber} ready for download`);
       }, 500);
       
     } catch (error) {
