@@ -2270,6 +2270,19 @@ class InvoicingAPITester:
         # Test authentication requirements for new endpoints
         self.test_authentication_requirements()
         
+        # NEW FOCUS: Test Production Board API Enhancements
+        print("\n🏭 TESTING PRODUCTION BOARD API ENHANCEMENTS")
+        self.test_production_board_authentication()
+        order_id = self.test_production_board_enhancements()
+        
+        if order_id:
+            self.test_stage_movement_api(order_id)
+            self.test_materials_status_api(order_id)
+            self.test_order_item_status_api(order_id)
+        
+        # Test error handling for invalid order IDs
+        self.test_invalid_order_ids()
+        
         # NEW FOCUS: Test Materials Management APIs
         print("\n🧱 TESTING MATERIALS MANAGEMENT APIs")
         material_id = self.test_materials_management_api()
