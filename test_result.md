@@ -384,7 +384,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Materials Management Component"
     - "Client Product Catalog Management"
   stuck_tasks: []
   test_all: false
