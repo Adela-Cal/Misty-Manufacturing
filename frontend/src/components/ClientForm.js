@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiHelpers } from '../utils/api';
 import { toast } from 'sonner';
-import { XMarkIcon, PhotoIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PhotoIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import ClientProductCatalog from './ClientProductCatalog';
 
 const ClientForm = ({ client, onClose, onSuccess }) => {
