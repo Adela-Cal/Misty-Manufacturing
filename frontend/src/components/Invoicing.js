@@ -209,11 +209,37 @@ const Invoicing = () => {
     return new Intl.DateTimeFormat('en-AU').format(new Date(date));
   };
 
-  const testPdfDownload = () => {
-    // Simple direct URL approach - bypass blob creation
-    const testUrl = `${process.env.REACT_APP_BACKEND_URL}/api/debug/test-pdf`;
-    window.open(testUrl, '_blank');
-    toast.success('Test PDF opened in new tab');
+  const testPdfDownload = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/debug/test-pdf`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      
+      // Create download link and trigger download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = 'test.pdf';
+      
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      toast.success('Test PDF downloaded to your Downloads folder');
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error(`Download failed: ${error.message}`);
+    }
   };
 
   if (loading) {
