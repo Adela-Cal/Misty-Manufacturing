@@ -720,7 +720,7 @@ async def complete_stocktake(
         {
             "$set": {
                 "status": "completed",
-                "completed_by": current_user["username"],
+                "completed_by": current_user["sub"],
                 "completed_at": datetime.utcnow()
             }
         }
