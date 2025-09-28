@@ -410,8 +410,8 @@ const ProductionBoard = () => {
           </button>
         </div>
 
-        {/* Production Stages */}
-        <div className="flex space-x-4 overflow-x-auto pb-4">
+        {/* Production Stages - Row Layout */}
+        <div className="space-y-4 pb-4">
           {Object.entries(productionBoard).map(([stageKey, jobs]) => (
             <ProductionStage
               key={stageKey}
