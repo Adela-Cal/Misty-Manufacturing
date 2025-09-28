@@ -309,10 +309,11 @@ const ProductionBoard = () => {
                       <div className="flex items-center">
                         <input
                           type="checkbox"
+                          checked={item.is_completed || false}
+                          onChange={() => toggleOrderItemStatus(job.id, index, item.is_completed)}
                           className="mr-2 rounded bg-gray-700 border-gray-600"
-                          // TODO: Connect to backend for item completion status
                         />
-                        <span className="text-gray-300">
+                        <span className={`${item.is_completed ? 'line-through text-gray-500' : 'text-gray-300'}`}>
                           {item.product_name} (x{item.quantity})
                         </span>
                       </div>
