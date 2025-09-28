@@ -348,8 +348,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Production Board API enhancements"
-    - "Production Board Enhancement - Row Layout & New Features" 
     - "Materials Management Component"
     - "Client Product Catalog Management"
   stuck_tasks: []
