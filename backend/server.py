@@ -551,6 +551,11 @@ async def get_production_board(current_user: dict = Depends(require_any_role)):
         if stage in board:
             # Get client info for logo
             client = await db.clients.find_one({"id": order["client_id"]})
+            
+            # Get materials status
+            materials_status = await db.materials_status.find_one({"order_id": order["id"]})
+            materials_ready = materials_status.get("materials_ready", False) if materials_status else False
+            
             order_info = {
                 "id": order["id"],
                 "order_number": order["order_number"],
@@ -558,6 +563,8 @@ async def get_production_board(current_user: dict = Depends(require_any_role)):
                 "client_logo": get_file_url(client.get("logo_path", "")) if client else None,
                 "due_date": order["due_date"],
                 "total_amount": order["total_amount"],
+                "runtime": order.get("runtime_estimate", "2-3 days"),
+                "materials_ready": materials_ready,
                 "items": order["items"],
                 "delivery_address": order.get("delivery_address"),
                 "is_overdue": datetime.fromisoformat(order["due_date"].replace("Z", "+00:00")) < datetime.utcnow() if isinstance(order["due_date"], str) else order["due_date"] < datetime.utcnow()
