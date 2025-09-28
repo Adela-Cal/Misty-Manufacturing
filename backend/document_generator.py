@@ -559,8 +559,8 @@ class DocumentGenerator:
         story.append(Spacer(1, 30))
         
         # Payment terms
-        story.append(Paragraph("Payment Terms: Net 30 days", self.styles['AdelaBodyText']))
-        story.append(Paragraph("Thank you for your business!", self.styles['AdelaBodyText']))
+        story.append(Paragraph("Payment Terms: Net 30 days", self.styles.get('AdelaBodyText', self.styles['Normal'])))
+        story.append(Paragraph("Thank you for your business!", self.styles.get('AdelaBodyText', self.styles['Normal'])))
         
         # Build PDF (simplified - no header/footer for now)
         doc.build(story)
