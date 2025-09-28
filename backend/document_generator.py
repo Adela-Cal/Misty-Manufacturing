@@ -37,6 +37,29 @@ class DocumentGenerator:
                 alignment=TA_CENTER,
                 fontName='Helvetica-Bold'
             ))
+        
+        # Section header style
+        if 'SectionHeader' not in self.styles:
+            self.styles.add(ParagraphStyle(
+                name='SectionHeader',
+                fontSize=14,
+                textColor=ADELA_BLACK,
+                spaceAfter=8,
+                spaceBefore=12,
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold'
+            ))
+        
+        # Body text style
+        if 'AdelaBodyText' not in self.styles:
+            self.styles.add(ParagraphStyle(
+                name='AdelaBodyText',
+                fontSize=10,
+                textColor=ADELA_DARK_GRAY,
+                spaceAfter=6,
+                alignment=TA_LEFT,
+                fontName='Helvetica'
+            ))
     
     def draw_letterhead_header(self, canvas_obj, doc):
         """Draw the Adela Merchants letterhead header with curved bands"""
