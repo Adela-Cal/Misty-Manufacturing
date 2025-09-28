@@ -7556,8 +7556,8 @@ class InvoicingAPITester:
             self.log_result("Verify PO Number in Order List", False, f"Error: {str(e)}")
 
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on Order Deletion Functionality"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Order Deletion Functionality")
+        """Run backend API tests with PRIMARY FOCUS on Purchase Order Number Functionality"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Purchase Order Number Functionality")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 80)
         
@@ -7566,10 +7566,10 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test Order Deletion functionality
-        print("\n🗑️ TESTING ORDER DELETION FUNCTIONALITY - PRIMARY FOCUS")
+        # PRIMARY FOCUS: Test Purchase Order Number functionality
+        print("\n📋 TESTING PURCHASE ORDER NUMBER FUNCTIONALITY - PRIMARY FOCUS")
         print("=" * 60)
-        self.test_order_deletion_functionality()
+        self.test_order_creation_with_purchase_order_number()
         
         return self.generate_report()
     
