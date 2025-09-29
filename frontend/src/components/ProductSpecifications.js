@@ -720,9 +720,9 @@ const ProductSpecifications = () => {
                           )}
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                           {/* Material/Product Selection */}
-                          <div>
+                          <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-300 mb-1">
                               Material/Product *
                             </label>
@@ -769,19 +769,50 @@ const ProductSpecifications = () => {
                             </select>
                           </div>
 
-                          {/* Thickness Input */}
+                          {/* Quantity/Usage */}
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">
-                              Thickness (mm) *
+                              Quantity/Usage *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0.01"
+                              value={layer.quantity || 1}
+                              onChange={(e) => handleMaterialLayerChange(index, 'quantity', e.target.value)}
+                              className="misty-input w-full"
+                              placeholder="1"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          {/* Auto-populated Thickness (Read-only) */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Thickness (mm)
                             </label>
                             <input
                               type="number"
                               step="0.001"
-                              min="0"
-                              value={layer.thickness}
-                              onChange={(e) => handleMaterialLayerChange(index, 'thickness', e.target.value)}
-                              className="misty-input w-full"
-                              placeholder="0.000"
+                              value={layer.thickness || 0}
+                              className="misty-input w-full bg-gray-600"
+                              placeholder="Auto-populated"
+                              readOnly
+                            />
+                          </div>
+
+                          {/* Auto-populated GSM (Read-only) */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              GSM
+                            </label>
+                            <input
+                              type="number"
+                              value={layer.gsm || 0}
+                              className="misty-input w-full bg-gray-600"
+                              placeholder="Auto-populated"
+                              readOnly
                             />
                           </div>
 
@@ -815,22 +846,6 @@ const ProductSpecifications = () => {
                               />
                             </div>
                           )}
-
-                          {/* Quantity */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">
-                              Quantity/Usage
-                            </label>
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={layer.quantity || ''}
-                              onChange={(e) => handleMaterialLayerChange(index, 'quantity', e.target.value)}
-                              className="misty-input w-full"
-                              placeholder="Optional"
-                            />
-                          </div>
 
                           {/* Notes */}
                           <div>
