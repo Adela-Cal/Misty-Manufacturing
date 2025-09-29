@@ -94,7 +94,9 @@ const ProductSpecifications = () => {
       product_type: spec.product_type,
       specifications: spec.specifications || {},
       materials_composition: spec.materials_composition || [],
+      material_layers: spec.material_layers || [],  // Load enhanced material layers
       manufacturing_notes: spec.manufacturing_notes || '',
+      selected_thickness: spec.selected_thickness || null,
       // Spiral Paper Core specific fields
       internal_diameter: spec.specifications?.internal_diameter || '',
       wall_thickness_required: spec.specifications?.wall_thickness_required || '',
@@ -102,6 +104,8 @@ const ProductSpecifications = () => {
       layers_required: spec.specifications?.layers_required || 0,
       layer_specifications: spec.specifications?.layer_specifications || []
     });
+    setCalculatedThickness(spec.calculated_total_thickness || 0);
+    setThicknessOptions(spec.thickness_options || []);
     setErrors({});
     setShowModal(true);
   };
