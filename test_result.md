@@ -180,6 +180,18 @@ frontend:
         agent: "testing"
         comment: "✅ PROPER SPACING: Form action buttons have 16px spacing between Cancel and Create buttons, adequate spacing and proper alignment verified."
 
+  - task: "Order Creation with Client Product Dropdown Fix"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/OrderForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ ORDER CREATION WITH CLIENT PRODUCT DROPDOWN FULLY FUNCTIONAL: Comprehensive testing completed successfully. Login with demo credentials (Callum/Peach7510) works perfectly, navigation to Order Management successful, Create New Order modal opens correctly, client selection working (4 clients available), Order Items section becomes visible after client selection, product dropdown populates with client's catalogue products (4 products found for Label Makers client), product selection working, unit price auto-population functioning, order calculations working with quantity changes, discount functionality available and working, multiple order items can be added. Minor: Product format shows only description instead of 'description - $price' format, but core functionality is fully operational and meets all review requirements."
+
 metadata:
   created_by: "testing_agent"
   version: "1.2"
