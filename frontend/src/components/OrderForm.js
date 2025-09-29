@@ -537,7 +537,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                           type="number"
                           min="0"
                           step="0.01"
-                          value={item.unit_price}
+                          value={item.unit_price || 0}
                           onChange={(e) => handleItemChange(index, 'unit_price', e.target.value)}
                           className={`misty-input w-full ${errors[`item_${index}_unit_price`] ? 'border-red-500' : ''}`}
                         />
