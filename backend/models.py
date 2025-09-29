@@ -519,6 +519,11 @@ class ClientProduct(BaseModel):
     core_thickness: Optional[str] = None
     strength_quality_important: Optional[bool] = False
     delivery_included: Optional[bool] = False
+    
+    # Common fields for database management
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
 
 # Archived Orders
 class ArchivedOrder(BaseModel):
