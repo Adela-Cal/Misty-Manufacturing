@@ -2518,6 +2518,224 @@ async def get_monthly_invoicing_report(
         "invoiced_jobs": invoiced_jobs
     }
 
+# ============= ARCHIVED ORDERS ENDPOINTS =============
+
+@api_router.get("/clients/{client_id}/archived-orders")
+async def get_client_archived_orders(
+    client_id: str,
+    filters: ArchivedOrderFilter = Depends(),
+    current_user: dict = Depends(require_any_role)
+):
+    """Get archived orders for a specific client with filtering"""
+    query = {"client_id": client_id}
+    
+    # Apply date filters
+    if filters.date_from or filters.date_to:
+        date_filter = {}
+        if filters.date_from:
+            date_filter["$gte"] = datetime.combine(filters.date_from, datetime.min.time())
+        if filters.date_to:
+            date_filter["$lte"] = datetime.combine(filters.date_to, datetime.max.time())
+        query["archived_at"] = date_filter
+    
+    # Apply search query
+    if filters.search_query:
+        query["$or"] = [
+            {"order_number": {"$regex": filters.search_query, "$options": "i"}},
+            {"client_name": {"$regex": filters.search_query, "$options": "i"}},
+            {"purchase_order_number": {"$regex": filters.search_query, "$options": "i"}},
+            {"items.product_name": {"$regex": filters.search_query, "$options": "i"}}
+        ]
+    
+    archived_orders = await db.archived_orders.find(query).sort("archived_at", -1).to_list(length=None)
+    
+    # Remove MongoDB ObjectIds
+    for order in archived_orders:
+        if "_id" in order:
+            del order["_id"]
+    
+    return StandardResponse(success=True, message="Archived orders retrieved", data=archived_orders)
+
+@api_router.post("/clients/{client_id}/archived-orders/fast-report")
+async def generate_fast_report(
+    client_id: str,
+    report_request: FastReportRequest,
+    current_user: dict = Depends(require_any_role)
+):
+    """Generate Excel fast report for client archived orders"""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, Border, Side
+    from openpyxl.utils.dataframe import dataframe_to_rows
+    from io import BytesIO
+    import pandas as pd
+    from fastapi.responses import StreamingResponse
+    
+    # Calculate date range based on time period
+    today = date.today()
+    
+    if report_request.time_period == ReportTimePeriod.CURRENT_MONTH:
+        date_from = today.replace(day=1)
+        date_to = today
+    elif report_request.time_period == ReportTimePeriod.LAST_MONTH:
+        first_day_current = today.replace(day=1)
+        date_to = first_day_current - timedelta(days=1)
+        date_from = date_to.replace(day=1)
+    elif report_request.time_period == ReportTimePeriod.LAST_3_MONTHS:
+        date_to = today
+        date_from = today - timedelta(days=90)
+    elif report_request.time_period == ReportTimePeriod.LAST_6_MONTHS:
+        date_to = today
+        date_from = today - timedelta(days=180)
+    elif report_request.time_period == ReportTimePeriod.LAST_9_MONTHS:
+        date_to = today
+        date_from = today - timedelta(days=270)
+    elif report_request.time_period == ReportTimePeriod.LAST_YEAR:
+        date_to = today
+        date_from = today - timedelta(days=365)
+    elif report_request.time_period == ReportTimePeriod.CURRENT_QUARTER:
+        quarter_start_month = (today.month - 1) // 3 * 3 + 1
+        date_from = today.replace(month=quarter_start_month, day=1)
+        date_to = today
+    elif report_request.time_period == ReportTimePeriod.YEAR_TO_DATE:
+        date_from = today.replace(month=1, day=1)
+        date_to = today
+    elif report_request.time_period == ReportTimePeriod.CURRENT_FINANCIAL_YEAR:
+        # Australian financial year: July 1 - June 30
+        if today.month >= 7:
+            date_from = today.replace(month=7, day=1)
+            date_to = today
+        else:
+            date_from = today.replace(year=today.year-1, month=7, day=1)
+            date_to = today
+    elif report_request.time_period == ReportTimePeriod.CUSTOM_RANGE:
+        date_from = report_request.date_from
+        date_to = report_request.date_to
+    else:
+        date_from = today - timedelta(days=30)
+        date_to = today
+    
+    # Build query
+    query = {"client_id": client_id}
+    
+    if date_from and date_to:
+        query["archived_at"] = {
+            "$gte": datetime.combine(date_from, datetime.min.time()),
+            "$lte": datetime.combine(date_to, datetime.max.time())
+        }
+    
+    # Apply product filter if specified
+    if report_request.product_filter:
+        query["items.product_name"] = {"$regex": report_request.product_filter, "$options": "i"}
+    
+    # Get archived orders
+    archived_orders = await db.archived_orders.find(query).sort("archived_at", -1).to_list(length=None)
+    
+    if not archived_orders:
+        raise HTTPException(status_code=404, detail="No archived orders found for the specified criteria")
+    
+    # Prepare data for Excel
+    excel_data = []
+    
+    for order in archived_orders:
+        row_data = {}
+        
+        # Map selected fields to Excel columns
+        for field in report_request.selected_fields:
+            if field == ReportField.ORDER_NUMBER:
+                row_data["Order Number"] = order.get("order_number", "")
+            elif field == ReportField.CLIENT_NAME:
+                row_data["Client Name"] = order.get("client_name", "")
+            elif field == ReportField.PURCHASE_ORDER_NUMBER:
+                row_data["Purchase Order Number"] = order.get("purchase_order_number", "")
+            elif field == ReportField.ORDER_DATE:
+                row_data["Order Date"] = order.get("created_at", "").strftime("%Y-%m-%d") if order.get("created_at") else ""
+            elif field == ReportField.COMPLETION_DATE:
+                row_data["Completion Date"] = order.get("completed_at", "").strftime("%Y-%m-%d") if order.get("completed_at") else ""
+            elif field == ReportField.DUE_DATE:
+                row_data["Due Date"] = order.get("due_date", "").strftime("%Y-%m-%d") if order.get("due_date") else ""
+            elif field == ReportField.SUBTOTAL:
+                row_data["Subtotal"] = f"${order.get('subtotal', 0):.2f}"
+            elif field == ReportField.GST:
+                row_data["GST"] = f"${order.get('gst', 0):.2f}"
+            elif field == ReportField.TOTAL_AMOUNT:
+                row_data["Total Amount"] = f"${order.get('total_amount', 0):.2f}"
+            elif field == ReportField.DELIVERY_ADDRESS:
+                row_data["Delivery Address"] = order.get("delivery_address", "")
+            elif field == ReportField.PRODUCT_NAMES:
+                products = [item.get("product_name", "") for item in order.get("items", [])]
+                row_data["Products"] = ", ".join(products)
+            elif field == ReportField.PRODUCT_QUANTITIES:
+                quantities = [f"{item.get('product_name', '')}: {item.get('quantity', 0)}" for item in order.get("items", [])]
+                row_data["Product Quantities"] = ", ".join(quantities)
+            elif field == ReportField.NOTES:
+                row_data["Notes"] = order.get("notes", "")
+            elif field == ReportField.RUNTIME_ESTIMATE:
+                row_data["Runtime Estimate"] = order.get("runtime_estimate", "")
+        
+        excel_data.append(row_data)
+    
+    # Create Excel workbook
+    df = pd.DataFrame(excel_data)
+    wb = Workbook()
+    ws = wb.active
+    
+    # Set title
+    title = report_request.report_title or f"Archived Orders Report - {report_request.time_period.value.replace('_', ' ').title()}"
+    ws.title = "Archived Orders Report"
+    
+    # Add header
+    ws.merge_cells("A1:{}1".format(chr(65 + len(df.columns) - 1)))
+    ws["A1"] = title
+    ws["A1"].font = Font(bold=True, size=16)
+    ws["A1"].alignment = Alignment(horizontal="center")
+    
+    # Add date range info
+    ws.merge_cells("A2:{}2".format(chr(65 + len(df.columns) - 1)))
+    ws["A2"] = f"Report Period: {date_from.strftime('%Y-%m-%d')} to {date_to.strftime('%Y-%m-%d')}"
+    ws["A2"].alignment = Alignment(horizontal="center")
+    
+    # Add column headers
+    for col, column_name in enumerate(df.columns, 1):
+        cell = ws.cell(row=4, column=col, value=column_name)
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal="center")
+    
+    # Add data
+    for row_idx, row_data in enumerate(excel_data, 5):
+        for col_idx, (column_name, value) in enumerate(row_data.items(), 1):
+            ws.cell(row=row_idx, column=col_idx, value=value)
+    
+    # Auto-adjust column widths
+    for column in ws.columns:
+        max_length = 0
+        column_letter = column[0].column_letter
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = min(max_length + 2, 50)  # Cap at 50 characters
+        ws.column_dimensions[column_letter].width = adjusted_width
+    
+    # Save to BytesIO
+    excel_file = BytesIO()
+    wb.save(excel_file)
+    excel_file.seek(0)
+    
+    # Get client name for filename
+    client = await db.clients.find_one({"id": client_id})
+    client_name = client.get("company_name", "Client") if client else "Client"
+    safe_client_name = "".join(c for c in client_name if c.isalnum() or c in (' ', '-', '_')).strip()
+    
+    filename = f"{safe_client_name}_Archived_Orders_{date_from.strftime('%Y%m%d')}-{date_to.strftime('%Y%m%d')}.xlsx"
+    
+    return StreamingResponse(
+        BytesIO(excel_file.read()),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
 # ============= FILE SERVING ENDPOINTS =============
 
 @api_router.get("/uploads/{file_path:path}")
