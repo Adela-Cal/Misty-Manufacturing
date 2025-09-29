@@ -485,9 +485,10 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                                 const unitPrice = Number(selectedProduct.price_ex_gst) || 0;
                                 const totalPrice = currentQuantity * unitPrice;
                                 
-                                // Update the item with all changes at once
+                                // Update the item with all changes at once including product_id
                                 newItems[index] = {
                                   ...newItems[index],
+                                  product_id: selectedProduct.id,  // Include product_id for backend
                                   product_name: selectedProduct.product_description,
                                   unit_price: unitPrice,
                                   total_price: totalPrice
