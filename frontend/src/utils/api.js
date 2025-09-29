@@ -58,6 +58,7 @@ export const apiHelpers = {
   },
   
   // Products
+  getProducts: () => api.get('/products'),
   getClientProducts: (clientId) => api.get(`/clients/${clientId}/products`),
   createProduct: (data) => api.post('/products', data),
   updateProduct: (id, data) => api.put(`/products/${id}`, data),
