@@ -220,6 +220,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Production Board Jumping Man Feature"
     - "Order Creation with Client Product Dropdown Fix"
   stuck_tasks: 
     - "Order Creation with Client Product Dropdown Fix"
