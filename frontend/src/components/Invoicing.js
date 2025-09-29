@@ -70,13 +70,18 @@ const Invoicing = () => {
       
       // Also create draft invoice in Xero if connected
       try {
+        console.log('Checking Xero connection status...');
         const xeroStatus = await apiHelpers.checkXeroConnection();
+        console.log('Xero status:', xeroStatus.data);
+        
         if (xeroStatus.data.connected) {
+          console.log('Xero connected, getting next invoice number...');
           const nextNumber = await apiHelpers.getNextXeroInvoiceNumber();
+          console.log('Next invoice number:', nextNumber.data);
           
           const xeroInvoiceData = {
             client_name: selectedJob.client_name,
-            client_email: selectedJob.client_email,
+            client_email: selectedJob.client_email || '',
             invoice_number: nextNumber.data.formatted_number,
             order_number: selectedJob.order_number,
             items: selectedJob.items,
@@ -85,7 +90,9 @@ const Invoicing = () => {
             reference: selectedJob.order_number
           };
           
+          console.log('Creating Xero draft invoice with data:', xeroInvoiceData);
           const xeroResponse = await apiHelpers.createXeroDraftInvoice(xeroInvoiceData);
+          console.log('Xero response:', xeroResponse.data);
           
           toast.success(
             <div>
@@ -116,6 +123,7 @@ const Invoicing = () => {
             { duration: 15000 }
           );
         } else {
+          console.log('Xero not connected, showing local documents only');
           // Show download prompt if no Xero connection
           toast.success(
             <div>
