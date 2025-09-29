@@ -8892,25 +8892,45 @@ class InvoicingAPITester:
             self.log_result("Verify Soft Delete", False, f"Error: {str(e)}")
 
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on Client Product Catalog Functionality"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Client Product Catalog Functionality")
+        """Run complete invoicing workflow tests with Xero integration focus"""
+        print("🚀 STARTING COMPLETE INVOICING WORKFLOW TESTS WITH XERO INTEGRATION")
         print(f"Backend URL: {BACKEND_URL}")
-        print("=" * 80)
+        print("=" * 70)
         
-        # Test authentication first
+        # Authentication first
         if not self.authenticate():
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Client Product Catalog functionality testing
-        print("\n🔍 CLIENT PRODUCT CATALOG FUNCTIONALITY TESTING - PRIMARY FOCUS")
-        print("=" * 60)
-        self.test_client_product_catalog()
+        # Test invoicing workflow endpoints in priority order
+        print("\n🔍 TESTING INVOICING ENDPOINTS...")
+        live_jobs = self.test_live_jobs_api()
         
-        # SECONDARY: Discount functionality testing (existing tests)
-        print("\n🔍 DISCOUNT FUNCTIONALITY TESTING - SECONDARY")
-        print("=" * 60)
-        self.test_discount_functionality()
+        # Test Xero integration endpoints
+        print("\n🔍 TESTING XERO INTEGRATION...")
+        self.test_xero_connection_status()
+        self.test_xero_next_invoice_number()
+        
+        # Test complete Xero draft invoice creation process
+        self.test_xero_create_draft_invoice_with_realistic_data()
+        
+        # Test data structure verification
+        print("\n🔍 TESTING DATA STRUCTURE VERIFICATION...")
+        self.test_live_jobs_data_structure(live_jobs)
+        
+        # Test invoice generation with archiving
+        if live_jobs:
+            self.test_invoice_generation_with_archiving(live_jobs[0])
+        
+        # Test archiving integration
+        print("\n🔍 TESTING ARCHIVING INTEGRATION...")
+        self.test_archived_jobs_api()
+        
+        # Additional Xero tests
+        state_param = self.test_xero_auth_url()
+        self.test_xero_auth_callback(state_param)
+        self.test_xero_disconnect()
+        self.test_xero_permissions()
         
         return self.generate_report()
     
