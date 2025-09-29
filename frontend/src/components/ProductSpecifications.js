@@ -332,7 +332,12 @@ const ProductSpecifications = () => {
   };
 
   const calculateTotalThickness = () => {
-    const total = formData.material_layers.reduce((sum, layer) => sum + (parseFloat(layer.thickness) || 0), 0);
+    const total = formData.material_layers.reduce((sum, layer) => {
+      const thickness = parseFloat(layer.thickness) || 0;
+      const quantity = parseFloat(layer.quantity) || 1;  // Default quantity is 1 if not specified
+      return sum + (thickness * quantity);
+    }, 0);
+    
     setCalculatedThickness(total);
     
     // Generate thickness options (±5%, ±10%, exact)
