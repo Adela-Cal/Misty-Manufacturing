@@ -10,7 +10,8 @@ import {
   BookOpenIcon,
   ChevronLeftIcon,
   ArrowRightIcon,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+  UserIcon
 } from '@heroicons/react/24/outline';
 
 const ProductionBoard = () => {
