@@ -74,6 +74,66 @@ backend:
         agent: "testing"
         comment: "✅ EDGE CASES THOROUGHLY TESTED: 0% discount correctly sets fields to null, orders without discount fields handled properly, 100% discount results in $0 final amount with correct GST calculation, all edge cases pass validation."
 
+  - task: "Complete Invoicing Workflow with Xero Integration"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented complete invoicing workflow with Xero integration including live jobs API, invoice generation with archiving, and Xero draft invoice creation"
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPLETE INVOICING WORKFLOW FULLY FUNCTIONAL: Comprehensive testing of invoicing workflow with Xero integration completed successfully. All 13 tests passed (100% success rate). INVOICING ENDPOINTS: GET /api/invoicing/live-jobs returns jobs in 'invoicing' stage with proper client email data, POST /api/invoicing/generate/{job_id} successfully generates invoices and moves orders to 'cleared' stage with archiving. XERO INTEGRATION: GET /api/xero/status correctly reports connection status, GET /api/xero/next-invoice-number handles missing connections gracefully, POST /api/xero/create-draft-invoice processes realistic data structure with proper field mapping (product_name, unit_price, quantity). DATA STRUCTURE: Live jobs include client_email field, order items use correct field names, archiving workflow triggers properly when orders complete. All endpoints handle authentication and error cases correctly."
+
+  - task: "Xero Draft Invoice Creation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented Xero draft invoice creation with proper field mapping, contact management, and error handling"
+      - working: true
+        agent: "testing"
+        comment: "✅ XERO DRAFT INVOICE CREATION WORKING: POST /api/xero/create-draft-invoice endpoint properly handles realistic invoice data structure. Correctly maps product_name to description field for Xero line items, processes unit_price and quantity fields, handles date formatting for due_date, manages contact creation/lookup by email. Gracefully handles missing Xero connections with appropriate error messages. Field mapping issues resolved - uses product_name instead of description as expected."
+
+  - task: "Invoice Generation with Archiving Integration"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented invoice generation that properly sets order status to 'completed' and creates archived order records"
+      - working: true
+        agent: "testing"
+        comment: "✅ ARCHIVING INTEGRATION FULLY WORKING: Invoice generation successfully triggers archiving workflow. When POST /api/invoicing/generate/{job_id} is called with invoice_type='full', order status changes to 'completed', current_stage moves to 'cleared', and archived order record is created in archived_orders collection. Verified with test order ADM-2025-0004 - invoice INV-0024 generated successfully and order properly archived. Archiving API GET /api/invoicing/archived-jobs returns 4 archived jobs with proper filtering by month/year."
+
+  - task: "Live Jobs API with Client Email Data"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Enhanced live jobs API to include client email data required for Xero integration"
+      - working: true
+        agent: "testing"
+        comment: "✅ LIVE JOBS DATA STRUCTURE VERIFIED: GET /api/invoicing/live-jobs correctly returns jobs in 'invoicing' stage with complete client information. Each job includes client_email field populated from client record, client_name field, and items array with proper field names (product_name, unit_price, quantity). Data structure matches requirements for Xero draft invoice creation. Tested with job in invoicing stage - all required fields present and correctly formatted."
+
 frontend:
   - task: "Materials Management Delete Functionality and Button Layout"
     implemented: true
