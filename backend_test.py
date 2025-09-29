@@ -7631,11 +7631,15 @@ class InvoicingAPITester:
                 
                 # Report findings
                 if problematic_materials:
+                    materials_list = []
+                    for m in problematic_materials[:5]:
+                        materials_list.append(f"{m['material']} ({m['field']}: {m['value']})")
+                    
                     self.log_result(
                         "Problematic Thickness Values Found", 
                         True, 
                         f"Found {len(problematic_materials)} materials with suspicious thickness values (900-1500 range)",
-                        f"Materials: {[f\"{m['material']} ({m['field']}: {m['value']})\" for m in problematic_materials[:5]]}"
+                        f"Materials: {materials_list}"
                     )
                 else:
                     self.log_result(
