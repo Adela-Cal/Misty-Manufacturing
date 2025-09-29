@@ -201,6 +201,12 @@ async def upload_client_logo(client_id: str, file: UploadFile = File(...), curre
 
 # ============= PRODUCT MANAGEMENT ENDPOINTS =============
 
+@api_router.get("/products", response_model=List[Product])
+async def get_all_products(current_user: dict = Depends(require_any_role)):
+    """Get all products"""
+    products = await db.products.find({"is_active": True}).to_list(1000)
+    return [Product(**product) for product in products]
+
 @api_router.get("/clients/{client_id}/products", response_model=List[Product])
 async def get_client_products(client_id: str, current_user: dict = Depends(require_any_role)):
     """Get products for specific client"""
