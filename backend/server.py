@@ -1171,10 +1171,42 @@ async def update_production_stage(order_id: str, stage_update: ProductionStageUp
         "updated_at": datetime.utcnow()
     }
     
-    # If moving to completed, set completion date
+    # If moving to completed, set completion date and archive the order
     if stage_update.to_stage == ProductionStage.CLEARED:
         update_data["completed_at"] = datetime.utcnow()
         update_data["status"] = OrderStatus.COMPLETED
+        
+        # Get the complete order data for archiving
+        order = await db.orders.find_one({"id": order_id})
+        if order:
+            # Create archived order
+            archived_order = ArchivedOrder(
+                original_order_id=order["id"],
+                order_number=order["order_number"],
+                client_id=order["client_id"],
+                client_name=order["client_name"],
+                purchase_order_number=order.get("purchase_order_number"),
+                items=order["items"],
+                subtotal=order["subtotal"],
+                gst=order["gst"],
+                total_amount=order["total_amount"],
+                due_date=order["due_date"],
+                delivery_address=order.get("delivery_address"),
+                delivery_instructions=order.get("delivery_instructions"),
+                runtime_estimate=order.get("runtime_estimate"),
+                notes=order.get("notes"),
+                created_by=order["created_by"],
+                created_at=order["created_at"],
+                completed_at=datetime.utcnow(),
+                archived_by=current_user["user_id"]
+            )
+            
+            # Insert into archived orders collection
+            await db.archived_orders.insert_one(archived_order.dict())
+            
+            # Update order status to archived and keep in main collection for now
+            # This allows for transition period and potential rollback
+            update_data["status"] = OrderStatus.ARCHIVED
     
     result = await db.orders.update_one(
         {"id": order_id},
