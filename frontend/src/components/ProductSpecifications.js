@@ -377,7 +377,9 @@ const ProductSpecifications = () => {
         product_type: formData.product_type,
         specifications: { ...formData.specifications },
         materials_composition: formData.materials_composition,
-        manufacturing_notes: formData.manufacturing_notes
+        material_layers: formData.material_layers,  // Include new enhanced material layers
+        manufacturing_notes: formData.manufacturing_notes,
+        selected_thickness: formData.selected_thickness  // Include user-selected thickness
       };
 
       // For Spiral Paper Cores, add specific fields to specifications
