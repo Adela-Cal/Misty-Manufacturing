@@ -359,12 +359,37 @@ async def get_product_specifications(current_user: dict = Depends(require_any_ro
 
 @api_router.post("/product-specifications", response_model=StandardResponse)
 async def create_product_specification(spec_data: ProductSpecificationCreate, current_user: dict = Depends(require_admin_or_manager)):
-    """Create new product specification"""
-    new_spec = ProductSpecification(**spec_data.dict())
+    """Create new product specification with automatic thickness calculation"""
+    # Calculate total thickness from material layers
+    calculated_thickness = sum(layer.thickness for layer in spec_data.material_layers)
+    
+    # Generate thickness options (±5%, ±10%, exact)
+    thickness_options = []
+    if calculated_thickness > 0:
+        thickness_options = [
+            round(calculated_thickness * 0.90, 3),  # -10%
+            round(calculated_thickness * 0.95, 3),  # -5%
+            round(calculated_thickness, 3),         # Exact
+            round(calculated_thickness * 1.05, 3),  # +5%
+            round(calculated_thickness * 1.10, 3),  # +10%
+        ]
+        # Remove duplicates and sort
+        thickness_options = sorted(list(set(thickness_options)))
+    
+    # Create new specification with calculated values
+    new_spec = ProductSpecification(
+        **spec_data.dict(),
+        calculated_total_thickness=calculated_thickness if calculated_thickness > 0 else None,
+        thickness_options=thickness_options
+    )
     
     await db.product_specifications.insert_one(new_spec.dict())
     
-    return StandardResponse(success=True, message="Product specification created successfully", data={"id": new_spec.id})
+    return StandardResponse(success=True, message="Product specification created successfully", data={
+        "id": new_spec.id, 
+        "calculated_thickness": calculated_thickness,
+        "thickness_options": thickness_options
+    })
 
 @api_router.get("/product-specifications/{spec_id}", response_model=ProductSpecification)
 async def get_product_specification(spec_id: str, current_user: dict = Depends(require_any_role)):
@@ -377,9 +402,30 @@ async def get_product_specification(spec_id: str, current_user: dict = Depends(r
 
 @api_router.put("/product-specifications/{spec_id}", response_model=StandardResponse)
 async def update_product_specification(spec_id: str, spec_data: ProductSpecificationCreate, current_user: dict = Depends(require_admin_or_manager)):
-    """Update product specification"""
+    """Update product specification with automatic thickness calculation"""
+    # Calculate total thickness from material layers
+    calculated_thickness = sum(layer.thickness for layer in spec_data.material_layers)
+    
+    # Generate thickness options (±5%, ±10%, exact)
+    thickness_options = []
+    if calculated_thickness > 0:
+        thickness_options = [
+            round(calculated_thickness * 0.90, 3),  # -10%
+            round(calculated_thickness * 0.95, 3),  # -5%
+            round(calculated_thickness, 3),         # Exact
+            round(calculated_thickness * 1.05, 3),  # +5%
+            round(calculated_thickness * 1.10, 3),  # +10%
+        ]
+        # Remove duplicates and sort
+        thickness_options = sorted(list(set(thickness_options)))
+    
+    # Prepare update data
     update_data = spec_data.dict()
-    update_data["updated_at"] = datetime.utcnow()
+    update_data.update({
+        "calculated_total_thickness": calculated_thickness if calculated_thickness > 0 else None,
+        "thickness_options": thickness_options,
+        "updated_at": datetime.utcnow()
+    })
     
     result = await db.product_specifications.update_one(
         {"id": spec_id, "is_active": True},
@@ -389,7 +435,10 @@ async def update_product_specification(spec_id: str, spec_data: ProductSpecifica
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Product specification not found")
     
-    return StandardResponse(success=True, message="Product specification updated successfully")
+    return StandardResponse(success=True, message="Product specification updated successfully", data={
+        "calculated_thickness": calculated_thickness,
+        "thickness_options": thickness_options
+    })
 
 @api_router.delete("/product-specifications/{spec_id}", response_model=StandardResponse)
 async def delete_product_specification(spec_id: str, current_user: dict = Depends(require_admin_or_manager)):
