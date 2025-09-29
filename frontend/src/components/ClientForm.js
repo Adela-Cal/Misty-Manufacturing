@@ -294,7 +294,7 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
                 <div className="client-edit-buttons">
                   <button
                     type="button"
-                    onClick={() => setShowProductCatalog(true)}
+                    onClick={() => setShowProductCatalogue(true)}
                     className="misty-button misty-button-secondary flex items-center whitespace-nowrap text-sm"
                   >
                     <PlusIcon className="h-4 w-4 mr-2" />
