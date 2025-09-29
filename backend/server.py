@@ -1161,10 +1161,21 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(req
     order_count = await db.orders.count_documents({})
     order_number = f"ADM-{datetime.now().year}-{order_count + 1:04d}"
     
-    # Calculate totals
+    # Calculate totals with discount applied before GST
     subtotal = sum(item.total_price for item in order_data.items)
-    gst = subtotal * 0.1
-    total_amount = subtotal + gst
+    
+    # Apply discount if provided
+    discount_percentage = order_data.discount_percentage or 0
+    discount_amount = 0
+    discounted_subtotal = subtotal
+    
+    if discount_percentage > 0:
+        discount_amount = subtotal * (discount_percentage / 100)
+        discounted_subtotal = subtotal - discount_amount
+    
+    # Calculate GST on discounted amount
+    gst = discounted_subtotal * 0.1
+    total_amount = discounted_subtotal + gst
     
     new_order = Order(
         order_number=order_number,
@@ -1173,6 +1184,10 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(req
         purchase_order_number=order_data.purchase_order_number,
         items=order_data.items,
         subtotal=subtotal,
+        discount_percentage=discount_percentage if discount_percentage > 0 else None,
+        discount_amount=discount_amount if discount_amount > 0 else None,
+        discount_notes=order_data.discount_notes if order_data.discount_notes else None,
+        discounted_subtotal=discounted_subtotal,
         gst=gst,
         total_amount=total_amount,
         due_date=order_data.due_date,
