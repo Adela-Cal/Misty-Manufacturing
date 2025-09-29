@@ -7757,8 +7757,8 @@ class InvoicingAPITester:
         return None
 
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on Purchase Order Number Functionality"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Purchase Order Number Functionality")
+        """Run backend API tests with PRIMARY FOCUS on Materials Thickness Investigation"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Materials Thickness Investigation")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 80)
         
@@ -7767,8 +7767,13 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test Purchase Order Number functionality
-        print("\n📋 TESTING PURCHASE ORDER NUMBER FUNCTIONALITY - PRIMARY FOCUS")
+        # PRIMARY FOCUS: Materials thickness investigation
+        print("\n🔍 MATERIALS THICKNESS INVESTIGATION - PRIMARY FOCUS")
+        print("=" * 60)
+        self.test_materials_thickness_investigation()
+        
+        # Secondary: Test Purchase Order Number functionality
+        print("\n📋 TESTING PURCHASE ORDER NUMBER FUNCTIONALITY - SECONDARY")
         print("=" * 60)
         self.test_order_creation_with_purchase_order_number()
         
