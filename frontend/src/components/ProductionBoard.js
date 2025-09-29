@@ -48,6 +48,16 @@ const ProductionBoard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setJumpDropdowns({});
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const loadProductionBoard = async () => {
     try {
       if (loading) setLoading(true);
