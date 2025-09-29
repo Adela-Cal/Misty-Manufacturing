@@ -1015,7 +1015,7 @@ async def get_client_product_catalog(client_id: str, current_user: dict = Depend
 
 @api_router.post("/clients/{client_id}/catalog", response_model=StandardResponse)
 async def create_client_product(client_id: str, product_data: ClientProductCreate, current_user: dict = Depends(require_admin_or_sales)):
-    """Create new product for client catalog"""
+    """Create new product for client catalogue"""
     # Verify client exists
     client = await db.clients.find_one({"id": client_id, "is_active": True})
     if not client:
