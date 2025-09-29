@@ -721,22 +721,35 @@ const ProductSpecifications = () => {
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {/* Material Selection */}
+                          {/* Material/Product Selection */}
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">
-                              Material *
+                              Material/Product *
                             </label>
                             <select
                               value={layer.material_id}
                               onChange={(e) => handleMaterialLayerChange(index, 'material_id', e.target.value)}
                               className="misty-select w-full"
                             >
-                              <option value="">Select Material</option>
-                              {materials.map(material => (
-                                <option key={material.id} value={material.id}>
-                                  {material.material_name} ({material.thickness_mm || 0}mm thick)
-                                </option>
-                              ))}
+                              <option value="">Select Material/Product</option>
+                              {materials.length > 0 && (
+                                <optgroup label="Materials">
+                                  {materials.map(material => (
+                                    <option key={material.id} value={material.id}>
+                                      {material.material_name} ({material.thickness_mm || 0}mm thick)
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                              {products.length > 0 && (
+                                <optgroup label="Products">
+                                  {products.map(product => (
+                                    <option key={product.id} value={product.id}>
+                                      {product.product_name} ({product.thickness_mm || 0}mm thick)
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
                             </select>
                           </div>
 
