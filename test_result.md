@@ -299,12 +299,14 @@ frontend:
 
 metadata:
   created_by: "testing_agent"
-  version: "1.5"
-  test_sequence: 6
+  version: "1.6"
+  test_sequence: 7
 
 test_plan:
   current_focus:
-    - "Order Creation with Client Product Dropdown Fix"
+    - "Complete Invoicing Workflow with Xero Integration"
+    - "Xero Draft Invoice Creation"
+    - "Invoice Generation with Archiving Integration"
   stuck_tasks: 
     - "Order Creation with Client Product Dropdown Fix"
   test_all: false
