@@ -460,7 +460,7 @@ class ArchivedOrdersTester:
                     "order_number",
                     "client_name",
                     "total_amount",
-                    "completion_date"
+                    "completed_at"
                 ],
                 "report_title": "Test Archived Orders Report - Last 3 Months"
             }
