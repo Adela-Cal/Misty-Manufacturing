@@ -2511,6 +2511,7 @@ async def get_live_jobs(current_user: dict = Depends(require_admin_or_manager)):
         client = await db.clients.find_one({"id": job["client_id"]})
         if client:
             job["client_name"] = client["company_name"]
+            job["client_email"] = client.get("email", "")  # Add client email for Xero
             job["client_payment_terms"] = client.get("payment_terms", "Net 30 days")
         
     return {"data": live_jobs}
