@@ -503,6 +503,81 @@ class ClientProduct(BaseModel):
     core_thickness: Optional[str] = None
     strength_quality_important: Optional[bool] = False
     delivery_included: Optional[bool] = False
+
+# Archived Orders
+class ArchivedOrder(BaseModel):
+    """Complete order data preserved when archived"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    original_order_id: str
+    order_number: str
+    client_id: str
+    client_name: str
+    purchase_order_number: Optional[str] = None
+    items: List[OrderItem]
+    subtotal: float
+    gst: float
+    total_amount: float
+    due_date: datetime
+    delivery_address: Optional[str] = None
+    delivery_instructions: Optional[str] = None
+    status: OrderStatus = OrderStatus.ARCHIVED
+    final_stage: ProductionStage = ProductionStage.CLEARED
+    runtime_estimate: Optional[str] = None
+    notes: Optional[str] = None
+    created_by: str
+    created_at: datetime
+    completed_at: datetime
+    archived_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    archived_by: str
+
+class ArchivedOrderFilter(BaseModel):
+    """Filters for archived orders search"""
+    client_id: Optional[str] = None
+    date_from: Optional[date] = None
+    date_to: Optional[date] = None
+    search_query: Optional[str] = None  # Search in order number, client name, product names
+    
+class ReportField(str, Enum):
+    """Available fields for Fast Report"""
+    ORDER_NUMBER = "order_number"
+    CLIENT_NAME = "client_name"
+    PURCHASE_ORDER_NUMBER = "purchase_order_number"
+    ORDER_DATE = "created_at"
+    COMPLETION_DATE = "completed_at"
+    DUE_DATE = "due_date"
+    SUBTOTAL = "subtotal"
+    GST = "gst" 
+    TOTAL_AMOUNT = "total_amount"
+    DELIVERY_ADDRESS = "delivery_address"
+    PRODUCT_NAMES = "product_names"
+    PRODUCT_QUANTITIES = "product_quantities"
+    NOTES = "notes"
+    RUNTIME_ESTIMATE = "runtime_estimate"
+
+class ReportTimePeriod(str, Enum):
+    """Time period filters for reports"""
+    CURRENT_MONTH = "current_month"
+    LAST_MONTH = "last_month"
+    LAST_3_MONTHS = "last_3_months"
+    LAST_6_MONTHS = "last_6_months"
+    LAST_9_MONTHS = "last_9_months"
+    LAST_YEAR = "last_year"
+    CURRENT_QUARTER = "current_quarter"
+    LAST_QUARTER = "last_quarter"
+    CURRENT_FINANCIAL_YEAR = "current_financial_year"
+    LAST_FINANCIAL_YEAR = "last_financial_year"
+    YEAR_TO_DATE = "year_to_date"
+    CUSTOM_RANGE = "custom_range"
+
+class FastReportRequest(BaseModel):
+    """Request for generating Fast Report"""
+    client_id: str
+    time_period: ReportTimePeriod
+    date_from: Optional[date] = None
+    date_to: Optional[date] = None
+    selected_fields: List[ReportField]
+    product_filter: Optional[str] = None  # Filter by specific product names
+    report_title: Optional[str] = None
     
     is_active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
