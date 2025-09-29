@@ -2466,6 +2466,11 @@ async def create_xero_draft_invoice(
         else:
             due_date_parsed = due_date_value or datetime.now().date()
         
+        # Debug logging for Xero invoice creation
+        logger.info(f"Creating Xero invoice: contact_name={contact_name}, contact_id={contact_id}")
+        logger.info(f"Line items count: {len(line_items)}")
+        logger.info(f"Invoice number: {invoice_data.get('invoice_number')}")
+        
         # Create invoice object
         invoice = Invoice(
             type="ACCREC",  # Accounts Receivable
