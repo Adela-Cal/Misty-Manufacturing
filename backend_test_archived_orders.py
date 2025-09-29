@@ -403,8 +403,8 @@ class ArchivedOrdersTester:
                     "order_number",
                     "client_name", 
                     "purchase_order_number",
-                    "order_date",
-                    "completion_date",
+                    "created_at",
+                    "completed_at",
                     "total_amount",
                     "product_names"
                 ],
