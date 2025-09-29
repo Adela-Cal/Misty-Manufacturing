@@ -859,6 +859,14 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
           onClose={() => setShowProductCatalog(false)}
         />
       )}
+      
+      {/* Archived Orders Modal */}
+      {showArchivedOrders && client && (
+        <ArchivedOrders
+          client={client}
+          onClose={() => setShowArchivedOrders(false)}
+        />
+      )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && client && (
