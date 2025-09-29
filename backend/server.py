@@ -403,8 +403,8 @@ async def get_product_specification(spec_id: str, current_user: dict = Depends(r
 @api_router.put("/product-specifications/{spec_id}", response_model=StandardResponse)
 async def update_product_specification(spec_id: str, spec_data: ProductSpecificationCreate, current_user: dict = Depends(require_admin_or_manager)):
     """Update product specification with automatic thickness calculation"""
-    # Calculate total thickness from material layers
-    calculated_thickness = sum(layer.thickness for layer in spec_data.material_layers)
+    # Calculate total thickness from material layers (thickness * quantity for each layer)
+    calculated_thickness = sum(layer.thickness * (layer.quantity or 1.0) for layer in spec_data.material_layers)
     
     # Generate thickness options (±5%, ±10%, exact)
     thickness_options = []
