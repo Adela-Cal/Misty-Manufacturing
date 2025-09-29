@@ -302,8 +302,8 @@ const ProductSpecifications = () => {
             const material = materials.find(m => m.id === value);
             if (material) {
               updatedLayer.material_name = material.material_name;
-              // Use weight as thickness if available, otherwise default to 0
-              updatedLayer.thickness = material.supplied_roll_weight || 0;
+              // Use thickness_mm as the actual thickness value
+              updatedLayer.thickness = material.thickness_mm || 0;
             }
           }
           
