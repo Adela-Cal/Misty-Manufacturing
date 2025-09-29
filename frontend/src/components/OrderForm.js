@@ -529,7 +529,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                         </label>
                         <input
                           type="number"
-                          value={item.total_price.toFixed(2)}
+                          value={(item.total_price || 0).toFixed(2)}
                           className="misty-input w-full bg-gray-600"
                           readOnly
                         />
