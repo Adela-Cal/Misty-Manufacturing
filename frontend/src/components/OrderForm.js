@@ -459,14 +459,20 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                             onChange={(e) => {
                               const selectedProduct = clientProducts.find(p => p.product_description === e.target.value);
                               if (selectedProduct) {
-                                // Update all fields for the selected product
-                                handleItemChange(index, 'product_name', selectedProduct.product_description);
-                                handleItemChange(index, 'unit_price', selectedProduct.price_ex_gst);
+                                // Get current quantity and calculate new total
+                                const currentQuantity = parseFloat(item.quantity) || 1;
+                                const unitPrice = parseFloat(selectedProduct.price_ex_gst) || 0;
+                                const newTotal = currentQuantity * unitPrice;
                                 
-                                // Recalculate total with current quantity
-                                const currentQuantity = parseFloat(formData.items[index].quantity) || 1;
-                                const newTotal = currentQuantity * parseFloat(selectedProduct.price_ex_gst);
-                                handleItemChange(index, 'total_price', newTotal);
+                                // Update the item with all changes at once
+                                const newItems = [...formData.items];
+                                newItems[index] = {
+                                  ...newItems[index],
+                                  product_name: selectedProduct.product_description,
+                                  unit_price: unitPrice,
+                                  total_price: newTotal
+                                };
+                                setFormData(prev => ({ ...prev, items: newItems }));
                               } else {
                                 handleItemChange(index, 'product_name', e.target.value);
                                 handleItemChange(index, 'unit_price', 0);
