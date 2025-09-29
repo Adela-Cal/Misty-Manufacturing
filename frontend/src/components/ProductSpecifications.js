@@ -668,6 +668,212 @@ const ProductSpecifications = () => {
                   </div>
                 )}
 
+                {/* Enhanced Material Layers Section */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white">Material Layers</h3>
+                    <button
+                      type="button"
+                      onClick={addMaterialLayer}
+                      className="misty-button misty-button-secondary flex items-center text-sm"
+                    >
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      Add Material Layer
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {formData.material_layers.map((layer, index) => (
+                      <div key={index} className="p-4 bg-gray-800 rounded-lg">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-md font-medium text-white">Layer {index + 1}</h4>
+                          {formData.material_layers.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeMaterialLayer(index)}
+                              className="text-red-400 hover:text-red-300"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {/* Material Selection */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Material *
+                            </label>
+                            <select
+                              value={layer.material_id}
+                              onChange={(e) => handleMaterialLayerChange(index, 'material_id', e.target.value)}
+                              className="misty-select w-full"
+                            >
+                              <option value="">Select Material</option>
+                              {materials.map(material => (
+                                <option key={material.id} value={material.id}>
+                                  {material.material_name} ({material.supplied_roll_weight || 0}mm thick)
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* Layer Type Selection */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Layer Position *
+                            </label>
+                            <select
+                              value={layer.layer_type}
+                              onChange={(e) => handleMaterialLayerChange(index, 'layer_type', e.target.value)}
+                              className="misty-select w-full"
+                            >
+                              <option value="Outer Most Layer">Outer Most Layer</option>
+                              <option value="Central Layer">Central Layer</option>
+                              <option value="Inner Most Layer">Inner Most Layer</option>
+                            </select>
+                          </div>
+
+                          {/* Thickness Input */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Thickness (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.001"
+                              min="0"
+                              value={layer.thickness}
+                              onChange={(e) => handleMaterialLayerChange(index, 'thickness', e.target.value)}
+                              className="misty-input w-full"
+                              placeholder="0.000"
+                            />
+                          </div>
+
+                          {/* Width Configuration */}
+                          {layer.layer_type === 'Central Layer' ? (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-1">
+                                Width Range (mm)
+                              </label>
+                              <input
+                                type="text"
+                                value={layer.width_range || ''}
+                                onChange={(e) => handleMaterialLayerChange(index, 'width_range', e.target.value)}
+                                className="misty-input w-full"
+                                placeholder="e.g., 61-68"
+                              />
+                            </div>
+                          ) : (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-1">
+                                Width (mm)
+                              </label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                value={layer.width || ''}
+                                onChange={(e) => handleMaterialLayerChange(index, 'width', e.target.value)}
+                                className="misty-input w-full"
+                                placeholder="Width in mm"
+                              />
+                            </div>
+                          )}
+
+                          {/* Quantity */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Quantity/Usage
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={layer.quantity || ''}
+                              onChange={(e) => handleMaterialLayerChange(index, 'quantity', e.target.value)}
+                              className="misty-input w-full"
+                              placeholder="Optional"
+                            />
+                          </div>
+
+                          {/* Notes */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Notes
+                            </label>
+                            <input
+                              type="text"
+                              value={layer.notes || ''}
+                              onChange={(e) => handleMaterialLayerChange(index, 'notes', e.target.value)}
+                              className="misty-input w-full"
+                              placeholder="Optional notes"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {formData.material_layers.length === 0 && (
+                      <div className="text-center py-8 text-gray-400">
+                        <p>No material layers added yet.</p>
+                        <p className="text-sm">Click "Add Material Layer" to get started.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Calculated Thickness Display and Selection */}
+                {calculatedThickness > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4">Calculated Thickness</h3>
+                    
+                    <div className="misty-card p-4 bg-gray-700">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="text-md font-medium text-white mb-2">Total Calculated Thickness</h4>
+                          <div className="text-2xl font-bold text-yellow-400">
+                            {calculatedThickness.toFixed(3)} mm
+                          </div>
+                          <p className="text-sm text-gray-400 mt-1">
+                            Sum of all material layer thicknesses
+                          </p>
+                        </div>
+                        
+                        <div>
+                          <h4 className="text-md font-medium text-white mb-2">Select Final Thickness</h4>
+                          <select
+                            value={formData.selected_thickness || ''}
+                            onChange={(e) => setFormData(prev => ({ 
+                              ...prev, 
+                              selected_thickness: parseFloat(e.target.value) 
+                            }))}
+                            className="misty-select w-full"
+                          >
+                            <option value="">Select thickness option</option>
+                            {thicknessOptions.map((option, idx) => {
+                              const variance = ((option - calculatedThickness) / calculatedThickness * 100);
+                              const label = variance === 0 ? 'Exact' : 
+                                           variance > 0 ? `+${variance.toFixed(1)}%` : 
+                                           `${variance.toFixed(1)}%`;
+                              return (
+                                <option key={idx} value={option}>
+                                  {option.toFixed(3)} mm ({label})
+                                </option>
+                              );
+                            })}
+                          </select>
+                          {formData.selected_thickness && (
+                            <p className="text-sm text-gray-400 mt-1">
+                              Selected: {formData.selected_thickness.toFixed(3)} mm
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Materials Composition - Conditional Based on Product Type */}
                 {formData.product_type === 'Spiral Paper Core' ? (
                   <div className="mb-8">
