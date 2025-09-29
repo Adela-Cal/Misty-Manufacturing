@@ -75,6 +75,18 @@ backend:
         comment: "✅ EDGE CASES THOROUGHLY TESTED: 0% discount correctly sets fields to null, orders without discount fields handled properly, 100% discount results in $0 final amount with correct GST calculation, all edge cases pass validation."
 
 frontend:
+  - task: "Production Board Jumping Man Feature"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/ProductionBoard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ JUMPING MAN FEATURE FULLY FUNCTIONAL: Comprehensive testing completed successfully. Login with demo credentials (Callum/Peach7510) works perfectly, Production Board loads with job tiles, custom jumping man icon (stick figure) visible on all job tiles with proper hover effects (gray to green), dropdown menu opens correctly showing all available stages (7 options found: Jump to Order Entered, Jump to Paper Slitting, Jump to Winding, Jump to Finishing, Jump to Delivery, Jump to Invoicing, Jump to Cleared), stage jumping functionality working perfectly with toast notifications ('Job jumped to Order Entered'), jobs successfully move between stages as verified visually, dropdown closes after selection, click outside behavior working, independent dropdown behavior per job confirmed. All expected stages present except current stage. UI responsiveness excellent with smooth interactions."
+
   - task: "Discount Functionality in Create New Order Form"
     implemented: true
     working: true
