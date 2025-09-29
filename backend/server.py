@@ -1568,6 +1568,9 @@ async def get_outstanding_jobs_report(current_user: dict = Depends(require_admin
         due_date = order["due_date"]
         if isinstance(due_date, str):
             due_date = datetime.fromisoformat(due_date.replace("Z", "+00:00"))
+        elif isinstance(due_date, datetime) and due_date.tzinfo is None:
+            # Make timezone-naive datetime timezone-aware (assume UTC)
+            due_date = due_date.replace(tzinfo=timezone.utc)
         
         if due_date < now:
             overdue_jobs += 1
