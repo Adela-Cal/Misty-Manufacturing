@@ -249,6 +249,10 @@ class StageMovementRequest(BaseModel):
     direction: str  # "forward" or "backward"
     notes: Optional[str] = None
 
+class StageJumpRequest(BaseModel):
+    target_stage: str  # Direct stage to jump to
+    notes: Optional[str] = None
+
 # Job Specification Models
 class JobSpecification(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
