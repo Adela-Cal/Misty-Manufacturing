@@ -223,3 +223,65 @@ export const roleDisplayNames = {
   sales: 'Sales',
   production_team: 'Production Team'
 };
+
+// ============= ARCHIVED ORDERS API =============
+
+// Get archived orders for a client
+export const getClientArchivedOrders = async (clientId, filters = {}) => {
+  const params = new URLSearchParams();
+  if (filters.date_from) params.append('date_from', filters.date_from);
+  if (filters.date_to) params.append('date_to', filters.date_to);
+  if (filters.search_query) params.append('search_query', filters.search_query);
+  
+  const queryString = params.toString();
+  const url = queryString ? 
+    `/clients/${clientId}/archived-orders?${queryString}` : 
+    `/clients/${clientId}/archived-orders`;
+    
+  return api.get(url);
+};
+
+// Generate Fast Report for archived orders
+export const generateFastReport = async (clientId, reportData) => {
+  return api.post(`/clients/${clientId}/archived-orders/fast-report`, reportData, {
+    responseType: 'blob' // Important for file downloads
+  });
+};
+
+// Helper function to download Excel file
+export const downloadExcelReport = async (clientId, reportData) => {
+  try {
+    const response = await generateFastReport(clientId, reportData);
+    
+    // Create blob link to download
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Extract filename from response headers if available
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = 'archived_orders_report.xlsx';
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="?([^"]*)"?/);
+      if (filenameMatch) {
+        filename = filenameMatch[1];
+      }
+    }
+    
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    
+    return { success: true, filename };
+  } catch (error) {
+    console.error('Error downloading Excel report:', error);
+    throw error;
+  }
+};
