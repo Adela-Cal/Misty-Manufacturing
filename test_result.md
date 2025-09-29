@@ -1,3 +1,64 @@
+backend:
+  - task: "Order Creation with Discount Functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented discount functionality in order creation with discount_percentage, discount_notes, discount_amount, and discounted_subtotal fields"
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE DISCOUNT TESTING COMPLETED: All discount functionality working perfectly. Tested 10%, 5%, 15%, 0%, and 100% discounts. GST correctly calculated on discounted amount (not original subtotal). All new fields properly stored and calculated. Edge cases handled correctly including null values for orders without discounts."
+
+  - task: "Discount Calculation Logic"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Discount calculation logic: Subtotal → Apply Discount → Calculate GST on Discounted Amount → Final Total"
+      - working: true
+        agent: "testing"
+        comment: "✅ DISCOUNT CALCULATION LOGIC VERIFIED: Confirmed calculation flow works correctly. Example: $1000 subtotal with 10% discount = $100 discount, $900 discounted subtotal, $90 GST (on discounted amount), $990 total. All percentage calculations accurate."
+
+  - task: "Order Model Discount Fields"
+    implemented: true
+    working: true
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added discount fields to Order model: discount_percentage (Optional[float]), discount_amount (Optional[float]), discount_notes (Optional[str]), discounted_subtotal (Optional[float])"
+      - working: true
+        agent: "testing"
+        comment: "✅ ORDER MODEL FIELDS VERIFIED: All new discount fields properly implemented and stored in database. Optional fields correctly handle null values when no discount applied. Field types and constraints working as expected."
+
+  - task: "Discount Edge Cases Handling"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Edge cases handled: 0% discount, orders without discount fields (null values), 100% discount, GST calculation on discounted amount"
+      - working: true
+        agent: "testing"
+        comment: "✅ EDGE CASES THOROUGHLY TESTED: 0% discount correctly sets fields to null, orders without discount fields handled properly, 100% discount results in $0 final amount with correct GST calculation, all edge cases pass validation."
+
 frontend:
   - task: "Enhanced Product Specifications with Material Layers"
     implemented: true
