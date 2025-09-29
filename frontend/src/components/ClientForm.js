@@ -305,7 +305,7 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
                     onClick={() => setShowArchivedOrders(true)}
                     className="misty-button misty-button-primary flex items-center whitespace-nowrap text-sm"
                   >
-                    <ArchiveBoxIcon className="h-4 w-4 mr-2" />
+                    <ArchiveBoxIcon className="h-4 w-4 mr-3" />
                     Archived Orders
                   </button>
                 </div>
