@@ -571,8 +571,8 @@ metadata:
   - task: "Enhanced Product Specifications with Material Layers and Thickness Calculation"
     implemented: true
     working: true
-    file: "frontend/src/components/ProductSpecifications.js"
-    stuck_count: 1
+    file: "backend/server.py, backend/models.py"
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
