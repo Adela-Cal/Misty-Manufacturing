@@ -309,13 +309,17 @@ const ProductSpecifications = () => {
         if (i === index) {
           const updatedLayer = { ...layer, [field]: value };
           
-          // If material_id changes, update material_name and thickness
+          // If material_id changes, update material_name, thickness, and GSM
           if (field === 'material_id') {
-            const material = materials.find(m => m.id === value);
-            if (material) {
-              updatedLayer.material_name = material.material_name;
+            // Check both materials and products for the item
+            const allItems = [...materials, ...products];
+            const item = allItems.find(m => m.id === value);
+            if (item) {
+              updatedLayer.material_name = item.material_name || item.product_name;
               // Use thickness_mm as the actual thickness value
-              updatedLayer.thickness = material.thickness_mm || 0;
+              updatedLayer.thickness = item.thickness_mm || 0;
+              // Add GSM information if available
+              updatedLayer.gsm = item.gsm || 0;
             }
           }
           
