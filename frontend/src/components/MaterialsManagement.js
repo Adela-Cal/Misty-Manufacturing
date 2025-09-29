@@ -737,20 +737,18 @@ const MaterialsManagement = () => {
                 )}
 
                 {/* Form Actions */}
-                <div className="flex justify-between pt-6 border-t border-gray-700">
-                  <div>
+                <div className="pt-6 border-t border-gray-700">
+                  <div className="flex items-center justify-end space-x-4">
                     {selectedMaterial && (
                       <button
                         type="button"
                         onClick={() => handleDelete(selectedMaterial)}
-                        className="misty-button misty-button-danger"
+                        className="misty-button misty-button-danger mr-auto"
                       >
                         <TrashIcon className="h-4 w-4 mr-2" />
                         Delete Material
                       </button>
                     )}
-                  </div>
-                  <div className="flex space-x-3">
                     <button
                       type="button"
                       onClick={() => setShowModal(false)}
