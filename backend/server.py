@@ -2738,16 +2738,28 @@ async def generate_fast_report(
             ws.cell(row=row_idx, column=col_idx, value=value)
     
     # Auto-adjust column widths
-    for col_idx, column in enumerate(ws.columns, 1):
+    from openpyxl.utils import get_column_letter
+    for col_idx in range(1, len(df.columns) + 1):
         max_length = 0
-        column_letter = ws.cell(row=1, column=col_idx).column_letter
-        for cell in column:
+        column_letter = get_column_letter(col_idx)
+        
+        # Check all cells in this column
+        for row_idx in range(4, ws.max_row + 1):  # Start from row 4 (after headers)
+            cell = ws.cell(row=row_idx, column=col_idx)
             try:
-                if hasattr(cell, 'value') and cell.value is not None:
+                if cell.value is not None:
                     if len(str(cell.value)) > max_length:
                         max_length = len(str(cell.value))
             except:
                 pass
+        
+        # Also check header length
+        header_cell = ws.cell(row=4, column=col_idx)
+        if header_cell.value is not None:
+            header_length = len(str(header_cell.value))
+            if header_length > max_length:
+                max_length = header_length
+        
         adjusted_width = min(max_length + 2, 50)  # Cap at 50 characters
         ws.column_dimensions[column_letter].width = adjusted_width
     
