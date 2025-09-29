@@ -67,7 +67,6 @@ const MaterialsManagement = () => {
   };
 
   const handleCreate = () => {
-  const handleCreate = () => {
     setSelectedMaterial(null);
     setFormData({
       supplier_id: '',
@@ -87,9 +86,6 @@ const MaterialsManagement = () => {
       supplied_roll_weight: '',  // New field
       master_deckle_width_mm: ''  // New field
     });
-    setErrors({});
-    setShowModal(true);
-  };
     setErrors({});
     setShowModal(true);
   };
