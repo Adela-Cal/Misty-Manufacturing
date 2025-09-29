@@ -202,14 +202,14 @@ const ArchivedOrders = ({ client, onClose }) => {
         {/* Search Bar */}
         <div className="p-6 border-b border-gray-600">
           <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
               placeholder="Search orders by number, products, or PO number..."
               value={filters.search_query}
               onChange={(e) => handleFilterChange('search_query', e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
-              className="misty-input pl-10 w-full"
+              className="misty-input pl-12 w-full"
             />
           </div>
           
