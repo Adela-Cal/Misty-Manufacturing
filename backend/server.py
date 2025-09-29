@@ -2496,10 +2496,10 @@ async def create_xero_draft_invoice(
 
 @api_router.get("/invoicing/live-jobs")
 async def get_live_jobs(current_user: dict = Depends(require_admin_or_manager)):
-    """Get all jobs ready for invoicing (completed production, not yet invoiced)"""
+    """Get all jobs ready for invoicing (in invoicing stage on production board)"""
     live_jobs = await db.orders.find({
-        "current_stage": "delivery", 
-        "invoiced": {"$ne": True}
+        "current_stage": "invoicing", 
+        "status": {"$ne": "completed"}
     }).to_list(length=None)
     
     # Convert ObjectId to string and enrich with client information
