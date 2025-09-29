@@ -173,26 +173,6 @@ const Invoicing = () => {
           </div>,
           { duration: 10000 }
         );
-          <div>
-            <p>📄 Documents ready for download:</p>
-            <div className="mt-2 space-x-2">
-              <button 
-                onClick={() => downloadInvoice(selectedJob.id, selectedJob.order_number)}
-                className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs text-white"
-              >
-                📄 Invoice PDF
-              </button>
-              <button 
-                onClick={() => downloadPackingSlip(selectedJob.id, selectedJob.order_number)}
-                className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs text-white"
-              >
-                📦 Packing Slip
-              </button>
-            </div>
-            <p className="text-xs mt-2 text-orange-300">⚠️ Xero integration unavailable</p>
-          </div>,
-          { duration: 10000 }
-        );
       }
       
       setShowInvoiceModal(false);
