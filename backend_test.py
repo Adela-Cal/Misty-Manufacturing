@@ -8160,9 +8160,396 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result("Material and Product Integration", False, f"Error: {str(e)}")
 
+    def test_discount_functionality(self):
+        """Test comprehensive discount functionality in order creation"""
+        print("\n=== DISCOUNT FUNCTIONALITY TEST ===")
+        
+        # First create a test client for orders
+        client_data = {
+            "company_name": "Discount Test Client",
+            "contact_name": "Jane Smith",
+            "email": "jane@discounttest.com",
+            "phone": "0412345679",
+            "address": "456 Discount Street",
+            "city": "Sydney",
+            "state": "NSW",
+            "postal_code": "2000",
+            "abn": "98765432109",
+            "payment_terms": "Net 30 days",
+            "lead_time_days": 14
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/clients", json=client_data)
+            if response.status_code != 200:
+                self.log_result("Discount Test Setup", False, "Failed to create test client for discount tests")
+                return
+            
+            client_id = response.json().get('data', {}).get('id')
+            if not client_id:
+                self.log_result("Discount Test Setup", False, "No client ID returned from client creation")
+                return
+            
+            # Test 1: Order with 10% discount
+            self.test_order_with_discount(client_id, 10.0, "Volume discount for large order", 1000.0)
+            
+            # Test 2: Order with 5% discount
+            self.test_order_with_discount(client_id, 5.0, "Early payment discount", 800.0)
+            
+            # Test 3: Order with 15% discount
+            self.test_order_with_discount(client_id, 15.0, "Loyalty customer discount", 1200.0)
+            
+            # Test 4: Order with 0% discount
+            self.test_order_with_discount(client_id, 0.0, None, 500.0)
+            
+            # Test 5: Order without discount fields (null values)
+            self.test_order_without_discount(client_id, 750.0)
+            
+            # Test 6: Order with 100% discount (edge case)
+            self.test_order_with_discount(client_id, 100.0, "Promotional free order", 300.0)
+            
+            # Test 7: Verify GST calculation on discounted amount
+            self.test_gst_calculation_on_discounted_amount(client_id)
+            
+        except Exception as e:
+            self.log_result("Discount Functionality Test", False, f"Error in discount test setup: {str(e)}")
+    
+    def test_order_with_discount(self, client_id, discount_percentage, discount_notes, subtotal):
+        """Test order creation with specific discount parameters"""
+        test_name = f"Order with {discount_percentage}% Discount"
+        
+        try:
+            order_data = {
+                "client_id": client_id,
+                "due_date": (datetime.now() + timedelta(days=30)).isoformat(),
+                "delivery_address": "123 Test Delivery St, Melbourne VIC 3000",
+                "delivery_instructions": "Handle with care",
+                "notes": f"Test order with {discount_percentage}% discount",
+                "discount_percentage": discount_percentage if discount_percentage > 0 else None,
+                "discount_notes": discount_notes,
+                "items": [
+                    {
+                        "product_id": "test-product-discount",
+                        "product_name": "Test Discount Product",
+                        "description": "Product for discount testing",
+                        "quantity": 1,
+                        "unit_price": subtotal,
+                        "total_price": subtotal
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=order_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                order_id = result.get('data', {}).get('id')
+                
+                if order_id:
+                    # Retrieve the created order to verify discount calculations
+                    get_response = self.session.get(f"{API_BASE}/orders/{order_id}")
+                    
+                    if get_response.status_code == 200:
+                        order = get_response.json()
+                        
+                        # Calculate expected values
+                        expected_discount_amount = subtotal * (discount_percentage / 100) if discount_percentage > 0 else 0
+                        expected_discounted_subtotal = subtotal - expected_discount_amount
+                        expected_gst = expected_discounted_subtotal * 0.1
+                        expected_total = expected_discounted_subtotal + expected_gst
+                        
+                        # Verify all discount-related fields
+                        actual_subtotal = order.get('subtotal')
+                        actual_discount_percentage = order.get('discount_percentage')
+                        actual_discount_amount = order.get('discount_amount')
+                        actual_discount_notes = order.get('discount_notes')
+                        actual_discounted_subtotal = order.get('discounted_subtotal')
+                        actual_gst = order.get('gst')
+                        actual_total = order.get('total_amount')
+                        
+                        # Validation checks
+                        checks = []
+                        
+                        # Check subtotal
+                        if abs(actual_subtotal - subtotal) < 0.01:
+                            checks.append("✅ Subtotal correct")
+                        else:
+                            checks.append(f"❌ Subtotal incorrect: expected {subtotal}, got {actual_subtotal}")
+                        
+                        # Check discount percentage
+                        if discount_percentage > 0:
+                            if actual_discount_percentage == discount_percentage:
+                                checks.append("✅ Discount percentage correct")
+                            else:
+                                checks.append(f"❌ Discount percentage incorrect: expected {discount_percentage}, got {actual_discount_percentage}")
+                        else:
+                            if actual_discount_percentage is None:
+                                checks.append("✅ Discount percentage correctly null for 0% discount")
+                            else:
+                                checks.append(f"❌ Discount percentage should be null for 0% discount, got {actual_discount_percentage}")
+                        
+                        # Check discount amount
+                        if discount_percentage > 0:
+                            if actual_discount_amount is not None and abs(actual_discount_amount - expected_discount_amount) < 0.01:
+                                checks.append("✅ Discount amount calculated correctly")
+                            else:
+                                checks.append(f"❌ Discount amount incorrect: expected {expected_discount_amount}, got {actual_discount_amount}")
+                        else:
+                            if actual_discount_amount is None:
+                                checks.append("✅ Discount amount correctly null for 0% discount")
+                            else:
+                                checks.append(f"❌ Discount amount should be null for 0% discount, got {actual_discount_amount}")
+                        
+                        # Check discount notes
+                        if discount_notes:
+                            if actual_discount_notes == discount_notes:
+                                checks.append("✅ Discount notes correct")
+                            else:
+                                checks.append(f"❌ Discount notes incorrect: expected '{discount_notes}', got '{actual_discount_notes}'")
+                        else:
+                            if actual_discount_notes is None:
+                                checks.append("✅ Discount notes correctly null")
+                            else:
+                                checks.append(f"❌ Discount notes should be null, got '{actual_discount_notes}'")
+                        
+                        # Check discounted subtotal
+                        if abs(actual_discounted_subtotal - expected_discounted_subtotal) < 0.01:
+                            checks.append("✅ Discounted subtotal calculated correctly")
+                        else:
+                            checks.append(f"❌ Discounted subtotal incorrect: expected {expected_discounted_subtotal}, got {actual_discounted_subtotal}")
+                        
+                        # Check GST calculation on discounted amount
+                        if abs(actual_gst - expected_gst) < 0.01:
+                            checks.append("✅ GST calculated on discounted amount correctly")
+                        else:
+                            checks.append(f"❌ GST calculation incorrect: expected {expected_gst}, got {actual_gst}")
+                        
+                        # Check total amount
+                        if abs(actual_total - expected_total) < 0.01:
+                            checks.append("✅ Total amount calculated correctly")
+                        else:
+                            checks.append(f"❌ Total amount incorrect: expected {expected_total}, got {actual_total}")
+                        
+                        # Determine overall success
+                        all_checks_passed = all("✅" in check for check in checks)
+                        
+                        self.log_result(
+                            test_name,
+                            all_checks_passed,
+                            f"Discount calculation {'successful' if all_checks_passed else 'has issues'}",
+                            f"Subtotal: ${subtotal}, Discount: {discount_percentage}%, Final Total: ${actual_total:.2f}\n" + "\n".join(checks)
+                        )
+                        
+                        return order_id
+                    else:
+                        self.log_result(test_name, False, "Failed to retrieve created order for verification")
+                else:
+                    self.log_result(test_name, False, "Order creation response missing ID")
+            else:
+                self.log_result(test_name, False, f"Order creation failed with status {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result(test_name, False, f"Error: {str(e)}")
+        
+        return None
+    
+    def test_order_without_discount(self, client_id, subtotal):
+        """Test order creation without discount fields"""
+        test_name = "Order without Discount Fields"
+        
+        try:
+            order_data = {
+                "client_id": client_id,
+                "due_date": (datetime.now() + timedelta(days=30)).isoformat(),
+                "delivery_address": "123 Test Delivery St, Melbourne VIC 3000",
+                "delivery_instructions": "Standard delivery",
+                "notes": "Test order without discount fields",
+                "items": [
+                    {
+                        "product_id": "test-product-no-discount",
+                        "product_name": "Test No Discount Product",
+                        "description": "Product for no discount testing",
+                        "quantity": 1,
+                        "unit_price": subtotal,
+                        "total_price": subtotal
+                    }
+                ]
+                # Note: No discount_percentage or discount_notes fields
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=order_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                order_id = result.get('data', {}).get('id')
+                
+                if order_id:
+                    # Retrieve the created order to verify no discount fields
+                    get_response = self.session.get(f"{API_BASE}/orders/{order_id}")
+                    
+                    if get_response.status_code == 200:
+                        order = get_response.json()
+                        
+                        # Expected values (no discount)
+                        expected_gst = subtotal * 0.1
+                        expected_total = subtotal + expected_gst
+                        
+                        # Verify discount fields are null/None
+                        checks = []
+                        
+                        if order.get('discount_percentage') is None:
+                            checks.append("✅ Discount percentage is null")
+                        else:
+                            checks.append(f"❌ Discount percentage should be null, got {order.get('discount_percentage')}")
+                        
+                        if order.get('discount_amount') is None:
+                            checks.append("✅ Discount amount is null")
+                        else:
+                            checks.append(f"❌ Discount amount should be null, got {order.get('discount_amount')}")
+                        
+                        if order.get('discount_notes') is None:
+                            checks.append("✅ Discount notes is null")
+                        else:
+                            checks.append(f"❌ Discount notes should be null, got {order.get('discount_notes')}")
+                        
+                        # Verify discounted_subtotal equals subtotal (no discount applied)
+                        if abs(order.get('discounted_subtotal', 0) - subtotal) < 0.01:
+                            checks.append("✅ Discounted subtotal equals subtotal (no discount)")
+                        else:
+                            checks.append(f"❌ Discounted subtotal incorrect: expected {subtotal}, got {order.get('discounted_subtotal')}")
+                        
+                        # Verify GST and total calculations
+                        if abs(order.get('gst', 0) - expected_gst) < 0.01:
+                            checks.append("✅ GST calculated correctly on full subtotal")
+                        else:
+                            checks.append(f"❌ GST calculation incorrect: expected {expected_gst}, got {order.get('gst')}")
+                        
+                        if abs(order.get('total_amount', 0) - expected_total) < 0.01:
+                            checks.append("✅ Total amount calculated correctly")
+                        else:
+                            checks.append(f"❌ Total amount incorrect: expected {expected_total}, got {order.get('total_amount')}")
+                        
+                        all_checks_passed = all("✅" in check for check in checks)
+                        
+                        self.log_result(
+                            test_name,
+                            all_checks_passed,
+                            f"Order without discount fields {'handled correctly' if all_checks_passed else 'has issues'}",
+                            "\n".join(checks)
+                        )
+                    else:
+                        self.log_result(test_name, False, "Failed to retrieve created order for verification")
+                else:
+                    self.log_result(test_name, False, "Order creation response missing ID")
+            else:
+                self.log_result(test_name, False, f"Order creation failed with status {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result(test_name, False, f"Error: {str(e)}")
+    
+    def test_gst_calculation_on_discounted_amount(self, client_id):
+        """Test specific scenario to verify GST is calculated on discounted amount, not original subtotal"""
+        test_name = "GST Calculation on Discounted Amount"
+        
+        try:
+            # Use specific values that make the calculation clear
+            subtotal = 1000.0
+            discount_percentage = 10.0
+            
+            order_data = {
+                "client_id": client_id,
+                "due_date": (datetime.now() + timedelta(days=30)).isoformat(),
+                "delivery_address": "123 GST Test St, Melbourne VIC 3000",
+                "notes": "Test GST calculation on discounted amount",
+                "discount_percentage": discount_percentage,
+                "discount_notes": "Testing GST calculation",
+                "items": [
+                    {
+                        "product_id": "test-gst-calc",
+                        "product_name": "GST Calculation Test Product",
+                        "description": "Product for GST calculation testing",
+                        "quantity": 1,
+                        "unit_price": subtotal,
+                        "total_price": subtotal
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=order_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                order_id = result.get('data', {}).get('id')
+                
+                if order_id:
+                    get_response = self.session.get(f"{API_BASE}/orders/{order_id}")
+                    
+                    if get_response.status_code == 200:
+                        order = get_response.json()
+                        
+                        # Expected calculation:
+                        # Subtotal: $1000
+                        # Discount (10%): $100
+                        # Discounted Subtotal: $900
+                        # GST (10% of $900): $90
+                        # Total: $990
+                        
+                        expected_discount_amount = 100.0
+                        expected_discounted_subtotal = 900.0
+                        expected_gst = 90.0  # GST on discounted amount, not original
+                        expected_total = 990.0
+                        
+                        actual_discount_amount = order.get('discount_amount', 0)
+                        actual_discounted_subtotal = order.get('discounted_subtotal', 0)
+                        actual_gst = order.get('gst', 0)
+                        actual_total = order.get('total_amount', 0)
+                        
+                        # Detailed verification
+                        calculation_correct = (
+                            abs(actual_discount_amount - expected_discount_amount) < 0.01 and
+                            abs(actual_discounted_subtotal - expected_discounted_subtotal) < 0.01 and
+                            abs(actual_gst - expected_gst) < 0.01 and
+                            abs(actual_total - expected_total) < 0.01
+                        )
+                        
+                        # Check if GST was incorrectly calculated on original subtotal
+                        incorrect_gst_on_original = 100.0  # 10% of $1000
+                        gst_calculated_on_original = abs(actual_gst - incorrect_gst_on_original) < 0.01
+                        
+                        if calculation_correct:
+                            self.log_result(
+                                test_name,
+                                True,
+                                "GST correctly calculated on discounted amount",
+                                f"Subtotal: ${subtotal}, Discount: ${expected_discount_amount}, Discounted Subtotal: ${expected_discounted_subtotal}, GST: ${expected_gst}, Total: ${expected_total}"
+                            )
+                        elif gst_calculated_on_original:
+                            self.log_result(
+                                test_name,
+                                False,
+                                "GST incorrectly calculated on original subtotal instead of discounted amount",
+                                f"Expected GST: ${expected_gst} (on discounted amount), Actual GST: ${actual_gst} (on original subtotal)"
+                            )
+                        else:
+                            self.log_result(
+                                test_name,
+                                False,
+                                "GST calculation has unexpected errors",
+                                f"Expected: Discount=${expected_discount_amount}, GST=${expected_gst}, Total=${expected_total}\nActual: Discount=${actual_discount_amount}, GST=${actual_gst}, Total=${actual_total}"
+                            )
+                    else:
+                        self.log_result(test_name, False, "Failed to retrieve order for GST calculation verification")
+                else:
+                    self.log_result(test_name, False, "Order creation response missing ID")
+            else:
+                self.log_result(test_name, False, f"Order creation failed with status {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result(test_name, False, f"Error: {str(e)}")
+
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on Enhanced Product Specifications"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Enhanced Product Specifications")
+        """Run backend API tests with PRIMARY FOCUS on Discount Functionality"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Discount Functionality")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 80)
         
@@ -8171,20 +8558,10 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Enhanced Product Specifications functionality
-        print("\n🔍 ENHANCED PRODUCT SPECIFICATIONS TESTING - PRIMARY FOCUS")
+        # PRIMARY FOCUS: Discount functionality testing
+        print("\n🔍 DISCOUNT FUNCTIONALITY TESTING - PRIMARY FOCUS")
         print("=" * 60)
-        self.test_enhanced_product_specifications()
-        
-        # Secondary: Test Materials thickness investigation
-        print("\n📋 TESTING MATERIALS THICKNESS INVESTIGATION - SECONDARY")
-        print("=" * 60)
-        self.test_materials_thickness_investigation()
-        
-        # Tertiary: Test Purchase Order Number functionality
-        print("\n📋 TESTING PURCHASE ORDER NUMBER FUNCTIONALITY - TERTIARY")
-        print("=" * 60)
-        self.test_order_creation_with_purchase_order_number()
+        self.test_discount_functionality()
         
         return self.generate_report()
     
