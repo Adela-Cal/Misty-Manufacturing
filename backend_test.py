@@ -7760,6 +7760,406 @@ class InvoicingAPITester:
         
         return None
 
+    def test_enhanced_product_specifications(self):
+        """Test enhanced Product Specifications functionality with material layers and thickness calculation"""
+        print("\n=== ENHANCED PRODUCT SPECIFICATIONS TEST ===")
+        
+        # First, get some materials to use in our tests
+        materials_response = self.session.get(f"{API_BASE}/materials")
+        materials = []
+        if materials_response.status_code == 200:
+            materials = materials_response.json()
+        
+        if len(materials) < 2:
+            self.log_result(
+                "Enhanced Product Specifications Setup", 
+                False, 
+                "Need at least 2 materials in database for testing"
+            )
+            return
+        
+        # Test 1: Create Product Specification with Material Layers and Thickness Calculation
+        material_layers = [
+            {
+                "material_id": materials[0]["id"],
+                "material_name": f"{materials[0]['supplier']} - {materials[0]['product_code']}",
+                "layer_type": "Outer Most Layer",
+                "width": 150.0,  # mm
+                "thickness": 2.5,  # mm
+                "quantity": 1.0,
+                "notes": "Outer protective layer"
+            },
+            {
+                "material_id": materials[1]["id"] if len(materials) > 1 else materials[0]["id"],
+                "material_name": f"{materials[1]['supplier']} - {materials[1]['product_code']}" if len(materials) > 1 else f"{materials[0]['supplier']} - {materials[0]['product_code']}",
+                "layer_type": "Central Layer",
+                "width_range": "61-68",  # mm range for central layer
+                "thickness": 1.8,  # mm
+                "quantity": 2.0,  # double layer
+                "notes": "Central structural layers"
+            },
+            {
+                "material_id": materials[0]["id"],
+                "material_name": f"{materials[0]['supplier']} - {materials[0]['product_code']}",
+                "layer_type": "Inner Most Layer",
+                "width": 145.0,  # mm
+                "thickness": 0.7,  # mm
+                "quantity": 1.0,
+                "notes": "Inner finishing layer"
+            }
+        ]
+        
+        # Expected thickness calculation: (2.5 * 1.0) + (1.8 * 2.0) + (0.7 * 1.0) = 2.5 + 3.6 + 0.7 = 6.8mm
+        expected_thickness = 6.8
+        
+        spec_data = {
+            "product_name": "Multi-Layer Paper Core Test",
+            "product_type": "Paper Core",
+            "specifications": {
+                "inner_diameter_mm": 76.0,
+                "outer_diameter_mm": 89.0,
+                "length_mm": 1200.0,
+                "wall_thickness_mm": 6.5,
+                "gsm": 250
+            },
+            "material_layers": material_layers,
+            "manufacturing_notes": "Test specification with realistic thickness values",
+            "selected_thickness": None  # Will be set after seeing options
+        }
+        
+        created_spec_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=spec_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                created_spec_id = result.get('data', {}).get('id')
+                calculated_thickness = result.get('data', {}).get('calculated_thickness')
+                thickness_options = result.get('data', {}).get('thickness_options', [])
+                
+                # Verify thickness calculation
+                if abs(calculated_thickness - expected_thickness) < 0.01:  # Allow small floating point differences
+                    self.log_result(
+                        "Create Product Specification with Material Layers", 
+                        True, 
+                        f"Successfully created specification with correct thickness calculation: {calculated_thickness}mm",
+                        f"Expected: {expected_thickness}mm, Options: {thickness_options}"
+                    )
+                else:
+                    self.log_result(
+                        "Create Product Specification with Material Layers", 
+                        False, 
+                        f"Thickness calculation incorrect: expected {expected_thickness}mm, got {calculated_thickness}mm"
+                    )
+            else:
+                self.log_result(
+                    "Create Product Specification with Material Layers", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Product Specification with Material Layers", False, f"Error: {str(e)}")
+        
+        # Test 2: Verify Thickness Options Generation (±5%, ±10%, exact)
+        if created_spec_id:
+            try:
+                get_response = self.session.get(f"{API_BASE}/product-specifications/{created_spec_id}")
+                
+                if get_response.status_code == 200:
+                    spec = get_response.json()
+                    thickness_options = spec.get('thickness_options', [])
+                    calculated_thickness = spec.get('calculated_total_thickness')
+                    
+                    # Expected options: -10%, -5%, exact, +5%, +10%
+                    expected_options = [
+                        round(calculated_thickness * 0.90, 3),  # -10%
+                        round(calculated_thickness * 0.95, 3),  # -5%
+                        round(calculated_thickness, 3),         # Exact
+                        round(calculated_thickness * 1.05, 3),  # +5%
+                        round(calculated_thickness * 1.10, 3),  # +10%
+                    ]
+                    expected_options = sorted(list(set(expected_options)))  # Remove duplicates and sort
+                    
+                    if len(thickness_options) >= 3 and calculated_thickness in thickness_options:
+                        self.log_result(
+                            "Thickness Options Generation", 
+                            True, 
+                            f"Generated {len(thickness_options)} thickness options including exact value",
+                            f"Options: {thickness_options}, Calculated: {calculated_thickness}mm"
+                        )
+                    else:
+                        self.log_result(
+                            "Thickness Options Generation", 
+                            False, 
+                            f"Thickness options generation issue",
+                            f"Options: {thickness_options}, Expected to include: {calculated_thickness}mm"
+                        )
+                else:
+                    self.log_result(
+                        "Thickness Options Generation", 
+                        False, 
+                        f"Failed to retrieve specification: {get_response.status_code}"
+                    )
+            except Exception as e:
+                self.log_result("Thickness Options Generation", False, f"Error: {str(e)}")
+        
+        # Test 3: Update Product Specification with New Material Layers
+        if created_spec_id:
+            # Update with different material layers
+            updated_material_layers = [
+                {
+                    "material_id": materials[0]["id"],
+                    "material_name": f"{materials[0]['supplier']} - {materials[0]['product_code']}",
+                    "layer_type": "Outer Most Layer",
+                    "width": 160.0,  # mm - changed width
+                    "thickness": 3.2,  # mm - changed thickness
+                    "quantity": 1.0,
+                    "notes": "Updated outer layer with increased thickness"
+                },
+                {
+                    "material_id": materials[1]["id"] if len(materials) > 1 else materials[0]["id"],
+                    "material_name": f"{materials[1]['supplier']} - {materials[1]['product_code']}" if len(materials) > 1 else f"{materials[0]['supplier']} - {materials[0]['product_code']}",
+                    "layer_type": "Inner Most Layer",
+                    "width": 155.0,  # mm
+                    "thickness": 1.5,  # mm
+                    "quantity": 1.0,
+                    "notes": "Single inner layer"
+                }
+            ]
+            
+            # Expected new thickness: (3.2 * 1.0) + (1.5 * 1.0) = 4.7mm
+            expected_new_thickness = 4.7
+            
+            update_data = {
+                "product_name": "Multi-Layer Paper Core Test - Updated",
+                "product_type": "Paper Core",
+                "specifications": {
+                    "inner_diameter_mm": 76.0,
+                    "outer_diameter_mm": 89.0,
+                    "length_mm": 1200.0,
+                    "wall_thickness_mm": 4.5,  # Updated to match new calculation
+                    "gsm": 280  # Updated GSM
+                },
+                "material_layers": updated_material_layers,
+                "manufacturing_notes": "Updated specification with new material layers",
+                "selected_thickness": 4.7  # Select exact calculated thickness
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/product-specifications/{created_spec_id}", json=update_data)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    calculated_thickness = result.get('data', {}).get('calculated_thickness')
+                    thickness_options = result.get('data', {}).get('thickness_options', [])
+                    
+                    if abs(calculated_thickness - expected_new_thickness) < 0.01:
+                        self.log_result(
+                            "Update Product Specification with New Material Layers", 
+                            True, 
+                            f"Successfully updated specification with recalculated thickness: {calculated_thickness}mm",
+                            f"Expected: {expected_new_thickness}mm, New options: {thickness_options}"
+                        )
+                    else:
+                        self.log_result(
+                            "Update Product Specification with New Material Layers", 
+                            False, 
+                            f"Thickness recalculation incorrect: expected {expected_new_thickness}mm, got {calculated_thickness}mm"
+                        )
+                else:
+                    self.log_result(
+                        "Update Product Specification with New Material Layers", 
+                        False, 
+                        f"Update failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Update Product Specification with New Material Layers", False, f"Error: {str(e)}")
+        
+        # Test 4: Verify GSM Field Handling
+        if created_spec_id:
+            try:
+                get_response = self.session.get(f"{API_BASE}/product-specifications/{created_spec_id}")
+                
+                if get_response.status_code == 200:
+                    spec = get_response.json()
+                    gsm_value = spec.get('specifications', {}).get('gsm')
+                    
+                    if gsm_value == 280:  # From our update
+                        self.log_result(
+                            "GSM Field Handling", 
+                            True, 
+                            f"GSM field properly stored and retrieved: {gsm_value}",
+                            f"Specification ID: {created_spec_id}"
+                        )
+                    else:
+                        self.log_result(
+                            "GSM Field Handling", 
+                            False, 
+                            f"GSM field not properly handled: expected 280, got {gsm_value}"
+                        )
+                else:
+                    self.log_result(
+                        "GSM Field Handling", 
+                        False, 
+                        f"Failed to retrieve specification for GSM test: {get_response.status_code}"
+                    )
+            except Exception as e:
+                self.log_result("GSM Field Handling", False, f"Error: {str(e)}")
+        
+        # Test 5: Verify Selected Thickness Handling
+        if created_spec_id:
+            try:
+                get_response = self.session.get(f"{API_BASE}/product-specifications/{created_spec_id}")
+                
+                if get_response.status_code == 200:
+                    spec = get_response.json()
+                    selected_thickness = spec.get('selected_thickness')
+                    
+                    if selected_thickness == 4.7:  # From our update
+                        self.log_result(
+                            "Selected Thickness Handling", 
+                            True, 
+                            f"Selected thickness properly stored and retrieved: {selected_thickness}mm",
+                            f"Specification ID: {created_spec_id}"
+                        )
+                    else:
+                        self.log_result(
+                            "Selected Thickness Handling", 
+                            False, 
+                            f"Selected thickness not properly handled: expected 4.7, got {selected_thickness}"
+                        )
+                else:
+                    self.log_result(
+                        "Selected Thickness Handling", 
+                        False, 
+                        f"Failed to retrieve specification for selected thickness test: {get_response.status_code}"
+                    )
+            except Exception as e:
+                self.log_result("Selected Thickness Handling", False, f"Error: {str(e)}")
+        
+        # Test 6: Test with Realistic Thickness Values (0.15-3.2mm range)
+        realistic_material_layers = [
+            {
+                "material_id": materials[0]["id"],
+                "material_name": f"{materials[0]['supplier']} - {materials[0]['product_code']}",
+                "layer_type": "Outer Most Layer",
+                "width": 120.0,
+                "thickness": 0.15,  # Minimum realistic thickness
+                "quantity": 1.0,
+                "notes": "Ultra-thin outer layer"
+            },
+            {
+                "material_id": materials[1]["id"] if len(materials) > 1 else materials[0]["id"],
+                "material_name": f"{materials[1]['supplier']} - {materials[1]['product_code']}" if len(materials) > 1 else f"{materials[0]['supplier']} - {materials[0]['product_code']}",
+                "layer_type": "Central Layer",
+                "width_range": "50-60",
+                "thickness": 1.6,  # Mid-range thickness
+                "quantity": 0.5,  # Partial layer
+                "notes": "Partial central layer"
+            },
+            {
+                "material_id": materials[0]["id"],
+                "material_name": f"{materials[0]['supplier']} - {materials[0]['product_code']}",
+                "layer_type": "Inner Most Layer",
+                "width": 115.0,
+                "thickness": 3.2,  # Maximum realistic thickness
+                "quantity": 1.0,
+                "notes": "Thick inner structural layer"
+            }
+        ]
+        
+        # Expected thickness: (0.15 * 1.0) + (1.6 * 0.5) + (3.2 * 1.0) = 0.15 + 0.8 + 3.2 = 4.15mm
+        expected_realistic_thickness = 4.15
+        
+        realistic_spec_data = {
+            "product_name": "Realistic Thickness Range Test",
+            "product_type": "Paper Core",
+            "specifications": {
+                "inner_diameter_mm": 50.0,
+                "outer_diameter_mm": 58.0,
+                "length_mm": 800.0,
+                "wall_thickness_mm": 4.0,
+                "gsm": 180
+            },
+            "material_layers": realistic_material_layers,
+            "manufacturing_notes": "Testing with realistic thickness values in 0.15-3.2mm range"
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=realistic_spec_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                calculated_thickness = result.get('data', {}).get('calculated_thickness')
+                thickness_options = result.get('data', {}).get('thickness_options', [])
+                
+                if abs(calculated_thickness - expected_realistic_thickness) < 0.01:
+                    # Verify thickness options are within reasonable range
+                    min_option = min(thickness_options) if thickness_options else 0
+                    max_option = max(thickness_options) if thickness_options else 0
+                    
+                    if min_option >= 0.1 and max_option <= 10.0:  # Reasonable range
+                        self.log_result(
+                            "Realistic Thickness Range Test", 
+                            True, 
+                            f"Successfully handled realistic thickness values: {calculated_thickness}mm",
+                            f"Range: {min_option}mm - {max_option}mm, Options count: {len(thickness_options)}"
+                        )
+                    else:
+                        self.log_result(
+                            "Realistic Thickness Range Test", 
+                            False, 
+                            f"Thickness options outside reasonable range: {min_option}mm - {max_option}mm"
+                        )
+                else:
+                    self.log_result(
+                        "Realistic Thickness Range Test", 
+                        False, 
+                        f"Realistic thickness calculation incorrect: expected {expected_realistic_thickness}mm, got {calculated_thickness}mm"
+                    )
+            else:
+                self.log_result(
+                    "Realistic Thickness Range Test", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Realistic Thickness Range Test", False, f"Error: {str(e)}")
+        
+        # Test 7: Test Material and Product Integration
+        try:
+            # Get all product specifications to verify material integration
+            response = self.session.get(f"{API_BASE}/product-specifications")
+            
+            if response.status_code == 200:
+                specs = response.json()
+                specs_with_materials = [spec for spec in specs if spec.get('material_layers')]
+                
+                if len(specs_with_materials) >= 2:  # We created at least 2 specs with materials
+                    self.log_result(
+                        "Material and Product Integration", 
+                        True, 
+                        f"Successfully integrated materials with product specifications",
+                        f"Found {len(specs_with_materials)} specifications with material layers out of {len(specs)} total"
+                    )
+                else:
+                    self.log_result(
+                        "Material and Product Integration", 
+                        False, 
+                        f"Material integration issue: only {len(specs_with_materials)} specs with materials found"
+                    )
+            else:
+                self.log_result(
+                    "Material and Product Integration", 
+                    False, 
+                    f"Failed to retrieve specifications for integration test: {response.status_code}"
+                )
+        except Exception as e:
+            self.log_result("Material and Product Integration", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run backend API tests with PRIMARY FOCUS on Materials Thickness Investigation"""
         print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Materials Thickness Investigation")
