@@ -48,7 +48,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
 
   useEffect(() => {
     calculateTotals();
-  }, [formData.items]);
+  }, [formData.items, formData.discount_percentage]);
 
   useEffect(() => {
     if (order) {
