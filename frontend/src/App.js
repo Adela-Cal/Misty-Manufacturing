@@ -66,6 +66,9 @@ function App() {
           <Toaster 
             position="top-right" 
             theme="dark"
+            visibleToasts={5}
+            expand={true}
+            duration={10000}
             toastOptions={{
               style: {
                 background: '#1f2937',
