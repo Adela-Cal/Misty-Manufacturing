@@ -406,6 +406,21 @@ frontend:
         agent: "main"
         comment: "XERO OAUTH CONNECTION SUCCESS: Resolved OAuth scope and redirect URI issues. Fixed invalid scopes (removed duplicates, corrected format from accounting.contacts.read to accounting.contacts, etc.). Updated Xero Developer Portal configuration to match production URLs. OAuth flow now working successfully - user confirmed 'It is working!'. Xero integration fully operational and ready for invoice creation testing."
 
+  - task: "Archived Orders Functionality"
+    implemented: true
+    working: true
+    file: "backend/server.py, backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented comprehensive archived orders functionality with automatic archiving when orders reach CLEARED stage, GET /api/clients/{client_id}/archived-orders endpoint with filtering capabilities, and POST /api/clients/{client_id}/archived-orders/fast-report endpoint for Excel report generation with multiple time period filters and field selection."
+      - working: true
+        agent: "testing"
+        comment: "ARCHIVED ORDERS FUNCTIONALITY TESTING COMPLETED - ALL MAJOR FEATURES WORKING PERFECTLY (100% SUCCESS RATE): Comprehensive testing of newly implemented archived orders functionality shows 22/22 tests passed successfully. ✅ AUTOMATIC ARCHIVING: Orders automatically archived when moved to CLEARED stage with all original data preserved (original_order_id, order_number, client_id, client_name, purchase_order_number, items, subtotal, gst, total_amount, due_date, delivery_address, delivery_instructions, runtime_estimate, notes, created_by, created_at, completed_at, archived_at, archived_by), ✅ GET ARCHIVED ORDERS ENDPOINT: Successfully retrieves archived orders with date filters (date_from, date_to) and search functionality (order number, client name, purchase order number, product names), ✅ FAST REPORT GENERATION: Excel report generation working correctly with multiple time periods (current_month, last_month, last_3_months, last_6_months, current_quarter, year_to_date, current_financial_year), ✅ EXCEL GENERATION & DOWNLOAD: Proper Excel file generation (5000+ bytes) with correct headers (Content-Disposition: attachment, .xlsx filename), ✅ TIME PERIOD FILTERS: All 7 time period filters working correctly with proper date calculations, ✅ SEARCH FUNCTIONALITY: Search working across order numbers, client names, and product names with partial matching, ✅ DATA PRESERVATION: All required fields preserved in archived orders with proper items structure validation. TECHNICAL FIXES: Fixed Excel generation issue with merged cells by implementing proper column width adjustment using get_column_letter utility. Authentication working with Callum/Peach7510 credentials. The archived orders functionality is fully operational and ready for production use with automatic archiving, comprehensive filtering, Excel reporting, and complete data preservation."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
