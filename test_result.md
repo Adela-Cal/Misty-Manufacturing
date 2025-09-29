@@ -184,7 +184,7 @@ frontend:
     implemented: true
     working: false
     file: "/app/frontend/src/components/OrderForm.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -194,6 +194,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL CALCULATION ISSUES IDENTIFIED: Comprehensive re-testing revealed major problems with Order Items calculation functionality. Login and navigation working perfectly (Callum/Peach7510), Create New Order modal opens correctly via 'New Order' button, client selection working (Label Makers), Order Items section visible, product dropdown populated (4 products available). CRITICAL ISSUES: 1) Unit price auto-population FAILING - shows $0.0 despite product dropdown showing '$45.00', 2) Total price calculation turning to $0.00 for quantities 2, 3, 5, 10 (only quantity 1 shows correct $45.00), 3) Expected calculation: Quantity × Unit Price = Total Price is broken. This matches exactly the reported issue where 'Total price turns to 0 when quantity increases'. Product selection works but price calculations are fundamentally broken."
+      - working: false
+        agent: "testing"
+        comment: "❌ UNABLE TO COMPLETE UI TESTING DUE TO SESSION MANAGEMENT ISSUES: Attempted comprehensive testing but encountered persistent session expiration issues preventing access to Order Creation modal. Backend had syntax errors (line 1387) which were resolved by restarting service. CODE ANALYSIS REVEALS CALCULATION LOGIC ISSUES: 1) handleItemChange function (lines 132-156) has correct calculation logic (quantity × unitPrice), 2) Product selection logic (lines 471-487) correctly sets unit_price from selectedProduct.price_ex_gst, 3) Console debug logging is present (line 146-152) but not accessible due to UI issues. CRITICAL FINDINGS: The calculation logic appears correct in code, suggesting the issue may be in data flow, state management, or product data retrieval. Previous testing confirmed the exact issues reported: unit price shows $0.0 and total calculations fail for quantities > 1. This task requires immediate main agent attention for session management fixes and calculation debugging."
 
 metadata:
   created_by: "testing_agent"
