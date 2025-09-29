@@ -326,6 +326,7 @@ const MaterialsManagement = () => {
                   <th className="py-2 text-sm">Unit</th>
                   <th className="py-2 text-sm">Delivery Time</th>
                   <th className="py-2 text-sm">Raw Substrate</th>
+                  <th className="py-2 text-sm">Actions</th>
                 </tr>
               </thead>
               <tbody>
