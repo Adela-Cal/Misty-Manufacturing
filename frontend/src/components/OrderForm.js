@@ -153,6 +153,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     setFormData(prev => ({
       ...prev,
       items: [...prev.items, {
+        product_id: '',
         product_name: '',
         quantity: 1,
         unit_price: 0,
