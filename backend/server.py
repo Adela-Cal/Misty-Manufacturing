@@ -1383,7 +1383,15 @@ async def get_production_board(current_user: dict = Depends(require_any_role)):
                 "materials_ready": materials_ready,
                 "items": order["items"],
                 "delivery_address": order.get("delivery_address"),
-                "is_overdue": datetime.fromisoformat(order["due_date"].replace("Z", "+00:00")) < datetime.now(timezone.utc) if isinstance(order["due_date"], str) else order["due_date"] < datetime.now(timezone.utc)
+                # Handle due_date comparison properly for timezone awareness
+                due_date = order["due_date"]
+                if isinstance(due_date, str):
+                    due_date = datetime.fromisoformat(due_date.replace("Z", "+00:00"))
+                elif isinstance(due_date, datetime) and due_date.tzinfo is None:
+                    # Make timezone-naive datetime timezone-aware (assume UTC)
+                    due_date = due_date.replace(tzinfo=timezone.utc)
+                
+                "is_overdue": due_date < datetime.now(timezone.utc)
             }
             board[stage].append(order_info)
     
