@@ -53,6 +53,16 @@ const ProductSpecifications = () => {
     }
   };
 
+  const loadProducts = async () => {
+    try {
+      const response = await apiHelpers.getProducts();
+      setProducts(response.data);
+    } catch (error) {
+      console.error('Failed to load products:', error);
+      toast.error('Failed to load products');
+    }
+  };
+
   const loadSpecifications = async () => {
     try {
       setLoading(true);
