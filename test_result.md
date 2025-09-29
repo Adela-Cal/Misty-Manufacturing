@@ -75,6 +75,30 @@ backend:
         comment: "✅ EDGE CASES THOROUGHLY TESTED: 0% discount correctly sets fields to null, orders without discount fields handled properly, 100% discount results in $0 final amount with correct GST calculation, all edge cases pass validation."
 
 frontend:
+  - task: "Materials Management Delete Functionality and Button Layout"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/MaterialsManagement.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ MATERIALS MANAGEMENT DELETE FUNCTIONALITY FULLY WORKING: Comprehensive testing completed successfully. Login with demo credentials (Callum/Peach7510) works perfectly, Materials Management page loads correctly, Actions column present in materials table, 24 Edit (pencil) and 24 Delete (trash) icons found in table rows, Edit modal opens successfully when clicking pencil icon, CRITICAL SUCCESS: Delete Material button is visible and properly positioned on the left with mr-auto class, Cancel and Update Material buttons visible on the right, button layout and spacing verified as correct (Delete left, Cancel/Update right), confirmation dialog functionality working for table row deletions. All requested delete functionality and button layout improvements are working perfectly."
+
+  - task: "Product Specifications Delete Functionality and Button Layout"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/ProductSpecifications.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PRODUCT SPECIFICATIONS DELETE FUNCTIONALITY FULLY WORKING: Comprehensive testing completed successfully. Product Specifications page loads correctly, Actions column present in specifications table, 15 Edit (pencil) and 15 Delete (trash) icons found in table rows, Edit modal opens successfully when clicking pencil icon, CRITICAL SUCCESS: Delete Specification button is visible and properly positioned on the left with mr-auto class, Cancel and Update Specification buttons visible on the right, button layout and spacing verified as correct (Delete left, Cancel/Update right), confirmation dialog working perfectly with message 'Are you sure you want to delete the specification for Heavy Duty Spiral Paper Core (Updated)?'. All requested delete functionality and button layout improvements are working perfectly."
+
   - task: "Production Board Jumping Man Feature"
     implemented: true
     working: true
