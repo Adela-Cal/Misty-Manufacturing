@@ -206,7 +206,8 @@ metadata:
 test_plan:
   current_focus:
     - "Order Creation with Client Product Dropdown Fix"
-  stuck_tasks: []
+  stuck_tasks: 
+    - "Order Creation with Client Product Dropdown Fix"
   test_all: false
   test_priority: "high_first"
 
