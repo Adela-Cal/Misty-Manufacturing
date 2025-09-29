@@ -135,8 +135,8 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     
     // Recalculate item total when quantity or price changes
     if (field === 'quantity' || field === 'unit_price') {
-      const quantity = field === 'quantity' ? parseFloat(value) || 0 : newItems[index].quantity;
-      const unitPrice = field === 'unit_price' ? parseFloat(value) || 0 : newItems[index].unit_price;
+      const quantity = field === 'quantity' ? parseFloat(value) || 0 : parseFloat(newItems[index].quantity) || 0;
+      const unitPrice = field === 'unit_price' ? parseFloat(value) || 0 : parseFloat(newItems[index].unit_price) || 0;
       newItems[index].total_price = quantity * unitPrice;
     }
     
