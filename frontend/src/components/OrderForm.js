@@ -459,13 +459,18 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                             onChange={(e) => {
                               const selectedProduct = clientProducts.find(p => p.product_description === e.target.value);
                               if (selectedProduct) {
+                                // Update all fields for the selected product
                                 handleItemChange(index, 'product_name', selectedProduct.product_description);
                                 handleItemChange(index, 'unit_price', selectedProduct.price_ex_gst);
+                                
                                 // Recalculate total with current quantity
-                                const newTotal = formData.items[index].quantity * selectedProduct.price_ex_gst;
+                                const currentQuantity = parseFloat(formData.items[index].quantity) || 1;
+                                const newTotal = currentQuantity * parseFloat(selectedProduct.price_ex_gst);
                                 handleItemChange(index, 'total_price', newTotal);
                               } else {
                                 handleItemChange(index, 'product_name', e.target.value);
+                                handleItemChange(index, 'unit_price', 0);
+                                handleItemChange(index, 'total_price', 0);
                               }
                             }}
                             className={`misty-select w-full ${errors[`item_${index}_product_name`] ? 'border-red-500' : ''}`}
