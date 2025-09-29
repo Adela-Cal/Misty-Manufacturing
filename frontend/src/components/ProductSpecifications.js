@@ -712,7 +712,7 @@ const ProductSpecifications = () => {
                               <option value="">Select Material</option>
                               {materials.map(material => (
                                 <option key={material.id} value={material.id}>
-                                  {material.material_name} ({material.supplied_roll_weight || 0}mm thick)
+                                  {material.material_name} ({material.thickness_mm || 0}mm thick)
                                 </option>
                               ))}
                             </select>
