@@ -11,6 +11,8 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     delivery_address: '',
     delivery_instructions: '',
     notes: '',
+    discount_percentage: 0,  // Discount percentage (0-100)
+    discount_notes: '',      // Reason for discount
     items: [{
       product_name: '',
       quantity: 1,
