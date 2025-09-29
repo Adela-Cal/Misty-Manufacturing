@@ -149,8 +149,30 @@ const Invoicing = () => {
         }
       } catch (xeroError) {
         console.error('Xero integration error:', xeroError);
-        // Still show local documents
-        toast.success(
+        
+        // Show detailed error information
+        let errorMessage = 'Xero integration failed';
+        if (xeroError.response?.data?.detail) {
+          errorMessage = `Xero Error: ${xeroError.response.data.detail}`;
+        } else if (xeroError.message) {
+          errorMessage = `Xero Error: ${xeroError.message}`;
+        }
+        
+        toast.error(
+          <div>
+            <p>⚠️ {errorMessage}</p>
+            <p className="text-xs mt-1">Invoice created locally, but Xero draft failed.</p>
+            <div className="mt-2 space-x-2">
+              <button 
+                onClick={() => downloadInvoice(selectedJob.id, selectedJob.order_number)}
+                className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs text-white"
+              >
+                📄 Download Invoice PDF
+              </button>
+            </div>
+          </div>,
+          { duration: 10000 }
+        );
           <div>
             <p>📄 Documents ready for download:</p>
             <div className="mt-2 space-x-2">
