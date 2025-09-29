@@ -2449,13 +2449,23 @@ async def create_xero_draft_invoice(
             )
             line_items.append(line_item)
         
+        # Parse and format due_date properly for Xero
+        due_date_value = invoice_data.get("due_date")
+        if isinstance(due_date_value, str):
+            try:
+                due_date_parsed = datetime.fromisoformat(due_date_value).date()
+            except:
+                due_date_parsed = datetime.now().date()
+        else:
+            due_date_parsed = due_date_value or datetime.now().date()
+        
         # Create invoice object
         invoice = Invoice(
             type="ACCREC",  # Accounts Receivable
             contact=Contact(contact_id=contact_id) if contact_id else Contact(name=contact_name),
             line_items=line_items,
             date=datetime.now().date(),
-            due_date=invoice_data.get("due_date"),
+            due_date=due_date_parsed,
             invoice_number=invoice_data.get("invoice_number"),
             reference=invoice_data.get("reference", invoice_data.get("order_number")),
             status="DRAFT"
