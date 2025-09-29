@@ -1012,30 +1012,28 @@ const ProductSpecifications = () => {
                 )}
 
                 {/* Form Actions */}
-                <div className="sticky bottom-0 bg-gray-900 flex justify-between pt-6 border-t border-gray-700 mt-8">
-                  <div className="flex-shrink-0">
+                <div className="sticky bottom-0 bg-gray-900 pt-6 border-t border-gray-700 mt-8">
+                  <div className="flex items-center justify-end space-x-4">
                     {selectedSpec && (
                       <button
                         type="button"
                         onClick={() => handleDelete(selectedSpec)}
-                        className="misty-button misty-button-danger"
+                        className="misty-button misty-button-danger mr-auto"
                       >
                         <TrashIcon className="h-4 w-4 mr-2" />
                         Delete Specification
                       </button>
                     )}
-                  </div>
-                  <div className="flex space-x-4 ml-4">
                     <button
                       type="button"
                       onClick={() => setShowModal(false)}
-                      className="misty-button misty-button-secondary px-6"
+                      className="misty-button misty-button-secondary"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="misty-button misty-button-primary px-6"
+                      className="misty-button misty-button-primary"
                     >
                       {selectedSpec ? 'Update Specification' : 'Create Specification'}
                     </button>
