@@ -203,7 +203,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
           newErrors[`item_${index}_unit_price`] = 'Unit price must be greater than 0';
         }
         
-        if (item.product_name.trim() && item.quantity > 0 && item.unit_price > 0) {
+        if (item.product_name.trim() && item.product_id && item.quantity > 0 && item.unit_price > 0) {
           hasValidItems = true;
         }
       });
