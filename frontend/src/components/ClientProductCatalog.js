@@ -344,7 +344,7 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
             <div className="text-center py-12">
               <div className="mx-auto h-12 w-12 text-gray-400 mb-4">📦</div>
               <h3 className="text-sm font-medium text-gray-300">
-                No products in catalog
+                No products in catalogue
               </h3>
               <p className="mt-1 text-sm text-gray-400">
                 Get started by adding your first product.
