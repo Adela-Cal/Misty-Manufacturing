@@ -289,13 +289,13 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
             <h2 className="text-2xl font-bold text-white">
               {client ? 'Edit Client' : 'Add New Client'}
             </h2>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
               {client && (
-                <>
+                <div className="flex items-center space-x-3">
                   <button
                     type="button"
                     onClick={() => setShowProductCatalog(true)}
-                    className="misty-button misty-button-secondary flex items-center"
+                    className="misty-button misty-button-secondary flex items-center whitespace-nowrap"
                   >
                     <PlusIcon className="h-4 w-4 mr-2" />
                     Add Products
@@ -303,17 +303,17 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
                   <button
                     type="button"
                     onClick={() => setShowArchivedOrders(true)}
-                    className="misty-button misty-button-primary flex items-center"
+                    className="misty-button misty-button-primary flex items-center whitespace-nowrap"
                   >
                     <ArchiveBoxIcon className="h-4 w-4 mr-2" />
                     Archived Orders
                   </button>
-                </>
+                </div>
               )}
               <button
                 type="button"
                 onClick={onClose}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors ml-4"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
