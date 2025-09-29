@@ -98,10 +98,23 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
 
   const calculateTotals = () => {
     const subtotal = formData.items.reduce((sum, item) => sum + (item.total_price || 0), 0);
-    const gst = subtotal * 0.1; // 10% GST
-    const total = subtotal + gst;
     
-    setOrderTotals({ subtotal, gst, total });
+    // Apply discount if provided
+    const discountPercentage = parseFloat(formData.discount_percentage) || 0;
+    const discountAmount = subtotal * (discountPercentage / 100);
+    const discountedSubtotal = subtotal - discountAmount;
+    
+    // Calculate GST on discounted amount
+    const gst = discountedSubtotal * 0.1; // 10% GST
+    const total = discountedSubtotal + gst;
+    
+    setOrderTotals({ 
+      subtotal, 
+      discountAmount, 
+      discountedSubtotal, 
+      gst, 
+      total 
+    });
   };
 
   const handleInputChange = (e) => {
