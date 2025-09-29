@@ -1051,7 +1051,7 @@ async def update_client_product(client_id: str, product_id: str, product_data: C
     
     update_data = product_data.dict()
     update_data["client_id"] = client_id  # Ensure client_id is correct
-    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_at"] = datetime.now(timezone.utc)
     
     result = await db.client_products.update_one(
         {"id": product_id, "client_id": client_id, "is_active": True},
