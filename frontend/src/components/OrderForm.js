@@ -131,26 +131,29 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
 
   const handleItemChange = (index, field, value) => {
     const newItems = [...formData.items];
-    newItems[index] = { ...newItems[index], [field]: value };
     
-    // Recalculate item total when quantity or price changes
+    // Convert numeric values properly
     if (field === 'quantity' || field === 'unit_price') {
-      const quantity = field === 'quantity' ? parseFloat(value) || 0 : parseFloat(newItems[index].quantity) || 0;
-      const unitPrice = field === 'unit_price' ? parseFloat(value) || 0 : parseFloat(newItems[index].unit_price) || 0;
-      const calculatedTotal = quantity * unitPrice;
-      
-      // Ensure we're setting a valid number
-      newItems[index].total_price = isNaN(calculatedTotal) ? 0 : calculatedTotal;
-      
-      // Debug logging (remove after fix)
-      console.log('Calculation debug:', {
-        field,
-        value,
-        quantity,
-        unitPrice,
-        calculatedTotal: newItems[index].total_price
-      });
+      const numValue = value === '' ? 0 : Number(value);
+      newItems[index] = { ...newItems[index], [field]: numValue };
+    } else {
+      newItems[index] = { ...newItems[index], [field]: value };
     }
+    
+    // Always recalculate total price to ensure it's accurate
+    const quantity = Number(newItems[index].quantity) || 0;
+    const unitPrice = Number(newItems[index].unit_price) || 0;
+    newItems[index].total_price = quantity * unitPrice;
+    
+    // Debug logging (remove after fix)
+    console.log('Calculation debug:', {
+      index,
+      field,
+      rawValue: value,
+      quantity,
+      unitPrice,
+      total_price: newItems[index].total_price
+    });
     
     setFormData(prev => ({ ...prev, items: newItems }));
   };
