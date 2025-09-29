@@ -8892,8 +8892,8 @@ class InvoicingAPITester:
             self.log_result("Verify Soft Delete", False, f"Error: {str(e)}")
 
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on Discount Functionality"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Discount Functionality")
+        """Run backend API tests with PRIMARY FOCUS on Client Product Catalog Functionality"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Client Product Catalog Functionality")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 80)
         
@@ -8902,8 +8902,13 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Discount functionality testing
-        print("\n🔍 DISCOUNT FUNCTIONALITY TESTING - PRIMARY FOCUS")
+        # PRIMARY FOCUS: Client Product Catalog functionality testing
+        print("\n🔍 CLIENT PRODUCT CATALOG FUNCTIONALITY TESTING - PRIMARY FOCUS")
+        print("=" * 60)
+        self.test_client_product_catalog()
+        
+        # SECONDARY: Discount functionality testing (existing tests)
+        print("\n🔍 DISCOUNT FUNCTIONALITY TESTING - SECONDARY")
         print("=" * 60)
         self.test_discount_functionality()
         
