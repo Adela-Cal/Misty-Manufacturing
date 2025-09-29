@@ -291,14 +291,24 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
             </h2>
             <div className="flex items-center space-x-3">
               {client && (
-                <button
-                  type="button"
-                  onClick={() => setShowProductCatalog(true)}
-                  className="misty-button misty-button-secondary flex items-center"
-                >
-                  <PlusIcon className="h-4 w-4 mr-2" />
-                  Add Products
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowProductCatalog(true)}
+                    className="misty-button misty-button-secondary flex items-center"
+                  >
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Add Products
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowArchivedOrders(true)}
+                    className="misty-button misty-button-primary flex items-center"
+                  >
+                    <ArchiveBoxIcon className="h-4 w-4 mr-2" />
+                    Archived Orders
+                  </button>
+                </>
               )}
               <button
                 type="button"
