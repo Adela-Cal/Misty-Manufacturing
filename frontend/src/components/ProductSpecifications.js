@@ -40,6 +40,7 @@ const ProductSpecifications = () => {
   useEffect(() => {
     loadSpecifications();
     loadMaterials();
+    loadProducts();
   }, []);
 
   const loadMaterials = async () => {
