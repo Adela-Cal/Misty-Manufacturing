@@ -36,7 +36,7 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
   const [errors, setErrors] = useState({});
   const [showBankDetails, setShowBankDetails] = useState(false);
   const [showContacts, setShowContacts] = useState(false);
-  const [showProductCatalog, setShowProductCatalog] = useState(false);
+  const [showProductCatalogue, setShowProductCatalogue] = useState(false);
   const [showArchivedOrders, setShowArchivedOrders] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
