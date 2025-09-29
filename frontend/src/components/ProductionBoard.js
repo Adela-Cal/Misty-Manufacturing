@@ -247,7 +247,10 @@ const ProductionBoard = () => {
             {/* Jumping Man Icon for Stage Movement */}
             <div className="relative">
               <button
-                onClick={() => toggleJumpDropdown(job.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleJumpDropdown(job.id);
+                }}
                 className="text-gray-400 hover:text-green-400 transition-colors"
                 title="Jump to Stage"
                 data-testid={`jump-stage-${job.id}`}
