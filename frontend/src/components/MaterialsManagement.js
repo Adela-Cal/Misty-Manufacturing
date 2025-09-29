@@ -92,8 +92,6 @@ const MaterialsManagement = () => {
 
   const handleEdit = (material) => {
     setSelectedMaterial(material);
-  const handleEdit = (material) => {
-    setSelectedMaterial(material);
     setFormData({
       supplier_id: material.supplier_id || '',
       supplier_name: material.supplier || material.supplier_name || '',
@@ -112,9 +110,6 @@ const MaterialsManagement = () => {
       supplied_roll_weight: material.supplied_roll_weight ? material.supplied_roll_weight.toString() : '',  // New field
       master_deckle_width_mm: material.master_deckle_width_mm ? material.master_deckle_width_mm.toString() : ''  // New field
     });
-    setErrors({});
-    setShowModal(true);
-  };
     setErrors({});
     setShowModal(true);
   };
