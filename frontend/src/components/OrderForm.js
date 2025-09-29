@@ -193,7 +193,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     if (formData.client_id) {
       let hasValidItems = false;
       formData.items.forEach((item, index) => {
-        if (!item.product_name.trim()) {
+        if (!item.product_name.trim() || !item.product_id) {
           newErrors[`item_${index}_product_name`] = 'Please select a product';
         }
         if (!item.quantity || item.quantity <= 0) {
