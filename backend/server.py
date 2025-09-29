@@ -2495,6 +2495,9 @@ async def create_xero_draft_invoice(
         
         created_invoice = invoices_response.invoices[0]
         
+        # Log successful creation
+        logger.info(f"Successfully created Xero invoice: {created_invoice.invoice_number}")
+        
         # Check for validation errors
         if hasattr(created_invoice, 'validation_errors') and created_invoice.validation_errors:
             error_messages = [error.message for error in created_invoice.validation_errors]
