@@ -12,7 +12,8 @@ import {
 
 const ProductSpecifications = () => {
   const [specifications, setSpecifications] = useState([]);
-  const [materials, setMaterials] = useState([]);  // New state for materials
+  const [materials, setMaterials] = useState([]);  // Materials from Products & Materials
+  const [products, setProducts] = useState([]);   // Products from Products & Materials
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
