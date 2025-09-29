@@ -535,6 +535,30 @@ const ProductSpecifications = () => {
                     <td className="text-gray-300 text-sm py-2 px-3 max-w-xs truncate">
                       {spec.manufacturing_notes || '—'}
                     </td>
+                    <td className="py-2 px-3">
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(spec);
+                          }}
+                          className="text-blue-400 hover:text-blue-300 transition-colors"
+                          title="Edit specification"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(spec);
+                          }}
+                          className="text-red-400 hover:text-red-300 transition-colors"
+                          title="Delete specification"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
