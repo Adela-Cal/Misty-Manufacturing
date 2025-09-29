@@ -2560,11 +2560,13 @@ async def generate_job_invoice(
     # Insert invoice record
     await db.invoices.insert_one(invoice_record)
     
-    # Update job status
+    # Update job status and trigger archiving
     update_data = {
         "invoiced": True,
         "invoice_id": invoice_record["id"],
         "current_stage": "cleared",
+        "status": "completed",  # Set status to completed to trigger archiving
+        "completed_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc)
     }
     
@@ -2573,11 +2575,44 @@ async def generate_job_invoice(
         update_data["invoiced"] = False
         update_data["partially_invoiced"] = True
         update_data["current_stage"] = "delivery"  # Keep in delivery stage for remaining items
+        update_data["status"] = "pending"  # Keep as pending for partial invoices
+        # Remove completion data for partial invoices
+        del update_data["completed_at"]
     
     await db.orders.update_one(
         {"id": job_id},
         {"$set": update_data}
     )
+    
+    # For full invoices, create archived order record
+    if invoice_data.get("invoice_type") != "partial":
+        # Get the updated order data for archiving
+        job = await db.orders.find_one({"id": job_id})
+        if job:
+            # Create archived order
+            archived_order = ArchivedOrder(
+                original_order_id=job["id"],
+                order_number=job["order_number"],
+                client_id=job["client_id"],
+                client_name=job.get("client_name", ""),
+                purchase_order_number=job.get("purchase_order_number"),
+                items=job["items"],
+                subtotal=job["subtotal"],
+                gst=job["gst"],
+                total_amount=job["total_amount"],
+                due_date=job["due_date"],
+                delivery_address=job.get("delivery_address"),
+                delivery_instructions=job.get("delivery_instructions"),
+                runtime_estimate=job.get("runtime_estimate"),
+                notes=job.get("notes"),
+                created_by=job["created_by"],
+                created_at=job["created_at"],
+                completed_at=datetime.now(timezone.utc),
+                archived_by=current_user["user_id"]
+            )
+            
+            # Insert into archived orders collection
+            await db.archived_orders.insert_one(archived_order.dict())
     
     return {
         "message": "Invoice generated successfully",
