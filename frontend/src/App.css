@@ -103,6 +103,14 @@ code {
   @apply bg-red-600 text-white hover:bg-red-500;
 }
 
+.client-edit-buttons {
+  @apply flex items-center space-x-4;
+}
+
+.client-edit-buttons .misty-button {
+  @apply min-w-max;
+}
+
 .misty-input {
   @apply bg-gray-700 border border-gray-600 text-white placeholder-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent;
 }
