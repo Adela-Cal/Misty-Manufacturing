@@ -46,8 +46,11 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
-    role: UserRole
     full_name: str
+    role: UserRole = UserRole.PRODUCTION_TEAM
+    department: Optional[str] = None
+    phone: Optional[str] = None
+    employment_type: EmploymentType = EmploymentType.FULL_TIME
 
 class UserLogin(BaseModel):
     username: str
