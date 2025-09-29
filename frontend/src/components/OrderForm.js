@@ -478,14 +478,6 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                                   unit_price: unitPrice,
                                   total_price: totalPrice
                                 };
-                                
-                                console.log('Product selection debug:', {
-                                  product: selectedProduct.product_description,
-                                  price_ex_gst: selectedProduct.price_ex_gst,
-                                  unitPrice,
-                                  currentQuantity,
-                                  totalPrice
-                                });
                               } else {
                                 newItems[index] = {
                                   ...newItems[index],
