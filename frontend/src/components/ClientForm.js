@@ -297,7 +297,7 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
                     onClick={() => setShowProductCatalogue(true)}
                     className="misty-button misty-button-secondary flex items-center whitespace-nowrap text-sm"
                   >
-                    <PlusIcon className="h-4 w-4 mr-2" />
+                    <PlusIcon className="h-4 w-4 mr-3" />
                     Add Products
                   </button>
                   <button
