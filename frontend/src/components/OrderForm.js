@@ -30,6 +30,8 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [orderTotals, setOrderTotals] = useState({
     subtotal: 0,
+    discountAmount: 0,
+    discountedSubtotal: 0,
     gst: 0,
     total: 0
   });
