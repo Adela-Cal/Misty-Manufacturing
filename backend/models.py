@@ -13,6 +13,11 @@ class UserRole(str, Enum):
     MANAGER = "manager"          # Department/Team managers
     EMPLOYEE = "employee"        # Regular employees
 
+class EmploymentType(str, Enum):
+    FULL_TIME = "full_time"
+    PART_TIME = "part_time"
+    CASUAL = "casual"
+
 class ProductionStage(str, Enum):
     ORDER_ENTERED = "order_entered"
     PENDING_MATERIAL = "pending_material"
