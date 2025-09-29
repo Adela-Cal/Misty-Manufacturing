@@ -96,8 +96,8 @@ export const apiHelpers = {
   updateStocktakeEntry: (stocktakeId, data) => api.put(`/stocktake/${stocktakeId}/entry`, data),
   completeStocktake: (stocktakeId) => api.post(`/stocktake/${stocktakeId}/complete`),
   
-  // Client Product Catalog
-  getClientCatalog: (clientId) => api.get(`/clients/${clientId}/catalog`),
+  // Client Product Catalogue
+  getClientCatalogue: (clientId) => api.get(`/clients/${clientId}/catalog`),
   createClientProduct: (clientId, data) => api.post(`/clients/${clientId}/catalog`, data),
   updateClientProduct: (clientId, productId, data) => api.put(`/clients/${clientId}/catalog/${productId}`, data),
   getClientProduct: (clientId, productId) => api.get(`/clients/${clientId}/catalog/${productId}`),
