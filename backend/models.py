@@ -344,13 +344,28 @@ class SupplierCreate(BaseModel):
     swift_code: Optional[str] = None
 
 # Product Specifications Models
+# Enhanced Material Layer Assignment Model
+class MaterialLayerAssignment(BaseModel):
+    material_id: str
+    material_name: str
+    layer_type: str  # "Outer Most Layer", "Central Layer", "Inner Most Layer"
+    width: Optional[float] = None  # mm for Outer/Inner layers
+    width_range: Optional[str] = None  # e.g., "61-68" for Central layers
+    thickness: float  # mm - thickness of this material
+    quantity: Optional[float] = None  # quantity/percentage if applicable
+    notes: Optional[str] = None
+
 class ProductSpecification(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     product_name: str
     product_type: str  # e.g., "Paper Core", "Spiral Paper Core"
     specifications: Dict[str, Any]  # Flexible spec storage
-    materials_composition: List[Dict[str, Any]] = []  # Materials used with quantities
+    materials_composition: List[Dict[str, Any]] = []  # Legacy materials (for backward compatibility)
+    material_layers: List[MaterialLayerAssignment] = []  # New enhanced material layers
     manufacturing_notes: Optional[str] = None
+    calculated_total_thickness: Optional[float] = None  # Auto-calculated from material layers
+    selected_thickness: Optional[float] = None  # User-selected thickness from calculated options
+    thickness_options: List[float] = []  # Available thickness options
     is_active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
@@ -360,7 +375,9 @@ class ProductSpecificationCreate(BaseModel):
     product_type: str
     specifications: Dict[str, Any]
     materials_composition: List[Dict[str, Any]] = []
+    material_layers: List[MaterialLayerAssignment] = []
     manufacturing_notes: Optional[str] = None
+    selected_thickness: Optional[float] = None
 
 # Calculator Models
 class MaterialConsumptionByClientRequest(BaseModel):
