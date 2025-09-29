@@ -8547,6 +8547,350 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result(test_name, False, f"Error: {str(e)}")
 
+    def test_client_product_catalog(self):
+        """Test Client Product Catalog functionality"""
+        print("\n=== CLIENT PRODUCT CATALOG TESTS ===")
+        
+        # First, get an existing client or create one for testing
+        client_id = self.get_or_create_test_client()
+        if not client_id:
+            self.log_result("Client Product Catalog Setup", False, "Failed to get or create test client")
+            return
+        
+        # Test 1: Create Finished Goods Product
+        finished_goods_product = {
+            "product_type": "finished_goods",
+            "product_code": "FG-TEST-001",
+            "product_description": "Premium finished goods product for testing",
+            "price_ex_gst": 125.50,
+            "minimum_order_quantity": 100,
+            "consignment": False
+        }
+        
+        finished_goods_id = self.test_create_client_product(client_id, finished_goods_product, "Finished Goods")
+        
+        # Test 2: Create Paper Cores Product with optional fields
+        paper_cores_product = {
+            "product_type": "paper_cores",
+            "product_code": "PC-TEST-001", 
+            "product_description": "High-quality paper cores with custom specifications",
+            "price_ex_gst": 85.75,
+            "minimum_order_quantity": 500,
+            "consignment": True,
+            "material_used": ["material-id-1", "material-id-2"],
+            "core_id": "CORE-001",
+            "core_width": "76mm",
+            "core_thickness": "3.2mm",
+            "strength_quality_important": True,
+            "delivery_included": True
+        }
+        
+        paper_cores_id = self.test_create_client_product(client_id, paper_cores_product, "Paper Cores")
+        
+        # Test 3: Retrieve Client Products
+        self.test_get_client_products(client_id)
+        
+        # Test 4: Update Products
+        if finished_goods_id:
+            self.test_update_client_product(client_id, finished_goods_id)
+        
+        # Test 5: Delete Product (soft delete)
+        if paper_cores_id:
+            self.test_delete_client_product(client_id, paper_cores_id)
+        
+        # Test 6: Verify soft delete worked
+        self.test_verify_soft_delete(client_id, paper_cores_id)
+    
+    def get_or_create_test_client(self):
+        """Get existing client or create one for testing"""
+        try:
+            # First try to get existing clients
+            response = self.session.get(f"{API_BASE}/clients")
+            if response.status_code == 200:
+                clients = response.json()
+                if clients and len(clients) > 0:
+                    client_id = clients[0]['id']
+                    self.log_result("Get Test Client", True, f"Using existing client: {clients[0]['company_name']}")
+                    return client_id
+            
+            # Create a new test client if none exist
+            client_data = {
+                "company_name": "Test Client for Product Catalog",
+                "contact_name": "Jane Smith",
+                "email": "jane@testcatalog.com",
+                "phone": "0423456789",
+                "address": "456 Catalog Street",
+                "city": "Sydney",
+                "state": "NSW",
+                "postal_code": "2000",
+                "abn": "98765432109",
+                "payment_terms": "Net 21 days",
+                "lead_time_days": 14
+            }
+            
+            response = self.session.post(f"{API_BASE}/clients", json=client_data)
+            if response.status_code == 200:
+                result = response.json()
+                client_id = result.get('data', {}).get('id')
+                self.log_result("Create Test Client", True, "Created new test client for catalog testing")
+                return client_id
+            else:
+                self.log_result("Create Test Client", False, f"Failed with status {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result("Get/Create Test Client", False, f"Error: {str(e)}")
+        
+        return None
+    
+    def test_create_client_product(self, client_id, product_data, product_type_name):
+        """Test creating a client product"""
+        try:
+            response = self.session.post(f"{API_BASE}/clients/{client_id}/catalog", json=product_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                product_id = result.get('data', {}).get('id')
+                
+                if product_id:
+                    # Verify the product was created correctly
+                    get_response = self.session.get(f"{API_BASE}/clients/{client_id}/catalog/{product_id}")
+                    if get_response.status_code == 200:
+                        created_product = get_response.json()
+                        
+                        # Verify required fields
+                        checks = [
+                            created_product.get('product_type') == product_data['product_type'],
+                            created_product.get('product_code') == product_data['product_code'],
+                            created_product.get('price_ex_gst') == product_data['price_ex_gst'],
+                            created_product.get('is_active') == True,
+                            'created_at' in created_product
+                        ]
+                        
+                        # Check optional fields for paper_cores
+                        if product_data['product_type'] == 'paper_cores':
+                            checks.extend([
+                                created_product.get('material_used') == product_data.get('material_used'),
+                                created_product.get('core_id') == product_data.get('core_id'),
+                                created_product.get('strength_quality_important') == product_data.get('strength_quality_important')
+                            ])
+                        
+                        if all(checks):
+                            self.log_result(
+                                f"Create {product_type_name} Product", 
+                                True, 
+                                f"Successfully created {product_type_name.lower()} product with all fields",
+                                f"Product ID: {product_id}, Code: {product_data['product_code']}"
+                            )
+                            return product_id
+                        else:
+                            self.log_result(
+                                f"Create {product_type_name} Product", 
+                                False, 
+                                "Product created but field validation failed",
+                                f"Failed checks: {[i for i, check in enumerate(checks) if not check]}"
+                            )
+                    else:
+                        self.log_result(
+                            f"Create {product_type_name} Product", 
+                            False, 
+                            "Product created but failed to retrieve for verification"
+                        )
+                else:
+                    self.log_result(
+                        f"Create {product_type_name} Product", 
+                        False, 
+                        "Product creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    f"Create {product_type_name} Product", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result(f"Create {product_type_name} Product", False, f"Error: {str(e)}")
+        
+        return None
+    
+    def test_get_client_products(self, client_id):
+        """Test retrieving client products"""
+        try:
+            response = self.session.get(f"{API_BASE}/clients/{client_id}/catalog")
+            
+            if response.status_code == 200:
+                products = response.json()
+                
+                if isinstance(products, list):
+                    active_products = [p for p in products if p.get('is_active', True)]
+                    
+                    self.log_result(
+                        "Get Client Products", 
+                        True, 
+                        f"Successfully retrieved {len(active_products)} active products from catalog",
+                        f"Total products: {len(products)}, Active: {len(active_products)}"
+                    )
+                    
+                    # Verify product structure
+                    if active_products:
+                        sample_product = active_products[0]
+                        required_fields = ['id', 'client_id', 'product_type', 'product_code', 'product_description', 'price_ex_gst', 'is_active', 'created_at']
+                        missing_fields = [field for field in required_fields if field not in sample_product]
+                        
+                        if not missing_fields:
+                            self.log_result(
+                                "Product Structure Validation", 
+                                True, 
+                                "Product objects contain all required fields"
+                            )
+                        else:
+                            self.log_result(
+                                "Product Structure Validation", 
+                                False, 
+                                f"Products missing required fields: {missing_fields}"
+                            )
+                else:
+                    self.log_result(
+                        "Get Client Products", 
+                        False, 
+                        "Response is not a list",
+                        f"Response type: {type(products)}"
+                    )
+            else:
+                self.log_result(
+                    "Get Client Products", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Get Client Products", False, f"Error: {str(e)}")
+    
+    def test_update_client_product(self, client_id, product_id):
+        """Test updating a client product"""
+        try:
+            update_data = {
+                "product_type": "finished_goods",
+                "product_code": "FG-TEST-001-UPDATED",
+                "product_description": "Updated premium finished goods product",
+                "price_ex_gst": 135.75,
+                "minimum_order_quantity": 150,
+                "consignment": True
+            }
+            
+            response = self.session.put(f"{API_BASE}/clients/{client_id}/catalog/{product_id}", json=update_data)
+            
+            if response.status_code == 200:
+                # Verify the update worked
+                get_response = self.session.get(f"{API_BASE}/clients/{client_id}/catalog/{product_id}")
+                if get_response.status_code == 200:
+                    updated_product = get_response.json()
+                    
+                    # Check if fields were updated and updated_at timestamp was set
+                    checks = [
+                        updated_product.get('product_code') == update_data['product_code'],
+                        updated_product.get('price_ex_gst') == update_data['price_ex_gst'],
+                        updated_product.get('consignment') == update_data['consignment'],
+                        'updated_at' in updated_product and updated_product['updated_at'] is not None
+                    ]
+                    
+                    if all(checks):
+                        self.log_result(
+                            "Update Client Product", 
+                            True, 
+                            "Successfully updated product with correct updated_at timestamp",
+                            f"New code: {update_data['product_code']}, New price: ${update_data['price_ex_gst']}"
+                        )
+                    else:
+                        self.log_result(
+                            "Update Client Product", 
+                            False, 
+                            "Product update failed validation",
+                            f"Failed checks: {[i for i, check in enumerate(checks) if not check]}"
+                        )
+                else:
+                    self.log_result(
+                        "Update Client Product", 
+                        False, 
+                        "Update succeeded but failed to retrieve updated product"
+                    )
+            else:
+                self.log_result(
+                    "Update Client Product", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Update Client Product", False, f"Error: {str(e)}")
+    
+    def test_delete_client_product(self, client_id, product_id):
+        """Test soft deleting a client product"""
+        try:
+            response = self.session.delete(f"{API_BASE}/clients/{client_id}/catalog/{product_id}")
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Delete Client Product", 
+                    True, 
+                    "Successfully soft deleted client product"
+                )
+            else:
+                self.log_result(
+                    "Delete Client Product", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Delete Client Product", False, f"Error: {str(e)}")
+    
+    def test_verify_soft_delete(self, client_id, product_id):
+        """Verify that soft delete worked correctly"""
+        try:
+            # Try to get the specific product - should return 404 since it's inactive
+            get_response = self.session.get(f"{API_BASE}/clients/{client_id}/catalog/{product_id}")
+            
+            if get_response.status_code == 404:
+                # Also verify it doesn't appear in the catalog list
+                catalog_response = self.session.get(f"{API_BASE}/clients/{client_id}/catalog")
+                if catalog_response.status_code == 200:
+                    products = catalog_response.json()
+                    deleted_product_in_list = any(p.get('id') == product_id for p in products)
+                    
+                    if not deleted_product_in_list:
+                        self.log_result(
+                            "Verify Soft Delete", 
+                            True, 
+                            "Soft delete working correctly - product not accessible and not in catalog list"
+                        )
+                    else:
+                        self.log_result(
+                            "Verify Soft Delete", 
+                            False, 
+                            "Product still appears in catalog list after deletion"
+                        )
+                else:
+                    self.log_result(
+                        "Verify Soft Delete", 
+                        False, 
+                        "Failed to retrieve catalog for verification"
+                    )
+            else:
+                self.log_result(
+                    "Verify Soft Delete", 
+                    False, 
+                    f"Expected 404 for deleted product but got {get_response.status_code}",
+                    "Soft delete may not be working correctly"
+                )
+                
+        except Exception as e:
+            self.log_result("Verify Soft Delete", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run backend API tests with PRIMARY FOCUS on Discount Functionality"""
         print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Discount Functionality")
