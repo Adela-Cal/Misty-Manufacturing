@@ -14,6 +14,28 @@ import {
   UserIcon
 } from '@heroicons/react/24/outline';
 
+// Custom Jumping Man Icon Component
+const JumpingManIcon = ({ className = "h-5 w-5" }) => (
+  <svg 
+    className={className} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2"
+  >
+    {/* Head */}
+    <circle cx="12" cy="5" r="2" />
+    {/* Body */}
+    <path d="M12 7v6" />
+    {/* Arms - raised up for jumping motion */}
+    <path d="M8 9l4-2 4 2" />
+    {/* Legs - spread for jumping motion */}
+    <path d="M9 17l3-4 3 4" />
+    <path d="M10 21v-2" />
+    <path d="M14 21v-2" />
+  </svg>
+);
+
 const ProductionBoard = () => {
   const [productionBoard, setProductionBoard] = useState({});
   const [loading, setLoading] = useState(true);
