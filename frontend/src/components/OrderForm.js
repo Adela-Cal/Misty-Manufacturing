@@ -286,8 +286,22 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       
     } catch (error) {
       console.error('Failed to save order:', error);
-      const message = error.response?.data?.detail || 'Failed to save order';
-      toast.error(message);
+      
+      // Handle validation errors from backend (Pydantic)
+      if (error.response?.data?.detail && Array.isArray(error.response.data.detail)) {
+        // Handle array of validation errors
+        const errorMessages = error.response.data.detail.map(err => {
+          if (typeof err === 'object' && err.msg) {
+            return `${err.loc?.join(' → ') || 'Field'}: ${err.msg}`;
+          }
+          return String(err);
+        });
+        toast.error(`Validation errors: ${errorMessages.join(', ')}`);
+      } else {
+        // Handle single error message
+        const message = error.response?.data?.detail || error.message || 'Failed to save order';
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }
