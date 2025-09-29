@@ -199,7 +199,10 @@ class ArchivedOrdersTester:
         try:
             # Move order to CLEARED stage to trigger archiving
             stage_update = {
+                "order_id": self.test_order_id,
+                "from_stage": "order_entered",
                 "to_stage": "cleared",
+                "updated_by": "test-user",
                 "notes": "Moving to cleared stage to test automatic archiving"
             }
             
