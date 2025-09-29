@@ -262,6 +262,92 @@ const ProductSpecifications = () => {
     }));
   };
 
+  // New functions for enhanced material layers
+  const addMaterialLayer = () => {
+    setFormData(prev => ({
+      ...prev,
+      material_layers: [
+        ...prev.material_layers,
+        {
+          material_id: '',
+          material_name: '',
+          layer_type: 'Outer Most Layer',
+          width: null,
+          width_range: null,
+          thickness: 0,
+          quantity: null,
+          notes: ''
+        }
+      ]
+    }));
+  };
+
+  const removeMaterialLayer = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      material_layers: prev.material_layers.filter((_, i) => i !== index)
+    }));
+    // Recalculate thickness after removing a layer
+    calculateTotalThickness();
+  };
+
+  const handleMaterialLayerChange = (index, field, value) => {
+    setFormData(prev => {
+      const updatedLayers = prev.material_layers.map((layer, i) => {
+        if (i === index) {
+          const updatedLayer = { ...layer, [field]: value };
+          
+          // If material_id changes, update material_name and thickness
+          if (field === 'material_id') {
+            const material = materials.find(m => m.id === value);
+            if (material) {
+              updatedLayer.material_name = material.material_name;
+              // Use weight as thickness if available, otherwise default to 0
+              updatedLayer.thickness = material.supplied_roll_weight || 0;
+            }
+          }
+          
+          return updatedLayer;
+        }
+        return layer;
+      });
+      
+      return { ...prev, material_layers: updatedLayers };
+    });
+    
+    // Recalculate thickness after any change
+    setTimeout(() => calculateTotalThickness(), 100);
+  };
+
+  const calculateTotalThickness = () => {
+    const total = formData.material_layers.reduce((sum, layer) => sum + (parseFloat(layer.thickness) || 0), 0);
+    setCalculatedThickness(total);
+    
+    // Generate thickness options (±5%, ±10%, exact)
+    const options = [];
+    if (total > 0) {
+      options.push(
+        Math.round(total * 0.90 * 1000) / 1000,  // -10%
+        Math.round(total * 0.95 * 1000) / 1000,  // -5%
+        Math.round(total * 1000) / 1000,         // Exact
+        Math.round(total * 1.05 * 1000) / 1000,  // +5%
+        Math.round(total * 1.10 * 1000) / 1000   // +10%
+      );
+    }
+    
+    // Remove duplicates and sort
+    const uniqueOptions = [...new Set(options)].sort((a, b) => a - b);
+    setThicknessOptions(uniqueOptions);
+    
+    // Auto-select the exact thickness if not already selected
+    if (!formData.selected_thickness && total > 0) {
+      setFormData(prev => ({
+        ...prev,
+        selected_thickness: Math.round(total * 1000) / 1000
+      }));
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
