@@ -291,7 +291,7 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
             </h2>
             <div className="flex items-center justify-end space-x-4">
               {client && (
-                <div className="flex items-center space-x-3">
+                <div className="client-edit-buttons">
                   <button
                     type="button"
                     onClick={() => setShowProductCatalog(true)}
