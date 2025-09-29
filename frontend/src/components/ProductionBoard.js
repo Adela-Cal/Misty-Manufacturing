@@ -260,7 +260,10 @@ const ProductionBoard = () => {
               
               {/* Jump Dropdown Menu */}
               {jumpDropdowns[job.id] && (
-                <div className="absolute right-0 mt-1 w-48 bg-gray-800 border border-gray-600 rounded-md shadow-lg z-10">
+                <div 
+                  className="absolute right-0 mt-1 w-48 bg-gray-800 border border-gray-600 rounded-md shadow-lg z-10"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="py-1">
                     {getAvailableStages(stageKey).map((stage) => (
                       <button
