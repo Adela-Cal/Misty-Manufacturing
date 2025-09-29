@@ -234,6 +234,35 @@ const ProductionBoard = () => {
               <BookOpenIcon className="h-5 w-5" />
             </button>
             
+            {/* Jumping Man Icon for Stage Movement */}
+            <div className="relative">
+              <button
+                onClick={() => toggleJumpDropdown(job.id)}
+                className="text-gray-400 hover:text-green-400 transition-colors"
+                title="Jump to Stage"
+                data-testid={`jump-stage-${job.id}`}
+              >
+                <JumpingManIcon className="h-5 w-5" />
+              </button>
+              
+              {/* Jump Dropdown Menu */}
+              {jumpDropdowns[job.id] && (
+                <div className="absolute right-0 mt-1 w-48 bg-gray-800 border border-gray-600 rounded-md shadow-lg z-10">
+                  <div className="py-1">
+                    {getAvailableStages(stageKey).map((stage) => (
+                      <button
+                        key={stage}
+                        onClick={() => jumpToStage(job.id, stage)}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                      >
+                        Jump to {stageDisplayNames[stage]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <button
               onClick={() => handleDownloadJobCard(job.id, job.order_number)}
               className="text-gray-400 hover:text-blue-400 transition-colors"
