@@ -18,6 +18,7 @@ const ProductionBoard = () => {
   const [productionBoard, setProductionBoard] = useState({});
   const [loading, setLoading] = useState(true);
   const [expandedJobs, setExpandedJobs] = useState({});
+  const [jumpDropdowns, setJumpDropdowns] = useState({}); // For managing jump dropdown visibility
 
   useEffect(() => {
     loadProductionBoard();
