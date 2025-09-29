@@ -10,7 +10,7 @@ import {
   CheckIcon
 } from '@heroicons/react/24/outline';
 
-const ClientProductCatalog = ({ clientId, onClose }) => {
+const ClientProductCatalogue = ({ clientId, onClose }) => {
   const [products, setProducts] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [clients, setClients] = useState([]);
