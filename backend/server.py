@@ -2424,10 +2424,16 @@ async def create_xero_draft_invoice(
         line_items = []
         items = invoice_data.get("items", [])
         
+        # Debug logging
+        logger.info(f"Creating Xero invoice with {len(items)} items")
+        
         # Validate that Sales account code "200" exists
         sales_account_code = await validate_sales_account(accounting_api, tenant_id)
         
         for item in items:
+            # Debug individual item
+            logger.info(f"Processing item: {item}")
+            
             line_item = LineItem(
                 description=item.get("product_name", item.get("description", "Product/Service")),
                 quantity=float(item.get("quantity", 1)),
@@ -2440,6 +2446,7 @@ async def create_xero_draft_invoice(
         # If no items provided, create a default line item
         if not line_items:
             total_amount = float(invoice_data.get("total_amount", 0))
+            logger.info(f"No items found, creating default line item with total: {total_amount}")
             line_item = LineItem(
                 description=f"Services for {contact_name}",
                 quantity=1,
