@@ -1251,7 +1251,7 @@ const ProductSpecifications = () => {
 
                 {/* Form Actions */}
                 <div className="sticky bottom-0 bg-gray-900 flex justify-between pt-6 border-t border-gray-700 mt-8">
-                  <div>
+                  <div className="flex-shrink-0">
                     {selectedSpec && (
                       <button
                         type="button"
@@ -1263,17 +1263,17 @@ const ProductSpecifications = () => {
                       </button>
                     )}
                   </div>
-                  <div className="flex space-x-3">
+                  <div className="flex space-x-4 ml-4">
                     <button
                       type="button"
                       onClick={() => setShowModal(false)}
-                      className="misty-button misty-button-secondary"
+                      className="misty-button misty-button-secondary px-6"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="misty-button misty-button-primary"
+                      className="misty-button misty-button-primary px-6"
                     >
                       {selectedSpec ? 'Update Specification' : 'Create Specification'}
                     </button>
