@@ -266,6 +266,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
         discount_percentage: parseFloat(formData.discount_percentage) || null,
         discount_notes: formData.discount_notes || null,
         items: formData.items.map(item => ({
+          product_id: item.product_id,
           product_name: item.product_name,
           quantity: Number(item.quantity) || 1,
           unit_price: Number(item.unit_price) || 0,
