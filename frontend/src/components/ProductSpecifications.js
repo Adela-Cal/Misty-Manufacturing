@@ -22,7 +22,9 @@ const ProductSpecifications = () => {
     product_type: '',
     specifications: {},
     materials_composition: [],
+    material_layers: [],  // New enhanced material layers
     manufacturing_notes: '',
+    selected_thickness: null,  // User-selected thickness from calculated options
     // Spiral Paper Core specific fields
     internal_diameter: '',
     wall_thickness_required: '',
@@ -31,6 +33,8 @@ const ProductSpecifications = () => {
     layer_specifications: []
   });
   const [errors, setErrors] = useState({});
+  const [calculatedThickness, setCalculatedThickness] = useState(0);
+  const [thicknessOptions, setThicknessOptions] = useState([]);
 
   useEffect(() => {
     loadSpecifications();
