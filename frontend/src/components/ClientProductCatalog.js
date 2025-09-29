@@ -695,4 +695,4 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
   );
 };
 
-export default ClientProductCatalog;
+export default ClientProductCatalogue;
