@@ -852,11 +852,11 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
         </form>
       </div>
       
-      {/* Product Catalog Modal */}
-      {showProductCatalog && client && (
-        <ClientProductCatalog
+      {/* Product Catalogue Modal */}
+      {showProductCatalogue && client && (
+        <ClientProductCatalogue
           clientId={client.id}
-          onClose={() => setShowProductCatalog(false)}
+          onClose={() => setShowProductCatalogue(false)}
         />
       )}
       
