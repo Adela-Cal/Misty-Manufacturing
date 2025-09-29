@@ -457,12 +457,12 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                           <select
                             value={item.product_name}
                             onChange={(e) => {
-                              const selectedProduct = clientProducts.find(p => p.product_name === e.target.value);
+                              const selectedProduct = clientProducts.find(p => p.product_description === e.target.value);
                               if (selectedProduct) {
-                                handleItemChange(index, 'product_name', selectedProduct.product_name);
-                                handleItemChange(index, 'unit_price', selectedProduct.unit_price);
+                                handleItemChange(index, 'product_name', selectedProduct.product_description);
+                                handleItemChange(index, 'unit_price', selectedProduct.price_ex_gst);
                                 // Recalculate total with current quantity
-                                const newTotal = formData.items[index].quantity * selectedProduct.unit_price;
+                                const newTotal = formData.items[index].quantity * selectedProduct.price_ex_gst;
                                 handleItemChange(index, 'total_price', newTotal);
                               } else {
                                 handleItemChange(index, 'product_name', e.target.value);
@@ -472,8 +472,8 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                           >
                             <option value="">Select a product</option>
                             {clientProducts.map(product => (
-                              <option key={product.id} value={product.product_name}>
-                                {product.product_name} - ${product.unit_price}
+                              <option key={product.id} value={product.product_description}>
+                                {product.product_description} - ${product.price_ex_gst}
                               </option>
                             ))}
                           </select>
