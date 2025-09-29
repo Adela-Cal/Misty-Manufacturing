@@ -551,6 +551,62 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
             </div>
           )}
 
+          {/* Discount Section - Only show when client is selected */}
+          {formData.client_id && (
+            <div className="mb-8">
+              <div className="misty-card p-4 bg-gray-700">
+                <h3 className="text-lg font-semibold text-white mb-4">Discount (Optional)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                      Discount Percentage (%)
+                    </label>
+                    <input
+                      type="number"
+                      name="discount_percentage"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={formData.discount_percentage}
+                      onChange={handleInputChange}
+                      className="misty-input w-full"
+                      placeholder="0.0"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">
+                      Enter percentage (0-100). Applied before GST calculation.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                      Discount Reason
+                    </label>
+                    <input
+                      type="text"
+                      name="discount_notes"
+                      value={formData.discount_notes}
+                      onChange={handleInputChange}
+                      className="misty-input w-full"
+                      placeholder="Reason for discount (e.g., Bulk order, Loyalty discount)"
+                    />
+                  </div>
+                </div>
+                
+                {/* Show discount calculation preview */}
+                {parseFloat(formData.discount_percentage) > 0 && orderTotals.subtotal > 0 && (
+                  <div className="mt-4 p-3 bg-gray-600 rounded-lg">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-300">Discount Amount:</span>
+                      <span className="text-red-400 font-medium">
+                        -${orderTotals.discountAmount.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Order Totals - Only show when client is selected and has items */}
           {formData.client_id && formData.items.some(item => item.product_name && item.quantity > 0) && (
             <div className="mb-8">
