@@ -59,6 +59,8 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
         delivery_address: order.delivery_address || '',
         delivery_instructions: order.delivery_instructions || '',
         notes: order.notes || '',
+        discount_percentage: order.discount_percentage || 0,
+        discount_notes: order.discount_notes || '',
         items: order.items || [{
           product_name: '',
           quantity: 1,
