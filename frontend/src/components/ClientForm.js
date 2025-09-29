@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { apiHelpers } from '../utils/api';
 import { toast } from 'sonner';
-import { XMarkIcon, PhotoIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PhotoIcon, PlusIcon, TrashIcon, ArchiveBoxIcon } from '@heroicons/react/24/outline';
 import ClientProductCatalog from './ClientProductCatalog';
+import ArchivedOrders from './ArchivedOrders';
 
 const ClientForm = ({ client, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
