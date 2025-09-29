@@ -8161,8 +8161,8 @@ class InvoicingAPITester:
             self.log_result("Material and Product Integration", False, f"Error: {str(e)}")
 
     def run_all_tests(self):
-        """Run backend API tests with PRIMARY FOCUS on Materials Thickness Investigation"""
-        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Materials Thickness Investigation")
+        """Run backend API tests with PRIMARY FOCUS on Enhanced Product Specifications"""
+        print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Enhanced Product Specifications")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 80)
         
@@ -8171,13 +8171,18 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Materials thickness investigation
-        print("\n🔍 MATERIALS THICKNESS INVESTIGATION - PRIMARY FOCUS")
+        # PRIMARY FOCUS: Enhanced Product Specifications functionality
+        print("\n🔍 ENHANCED PRODUCT SPECIFICATIONS TESTING - PRIMARY FOCUS")
+        print("=" * 60)
+        self.test_enhanced_product_specifications()
+        
+        # Secondary: Test Materials thickness investigation
+        print("\n📋 TESTING MATERIALS THICKNESS INVESTIGATION - SECONDARY")
         print("=" * 60)
         self.test_materials_thickness_investigation()
         
-        # Secondary: Test Purchase Order Number functionality
-        print("\n📋 TESTING PURCHASE ORDER NUMBER FUNCTIONALITY - SECONDARY")
+        # Tertiary: Test Purchase Order Number functionality
+        print("\n📋 TESTING PURCHASE ORDER NUMBER FUNCTIONALITY - TERTIARY")
         print("=" * 60)
         self.test_order_creation_with_purchase_order_number()
         
