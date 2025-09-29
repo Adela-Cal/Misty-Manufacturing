@@ -201,7 +201,8 @@ metadata:
   test_sequence: 3
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Order Creation with Client Product Dropdown Fix"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -224,4 +225,4 @@ agent_communication:
   - agent: "testing"
     message: "✅ DASHBOARD ERROR FIX TESTING COMPLETED: Fixed critical backend syntax error in production board endpoint that was causing 500 errors. Comprehensive testing confirmed: 1) Login with demo credentials (Callum/Peach7510) works perfectly, 2) Dashboard loads without 'Cannot Load Dashboard Data' error, 3) All dashboard components load properly (27 orders, 34 clients, 0 overdue jobs), 4) All backend API calls successful (GET /api/orders, /api/clients, /api/production/board, /api/reports/outstanding-jobs all return 200), 5) Error toast system working correctly with top-right positioning, dark theme styling (rgb(31,41,55) background), 10-second auto-dismiss, and proper stacking behavior. Backend datetime comparison issues resolved. Dashboard fully functional."
   - agent: "testing"
-    message: "✅ ORDER CREATION WITH CLIENT PRODUCT DROPDOWN TESTING COMPLETED: Comprehensive testing of Order Creation functionality with Client Product Dropdown completed successfully. All core functionality working: 1) Login with demo credentials (Callum/Peach7510) works perfectly, 2) Navigation to Order Management successful, 3) Create New Order modal opens correctly, 4) Client selection from dropdown working (4 clients available), 5) Order Items section becomes visible after client selection, 6) Product dropdown populates with client's catalogue products (4 products found for Label Makers client), 7) Product selection working, 8) Unit price auto-population functioning, 9) Order calculations working with quantity changes, 10) Discount functionality available and working, 11) Multiple order items can be added. Minor issue: Product format shows only description instead of 'description - $price' format, but core functionality is fully operational."
+    message: "❌ CRITICAL ORDER ITEMS CALCULATION ISSUES IDENTIFIED: Comprehensive testing of Order Items functionality revealed major calculation problems exactly matching the reported issues. WORKING: Login (Callum/Peach7510), navigation to Order Management, 'New Order' button opens modal, client selection (Label Makers), Order Items section visibility, product dropdown population (4 products). CRITICAL FAILURES: 1) Unit price auto-population broken - shows $0.0 despite product showing '$45.00' in dropdown, 2) Total price calculation failing - turns to $0.00 for quantities 2,3,5,10 (only qty 1 works), 3) Core calculation formula (Quantity × Unit Price = Total Price) is broken. This confirms the reported issue: 'Total price turns to 0 when quantity increases'. The handleItemChange function in OrderForm.js needs immediate investigation and fix."
