@@ -71,7 +71,9 @@ const ProductSpecifications = () => {
       product_type: 'Paper Core',
       specifications: {},  // Start with empty specifications
       materials_composition: [],
+      material_layers: [],  // New enhanced material layers
       manufacturing_notes: '',
+      selected_thickness: null,
       // Spiral Paper Core specific fields
       internal_diameter: '',
       wall_thickness_required: '',
@@ -79,6 +81,8 @@ const ProductSpecifications = () => {
       layers_required: 0,
       layer_specifications: []
     });
+    setCalculatedThickness(0);
+    setThicknessOptions([]);
     setErrors({});
     setShowModal(true);
   };
