@@ -4,6 +4,7 @@ import { apiHelpers } from '../utils/api';
 import { toast } from 'sonner';
 import { 
   PlusIcon, 
+  PencilIcon,
   MagnifyingGlassIcon,
   XMarkIcon,
   TrashIcon,
