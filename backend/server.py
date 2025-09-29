@@ -1465,6 +1465,52 @@ async def move_order_stage(
     
     return {"success": True, "message": f"Order moved to {new_stage.value}", "new_stage": new_stage.value}
 
+@api_router.post("/production/jump-stage/{order_id}")
+async def jump_to_stage(
+    order_id: str, 
+    request: StageJumpRequest, 
+    current_user: dict = Depends(require_admin_or_manager)
+):
+    """Jump order directly to a specific production stage"""
+    # Get current order
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Validate target stage
+    try:
+        target_stage = ProductionStage(request.target_stage)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid target stage")
+    
+    current_stage = ProductionStage(order["current_stage"])
+    
+    # Check if already at target stage
+    if current_stage == target_stage:
+        raise HTTPException(status_code=400, detail=f"Order is already at {target_stage.value} stage")
+    
+    # Update order stage
+    await db.orders.update_one(
+        {"id": order_id},
+        {
+            "$set": {
+                "current_stage": target_stage.value,
+                "updated_at": datetime.now(timezone.utc)
+            }
+        }
+    )
+    
+    # Log stage jump
+    stage_log = ProductionLog(
+        order_id=order_id,
+        stage=target_stage,
+        updated_by=current_user["sub"],
+        notes=f"Jumped from {current_stage.value} to {target_stage.value}" + (f" - {request.notes}" if request.notes else "")
+    )
+    await db.production_logs.insert_one(stage_log.dict())
+    
+    return {"success": True, "message": f"Order jumped to {target_stage.value}", "new_stage": target_stage.value}
+
 @api_router.get("/production/materials-status/{order_id}")
 async def get_materials_status(order_id: str, current_user: dict = Depends(require_any_role)):
     """Get materials status for order"""
