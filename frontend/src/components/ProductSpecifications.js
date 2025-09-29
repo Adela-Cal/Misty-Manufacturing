@@ -690,6 +690,51 @@ const ProductSpecifications = () => {
                   </div>
                 )}
 
+                {/* Spiral Paper Core Specifications - Moved here after Basic Information */}
+                {formData.product_type === 'Spiral Paper Core' && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4">Spiral Paper Core Specifications</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Product Internal Diameter (mm) *
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={formData.internal_diameter}
+                          onChange={(e) => setFormData(prev => ({ 
+                            ...prev, 
+                            internal_diameter: e.target.value
+                          }))}
+                          className="misty-input w-full"
+                          placeholder="Enter internal diameter"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                          Wall Thickness Required (mm) *
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={formData.wall_thickness_required}
+                          onChange={(e) => setFormData(prev => ({ 
+                            ...prev, 
+                            wall_thickness_required: e.target.value
+                          }))}
+                          className="misty-input w-full"
+                          placeholder="Enter wall thickness"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Enhanced Material Layers Section */}
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-4">
