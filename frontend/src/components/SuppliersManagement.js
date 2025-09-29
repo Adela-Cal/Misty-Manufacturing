@@ -252,6 +252,7 @@ const SuppliersManagement = () => {
                   <th className="py-2 text-sm">Phone</th>
                   <th className="py-2 text-sm">Currency</th>
                   <th className="py-2 text-sm">Bank</th>
+                  <th className="py-2 text-sm">Actions</th>
                 </tr>
               </thead>
               <tbody>
