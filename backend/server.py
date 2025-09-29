@@ -1078,7 +1078,7 @@ async def delete_client_product(client_id: str, product_id: str, current_user: d
 
 @api_router.post("/clients/{client_id}/catalog/{product_id}/copy-to/{target_client_id}", response_model=StandardResponse)
 async def copy_client_product(client_id: str, product_id: str, target_client_id: str, current_user: dict = Depends(require_admin_or_sales)):
-    """Copy product to another client catalog"""
+    """Copy product to another client catalogue"""
     # Verify both clients exist
     source_client = await db.clients.find_one({"id": client_id, "is_active": True})
     target_client = await db.clients.find_one({"id": target_client_id, "is_active": True})
