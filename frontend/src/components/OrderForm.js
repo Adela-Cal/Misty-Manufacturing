@@ -473,26 +473,39 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                             value={item.product_name}
                             onChange={(e) => {
                               const selectedProduct = clientProducts.find(p => p.product_description === e.target.value);
+                              
+                              const newItems = [...formData.items];
                               if (selectedProduct) {
-                                // Get current quantity and calculate new total
-                                const currentQuantity = parseFloat(item.quantity) || 1;
-                                const unitPrice = parseFloat(selectedProduct.price_ex_gst) || 0;
-                                const newTotal = currentQuantity * unitPrice;
+                                // Get current quantity and ensure it's a number
+                                const currentQuantity = Number(item.quantity) || 1;
+                                const unitPrice = Number(selectedProduct.price_ex_gst) || 0;
+                                const totalPrice = currentQuantity * unitPrice;
                                 
                                 // Update the item with all changes at once
-                                const newItems = [...formData.items];
                                 newItems[index] = {
                                   ...newItems[index],
                                   product_name: selectedProduct.product_description,
                                   unit_price: unitPrice,
-                                  total_price: newTotal
+                                  total_price: totalPrice
                                 };
-                                setFormData(prev => ({ ...prev, items: newItems }));
+                                
+                                console.log('Product selection debug:', {
+                                  product: selectedProduct.product_description,
+                                  price_ex_gst: selectedProduct.price_ex_gst,
+                                  unitPrice,
+                                  currentQuantity,
+                                  totalPrice
+                                });
                               } else {
-                                handleItemChange(index, 'product_name', e.target.value);
-                                handleItemChange(index, 'unit_price', 0);
-                                handleItemChange(index, 'total_price', 0);
+                                newItems[index] = {
+                                  ...newItems[index],
+                                  product_name: e.target.value,
+                                  unit_price: 0,
+                                  total_price: 0
+                                };
                               }
+                              
+                              setFormData(prev => ({ ...prev, items: newItems }));
                             }}
                             className={`misty-select w-full ${errors[`item_${index}_product_name`] ? 'border-red-500' : ''}`}
                           >
