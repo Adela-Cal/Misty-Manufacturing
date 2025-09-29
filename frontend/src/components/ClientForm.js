@@ -285,17 +285,17 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
       <div className="modal-content max-w-4xl max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit} className="p-6">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
             <h2 className="text-2xl font-bold text-white">
               {client ? 'Edit Client' : 'Add New Client'}
             </h2>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center justify-end space-x-4">
               {client && (
                 <div className="flex items-center space-x-3">
                   <button
                     type="button"
                     onClick={() => setShowProductCatalog(true)}
-                    className="misty-button misty-button-secondary flex items-center whitespace-nowrap"
+                    className="misty-button misty-button-secondary flex items-center whitespace-nowrap text-sm"
                   >
                     <PlusIcon className="h-4 w-4 mr-2" />
                     Add Products
@@ -303,7 +303,7 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
                   <button
                     type="button"
                     onClick={() => setShowArchivedOrders(true)}
-                    className="misty-button misty-button-primary flex items-center whitespace-nowrap"
+                    className="misty-button misty-button-primary flex items-center whitespace-nowrap text-sm"
                   >
                     <ArchiveBoxIcon className="h-4 w-4 mr-2" />
                     Archived Orders
