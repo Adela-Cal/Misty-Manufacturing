@@ -1005,7 +1005,7 @@ def _generate_permissions(role: UserRole) -> List[str]:
     
     return base_permissions
 
-# ============= CLIENT PRODUCT CATALOG ENDPOINTS =============
+# ============= CLIENT PRODUCT CATALOGUE ENDPOINTS =============
 
 @api_router.get("/clients/{client_id}/catalog", response_model=List[ClientProduct])
 async def get_client_product_catalog(client_id: str, current_user: dict = Depends(require_any_role)):
