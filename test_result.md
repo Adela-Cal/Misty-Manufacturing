@@ -60,6 +60,21 @@ backend:
         comment: "✅ EDGE CASES THOROUGHLY TESTED: 0% discount correctly sets fields to null, orders without discount fields handled properly, 100% discount results in $0 final amount with correct GST calculation, all edge cases pass validation."
 
 frontend:
+  - task: "Discount Functionality in Create New Order Form"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/OrderForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Discount functionality implemented in Create New Order form with discount percentage input (0-100%), discount notes field, real-time calculation preview, and Order Summary integration"
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE DISCOUNT TESTING COMPLETED: All discount functionality working perfectly. Discount (Optional) section appears after client selection, percentage input with proper validation (0-100%, step 0.1), discount reason field with helpful placeholder, real-time discount calculation preview (-$100.00 for 10% of $1000), multiple discount percentages tested (0%, 10%, 15%), form accepts values and updates calculations, dark theme styling consistent, form validation ready for submission."
+
   - task: "Enhanced Product Specifications with Material Layers"
     implemented: true
     working: true
