@@ -507,6 +507,7 @@ const ProductSpecifications = () => {
                   <th className="py-2 text-sm">Materials</th>
                   <th className="py-2 text-sm">Specifications</th>
                   <th className="py-2 text-sm">Notes</th>
+                  <th className="py-2 text-sm">Actions</th>
                 </tr>
               </thead>
               <tbody>
