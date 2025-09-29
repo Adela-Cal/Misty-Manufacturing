@@ -178,6 +178,10 @@ class Order(BaseModel):
     purchase_order_number: Optional[str] = None  # Client's PO number
     items: List[OrderItem]
     subtotal: float
+    discount_percentage: Optional[float] = None  # Discount percentage (0-100)
+    discount_amount: Optional[float] = None  # Calculated discount amount
+    discount_notes: Optional[str] = None  # Reason for discount
+    discounted_subtotal: Optional[float] = None  # Subtotal after discount
     gst: float
     total_amount: float
     due_date: datetime
@@ -197,6 +201,8 @@ class OrderCreate(BaseModel):
     client_id: str
     purchase_order_number: Optional[str] = None  # Client's PO number
     items: List[OrderItem]
+    discount_percentage: Optional[float] = None  # Discount percentage (0-100)
+    discount_notes: Optional[str] = None  # Reason for discount
     due_date: datetime
     delivery_address: Optional[str] = None
     delivery_instructions: Optional[str] = None
