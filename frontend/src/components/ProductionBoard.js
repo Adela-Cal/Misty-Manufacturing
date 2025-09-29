@@ -46,6 +46,35 @@ const ProductionBoard = () => {
     }));
   };
 
+  const toggleJumpDropdown = (jobId) => {
+    setJumpDropdowns(prev => ({
+      ...prev,
+      [jobId]: !prev[jobId]
+    }));
+  };
+
+  const jumpToStage = async (jobId, targetStage) => {
+    try {
+      await apiHelpers.jumpToStage(jobId, { target_stage: targetStage });
+      toast.success(`Job jumped to ${stageDisplayNames[targetStage]}`);
+      setJumpDropdowns(prev => ({ ...prev, [jobId]: false })); // Close dropdown
+      loadProductionBoard(); // Refresh the board
+    } catch (error) {
+      console.error('Failed to jump job to stage:', error);
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error('Failed to jump job to stage');
+      }
+    }
+  };
+
+  // Get available stages for jumping (excluding current stage)
+  const getAvailableStages = (currentStage) => {
+    const allStages = Object.keys(stageDisplayNames);
+    return allStages.filter(stage => stage !== currentStage);
+  };
+
   const handleDownloadJobCard = async (orderId, orderNumber) => {
     try {
       const response = await apiHelpers.generateJobCard(orderId);
