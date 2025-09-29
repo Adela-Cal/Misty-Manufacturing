@@ -1009,7 +1009,7 @@ def _generate_permissions(role: UserRole) -> List[str]:
 
 @api_router.get("/clients/{client_id}/catalog", response_model=List[ClientProduct])
 async def get_client_product_catalog(client_id: str, current_user: dict = Depends(require_any_role)):
-    """Get product catalog for specific client"""
+    """Get product catalogue for specific client"""
     products = await db.client_products.find({"client_id": client_id, "is_active": True}).to_list(1000)
     return [ClientProduct(**product) for product in products]
 
