@@ -46,7 +46,7 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
     try {
       setLoading(true);
       const [productsRes, materialsRes, clientsRes] = await Promise.all([
-        apiHelpers.getClientCatalog(clientId),
+        apiHelpers.getClientCatalogue(clientId),
         apiHelpers.getMaterials(),
         apiHelpers.getClients()
       ]);
