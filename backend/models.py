@@ -420,16 +420,6 @@ class EmploymentType(str, Enum):
     PART_TIME = "part_time"
     CASUAL = "casual"
 
-class UserCreate(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
-    full_name: str
-    role: UserRole = UserRole.PRODUCTION_TEAM
-    department: Optional[str] = None
-    phone: Optional[str] = None
-    employment_type: EmploymentType = EmploymentType.FULL_TIME
-
 class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
