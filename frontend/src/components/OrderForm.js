@@ -145,16 +145,6 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     const unitPrice = Number(newItems[index].unit_price) || 0;
     newItems[index].total_price = quantity * unitPrice;
     
-    // Debug logging (remove after fix)
-    console.log('Calculation debug:', {
-      index,
-      field,
-      rawValue: value,
-      quantity,
-      unitPrice,
-      total_price: newItems[index].total_price
-    });
-    
     setFormData(prev => ({ ...prev, items: newItems }));
   };
 
