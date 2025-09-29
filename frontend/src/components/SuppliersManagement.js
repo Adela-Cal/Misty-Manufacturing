@@ -269,6 +269,30 @@ const SuppliersManagement = () => {
                     <td className="text-sm py-2 px-3">{supplier.phone_number}</td>
                     <td className="text-yellow-400 font-medium text-sm py-2 px-3">{supplier.currency_accepted}</td>
                     <td className="text-sm py-2 px-3">{supplier.bank_name}</td>
+                    <td className="py-2 px-3">
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(supplier);
+                          }}
+                          className="text-blue-400 hover:text-blue-300 transition-colors"
+                          title="Edit supplier"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(supplier);
+                          }}
+                          className="text-red-400 hover:text-red-300 transition-colors"
+                          title="Delete supplier"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
