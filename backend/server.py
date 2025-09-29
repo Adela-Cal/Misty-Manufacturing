@@ -72,7 +72,7 @@ async def login(user_credentials: UserLogin):
     # Update last login
     await db.users.update_one(
         {"id": user_data["id"]},
-        {"$set": {"last_login": datetime.utcnow()}}
+        {"$set": {"last_login": datetime.now(timezone.utc)}}
     )
     
     # Create JWT token
@@ -161,7 +161,7 @@ async def get_client(client_id: str, current_user: dict = Depends(require_any_ro
 async def update_client(client_id: str, client_data: ClientCreate, current_user: dict = Depends(require_admin_or_sales)):
     """Update client"""
     update_data = client_data.dict()
-    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_at"] = datetime.now(timezone.utc)
     
     result = await db.clients.update_one(
         {"id": client_id, "is_active": True},
@@ -189,7 +189,7 @@ async def upload_client_logo(client_id: str, file: UploadFile = File(...), curre
         # Update client with logo path
         await db.clients.update_one(
             {"id": client_id},
-            {"$set": {"logo_path": file_path, "updated_at": datetime.utcnow()}}
+            {"$set": {"logo_path": file_path, "updated_at": datetime.now(timezone.utc)}}
         )
         
         return StandardResponse(success=True, message="Logo uploaded successfully", data={"file_url": file_url})
@@ -234,7 +234,7 @@ async def get_product(product_id: str, current_user: dict = Depends(require_any_
 async def update_product(product_id: str, product_data: ProductCreate, current_user: dict = Depends(require_admin_or_sales)):
     """Update product"""
     update_data = product_data.dict()
-    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_at"] = datetime.now(timezone.utc)
     
     result = await db.products.update_one(
         {"id": product_id, "is_active": True},
@@ -275,7 +275,7 @@ async def get_material(material_id: str, current_user: dict = Depends(require_an
 async def update_material(material_id: str, material_data: MaterialCreate, current_user: dict = Depends(require_admin_or_manager)):
     """Update material"""
     update_data = material_data.dict()
-    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_at"] = datetime.now(timezone.utc)
     
     result = await db.materials.update_one(
         {"id": material_id, "is_active": True},
@@ -292,7 +292,7 @@ async def delete_material(material_id: str, current_user: dict = Depends(require
     """Delete material (soft delete)"""
     result = await db.materials.update_one(
         {"id": material_id, "is_active": True},
-        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+        {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc)}}
     )
     
     if result.matched_count == 0:
@@ -330,7 +330,7 @@ async def get_supplier(supplier_id: str, current_user: dict = Depends(require_an
 async def update_supplier(supplier_id: str, supplier_data: SupplierCreate, current_user: dict = Depends(require_admin_or_manager)):
     """Update supplier"""
     update_data = supplier_data.dict()
-    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_at"] = datetime.now(timezone.utc)
     
     result = await db.suppliers.update_one(
         {"id": supplier_id, "is_active": True},
@@ -347,7 +347,7 @@ async def delete_supplier(supplier_id: str, current_user: dict = Depends(require
     """Soft delete supplier"""
     result = await db.suppliers.update_one(
         {"id": supplier_id, "is_active": True},
-        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+        {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc)}}
     )
     
     if result.matched_count == 0:
@@ -430,7 +430,7 @@ async def update_product_specification(spec_id: str, spec_data: ProductSpecifica
     update_data.update({
         "calculated_total_thickness": calculated_thickness if calculated_thickness > 0 else None,
         "thickness_options": thickness_options,
-        "updated_at": datetime.utcnow()
+        "updated_at": datetime.now(timezone.utc)
     })
     
     result = await db.product_specifications.update_one(
@@ -451,7 +451,7 @@ async def delete_product_specification(spec_id: str, current_user: dict = Depend
     """Soft delete product specification"""
     result = await db.product_specifications.update_one(
         {"id": spec_id, "is_active": True},
-        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+        {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc)}}
     )
     
     if result.matched_count == 0:
@@ -785,7 +785,7 @@ async def complete_stocktake(
             "$set": {
                 "status": "completed",
                 "completed_by": current_user["sub"],
-                "completed_at": datetime.utcnow()
+                "completed_at": datetime.now(timezone.utc)
             }
         }
     )
@@ -851,7 +851,7 @@ async def create_user(user_data: UserCreate, current_user: dict = Depends(requir
         "phone": user_data.phone,
         "employment_type": user_data.employment_type.value,
         "is_active": True,
-        "created_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),
         "updated_at": None,
         "created_by": current_user["sub"]
     }
@@ -912,7 +912,7 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = 
     if user_data.is_active is not None:
         update_data["is_active"] = user_data.is_active
     
-    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_at"] = datetime.now(timezone.utc)
     
     await db.users.update_one(
         {"id": user_id},
@@ -966,7 +966,7 @@ async def change_user_password(password_data: PasswordChangeRequest, current_use
         {"id": user_id},
         {"$set": {
             password_field: new_password_hash,
-            "updated_at": datetime.utcnow()
+            "updated_at": datetime.now(timezone.utc)
         }}
     )
     
@@ -1068,7 +1068,7 @@ async def delete_client_product(client_id: str, product_id: str, current_user: d
     """Delete client product (soft delete)"""
     result = await db.client_products.update_one(
         {"id": product_id, "client_id": client_id, "is_active": True},
-        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+        {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc)}}
     )
     
     if result.matched_count == 0:
@@ -1102,7 +1102,7 @@ async def copy_client_product(client_id: str, product_id: str, target_client_id:
     copied_product = ClientProduct(**source_product)
     copied_product.id = str(uuid.uuid4())  # Generate new ID
     copied_product.client_id = target_client_id
-    copied_product.created_at = datetime.utcnow()
+    copied_product.created_at = datetime.now(timezone.utc)
     copied_product.updated_at = None
     
     await db.client_products.insert_one(copied_product.dict())
@@ -1129,7 +1129,7 @@ async def delete_client(client_id: str, current_user: dict = Depends(require_adm
     # Perform soft delete
     result = await db.clients.update_one(
         {"id": client_id},
-        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+        {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc)}}
     )
     
     if result.matched_count == 0:
@@ -1238,12 +1238,12 @@ async def update_production_stage(order_id: str, stage_update: ProductionStageUp
     # Update order stage
     update_data = {
         "current_stage": stage_update.to_stage,
-        "updated_at": datetime.utcnow()
+        "updated_at": datetime.now(timezone.utc)
     }
     
     # If moving to completed, set completion date and archive the order
     if stage_update.to_stage == ProductionStage.CLEARED:
-        update_data["completed_at"] = datetime.utcnow()
+        update_data["completed_at"] = datetime.now(timezone.utc)
         update_data["status"] = OrderStatus.COMPLETED
         
         # Get the complete order data for archiving
@@ -1267,7 +1267,7 @@ async def update_production_stage(order_id: str, stage_update: ProductionStageUp
                 notes=order.get("notes"),
                 created_by=order["created_by"],
                 created_at=order["created_at"],
-                completed_at=datetime.utcnow(),
+                completed_at=datetime.now(timezone.utc),
                 archived_by=current_user["user_id"]
             )
             
@@ -1383,7 +1383,7 @@ async def get_production_board(current_user: dict = Depends(require_any_role)):
                 "materials_ready": materials_ready,
                 "items": order["items"],
                 "delivery_address": order.get("delivery_address"),
-                "is_overdue": datetime.fromisoformat(order["due_date"].replace("Z", "+00:00")) < datetime.utcnow() if isinstance(order["due_date"], str) else order["due_date"] < datetime.utcnow()
+                "is_overdue": datetime.fromisoformat(order["due_date"].replace("Z", "+00:00")) < datetime.now(timezone.utc) if isinstance(order["due_date"], str) else order["due_date"] < datetime.now(timezone.utc)
             }
             board[stage].append(order_info)
     
@@ -1441,7 +1441,7 @@ async def move_order_stage(
         {
             "$set": {
                 "current_stage": new_stage.value,
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             }
         }
     )
@@ -1500,7 +1500,7 @@ async def update_materials_status(
         "materials_ready": status_update.materials_ready,
         "materials_checklist": status_update.materials_checklist,
         "updated_by": current_user["sub"],
-        "updated_at": datetime.utcnow()
+        "updated_at": datetime.now(timezone.utc)
     }
     
     result = await db.materials_status.update_one(
@@ -1530,7 +1530,7 @@ async def update_order_item_status(
     # Update the specific item's completion status
     update_query = {
         f"items.{item_update.item_index}.is_completed": item_update.is_completed,
-        "updated_at": datetime.utcnow()
+        "updated_at": datetime.now(timezone.utc)
     }
     
     await db.orders.update_one(
@@ -1553,7 +1553,7 @@ async def get_outstanding_jobs_report(current_user: dict = Depends(require_admin
     jobs_due_today = 0
     jobs_due_this_week = 0
     
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     today_end = now.replace(hour=23, minute=59, second=59)
     week_end = now + timedelta(days=7)
     
@@ -1851,7 +1851,7 @@ async def generate_invoice_pdf(order_id: str):
     invoice_data = {
         "invoice_number": f"INV-{order['order_number']}",
         "order_number": order["order_number"],
-        "payment_due_date": (datetime.utcnow() + timedelta(days=30)).strftime("%d/%m/%Y"),
+        "payment_due_date": (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%d/%m/%Y"),
         "client_name": client["company_name"],
         "client_address": f"{client['address']}, {client['city']}, {client['state']} {client['postal_code']}",
         "client_abn": client.get("abn", "N/A"),
@@ -1938,7 +1938,7 @@ async def get_xero_api_client(user_id: str):
         raise HTTPException(status_code=401, detail="No Xero connection found")
     
     # Check if token is expired
-    if user_tokens.get("expires_at") and user_tokens["expires_at"] < datetime.utcnow():
+    if user_tokens.get("expires_at") and user_tokens["expires_at"] < datetime.now(timezone.utc):
         # Try to refresh token
         try:
             refreshed_tokens = await refresh_xero_token(user_id, user_tokens["refresh_token"])
@@ -1989,8 +1989,8 @@ async def refresh_xero_token(user_id: str, refresh_token: str):
         "user_id": user_id,
         "access_token": tokens["access_token"],
         "refresh_token": tokens.get("refresh_token", refresh_token),
-        "expires_at": datetime.utcnow() + timedelta(seconds=tokens.get("expires_in", 1800)),
-        "updated_at": datetime.utcnow()
+        "expires_at": datetime.now(timezone.utc) + timedelta(seconds=tokens.get("expires_in", 1800)),
+        "updated_at": datetime.now(timezone.utc)
     }
     
     await db.xero_tokens.update_one(
@@ -2010,7 +2010,7 @@ async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_manage
     await db.xero_auth_states.insert_one({
         "state": state,
         "user_id": current_user["user_id"],
-        "created_at": datetime.utcnow()
+        "created_at": datetime.now(timezone.utc)
     })
     
     # Build authorization URL
@@ -2103,8 +2103,8 @@ async def handle_xero_callback(
             "user_id": current_user["user_id"],
             "access_token": tokens["access_token"],
             "refresh_token": tokens["refresh_token"],
-            "expires_at": datetime.utcnow() + timedelta(seconds=tokens.get("expires_in", 1800)),
-            "created_at": datetime.utcnow(),
+            "expires_at": datetime.now(timezone.utc) + timedelta(seconds=tokens.get("expires_in", 1800)),
+            "created_at": datetime.now(timezone.utc),
             "tenant_id": None  # Will be updated when we get tenant info
         }
         
@@ -2496,7 +2496,7 @@ async def generate_job_invoice(
         "payment_terms": client.get("payment_terms", "Net 30 days"),
         "due_date": invoice_data.get("due_date"),
         "created_by": current_user["user_id"],
-        "created_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),
         "status": "draft"
     }
     
@@ -2508,7 +2508,7 @@ async def generate_job_invoice(
         "invoiced": True,
         "invoice_id": invoice_record["id"],
         "current_stage": "cleared",
-        "updated_at": datetime.utcnow()
+        "updated_at": datetime.now(timezone.utc)
     }
     
     # If partial invoice, don't mark as fully invoiced
@@ -2870,7 +2870,7 @@ async def root():
 
 @api_router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.utcnow()}
+    return {"status": "healthy", "timestamp": datetime.now(timezone.utc)}
 
 # Include the routers in the main app
 app.include_router(api_router)
