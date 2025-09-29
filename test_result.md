@@ -182,15 +182,18 @@ frontend:
 
   - task: "Order Creation with Client Product Dropdown Fix"
     implemented: true
-    working: true
+    working: false
     file: "/app/frontend/src/components/OrderForm.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "testing"
         comment: "✅ ORDER CREATION WITH CLIENT PRODUCT DROPDOWN FULLY FUNCTIONAL: Comprehensive testing completed successfully. Login with demo credentials (Callum/Peach7510) works perfectly, navigation to Order Management successful, Create New Order modal opens correctly, client selection working (4 clients available), Order Items section becomes visible after client selection, product dropdown populates with client's catalogue products (4 products found for Label Makers client), product selection working, unit price auto-population functioning, order calculations working with quantity changes, discount functionality available and working, multiple order items can be added. Minor: Product format shows only description instead of 'description - $price' format, but core functionality is fully operational and meets all review requirements."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL CALCULATION ISSUES IDENTIFIED: Comprehensive re-testing revealed major problems with Order Items calculation functionality. Login and navigation working perfectly (Callum/Peach7510), Create New Order modal opens correctly via 'New Order' button, client selection working (Label Makers), Order Items section visible, product dropdown populated (4 products available). CRITICAL ISSUES: 1) Unit price auto-population FAILING - shows $0.0 despite product dropdown showing '$45.00', 2) Total price calculation turning to $0.00 for quantities 2, 3, 5, 10 (only quantity 1 shows correct $45.00), 3) Expected calculation: Quantity × Unit Price = Total Price is broken. This matches exactly the reported issue where 'Total price turns to 0 when quantity increases'. Product selection works but price calculations are fundamentally broken."
 
 metadata:
   created_by: "testing_agent"
