@@ -86,7 +86,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
 
   const loadClientProducts = async (clientId) => {
     try {
-      const response = await apiHelpers.getClientProducts(clientId);
+      const response = await apiHelpers.getClientCatalogue(clientId);
       setClientProducts(response.data);
       
       // Find selected client
