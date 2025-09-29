@@ -7555,6 +7555,207 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result("Verify PO Number in Order List", False, f"Error: {str(e)}")
 
+    def test_materials_thickness_investigation(self):
+        """Investigate materials database to identify thickness field issues"""
+        print("\n=== MATERIALS THICKNESS INVESTIGATION ===")
+        
+        try:
+            # Get all materials from database
+            response = self.session.get(f"{API_BASE}/materials")
+            
+            if response.status_code == 200:
+                materials = response.json()
+                
+                self.log_result(
+                    "Materials Database Retrieval", 
+                    True, 
+                    f"Successfully retrieved {len(materials)} materials from database"
+                )
+                
+                # Analyze each material's thickness-related fields
+                thickness_analysis = []
+                problematic_materials = []
+                
+                for i, material in enumerate(materials):
+                    material_id = material.get('id', f'material_{i}')
+                    supplier = material.get('supplier', 'Unknown')
+                    product_code = material.get('product_code', 'Unknown')
+                    
+                    # Check all potential thickness fields
+                    thickness_fields = {}
+                    
+                    # Standard thickness fields
+                    if 'thickness' in material:
+                        thickness_fields['thickness'] = material['thickness']
+                    if 'thickness_mm' in material:
+                        thickness_fields['thickness_mm'] = material['thickness_mm']
+                    if 'thickness_microns' in material:
+                        thickness_fields['thickness_microns'] = material['thickness_microns']
+                    
+                    # Raw substrate specific fields that might be confused as thickness
+                    if 'supplied_roll_weight' in material:
+                        thickness_fields['supplied_roll_weight'] = material['supplied_roll_weight']
+                    if 'master_deckle_width_mm' in material:
+                        thickness_fields['master_deckle_width_mm'] = material['master_deckle_width_mm']
+                    if 'gsm' in material:
+                        thickness_fields['gsm'] = material['gsm']
+                    
+                    # Other fields that might be mistaken for thickness
+                    if 'price' in material:
+                        thickness_fields['price'] = material['price']
+                    if 'weight' in material:
+                        thickness_fields['weight'] = material['weight']
+                    if 'roll_weight' in material:
+                        thickness_fields['roll_weight'] = material['roll_weight']
+                    
+                    material_analysis = {
+                        'id': material_id,
+                        'supplier': supplier,
+                        'product_code': product_code,
+                        'raw_substrate': material.get('raw_substrate', False),
+                        'thickness_fields': thickness_fields,
+                        'all_fields': list(material.keys())
+                    }
+                    
+                    thickness_analysis.append(material_analysis)
+                    
+                    # Check for problematic values (1000mm, 1400mm range)
+                    for field_name, value in thickness_fields.items():
+                        if isinstance(value, (int, float)) and 900 <= value <= 1500:
+                            problematic_materials.append({
+                                'material': f"{supplier} - {product_code}",
+                                'field': field_name,
+                                'value': value,
+                                'material_id': material_id
+                            })
+                
+                # Report findings
+                if problematic_materials:
+                    self.log_result(
+                        "Problematic Thickness Values Found", 
+                        True, 
+                        f"Found {len(problematic_materials)} materials with suspicious thickness values (900-1500 range)",
+                        f"Materials: {[f\"{m['material']} ({m['field']}: {m['value']})\" for m in problematic_materials[:5]]}"
+                    )
+                else:
+                    self.log_result(
+                        "Problematic Thickness Values Found", 
+                        False, 
+                        "No materials found with thickness values in the 900-1500mm range"
+                    )
+                
+                # Analyze field usage patterns
+                field_usage = {}
+                for analysis in thickness_analysis:
+                    for field in analysis['thickness_fields'].keys():
+                        field_usage[field] = field_usage.get(field, 0) + 1
+                
+                # Check what field might be used as "thickness" in dropdowns
+                potential_thickness_fields = ['thickness', 'thickness_mm', 'supplied_roll_weight', 'master_deckle_width_mm']
+                dropdown_field_analysis = []
+                
+                for field in potential_thickness_fields:
+                    if field in field_usage:
+                        values = [m['thickness_fields'].get(field) for m in thickness_analysis if field in m['thickness_fields']]
+                        values = [v for v in values if isinstance(v, (int, float))]
+                        
+                        if values:
+                            avg_value = sum(values) / len(values)
+                            min_value = min(values)
+                            max_value = max(values)
+                            
+                            dropdown_field_analysis.append({
+                                'field': field,
+                                'count': field_usage[field],
+                                'avg_value': avg_value,
+                                'min_value': min_value,
+                                'max_value': max_value,
+                                'sample_values': values[:5]
+                            })
+                
+                # Report field analysis
+                self.log_result(
+                    "Thickness Field Analysis", 
+                    True, 
+                    f"Analyzed thickness-related fields across {len(materials)} materials",
+                    f"Field usage: {field_usage}"
+                )
+                
+                # Detailed analysis for each potential thickness field
+                for analysis in dropdown_field_analysis:
+                    field_name = analysis['field']
+                    is_problematic = analysis['max_value'] > 100  # Thickness should typically be under 100mm
+                    
+                    self.log_result(
+                        f"Field Analysis: {field_name}", 
+                        not is_problematic, 
+                        f"Field '{field_name}' used in {analysis['count']} materials, avg: {analysis['avg_value']:.2f}, range: {analysis['min_value']}-{analysis['max_value']}",
+                        f"Sample values: {analysis['sample_values']}"
+                    )
+                
+                # Check specific materials with unrealistic thickness
+                print(f"\n=== DETAILED ANALYSIS OF PROBLEMATIC MATERIALS ===")
+                for problem in problematic_materials:
+                    material_id = problem['material_id']
+                    
+                    # Get full material details
+                    detail_response = self.session.get(f"{API_BASE}/materials/{material_id}")
+                    if detail_response.status_code == 200:
+                        material_detail = detail_response.json()
+                        
+                        print(f"\nMaterial: {problem['material']}")
+                        print(f"  ID: {material_id}")
+                        print(f"  Problematic Field: {problem['field']} = {problem['value']}")
+                        print(f"  Raw Substrate: {material_detail.get('raw_substrate', False)}")
+                        print(f"  All Fields: {list(material_detail.keys())}")
+                        
+                        # Show all numeric fields that could be thickness
+                        numeric_fields = {}
+                        for key, value in material_detail.items():
+                            if isinstance(value, (int, float)) and value > 0:
+                                numeric_fields[key] = value
+                        print(f"  Numeric Fields: {numeric_fields}")
+                
+                # Summary and recommendations
+                print(f"\n=== THICKNESS INVESTIGATION SUMMARY ===")
+                print(f"Total Materials Analyzed: {len(materials)}")
+                print(f"Materials with Problematic Values (900-1500): {len(problematic_materials)}")
+                print(f"Field Usage Patterns: {field_usage}")
+                
+                if problematic_materials:
+                    print(f"\nLIKELY ISSUE IDENTIFIED:")
+                    most_common_problem_field = max(set(p['field'] for p in problematic_materials), 
+                                                  key=lambda x: sum(1 for p in problematic_materials if p['field'] == x))
+                    print(f"  - Field '{most_common_problem_field}' appears to contain unrealistic thickness values")
+                    print(f"  - This field might be incorrectly used as 'thickness' in material selection dropdowns")
+                    print(f"  - Values like 1000mm, 1400mm suggest this could be weight, width, or other measurement")
+                
+                print(f"\nRECOMMENDATIONS:")
+                print(f"  1. Check frontend code for material selection dropdown - which field is used as 'thickness'")
+                print(f"  2. Verify if 'supplied_roll_weight' or 'master_deckle_width_mm' is being displayed as thickness")
+                print(f"  3. Add proper 'thickness_mm' field with realistic values (0.1-10mm typically)")
+                print(f"  4. Update material data structure to separate thickness from weight/width measurements")
+                
+                return {
+                    'total_materials': len(materials),
+                    'problematic_materials': problematic_materials,
+                    'field_usage': field_usage,
+                    'dropdown_field_analysis': dropdown_field_analysis
+                }
+                
+            else:
+                self.log_result(
+                    "Materials Database Retrieval", 
+                    False, 
+                    f"Failed to retrieve materials: HTTP {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Materials Thickness Investigation", False, f"Error: {str(e)}")
+        
+        return None
+
     def run_all_tests(self):
         """Run backend API tests with PRIMARY FOCUS on Purchase Order Number Functionality"""
         print("🚀 Starting Backend API Tests - PRIMARY FOCUS: Purchase Order Number Functionality")
