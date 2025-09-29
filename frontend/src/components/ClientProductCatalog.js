@@ -56,7 +56,7 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
       setClients(clientsRes.data.filter(client => client.id !== clientId));
     } catch (error) {
       console.error('Failed to load data:', error);
-      toast.error('Failed to load product catalog data');
+      toast.error('Failed to load product catalogue data');
     } finally {
       setLoading(false);
     }
