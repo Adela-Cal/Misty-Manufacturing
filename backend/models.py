@@ -420,11 +420,6 @@ class StocktakeEntryUpdate(BaseModel):
 # User Management Models (Enhanced)
 # UserRole enum is defined earlier in the file - removed duplicate
 
-class EmploymentType(str, Enum):
-    FULL_TIME = "full_time"
-    PART_TIME = "part_time"
-    CASUAL = "casual"
-
 class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
