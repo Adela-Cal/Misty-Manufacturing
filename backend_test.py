@@ -9187,6 +9187,61 @@ class InvoicingAPITester:
         
         return self.generate_report()
     
+    def print_test_summary(self):
+        """Print a focused test summary for invoicing workflow"""
+        print("\n" + "=" * 70)
+        print("📊 INVOICING WORKFLOW TEST RESULTS SUMMARY")
+        print("=" * 70)
+        
+        # Categorize results by test type
+        invoicing_tests = []
+        xero_tests = []
+        data_tests = []
+        archiving_tests = []
+        
+        for result in self.test_results:
+            test_name = result['test'].lower()
+            if 'live jobs' in test_name or 'invoice generation' in test_name:
+                invoicing_tests.append(result)
+            elif 'xero' in test_name:
+                xero_tests.append(result)
+            elif 'data structure' in test_name:
+                data_tests.append(result)
+            elif 'archiv' in test_name:
+                archiving_tests.append(result)
+        
+        # Print category summaries
+        categories = [
+            ("🔄 INVOICING ENDPOINTS", invoicing_tests),
+            ("🔗 XERO INTEGRATION", xero_tests),
+            ("📋 DATA STRUCTURE", data_tests),
+            ("📦 ARCHIVING WORKFLOW", archiving_tests)
+        ]
+        
+        for category_name, tests in categories:
+            if tests:
+                passed = len([t for t in tests if t['success']])
+                total = len(tests)
+                print(f"\n{category_name}: {passed}/{total} passed")
+                
+                for test in tests:
+                    status = "✅" if test['success'] else "❌"
+                    print(f"  {status} {test['test']}")
+                    if not test['success']:
+                        print(f"     └─ {test['message']}")
+        
+        # Overall summary
+        total_tests = len(self.test_results)
+        passed_tests = len([r for r in self.test_results if r['success']])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"\n📈 OVERALL: {passed_tests}/{total_tests} tests passed ({(passed_tests/total_tests*100):.1f}%)")
+        
+        if failed_tests > 0:
+            print(f"\n⚠️  {failed_tests} tests failed - see details above")
+        else:
+            print("\n🎉 All invoicing workflow tests passed!")
+    
     def generate_report(self):
         """Generate test report"""
         print("\n" + "=" * 60)
