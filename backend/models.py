@@ -28,6 +28,7 @@ class OrderStatus(str, Enum):
     COMPLETED = "completed"
     CANCELLED = "cancelled"
     OVERDUE = "overdue"
+    ARCHIVED = "archived"
 
 # User Models
 class User(BaseModel):
