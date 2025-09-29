@@ -520,7 +520,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                           type="number"
                           min="1"
                           step="1"
-                          value={item.quantity}
+                          value={item.quantity || 1}
                           onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
                           className={`misty-input w-full ${errors[`item_${index}_quantity`] ? 'border-red-500' : ''}`}
                         />
