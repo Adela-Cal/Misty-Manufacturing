@@ -83,3 +83,4 @@ uvicorn==0.25.0
 validators==0.35.0
 watchfiles==1.1.0
 xero_python==9.1.0
+openpyxl==3.1.5
