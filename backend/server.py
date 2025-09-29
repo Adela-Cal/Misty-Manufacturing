@@ -2429,7 +2429,7 @@ async def create_xero_draft_invoice(
         
         for item in items:
             line_item = LineItem(
-                description=item.get("description", "Product/Service"),
+                description=item.get("product_name", item.get("description", "Product/Service")),
                 quantity=float(item.get("quantity", 1)),
                 unit_amount=float(item.get("unit_price", 0)),
                 account_code=sales_account_code,
