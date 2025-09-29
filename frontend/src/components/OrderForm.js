@@ -14,6 +14,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     discount_percentage: 0,  // Discount percentage (0-100)
     discount_notes: '',      // Reason for discount
     items: [{
+      product_id: '',
       product_name: '',
       quantity: 1,
       unit_price: 0,
