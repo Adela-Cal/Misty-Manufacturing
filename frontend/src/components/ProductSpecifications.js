@@ -287,7 +287,8 @@ const ProductSpecifications = () => {
           width: null,
           width_range: null,
           thickness: 0,
-          quantity: null,
+          gsm: 0,  // Add GSM field
+          quantity: 1,  // Default quantity to 1
           notes: ''
         }
       ]
