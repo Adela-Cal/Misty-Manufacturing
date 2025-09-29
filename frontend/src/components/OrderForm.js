@@ -499,6 +499,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                               } else {
                                 newItems[index] = {
                                   ...newItems[index],
+                                  product_id: '',
                                   product_name: e.target.value,
                                   unit_price: 0,
                                   total_price: 0
