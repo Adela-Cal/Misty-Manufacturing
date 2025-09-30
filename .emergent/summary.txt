@@ -1,85 +1,110 @@
 <analysis>
-The AI engineer successfully extended the Misty manufacturing application by implementing several user-requested features. This involved iterative development, bug fixing, and continuous testing (both manual and automated). Key developments included enhancing order creation with a Purchase Order Number field and dynamic product selection, introducing a robust Archived Orders system with automatic archiving and Excel reporting, and significantly improving Product Specifications to support multiple materials, layer-based calculations, and dynamic UI ordering. The engineer also addressed UI spacing issues and implemented a pre-GST percentage discount mechanism for orders. The process involved meticulous backend model and API updates (FastAPI, Pydantic, MongoDB) and corresponding frontend UI adjustments (React, Tailwind CSS).
+The trajectory documents a series of intensive debugging and feature enhancement cycles on the Misty manufacturing application. The AI engineer addressed multiple user-reported issues, starting with a critical bug in the Client Product Catalogue where new products were not being saved due to missing fields in the backend Pydantic model (, , ). The engineer systematically corrected the model and related API endpoints.
+
+Following this, the engineer performed a global find-and-replace to correct the spelling of Catalogue and fixed various UI spacing inconsistencies, particularly around search icons. A subsequent Cannot Load Dashboard Data error was traced back to a  in the backend caused by comparing timezone-aware and timezone-naive datetimes; this was resolved by ensuring all date comparisons were timezone-aware. The error notification system was also enhanced to stack messages and auto-dismiss.
+
+Significant effort was dedicated to fixing the  component. This involved correcting the API call for fetching client products, fixing data mapping for product dropdowns, and resolving complex state management and type conversion bugs in the order item quantity/price calculation logic. A major React error during order creation was debugged and found to be caused by a missing  in the payload sent to the backend, which was then rectified.
+
+New features were also implemented, such as a Jumping Man icon on the Production Board allowing direct job movement between stages, which required both frontend and backend modifications. Delete functionality was added to the Materials Management and Product Specifications pages. Finally, a complex series of issues related to the invoicing and Xero integration workflow was resolved. This included ensuring invoiced jobs appeared on the invoicing page, were automatically archived, and critically, fixing a broken Xero OAuth callback flow caused by an incorrect redirect URI in the environment configuration.
 </analysis>
-
 <product_requirements>
-The Misty application for Adela Merchants manages manufacturing operations, requiring dark mode, branded PDFs, and multi-role logins. Existing features include Client Management, Order Management (now with Purchase Order Number, conditional order items, and client-specific product dropdown), Production Board (row-based with new indicators), Document Generation, Reports, Payroll, Invoicing, and Xero Integration.
+The application, Misty, is a manufacturing management tool for Adela Merchants. The core task was to address a series of user-reported bugs and implement feature enhancements to improve workflow efficiency and user experience.
 
-Recent and ongoing development includes:
-*   **Client Product Catalog:** For job-specific pricing and specs.
-*   **Materials Database:** For managing raw material details.
-*   **Suppliers List:** For supplier contacts and bank details.
-*   **Product Specifications (Enhanced):** Supports multiple materials per product, with quantity-based total thickness calculations, layer specifications, GSM display, a selectable final thickness option, and reordered UI (Spiral Paper Core after Basic Information, before Material Layers).
-*   **Calculators:** Various manufacturing tools.
-*   **Stocktake:** Monthly inventory input.
-*   **Staff & Security:** Admin user management with roles, creation/update, hard deletion, and .
-*   **Payroll Timesheet:** Auto-populates current week, clickable days for leave, and annual leave accrual.
-*   **Delete Functionality:** Hard delete for Clients and Orders.
-*   **Archived Orders (New):** Automatically archives completed/invoiced jobs, viewable from Client profile, with date/name/number filters, and a Fast Report button for generating customizable Excel spreadsheets.
-*   **Order Discount (New):** A percentage discount field with a reason note, applied to the order's subtotal before GST.
+**Key requirements addressed:**
+1.  **Client Product Catalogue Fix:** The catalogue was failing to save new products. This needed to be fixed so that products could be successfully added to a client's profile.
+2.  **UI/UX Improvements:**
+    *   Correct the spelling of Catalog to Catalogue application-wide.
+    *   Fix inconsistent spacing between search icons (magnifying glass) and input field text.
+3.  **Dashboard and Error Handling:**
+    *   Resolve a Cannot Load Dashboard Data error that was preventing the dashboard from loading.
+    *   Enhance the error notification system to stack multiple error messages vertically and have them automatically disappear after 10 seconds.
+4.  **Order Form Functionality:**
+    *   Fix the product dropdown in the Order Items section, which incorrectly showed No products available.
+    *   Ensure that selecting a product correctly populates the product name and unit price.
+    *   Fix the quantity calculation so that updating the quantity correctly adjusts the total price without resetting to zero.
+    *   Resolve a React error that occurred upon clicking Create Order.
+5.  **Production Board Enhancement:**
+    *   Add a jumping man icon to each job tile, which, when clicked, reveals a dropdown menu to move the job directly to any other production stage.
+6.  **Data Management:**
+    *   Implement delete functionality for entries in Product Materials and Product Specifications.
+    *   Correct the button layout on these pages for better usability.
+7.  **Invoicing & Xero Workflow:**
+    *   Ensure jobs moved to the Invoicing Line on the production board appear in the main Invoicing window.
+    *   Fix the workflow so that invoicing a job automatically archives the order and creates a corresponding draft invoice in Xero.
+    *   Resolve a failing Xero OAuth connection flow.
 </product_requirements>
-
 <key_technical_concepts>
--   **FastAPI**: Python web framework for backend API development.
--   **React**: JavaScript library for frontend UI.
--   **MongoDB**: NoSQL database for data storage, using UUIDs for document IDs.
--   **Pydantic**: Data validation and serialization for Python models.
--   **JWT**: For secure, role-based authentication and authorization.
--   **Xero API & **: Third-party integration for accounting.
--   **Tailwind CSS & Radix UI**: For frontend styling and UI components.
--   **Supervisor**: Process control system.
--   **Openpyxl**: Python library for Excel file generation.
--   **Pandas**: Python library for data manipulation (imported, but not explicitly used in provided snippets for report generation logic).
+- **Backend:** FastAPI, Pydantic for data modeling and validation, MongoDB (with Motor driver).
+- **Frontend:** React, Tailwind CSS for styling,  for API calls, Sonner for toast notifications.
+- **Authentication/State:** JWT for API security, React Context for state management.
+- **Core Concepts:** REST API design, timezone-aware datetime handling (), React state management (, ), asynchronous operations (/), and debugging third-party OAuth 2.0 flows (Xero).
+- **Tooling:** Supervisor for process management.
 </key_technical_concepts>
-
 <code_architecture>
-The application follows a standard full-stack architecture with  (FastAPI) and  (React).
+The application is a full-stack project with a FastAPI backend and a React frontend.
 
 
 
--   : Defines Pydantic data structures.
-    -   **Summary**: Centralized Pydantic models for various entities.
-    -   **Changes**:  and  models updated to include , , and .  enum updated with . New models , , , ,  added for archived orders and enhanced product specifications.  model was significantly enhanced to include  (list of ) and .
--   : Main FastAPI application, API routes and logic.
-    -   **Summary**: Integrates various modules, defines CRUD endpoints and business logic.
-    -   **Changes**:  endpoint updated to handle  and apply  before GST.  endpoint modified to automatically archive orders upon reaching  stage and  status. New endpoints  (GET, GET by ID),  (POST for Excel generation) were added.  and  product specification endpoints updated to handle  and calculate total thickness. Duplicate  import fixed.
--   : Python dependencies.
-    -   **Summary**: Lists all Python packages required for the backend.
-    -   **Changes**:  was added for Excel report generation.
--   : Utility functions for API calls.
-    -   **Summary**: Centralizes API calls to interact with backend endpoints.
-    -   **Changes**: New helper functions (, , ) were added for the new archived orders functionality.
--   : Main CSS file.
-    -   **Summary**: Defines global and component-specific styles.
-    -   **Changes**: Added  class to improve spacing for buttons in client forms.
--   : Component for order information.
-    -   **Summary**: Form for creating/editing order details.
-    -   **Changes**: Implemented  input field.  and  sections made conditional based on client selection. Product selection changed to a dropdown populated from the selected client's products. Added  and  input fields. Updated  state,  state,  function, and  to handle new discount fields and logic. UI adjusted to display discount in the summary.  function removed.
--   : Component for client info.
-    -   **Summary**: Form for creating/editing client details.
-    -   **Changes**: Added an Archived Orders button (yellow style) that opens a modal for the  component. Button spacing was improved using a new CSS class. Header layout was adjusted for responsiveness.
--   : **New file** for archived orders.
-    -   **Summary**: UI component to display archived orders, including filtering capabilities (date range, name/number) and a Fast Report button to generate Excel reports.
-    -   **Changes**: Created to handle the display and interaction for archived orders.
--   : UI for product manufacturing specs.
-    -   **Summary**: UI for defining detailed product specifications.
-    -   **Changes**: Significantly enhanced to support multiple materials per product via  section (material dropdown, quantity, auto-calculated thickness/GSM).  and  functions combined for unified dropdown data. , ,  updated to handle quantity multiplication, GSM. UI sections reordered: Spiral Paper Core Specifications moved to appear after Basic Information and before Material Layers. Old, duplicate conditional materials composition sections were removed. Button spacing at the bottom of the form was improved.
+-   ****
+    -   **Importance:** Defines all Pydantic data models, acting as the single source of truth for data structures between the API and the database.
+    -   **Changes:**
+        -   The  model was updated to include , , and  to fix a critical bug preventing products from being saved.
+        -   A new  model was added to support direct stage movement on the production board.
+
+-   ****
+    -   **Importance:** The main FastAPI application file containing all API endpoints and business logic.
+    -   **Changes:**
+        -   Multiple endpoints related to  were updated to handle new timestamp and  fields correctly.
+        -   Fixed  in  and another function by making datetime comparisons timezone-aware.
+        -   Added a new endpoint  to allow direct movement of jobs.
+        -   Modified the  endpoint to fetch jobs from the invoicing stage instead of delivery.
+        -   Updated the  endpoint to set the order status to , ensuring the automatic archiving logic is triggered.
+        -   Updated  to include client email for the Xero integration.
+        -   Modified the  endpoint to correctly map  to Xero's  field and improve date parsing.
+
+-   ****
+    -   **Importance:** The form for creating and editing orders, a critical and complex user interface.
+    -   **Changes:**
+        -   The API call was changed from  to  to fetch the correct product list.
+        -   Dropdown options were updated to use  and  from the catalogue data model.
+        -   State management logic () was heavily refactored to correctly handle quantity and price calculations, fixing a bug where totals would reset to zero. This involved ensuring proper number conversion from string inputs.
+        -   The component was updated to capture and send the  (not just the name) during order creation to satisfy backend validation requirements, fixing a major React rendering error.
+
+-   ****
+    -   **Importance:** Provides a visual overview of all jobs and their current manufacturing stage.
+    -   **Changes:**
+        -   A Jumping Man SVG icon and associated dropdown menu were added to each job tile.
+        -   State and event handlers (, ) were implemented to manage the dropdown's visibility and handle the API call to move the job to a selected stage.
+
+-   ****
+    -   **Importance:** The interface for managing and generating invoices for completed jobs.
+    -   **Changes:**
+        -   Logic was added to check the Xero connection status on component load.
+        -   A UI section with a Connect to Xero button and status indicator was added to allow users to initiate the OAuth connection.
+        -   Error handling for the Xero draft creation process was improved to provide clearer user feedback via toast notifications.
+        -   Event listeners were added to handle communication from the Xero OAuth popup window.
+
+-   ** & **
+    -   **Importance:** Store environment-specific configuration, including API endpoints and credentials.
+    -   **Changes:** The  and  in  were updated to match the correct preview environment URL, fixing the broken OAuth callback flow.
 </code_architecture>
-
 <pending_tasks>
--   **PDF Branding**: Reintegrate the full Adela Merchants letterhead branding into all generated PDFs.
--   **Xero Integration Feedback**: Await user feedback on Xero invoice creation after the account code configuration changes.
--   **Permutation Calculator**: The permutation calculator is not working correctly and was deferred.
+- **PDF Branding**: Reintegrate the full Adela Merchants letterhead branding into all generated PDFs.
+- **Permutation Calculator**: The permutation calculator is not working correctly and was deferred.
+- **Xero Integration Finalization**: The user needs to update the Redirect URI in their Xero developer console to  and confirm the connection is successful.
 </pending_tasks>
-
 <current_work>
-Immediately before this summary, the AI engineer successfully implemented the Percentage Discount feature for orders. This involved adding  and  fields to the  and  models in . The  endpoint in  was updated to correctly apply this discount before calculating GST and the final total.
+The most recent work focused on resolving a critical failure in the Xero integration. The user was unable to create draft invoices because the application was not connected to their Xero account. The AI engineer diagnosed that the OAuth 2.0 callback flow was broken.
 
-On the frontend, the  component was modified.  and  states were updated to manage the discount inputs. A  hook was added to recalculate totals dynamically as discount values change. UI elements for Discount % and Discount Reason were added before the Order Summary section, and the Order Summary itself was updated to display the discount breakdown (subtotal, discount amount, GST, total).
+**Problem Identification:** The user would click Connect to Xero, be redirected to Xero to grant permission, but upon returning, the connection would fail. The engineer found that the  configured in the backend's  file () did not match the actual preview environment URL ().
 
-The functionality was thoroughly tested using automated backend and frontend testing agents, with both confirming 100% success. The feature is now fully implemented and verified.
+**Actions Taken:**
+1.  **Backend Fix:** The  and  variables in  were updated to use the correct  domain. The backend service was restarted.
+2.  **Frontend Robustness:** The communication between the main application window and the OAuth popup was improved. The  was modified to post a message back to the parent window upon success or failure. The  component was updated with an event listener to catch this message and update the connection status without requiring a page reload.
+3.  **User Guidance:** After an external issue prevented the user from accessing the Xero developer portal, the engineer provided clear, step-by-step instructions for the user to update the redirect URI on their end once they regained access.
+
+**Current Status:** The code-level fixes have been implemented and deployed. The application is now correctly configured to handle the Xero OAuth callback for the current environment. The process is paused, awaiting the user to perform the final configuration step in their external Xero developer account.
 </current_work>
-
 <optional_next_step>
-Reintegrate full Adela Merchants letterhead branding into all generated PDFs.
+Wait for the user to confirm they have updated the Redirect URI in their Xero developer console, then test the Connect to Xero functionality again.
 </optional_next_step>
