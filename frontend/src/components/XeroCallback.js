@@ -21,18 +21,43 @@ const XeroCallback = () => {
       if (error) {
         setStatus('error');
         toast.error(`Xero authorization failed: ${error}`);
-        setTimeout(() => window.close(), 3000);
+        
+        // If we're in a popup, notify the opener and close
+        if (window.opener) {
+          window.opener.postMessage({ type: 'xero-auth-error', error }, '*');
+          setTimeout(() => window.close(), 3000);
+        }
         return;
       }
 
       if (!code) {
         setStatus('error');
         toast.error('No authorization code received from Xero');
-        setTimeout(() => window.close(), 3000);
+        
+        // If we're in a popup, notify the opener and close
+        if (window.opener) {
+          window.opener.postMessage({ type: 'xero-auth-error', error: 'No code' }, '*');
+          setTimeout(() => window.close(), 3000);
+        }
         return;
       }
 
-      // Send the code to backend for token exchange
+      // If we're in a popup window, pass the data to the parent and close
+      if (window.opener) {
+        window.opener.postMessage({ 
+          type: 'xero-auth-success', 
+          code, 
+          state 
+        }, '*');
+        
+        setStatus('success');
+        setTimeout(() => {
+          window.close();
+        }, 1000);
+        return;
+      }
+
+      // If not in popup, handle directly (fallback)
       const response = await apiHelpers.handleXeroCallback({ code, state });
       
       setStatus('success');
@@ -47,6 +72,12 @@ const XeroCallback = () => {
       console.error('Xero callback error:', error);
       setStatus('error');
       toast.error('Failed to complete Xero connection');
+      
+      // If we're in a popup, notify the opener
+      if (window.opener) {
+        window.opener.postMessage({ type: 'xero-auth-error', error: error.message }, '*');
+      }
+      
       setTimeout(() => window.close(), 3000);
     }
   };
