@@ -28,7 +28,21 @@ const Invoicing = () => {
 
   useEffect(() => {
     loadData();
+    checkXeroConnectionStatus();
   }, [activeTab]);
+
+  const checkXeroConnectionStatus = async () => {
+    try {
+      setCheckingXeroStatus(true);
+      const response = await apiHelpers.checkXeroConnection();
+      setXeroConnected(response.data.connected);
+    } catch (error) {
+      console.error('Failed to check Xero status:', error);
+      setXeroConnected(false);
+    } finally {
+      setCheckingXeroStatus(false);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
