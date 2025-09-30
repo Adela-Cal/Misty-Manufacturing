@@ -2097,12 +2097,30 @@ async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_manage
 async def handle_xero_oauth_redirect(code: str = None, state: str = None, error: str = None):
     """Handle Xero OAuth redirect - redirect to frontend callback handler"""
     if error:
-        return f"<html><body><script>window.opener.postMessage({{ error: '{error}' }}, '*'); window.close();</script></body></html>"
+        return f"<html><body><script>window.opener.postMessage({{ type: 'xero-auth-error', error: '{error}' }}, '*'); window.close();</script></body></html>"
     
     if code and state:
-        # Redirect to frontend callback handler with parameters
-        frontend_callback_url = os.getenv("FRONTEND_URL", "https://app.emergent.sh") + f"/xero/callback?code={code}&state={state}"
-        return f"<html><body><script>window.location.href='{frontend_callback_url}';</script></body></html>"
+        # Send data directly to parent window instead of redirecting
+        return f"""
+        <html>
+        <body>
+        <script>
+        if (window.opener) {{
+            window.opener.postMessage({{ 
+                type: 'xero-auth-success', 
+                code: '{code}', 
+                state: '{state}' 
+            }}, '*');
+            window.close();
+        }} else {{
+            // Fallback redirect to frontend
+            window.location.href = '{os.getenv("FRONTEND_URL", "https://app.emergent.sh")}/xero/callback?code={code}&state={state}';
+        }}
+        </script>
+        <p>Connecting to Xero... This window will close automatically.</p>
+        </body>
+        </html>
+        """
     
     return "<html><body><script>window.close();</script></body></html>"
 
