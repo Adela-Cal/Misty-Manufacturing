@@ -1933,6 +1933,10 @@ async def generate_invoice_pdf(order_id: str):
 # ============= XERO INTEGRATION ENDPOINTS =============
 
 # Xero Integration Configuration
+# Force correct environment values for current environment  
+os.environ['XERO_REDIRECT_URI'] = 'https://product-specs-1.preview.emergentagent.com/api/xero/callback'
+os.environ['FRONTEND_URL'] = 'https://product-specs-1.preview.emergentagent.com'
+
 XERO_CLIENT_ID = os.getenv("XERO_CLIENT_ID")
 XERO_CLIENT_SECRET = os.getenv("XERO_CLIENT_SECRET")  
 XERO_CALLBACK_URL = os.getenv("XERO_REDIRECT_URI", "https://app.emergent.sh/api/xero/callback")
