@@ -1944,7 +1944,6 @@ XERO_SCOPES = "openid profile email accounting.transactions accounting.contacts 
 
 # Debug: Print at module load time
 print(f"🔥 MODULE LOAD: XERO_CALLBACK_URL set to: {XERO_CALLBACK_URL}")
-logger.info(f"🔥 MODULE LOAD: XERO_CALLBACK_URL set to: {XERO_CALLBACK_URL}")
 
 # Xero Account Configuration
 XERO_DEFAULT_SALES_ACCOUNT_CODE = "200"  # Sales account code
