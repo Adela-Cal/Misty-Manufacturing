@@ -424,23 +424,33 @@ const Invoicing = () => {
             <h1 className="text-3xl font-bold text-white mb-2">Invoicing & Job Closure</h1>
             <p className="text-gray-400">Generate invoices and manage completed jobs</p>
           </div>
-          <div className="space-x-2">
-            <a
-              href={`${process.env.REACT_APP_BACKEND_URL}/api/debug/test-pdf`}
-              target="_blank"
-              className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white text-sm inline-block"
-              onClick={() => toast.success('Test PDF opened!')}
-            >
-              🔧 Test PDF (Simple)
-            </a>
-            <a
-              href={`${process.env.REACT_APP_BACKEND_URL}/api/debug/test-pdf`}
-              download="test.pdf"
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white text-sm inline-block"
-              onContextMenu={() => toast.success('Right-click → Save As to download')}
-            >
-              📄 Direct PDF Link
-            </a>
+          <div className="flex items-center space-x-4">
+            {/* Xero Connection Status */}
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <div className={`h-3 w-3 rounded-full ${xeroConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                <span className="text-sm text-gray-300">
+                  Xero {xeroConnected ? 'Connected' : 'Disconnected'}
+                </span>
+              </div>
+              
+              {xeroConnected ? (
+                <button
+                  onClick={handleXeroDisconnect}
+                  className="misty-button misty-button-danger text-xs px-3 py-1"
+                >
+                  Disconnect Xero
+                </button>
+              ) : (
+                <button
+                  onClick={handleXeroConnect}
+                  disabled={checkingXeroStatus}
+                  className="misty-button misty-button-primary text-xs px-3 py-1"
+                >
+                  {checkingXeroStatus ? 'Connecting...' : 'Connect to Xero'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
