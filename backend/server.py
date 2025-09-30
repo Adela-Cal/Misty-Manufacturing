@@ -1950,6 +1950,10 @@ XERO_DEFAULT_TAX_TYPE = "OUTPUT"  # Default GST/tax type
 @api_router.get("/xero/debug")
 async def debug_xero_config():
     """Debug endpoint to check Xero configuration"""
+    # Debug print to see what's actually happening
+    print(f"DEBUG: XERO_CALLBACK_URL = {XERO_CALLBACK_URL}")
+    print(f"DEBUG: globals() contains XERO_CALLBACK_URL: {'XERO_CALLBACK_URL' in globals()}")
+    
     return {
         "client_id": XERO_CLIENT_ID,
         "callback_url": XERO_CALLBACK_URL,
