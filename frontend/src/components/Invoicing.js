@@ -23,6 +23,8 @@ const Invoicing = () => {
   const [invoiceType, setInvoiceType] = useState('full');
   const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
   const [reportYear, setReportYear] = useState(new Date().getFullYear());
+  const [xeroConnected, setXeroConnected] = useState(false);
+  const [checkingXeroStatus, setCheckingXeroStatus] = useState(false);
 
   useEffect(() => {
     loadData();
