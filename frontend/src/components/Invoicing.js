@@ -56,10 +56,38 @@ const Invoicing = () => {
         'width=600,height=700,scrollbars=yes,resizable=yes'
       );
 
-      // Listen for the OAuth callback
+      // Listen for messages from the popup
+      const messageHandler = async (event) => {
+        if (event.data.type === 'xero-auth-success') {
+          window.removeEventListener('message', messageHandler);
+          
+          try {
+            // Handle the callback with the parent window's authentication
+            const callbackResponse = await apiHelpers.handleXeroCallback({
+              code: event.data.code,
+              state: event.data.state
+            });
+            
+            setXeroConnected(true);
+            toast.success('Successfully connected to Xero!');
+            checkXeroConnectionStatus(); // Refresh status
+          } catch (error) {
+            console.error('Failed to complete Xero connection:', error);
+            toast.error(`Failed to complete Xero connection: ${error.message}`);
+          }
+        } else if (event.data.type === 'xero-auth-error') {
+          window.removeEventListener('message', messageHandler);
+          toast.error(`Xero connection failed: ${event.data.error}`);
+        }
+      };
+
+      window.addEventListener('message', messageHandler);
+
+      // Also listen for the OAuth callback (fallback)
       const checkClosed = setInterval(() => {
         if (authWindow.closed) {
           clearInterval(checkClosed);
+          window.removeEventListener('message', messageHandler);
           // Check connection status after auth window closes
           setTimeout(() => {
             checkXeroConnectionStatus();
