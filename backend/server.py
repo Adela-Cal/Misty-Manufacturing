@@ -2107,7 +2107,7 @@ async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_manage
     
     return {"auth_url": auth_url, "state": state, "debug_info": {
         "client_id": XERO_CLIENT_ID,
-        "callback_url": XERO_CALLBACK_URL,
+        "callback_url": "https://product-specs-1.preview.emergentagent.com/api/xero/callback",
         "scopes": XERO_SCOPES
     }}
 
