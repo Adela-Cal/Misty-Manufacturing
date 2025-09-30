@@ -33,6 +33,10 @@ from payroll_endpoints import payroll_router
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Force correct environment values for current environment  
+os.environ['XERO_REDIRECT_URI'] = 'https://product-specs-1.preview.emergentagent.com/api/xero/callback'
+os.environ['FRONTEND_URL'] = 'https://product-specs-1.preview.emergentagent.com'
+
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
