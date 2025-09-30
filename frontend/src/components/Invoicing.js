@@ -44,6 +44,46 @@ const Invoicing = () => {
     }
   };
 
+  const handleXeroConnect = async () => {
+    try {
+      const response = await apiHelpers.getXeroAuthUrl();
+      const { auth_url } = response.data;
+      
+      // Open Xero OAuth in a new window
+      const authWindow = window.open(
+        auth_url,
+        'xero-auth',
+        'width=600,height=700,scrollbars=yes,resizable=yes'
+      );
+
+      // Listen for the OAuth callback
+      const checkClosed = setInterval(() => {
+        if (authWindow.closed) {
+          clearInterval(checkClosed);
+          // Check connection status after auth window closes
+          setTimeout(() => {
+            checkXeroConnectionStatus();
+          }, 1000);
+        }
+      }, 1000);
+
+    } catch (error) {
+      console.error('Failed to initiate Xero connection:', error);
+      toast.error('Failed to connect to Xero');
+    }
+  };
+
+  const handleXeroDisconnect = async () => {
+    try {
+      await apiHelpers.disconnectXero();
+      setXeroConnected(false);
+      toast.success('Disconnected from Xero');
+    } catch (error) {
+      console.error('Failed to disconnect from Xero:', error);
+      toast.error('Failed to disconnect from Xero');
+    }
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
