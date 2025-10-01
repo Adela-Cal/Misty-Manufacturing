@@ -46,6 +46,7 @@ const StaffSecurity = () => {
 
   useEffect(() => {
     loadUsers();
+    loadPendingTimesheets();
   }, []);
 
   const loadUsers = async () => {
