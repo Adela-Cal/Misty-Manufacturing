@@ -247,7 +247,8 @@ const MaterialsManagement = () => {
   const unitOptions = [
     'm2',
     'By the Box',
-    'Single Unit'
+    'Single Unit',
+    'Tons'
   ];
 
   const currencyOptions = [
