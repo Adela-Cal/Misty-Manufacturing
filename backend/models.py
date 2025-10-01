@@ -366,6 +366,26 @@ class MaterialLayerAssignment(BaseModel):
     notes: Optional[str] = None
 
 # Machinery Models for Product Specifications
+class MachineryRate(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    function: str  # "Slitting", "winding", "Cutting/Indexing", "splitting", "Packing", "Delivery Time"
+    rate_per_hour: float  # Default $ rate per hour for this function
+    description: Optional[str] = None  # Optional description for the rate
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+class MachineryRateCreate(BaseModel):
+    function: str
+    rate_per_hour: float
+    description: Optional[str] = None
+
+class MachineryRateUpdate(BaseModel):
+    function: Optional[str] = None
+    rate_per_hour: Optional[float] = None
+    description: Optional[str] = None
+    is_active: Optional[bool] = None
+
 class MachineryFunction(BaseModel):
     function: str  # "Slitting", "winding", "Cutting/Indexing", "splitting", "Packing", "Delivery Time"
     rate_per_hour: Optional[float] = None  # $ rate per hour for this function
