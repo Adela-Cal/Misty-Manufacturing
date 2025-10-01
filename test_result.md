@@ -457,6 +457,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "New Machinery Rates Endpoints"
     - "Complete Invoicing Workflow with Xero Integration"
     - "Xero Draft Invoice Creation"
     - "Invoice Generation with Archiving Integration"
