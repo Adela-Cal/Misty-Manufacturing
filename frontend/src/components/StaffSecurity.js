@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from './Layout';
+import { useAuth } from '../contexts/AuthContext';
 import { apiHelpers } from '../utils/api';
 import { payrollApi } from '../utils/payrollApi';
 import { toast } from 'sonner';
