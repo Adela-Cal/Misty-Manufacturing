@@ -1518,21 +1518,18 @@ class TimesheetWorkflowTester:
         
         return []
     
-    def test_material_currency_field(self):
-        """Test the new currency field functionality in Material model"""
-        print("\n=== MATERIAL CURRENCY FIELD TEST ===")
-        
-        # Test 1: Create Material with Default Currency (should default to "AUD")
-        material_default_currency = {
-            "supplier": "Australian Paper Co",
-            "product_code": "APC-DEFAULT-001",
-            "order_to_delivery_time": "5-7 business days",
-            "material_description": "Premium Australian paper with default currency",
-            "price": 35.50,
-            "unit": "m2",
-            "raw_substrate": False
-            # Note: currency field not specified - should default to "AUD"
-        }
+def main():
+    """Main test execution"""
+    print("Starting Enhanced Timesheet Workflow Testing...")
+    print(f"Backend URL: {BACKEND_URL}")
+    
+    tester = TimesheetWorkflowTester()
+    
+    # Run the complete timesheet workflow test suite
+    tester.run_timesheet_workflow_tests()
+
+if __name__ == "__main__":
+    main()
         
         default_currency_material_id = None
         try:
