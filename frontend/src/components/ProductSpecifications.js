@@ -46,6 +46,7 @@ const ProductSpecifications = () => {
     loadSpecifications();
     loadMaterials();
     loadProducts();
+    loadMachineryRates();
   }, []);
 
   const loadMaterials = async () => {
