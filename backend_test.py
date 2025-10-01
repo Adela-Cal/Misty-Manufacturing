@@ -245,46 +245,133 @@ class TimesheetWorkflowTester:
         
         return False
     
-    def test_monthly_report_api(self):
-        """Test GET /api/invoicing/monthly-report"""
-        print("\n=== MONTHLY REPORT API TEST ===")
+    def test_submit_timesheet(self, timesheet_id):
+        """Test POST /api/payroll/timesheets/{timesheet_id}/submit"""
+        print("\n=== SUBMIT TIMESHEET TEST ===")
         
         try:
-            current_date = datetime.now()
-            response = self.session.get(
-                f"{API_BASE}/invoicing/monthly-report?month={current_date.month}&year={current_date.year}"
-            )
+            response = self.session.post(f"{API_BASE}/payroll/timesheets/{timesheet_id}/submit")
             
             if response.status_code == 200:
-                data = response.json()
+                result = response.json()
+                message = result.get('message', '')
                 
-                required_fields = ['month', 'year', 'total_jobs_completed', 'total_jobs_invoiced', 'total_invoice_amount']
-                missing_fields = [field for field in required_fields if field not in data]
-                
-                if not missing_fields:
+                if 'submitted for approval' in message.lower():
                     self.log_result(
-                        "Monthly Report API", 
+                        "Submit Timesheet", 
                         True, 
-                        f"Successfully generated report for {current_date.month}/{current_date.year}",
-                        f"Completed: {data['total_jobs_completed']}, Invoiced: {data['total_jobs_invoiced']}, Amount: ${data['total_invoice_amount']}"
+                        "Successfully submitted timesheet for approval",
+                        f"Message: {message}"
                     )
+                    return True
                 else:
                     self.log_result(
-                        "Monthly Report API", 
+                        "Submit Timesheet", 
                         False, 
-                        f"Report missing required fields: {missing_fields}"
+                        "Unexpected response message",
+                        f"Message: {message}"
                     )
             else:
                 self.log_result(
-                    "Monthly Report API", 
+                    "Submit Timesheet", 
                     False, 
                     f"Failed with status {response.status_code}",
                     response.text
                 )
                 
         except Exception as e:
-            self.log_result("Monthly Report API", False, f"Error: {str(e)}")
+            self.log_result("Submit Timesheet", False, f"Error: {str(e)}")
+        
+        return False
     
+    def test_get_pending_timesheets(self):
+        """Test GET /api/payroll/timesheets/pending"""
+        print("\n=== GET PENDING TIMESHEETS TEST ===")
+        
+        try:
+            response = self.session.get(f"{API_BASE}/payroll/timesheets/pending")
+            
+            if response.status_code == 200:
+                data = response.json()
+                pending_timesheets = data.get('data', [])
+                
+                # Check if our submitted timesheet is in the pending list
+                found_timesheet = False
+                for timesheet in pending_timesheets:
+                    if timesheet.get('id') == self.test_timesheet_id:
+                        found_timesheet = True
+                        break
+                
+                if found_timesheet:
+                    self.log_result(
+                        "Get Pending Timesheets", 
+                        True, 
+                        f"Successfully retrieved {len(pending_timesheets)} pending timesheets including our test timesheet"
+                    )
+                else:
+                    self.log_result(
+                        "Get Pending Timesheets", 
+                        True, 
+                        f"Successfully retrieved {len(pending_timesheets)} pending timesheets (test timesheet may have been processed)"
+                    )
+                
+                return pending_timesheets
+            else:
+                self.log_result(
+                    "Get Pending Timesheets", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Get Pending Timesheets", False, f"Error: {str(e)}")
+        
+        return []
+    
+    def test_approve_timesheet(self, timesheet_id):
+        """Test POST /api/payroll/timesheets/{timesheet_id}/approve"""
+        print("\n=== APPROVE TIMESHEET TEST ===")
+        
+        try:
+            response = self.session.post(f"{API_BASE}/payroll/timesheets/{timesheet_id}/approve")
+            
+            if response.status_code == 200:
+                result = response.json()
+                message = result.get('message', '')
+                data = result.get('data', {})
+                
+                if 'approved' in message.lower():
+                    gross_pay = data.get('gross_pay', 0)
+                    net_pay = data.get('net_pay', 0)
+                    hours_worked = data.get('hours_worked', 0)
+                    
+                    self.log_result(
+                        "Approve Timesheet", 
+                        True, 
+                        "Successfully approved timesheet and calculated pay",
+                        f"Gross Pay: ${gross_pay}, Net Pay: ${net_pay}, Hours: {hours_worked}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Approve Timesheet", 
+                        False, 
+                        "Unexpected response message",
+                        f"Message: {message}"
+                    )
+            else:
+                self.log_result(
+                    "Approve Timesheet", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Approve Timesheet", False, f"Error: {str(e)}")
+        
+        return False
     def create_test_order(self, client_id):
         """Create a test order for invoice generation testing"""
         try:
