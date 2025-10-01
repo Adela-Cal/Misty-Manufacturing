@@ -221,7 +221,7 @@ class MachineryBackendTester:
                         
                         # Collect all functions
                         for func in machine.get('functions', []):
-                            all_functions.append(func.get('function_name'))
+                            all_functions.append(func.get('function'))
                     
                     # Check if all required function types are present
                     found_functions = set(all_functions)
