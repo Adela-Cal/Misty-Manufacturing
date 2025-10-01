@@ -398,7 +398,7 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <h2 className="text-2xl font-bold text-white mb-1">
               {isManager && employee ? `${employee.first_name} ${employee.last_name}'s Timesheet` : 'My Timesheet'}
             </h2>
@@ -414,6 +414,26 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
               )}
             </div>
           </div>
+
+          {/* Week Selection */}
+          <div className="ml-6">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Select Week
+            </label>
+            <select
+              value={selectedWeekStart || (timesheet?.week_starting || '')}
+              onChange={(e) => handleWeekChange(e.target.value)}
+              className="misty-select"
+              style={{ minWidth: '250px' }}
+            >
+              {getWeekOptions().map((week) => (
+                <option key={week.value} value={week.value}>
+                  {week.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
           
           {/* Action Buttons */}
           <div className="flex items-center space-x-3">
