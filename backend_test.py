@@ -9868,8 +9868,8 @@ class InvoicingAPITester:
             self.log_result("Product Specifications CREATE - Invalid Material Layers", False, f"Exception: {str(e)}")
 
     def run_all_tests(self):
-        """Run Staff & Security API testing with focus on user creation validation"""
-        print("🚀 STARTING STAFF & SECURITY API TESTING - USER CREATION VALIDATION")
+        """Run Product Specifications CREATE 400 Error Analysis"""
+        print("🚀 STARTING PRODUCT SPECIFICATIONS CREATE 400 ERROR ANALYSIS")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 70)
         
@@ -9878,7 +9878,11 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test Staff & Security User Creation validation
+        # PRIMARY FOCUS: Test Product Specifications CREATE 400 error
+        print("\n🔍 TESTING PRODUCT SPECIFICATIONS CREATE ENDPOINT...")
+        self.test_product_specifications_create_400_error()
+        
+        # SECONDARY: Test Staff & Security User Creation validation
         print("\n🔍 TESTING STAFF & SECURITY USER CREATION...")
         validation_errors = self.test_staff_security_user_creation()
         
