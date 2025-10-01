@@ -454,9 +454,22 @@ const ProductSpecifications = () => {
       machinery: prev.machinery.map((machine, i) => 
         i === machineIndex ? {
           ...machine,
-          functions: machine.functions.map((func, j) => 
-            j === functionIndex ? { ...func, [field]: value } : func
-          )
+          functions: machine.functions.map((func, j) => {
+            if (j === functionIndex) {
+              const updatedFunc = { ...func, [field]: value };
+              
+              // If function type is changing, apply default rate
+              if (field === 'function') {
+                const defaultRate = machineryRates.find(rate => rate.function === value);
+                if (defaultRate) {
+                  updatedFunc.rate_per_hour = defaultRate.rate_per_hour;
+                }
+              }
+              
+              return updatedFunc;
+            }
+            return func;
+          })
         } : machine
       )
     }));
