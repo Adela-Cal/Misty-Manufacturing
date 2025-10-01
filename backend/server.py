@@ -463,6 +463,90 @@ async def delete_product_specification(spec_id: str, current_user: dict = Depend
     
     return StandardResponse(success=True, message="Product specification deleted successfully")
 
+# ============= MACHINERY RATES ENDPOINTS =============
+
+@api_router.get("/machinery-rates", response_model=List[MachineryRate])
+async def get_machinery_rates(current_user: dict = Depends(require_any_role)):
+    """Get all machinery rates"""
+    rates = await db.machinery_rates.find({"is_active": True}).sort("function", 1).to_list(1000)
+    return [MachineryRate(**rate) for rate in rates]
+
+@api_router.post("/machinery-rates", response_model=StandardResponse)
+async def create_machinery_rate(rate_data: MachineryRateCreate, current_user: dict = Depends(require_admin_or_manager)):
+    """Create new machinery rate"""
+    # Check if rate for this function already exists
+    existing_rate = await db.machinery_rates.find_one({
+        "function": rate_data.function,
+        "is_active": True
+    })
+    
+    if existing_rate:
+        raise HTTPException(status_code=400, detail=f"Rate for function '{rate_data.function}' already exists")
+    
+    # Create new rate
+    new_rate = MachineryRate(
+        **rate_data.dict(),
+        created_at=datetime.now(timezone.utc)
+    )
+    
+    rate_dict = new_rate.dict()
+    await db.machinery_rates.insert_one(rate_dict)
+    
+    return StandardResponse(
+        success=True,
+        message="Machinery rate created successfully",
+        data={"id": new_rate.id}
+    )
+
+@api_router.get("/machinery-rates/{rate_id}", response_model=MachineryRate)
+async def get_machinery_rate(rate_id: str, current_user: dict = Depends(require_any_role)):
+    """Get specific machinery rate by ID"""
+    rate = await db.machinery_rates.find_one({"id": rate_id, "is_active": True})
+    if not rate:
+        raise HTTPException(status_code=404, detail="Machinery rate not found")
+    
+    return MachineryRate(**rate)
+
+@api_router.put("/machinery-rates/{rate_id}", response_model=StandardResponse)
+async def update_machinery_rate(rate_id: str, rate_data: MachineryRateUpdate, current_user: dict = Depends(require_admin_or_manager)):
+    """Update machinery rate"""
+    # Prepare update data
+    update_data = {k: v for k, v in rate_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.now(timezone.utc)
+    
+    # If function is being changed, check for duplicates
+    if "function" in update_data:
+        existing_rate = await db.machinery_rates.find_one({
+            "function": update_data["function"],
+            "is_active": True,
+            "id": {"$ne": rate_id}
+        })
+        if existing_rate:
+            raise HTTPException(status_code=400, detail=f"Rate for function '{update_data['function']}' already exists")
+    
+    result = await db.machinery_rates.update_one(
+        {"id": rate_id, "is_active": True},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Machinery rate not found")
+    
+    return StandardResponse(success=True, message="Machinery rate updated successfully")
+
+@api_router.delete("/machinery-rates/{rate_id}", response_model=StandardResponse)
+async def delete_machinery_rate(rate_id: str, current_user: dict = Depends(require_admin_or_manager)):
+    """Soft delete machinery rate"""
+    result = await db.machinery_rates.update_one(
+        {"id": rate_id, "is_active": True},
+        {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc)}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Machinery rate not found")
+    
+    return StandardResponse(success=True, message="Machinery rate deleted successfully")
+
 # ============= CALCULATORS ENDPOINTS =============
 
 @api_router.post("/calculators/material-consumption-by-client", response_model=StandardResponse)
