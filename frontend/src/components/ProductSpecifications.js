@@ -126,7 +126,6 @@ const ProductSpecifications = () => {
   };
 
   const handleDelete = (spec) => {
-    console.log('handleDelete called with spec:', spec);
     setSpecToDelete(spec);
     setShowDeleteConfirm(true);
   };
@@ -134,12 +133,8 @@ const ProductSpecifications = () => {
   const confirmDelete = async () => {
     if (!specToDelete) return;
     
-    console.log('Attempting to delete specification with ID:', specToDelete.id);
     try {
-      console.log('Calling API delete function...');
-      const result = await apiHelpers.deleteProductSpecification(specToDelete.id);
-      console.log('API call result:', result);
-      
+      await apiHelpers.deleteProductSpecification(specToDelete.id);
       toast.success('Product specification deleted successfully');
       setShowModal(false);
       setShowDeleteConfirm(false);
