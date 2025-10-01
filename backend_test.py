@@ -197,58 +197,53 @@ class TimesheetWorkflowTester:
         
         return None
     
-    def test_archived_jobs_api(self):
-        """Test GET /api/invoicing/archived-jobs"""
-        print("\n=== ARCHIVED JOBS API TEST ===")
+    def test_update_timesheet(self, timesheet_id, employee_id):
+        """Test PUT /api/payroll/timesheets/{timesheet_id}"""
+        print("\n=== UPDATE TIMESHEET TEST ===")
         
         try:
-            # Test without filters
-            response = self.session.get(f"{API_BASE}/invoicing/archived-jobs")
+            # Create sample timesheet entries for a week
+            today = date.today()
+            week_start = today - timedelta(days=today.weekday())  # Monday
+            
+            entries = []
+            for i in range(5):  # Monday to Friday
+                entry_date = week_start + timedelta(days=i)
+                entries.append({
+                    "date": entry_date.isoformat(),
+                    "regular_hours": 8.0,
+                    "overtime_hours": 0.0,
+                    "leave_hours": {},
+                    "notes": f"Work day {i+1}"
+                })
+            
+            timesheet_data = {
+                "employee_id": employee_id,
+                "week_starting": week_start.isoformat(),
+                "entries": entries
+            }
+            
+            response = self.session.put(f"{API_BASE}/payroll/timesheets/{timesheet_id}", json=timesheet_data)
             
             if response.status_code == 200:
-                data = response.json()
-                jobs = data.get('data', [])
-                
                 self.log_result(
-                    "Archived Jobs API (no filter)", 
+                    "Update Timesheet", 
                     True, 
-                    f"Successfully retrieved {len(jobs)} archived jobs"
+                    "Successfully updated timesheet with 40 hours of work entries"
                 )
-                
-                # Test with month/year filters
-                current_date = datetime.now()
-                response_filtered = self.session.get(
-                    f"{API_BASE}/invoicing/archived-jobs?month={current_date.month}&year={current_date.year}"
-                )
-                
-                if response_filtered.status_code == 200:
-                    filtered_data = response_filtered.json()
-                    filtered_jobs = filtered_data.get('data', [])
-                    
-                    self.log_result(
-                        "Archived Jobs API (with filters)", 
-                        True, 
-                        f"Successfully retrieved {len(filtered_jobs)} archived jobs for {current_date.month}/{current_date.year}"
-                    )
-                    return jobs
-                else:
-                    self.log_result(
-                        "Archived Jobs API (with filters)", 
-                        False, 
-                        f"Filtered request failed with status {response_filtered.status_code}"
-                    )
+                return True
             else:
                 self.log_result(
-                    "Archived Jobs API", 
+                    "Update Timesheet", 
                     False, 
                     f"Failed with status {response.status_code}",
                     response.text
                 )
                 
         except Exception as e:
-            self.log_result("Archived Jobs API", False, f"Error: {str(e)}")
+            self.log_result("Update Timesheet", False, f"Error: {str(e)}")
         
-        return []
+        return False
     
     def test_monthly_report_api(self):
         """Test GET /api/invoicing/monthly-report"""
