@@ -74,6 +74,38 @@ const StaffSecurity = () => {
     }
   };
 
+  const loadPendingTimesheets = async () => {
+    try {
+      setTimesheetLoading(true);
+      const response = await payrollApi.getPendingTimesheets();
+      setPendingTimesheets(response.data || []);
+    } catch (error) {
+      console.error('Failed to load pending timesheets:', error);
+      // Don't show error toast as this is secondary functionality
+    } finally {
+      setTimesheetLoading(false);
+    }
+  };
+
+  const handleTimesheetApproval = async (timesheetId, action) => {
+    try {
+      if (action === 'approve') {
+        await payrollApi.approveTimesheet(timesheetId);
+        toast.success('Timesheet approved successfully');
+      } else {
+        // For now, we'll just implement approve. Reject can be added later if needed
+        toast.info('Reject functionality not yet implemented');
+        return;
+      }
+      
+      // Reload pending timesheets
+      await loadPendingTimesheets();
+    } catch (error) {
+      console.error('Failed to process timesheet:', error);
+      toast.error('Failed to process timesheet');
+    }
+  };
+
   const handleCreate = () => {
     setSelectedUser(null);
     setFormData({
