@@ -150,6 +150,18 @@ frontend:
         agent: "testing"
         comment: "✅ MATERIALS MANAGEMENT BUTTON LAYOUT AND DELETE FUNCTIONALITY VERIFIED: Comprehensive re-testing completed successfully with focus on updated button layouts. LOGIN: Demo credentials (Callum/Peach7510) working perfectly. MATERIALS MANAGEMENT: Found 23 materials in database, double-click opens edit modal successfully, BUTTON LAYOUT VERIFICATION: Delete Material button visible and positioned on left with mr-auto class (classes: 'misty-button misty-button-danger mr-auto'), Cancel and Update Material buttons positioned on right, CUSTOM CONFIRMATION MODAL: Click Delete Material shows custom 'Confirm Delete' modal with proper message, Cancel flow works perfectly - confirmation modal closes, edit modal remains open. All button layout consistency requirements met exactly as specified in review request."
 
+  - task: "Materials Management Tons Unit Option"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/MaterialsManagement.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎉 MATERIALS MANAGEMENT 'TONS' UNIT OPTION FULLY FUNCTIONAL: Comprehensive testing of the new 'Tons' unit option completed with 100% success rate (10/10 tests passed). LOGIN & NAVIGATION: Demo credentials (Callum/Peach7510) working perfectly, Materials Management page loads correctly, found 3 materials in database. EDIT MODAL FUNCTIONALITY: Double-click opens Edit Material modal successfully, Unit dropdown located and functional. UNIT OPTIONS VERIFICATION: All 4 expected unit options present and working: 'm2', 'By the Box', 'Single Unit', 'Tons' (NEW). TONS FUNCTIONALITY: 'Tons' option appears as 4th option in dropdown, selection works perfectly, selection persists correctly when clicking other fields, form validation accepts 'Tons' without errors, Update Material button enabled with 'Tons' selected. COMPREHENSIVE TESTING: All unit options (m2, By the Box, Single Unit, Tons) tested and working, dropdown functionality fully operational, no JavaScript errors detected, form submission ready. VISUAL CONFIRMATION: Screenshots show dropdown opened with 'Tons' highlighted and selectable. The new 'Tons' unit option has been successfully implemented and works seamlessly with existing functionality as requested."
+
   - task: "Product Specifications Delete Functionality and Button Layout"
     implemented: true
     working: true
