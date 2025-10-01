@@ -784,6 +784,41 @@ const MaterialsManagement = () => {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+              <div className="flex items-center mb-4">
+                <TrashIcon className="h-6 w-6 text-red-400 mr-2" />
+                <h3 className="text-lg font-semibold text-white">
+                  Confirm Delete
+                </h3>
+              </div>
+              
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to delete the material "{materialToDelete?.product_code}" from {materialToDelete?.supplier}? 
+                This action cannot be undone.
+              </p>
+              
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={cancelDelete}
+                  className="misty-button misty-button-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="misty-button misty-button-danger"
+                >
+                  <TrashIcon className="h-4 w-4 mr-2" />
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
