@@ -712,6 +712,488 @@ class BackendAPITester:
         
         print("\n" + "="*60)
     
+    def test_machinery_product_specifications_create(self):
+        """Test POST /api/product-specifications with machinery data"""
+        print("\n=== MACHINERY PRODUCT SPECIFICATIONS CREATE TEST ===")
+        
+        try:
+            # Test data with machinery section
+            spec_data = {
+                "product_name": "Test Paper Core with Machinery",
+                "product_type": "Spiral Paper Core",
+                "manufacturing_notes": "Test product for machinery functionality",
+                "specifications": {
+                    "internal_diameter": 76.0,
+                    "wall_thickness_required": 3.0
+                },
+                "material_layers": [
+                    {
+                        "material_id": "test-material-001",
+                        "layer_type": "Outer Most Layer",
+                        "thickness": 0.15,
+                        "quantity": 2.0
+                    }
+                ],
+                "machinery": [
+                    {
+                        "machine_name": "Slitting Machine A",
+                        "running_speed": 150.0,
+                        "setup_time": "00:30",
+                        "pack_up_time": "00:15",
+                        "functions": [
+                            {
+                                "function_name": "Slitting",
+                                "rate_per_hour": 500.0
+                            },
+                            {
+                                "function_name": "winding",
+                                "rate_per_hour": 300.0
+                            }
+                        ]
+                    },
+                    {
+                        "machine_name": "Cutting Machine B",
+                        "running_speed": 200.0,
+                        "setup_time": "00:45",
+                        "pack_up_time": "00:20",
+                        "functions": [
+                            {
+                                "function_name": "Cutting/Indexing",
+                                "rate_per_hour": 400.0
+                            },
+                            {
+                                "function_name": "splitting",
+                                "rate_per_hour": 350.0
+                            }
+                        ]
+                    },
+                    {
+                        "machine_name": "Packing Machine C",
+                        "running_speed": 100.0,
+                        "setup_time": "00:20",
+                        "pack_up_time": "00:10",
+                        "functions": [
+                            {
+                                "function_name": "Packing",
+                                "rate_per_hour": 250.0
+                            },
+                            {
+                                "function_name": "Delivery Time",
+                                "rate_per_hour": 150.0
+                            }
+                        ]
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/product-specifications", json=spec_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                spec_id = result.get('data', {}).get('id')
+                
+                if spec_id:
+                    self.log_result(
+                        "Machinery Product Specifications CREATE", 
+                        True, 
+                        f"Successfully created product specification with machinery data (ID: {spec_id})",
+                        f"3 machines with 6 total functions created"
+                    )
+                    return spec_id
+                else:
+                    self.log_result(
+                        "Machinery Product Specifications CREATE", 
+                        False, 
+                        "Response missing specification ID",
+                        str(result)
+                    )
+            else:
+                self.log_result(
+                    "Machinery Product Specifications CREATE", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Machinery Product Specifications CREATE", False, f"Error: {str(e)}")
+        
+        return None
+    
+    def test_machinery_product_specifications_retrieve(self, spec_id):
+        """Test GET /api/product-specifications/{spec_id} returns machinery data"""
+        print("\n=== MACHINERY PRODUCT SPECIFICATIONS RETRIEVE TEST ===")
+        
+        if not spec_id:
+            self.log_result(
+                "Machinery Product Specifications RETRIEVE", 
+                False, 
+                "No specification ID available for retrieve test"
+            )
+            return None
+        
+        try:
+            response = self.session.get(f"{API_BASE}/product-specifications/{spec_id}")
+            
+            if response.status_code == 200:
+                spec = response.json()
+                machinery = spec.get('machinery', [])
+                
+                if machinery and len(machinery) == 3:
+                    # Verify machinery structure
+                    required_fields = ['machine_name', 'running_speed', 'setup_time', 'pack_up_time', 'functions']
+                    required_function_types = ['Slitting', 'winding', 'Cutting/Indexing', 'splitting', 'Packing', 'Delivery Time']
+                    
+                    all_functions = []
+                    for machine in machinery:
+                        # Check machine fields
+                        missing_fields = [field for field in required_fields if field not in machine]
+                        if missing_fields:
+                            self.log_result(
+                                "Machinery Product Specifications RETRIEVE", 
+                                False, 
+                                f"Machine missing required fields: {missing_fields}"
+                            )
+                            return None
+                        
+                        # Collect all functions
+                        for func in machine.get('functions', []):
+                            all_functions.append(func.get('function_name'))
+                    
+                    # Check if all required function types are present
+                    found_functions = set(all_functions)
+                    missing_functions = set(required_function_types) - found_functions
+                    
+                    if not missing_functions:
+                        self.log_result(
+                            "Machinery Product Specifications RETRIEVE", 
+                            True, 
+                            f"Successfully retrieved machinery data with all required function types",
+                            f"3 machines, 6 functions: {', '.join(sorted(found_functions))}"
+                        )
+                        return spec
+                    else:
+                        self.log_result(
+                            "Machinery Product Specifications RETRIEVE", 
+                            False, 
+                            f"Missing required function types: {missing_functions}",
+                            f"Found: {found_functions}"
+                        )
+                else:
+                    self.log_result(
+                        "Machinery Product Specifications RETRIEVE", 
+                        False, 
+                        f"Expected 3 machines, got {len(machinery)}",
+                        f"Machinery data: {machinery}"
+                    )
+            else:
+                self.log_result(
+                    "Machinery Product Specifications RETRIEVE", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Machinery Product Specifications RETRIEVE", False, f"Error: {str(e)}")
+        
+        return None
+    
+    def test_machinery_product_specifications_update(self, spec_id):
+        """Test PUT /api/product-specifications/{spec_id} can update machinery data"""
+        print("\n=== MACHINERY PRODUCT SPECIFICATIONS UPDATE TEST ===")
+        
+        if not spec_id:
+            self.log_result(
+                "Machinery Product Specifications UPDATE", 
+                False, 
+                "No specification ID available for update test"
+            )
+            return False
+        
+        try:
+            # Updated machinery data
+            update_data = {
+                "product_name": "Updated Paper Core with Machinery",
+                "product_type": "Spiral Paper Core",
+                "manufacturing_notes": "Updated test product for machinery functionality",
+                "specifications": {
+                    "internal_diameter": 76.0,
+                    "wall_thickness_required": 3.0
+                },
+                "material_layers": [
+                    {
+                        "material_id": "test-material-001",
+                        "layer_type": "Outer Most Layer",
+                        "thickness": 0.15,
+                        "quantity": 2.0
+                    }
+                ],
+                "machinery": [
+                    {
+                        "machine_name": "Updated Slitting Machine A",
+                        "running_speed": 175.0,  # Updated speed
+                        "setup_time": "00:25",   # Updated time
+                        "pack_up_time": "00:15",
+                        "functions": [
+                            {
+                                "function_name": "Slitting",
+                                "rate_per_hour": 550.0  # Updated rate
+                            },
+                            {
+                                "function_name": "winding",
+                                "rate_per_hour": 325.0  # Updated rate
+                            }
+                        ]
+                    }
+                ]
+            }
+            
+            response = self.session.put(f"{API_BASE}/product-specifications/{spec_id}", json=update_data)
+            
+            if response.status_code == 200:
+                # Verify the update by retrieving the specification
+                get_response = self.session.get(f"{API_BASE}/product-specifications/{spec_id}")
+                
+                if get_response.status_code == 200:
+                    updated_spec = get_response.json()
+                    machinery = updated_spec.get('machinery', [])
+                    
+                    if machinery and len(machinery) == 1:
+                        machine = machinery[0]
+                        
+                        # Check updated values
+                        checks = [
+                            ("Machine Name", machine.get('machine_name') == "Updated Slitting Machine A"),
+                            ("Running Speed", machine.get('running_speed') == 175.0),
+                            ("Setup Time", machine.get('setup_time') == "00:25"),
+                            ("Function Rate", machine.get('functions', [{}])[0].get('rate_per_hour') == 550.0)
+                        ]
+                        
+                        passed_checks = [name for name, passed in checks if passed]
+                        failed_checks = [name for name, passed in checks if not passed]
+                        
+                        if len(passed_checks) == len(checks):
+                            self.log_result(
+                                "Machinery Product Specifications UPDATE", 
+                                True, 
+                                "Successfully updated machinery specifications",
+                                f"All fields updated correctly: {', '.join(passed_checks)}"
+                            )
+                            return True
+                        else:
+                            self.log_result(
+                                "Machinery Product Specifications UPDATE", 
+                                False, 
+                                f"Some fields not updated correctly",
+                                f"Failed: {failed_checks}, Passed: {passed_checks}"
+                            )
+                    else:
+                        self.log_result(
+                            "Machinery Product Specifications UPDATE", 
+                            False, 
+                            f"Expected 1 machine after update, got {len(machinery)}"
+                        )
+                else:
+                    self.log_result(
+                        "Machinery Product Specifications UPDATE", 
+                        False, 
+                        f"Failed to retrieve updated specification: {get_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Machinery Product Specifications UPDATE", 
+                    False, 
+                    f"Update failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Machinery Product Specifications UPDATE", False, f"Error: {str(e)}")
+        
+        return False
+    
+    def test_machinery_function_types_validation(self):
+        """Test that all required function types are supported"""
+        print("\n=== MACHINERY FUNCTION TYPES VALIDATION TEST ===")
+        
+        required_function_types = ["Slitting", "winding", "Cutting/Indexing", "splitting", "Packing", "Delivery Time"]
+        
+        try:
+            # Test each function type individually
+            for function_type in required_function_types:
+                spec_data = {
+                    "product_name": f"Test {function_type} Function",
+                    "product_type": "Spiral Paper Core",
+                    "specifications": {
+                        "internal_diameter": 40.0,
+                        "wall_thickness_required": 1.8
+                    },
+                    "material_layers": [],
+                    "machinery": [
+                        {
+                            "machine_name": f"Test {function_type} Machine",
+                            "running_speed": 100.0,
+                            "setup_time": "00:30",
+                            "pack_up_time": "00:15",
+                            "functions": [
+                                {
+                                    "function_name": function_type,
+                                    "rate_per_hour": 200.0
+                                }
+                            ]
+                        }
+                    ]
+                }
+                
+                response = self.session.post(f"{API_BASE}/product-specifications", json=spec_data)
+                
+                if response.status_code != 200:
+                    self.log_result(
+                        "Machinery Function Types Validation", 
+                        False, 
+                        f"Function type '{function_type}' not accepted",
+                        f"Status: {response.status_code}, Response: {response.text}"
+                    )
+                    return False
+            
+            self.log_result(
+                "Machinery Function Types Validation", 
+                True, 
+                f"All {len(required_function_types)} required function types are supported",
+                f"Tested: {', '.join(required_function_types)}"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result("Machinery Function Types Validation", False, f"Error: {str(e)}")
+        
+        return False
+    
+    def test_machinery_optional_fields(self):
+        """Test that optional fields in machinery work correctly"""
+        print("\n=== MACHINERY OPTIONAL FIELDS TEST ===")
+        
+        try:
+            # Test with minimal machinery data (only required fields)
+            spec_data = {
+                "product_name": "Test Minimal Machinery",
+                "product_type": "Spiral Paper Core",
+                "specifications": {
+                    "internal_diameter": 40.0,
+                    "wall_thickness_required": 1.8
+                },
+                "material_layers": [],
+                "machinery": [
+                    {
+                        "machine_name": "Minimal Machine",
+                        # running_speed, setup_time, pack_up_time are optional
+                        "functions": [
+                            {
+                                "function_name": "Slitting"
+                                # rate_per_hour is optional
+                            }
+                        ]
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/product-specifications", json=spec_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                spec_id = result.get('data', {}).get('id')
+                
+                if spec_id:
+                    # Retrieve and verify optional fields are handled correctly
+                    get_response = self.session.get(f"{API_BASE}/product-specifications/{spec_id}")
+                    
+                    if get_response.status_code == 200:
+                        spec = get_response.json()
+                        machinery = spec.get('machinery', [])
+                        
+                        if machinery:
+                            machine = machinery[0]
+                            function = machine.get('functions', [{}])[0]
+                            
+                            # Check that optional fields can be null/missing
+                            optional_checks = [
+                                ("Running Speed", machine.get('running_speed') is None or isinstance(machine.get('running_speed'), (int, float))),
+                                ("Setup Time", machine.get('setup_time') is None or isinstance(machine.get('setup_time'), str)),
+                                ("Pack Up Time", machine.get('pack_up_time') is None or isinstance(machine.get('pack_up_time'), str)),
+                                ("Rate Per Hour", function.get('rate_per_hour') is None or isinstance(function.get('rate_per_hour'), (int, float)))
+                            ]
+                            
+                            all_valid = all(valid for _, valid in optional_checks)
+                            
+                            if all_valid:
+                                self.log_result(
+                                    "Machinery Optional Fields", 
+                                    True, 
+                                    "Optional fields handled correctly (can be null or proper type)",
+                                    f"Machine name required, other fields optional"
+                                )
+                                return True
+                            else:
+                                failed_checks = [name for name, valid in optional_checks if not valid]
+                                self.log_result(
+                                    "Machinery Optional Fields", 
+                                    False, 
+                                    f"Optional field validation failed: {failed_checks}"
+                                )
+                        else:
+                            self.log_result(
+                                "Machinery Optional Fields", 
+                                False, 
+                                "No machinery data found in retrieved specification"
+                            )
+                    else:
+                        self.log_result(
+                            "Machinery Optional Fields", 
+                            False, 
+                            f"Failed to retrieve specification: {get_response.status_code}"
+                        )
+                else:
+                    self.log_result(
+                        "Machinery Optional Fields", 
+                        False, 
+                        "Response missing specification ID"
+                    )
+            else:
+                self.log_result(
+                    "Machinery Optional Fields", 
+                    False, 
+                    f"Failed to create specification with minimal machinery: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Machinery Optional Fields", False, f"Error: {str(e)}")
+        
+        return False
+    
+    def run_machinery_tests(self):
+        """Run comprehensive machinery functionality tests"""
+        print("\n" + "="*60)
+        print("MACHINERY SECTION TESTING")
+        print("="*60)
+        
+        # Test 1: Create product specification with machinery
+        spec_id = self.test_machinery_product_specifications_create()
+        
+        # Test 2: Retrieve and verify machinery data
+        if spec_id:
+            retrieved_spec = self.test_machinery_product_specifications_retrieve(spec_id)
+            
+            # Test 3: Update machinery data
+            self.test_machinery_product_specifications_update(spec_id)
+        
+        # Test 4: Validate all function types
+        self.test_machinery_function_types_validation()
+        
+        # Test 5: Test optional fields
+        self.test_machinery_optional_fields()
+    
     def test_role_permissions(self):
         """Test that invoicing endpoints require proper permissions"""
         print("\n=== ROLE PERMISSIONS TEST ===")
