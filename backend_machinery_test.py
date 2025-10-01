@@ -137,11 +137,11 @@ class MachineryBackendTester:
                         "pack_up_time": "00:10",
                         "functions": [
                             {
-                                "function_name": "Packing",
+                                "function": "Packing",
                                 "rate_per_hour": 250.0
                             },
                             {
-                                "function_name": "Delivery Time",
+                                "function": "Delivery Time",
                                 "rate_per_hour": 150.0
                             }
                         ]
