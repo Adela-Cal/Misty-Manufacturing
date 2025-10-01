@@ -710,6 +710,62 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
           </div>
         </div>
       )}
+
+      {/* Manager Selection Modal */}
+      {showManagerSelection && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowManagerSelection(false)}>
+          <div className="modal-content max-w-md">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <CheckCircleIcon className="h-8 w-8 text-green-400 mr-3" />
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Submit Timesheet</h3>
+                  <p className="text-sm text-gray-400">
+                    Select a manager to approve your timesheet
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-300 mb-3">Select Manager</label>
+                <select
+                  value={selectedManager}
+                  onChange={(e) => setSelectedManager(e.target.value)}
+                  className="misty-select w-full"
+                >
+                  <option value="">Choose a manager...</option>
+                  {managers.map((manager) => (
+                    <option key={manager.id} value={manager.id}>
+                      {manager.full_name} - {manager.role === 'admin' ? 'Administrator' : 'Manager'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowManagerSelection(false);
+                    setSelectedManager('');
+                  }}
+                  className="misty-button misty-button-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmSubmitToManager}
+                  disabled={!selectedManager || submitting}
+                  className="misty-button misty-button-primary"
+                >
+                  {submitting ? 'Submitting...' : 'Submit for Approval'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
