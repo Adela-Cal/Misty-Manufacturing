@@ -447,11 +447,11 @@ const ProductSpecifications = () => {
       if (formData.product_type === 'Spiral Paper Core') {
         submitData.specifications = {
           ...submitData.specifications,
-          internal_diameter: formData.internal_diameter,
-          wall_thickness_required: formData.wall_thickness_required,
-          selected_material_id: formData.selected_material_id,
-          layers_required: formData.layers_required,
-          layer_specifications: formData.layer_specifications
+          internal_diameter: parseFloat(formData.internal_diameter) || 0,
+          wall_thickness_required: parseFloat(formData.wall_thickness_required) || 0,
+          selected_material_id: formData.selected_material_id || null,
+          layers_required: formData.layers_required || null,
+          layer_specifications: formData.layer_specifications || null
         };
       }
       
