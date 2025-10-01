@@ -372,55 +372,204 @@ class TimesheetWorkflowTester:
             self.log_result("Approve Timesheet", False, f"Error: {str(e)}")
         
         return False
-    def create_test_order(self, client_id):
-        """Create a test order for invoice generation testing"""
+    def test_manager_selection_functionality(self, employee_id):
+        """Test manager selection functionality in timesheet workflow"""
+        print("\n=== MANAGER SELECTION FUNCTIONALITY TEST ===")
+        
         try:
-            order_data = {
-                "client_id": client_id,
-                "due_date": (datetime.now() + timedelta(days=14)).isoformat(),
-                "delivery_address": "456 Delivery Street, Melbourne VIC 3000",
-                "delivery_instructions": "Handle with care",
-                "notes": "Test order for invoicing",
-                "items": [
-                    {
-                        "product_id": "test-product-1",
-                        "product_name": "Test Product",
-                        "description": "Test product for invoicing",
-                        "quantity": 2,
-                        "unit_price": 100.0,
-                        "total_price": 200.0
-                    }
-                ]
-            }
-            
-            response = self.session.post(f"{API_BASE}/orders", json=order_data)
+            # First, get the employee profile to check if manager_id is set
+            response = self.session.get(f"{API_BASE}/payroll/employees/{employee_id}")
             
             if response.status_code == 200:
-                result = response.json()
-                order_id = result.get('data', {}).get('id')
+                employee = response.json()
+                manager_id = employee.get('manager_id')
                 
-                # Move order to delivery stage to make it ready for invoicing
-                if order_id:
-                    stage_update = {
-                        "order_id": order_id,
-                        "from_stage": "order_entered",
-                        "to_stage": "delivery",
-                        "updated_by": "test-user",
-                        "notes": "Moving to delivery for invoice testing"
-                    }
-                    
-                    stage_response = self.session.put(
-                        f"{API_BASE}/orders/{order_id}/stage", 
-                        json=stage_update
+                if manager_id:
+                    self.log_result(
+                        "Manager Selection - Employee Profile", 
+                        True, 
+                        f"Employee has manager assigned: {manager_id}"
                     )
-                    
-                    if stage_response.status_code == 200:
-                        return order_id
-                        
+                else:
+                    self.log_result(
+                        "Manager Selection - Employee Profile", 
+                        False, 
+                        "Employee does not have a manager assigned",
+                        "Manager selection may not be implemented in employee profile"
+                    )
+                
+                # Test if we can get manager information
+                if manager_id:
+                    manager_response = self.session.get(f"{API_BASE}/users/{manager_id}")
+                    if manager_response.status_code == 200:
+                        manager = manager_response.json()
+                        self.log_result(
+                            "Manager Selection - Manager Details", 
+                            True, 
+                            f"Successfully retrieved manager details: {manager.get('full_name')}"
+                        )
+                    else:
+                        self.log_result(
+                            "Manager Selection - Manager Details", 
+                            False, 
+                            f"Failed to retrieve manager details: {manager_response.status_code}"
+                        )
+                
+                return manager_id
+            else:
+                self.log_result(
+                    "Manager Selection - Employee Profile", 
+                    False, 
+                    f"Failed to retrieve employee profile: {response.status_code}",
+                    response.text
+                )
+                
         except Exception as e:
-            print(f"Error creating test order: {str(e)}")
+            self.log_result("Manager Selection Functionality", False, f"Error: {str(e)}")
         
         return None
+    
+    def test_timesheet_status_updates(self, timesheet_id):
+        """Test that timesheet status updates correctly through the workflow"""
+        print("\n=== TIMESHEET STATUS UPDATES TEST ===")
+        
+        try:
+            # Get timesheet and check status progression
+            response = self.session.get(f"{API_BASE}/payroll/timesheets/current-week/{self.test_employee_id}")
+            
+            if response.status_code == 200:
+                timesheet = response.json()
+                current_status = timesheet.get('status')
+                
+                # Check if status is 'approved' after our workflow
+                if current_status == 'approved':
+                    self.log_result(
+                        "Timesheet Status Updates", 
+                        True, 
+                        f"Timesheet status correctly updated to 'approved'",
+                        f"Status progression: draft → submitted → approved"
+                    )
+                    
+                    # Check if approval metadata is present
+                    approved_by = timesheet.get('approved_by')
+                    approved_at = timesheet.get('approved_at')
+                    
+                    if approved_by and approved_at:
+                        self.log_result(
+                            "Timesheet Approval Metadata", 
+                            True, 
+                            "Approval metadata correctly recorded",
+                            f"Approved by: {approved_by}, Approved at: {approved_at}"
+                        )
+                    else:
+                        self.log_result(
+                            "Timesheet Approval Metadata", 
+                            False, 
+                            "Missing approval metadata",
+                            f"approved_by: {approved_by}, approved_at: {approved_at}"
+                        )
+                        
+                elif current_status == 'submitted':
+                    self.log_result(
+                        "Timesheet Status Updates", 
+                        False, 
+                        "Timesheet is still in 'submitted' status - approval may have failed"
+                    )
+                else:
+                    self.log_result(
+                        "Timesheet Status Updates", 
+                        False, 
+                        f"Unexpected timesheet status: {current_status}"
+                    )
+            else:
+                self.log_result(
+                    "Timesheet Status Updates", 
+                    False, 
+                    f"Failed to retrieve timesheet: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Timesheet Status Updates", False, f"Error: {str(e)}")
+    
+    def test_payroll_system_integration(self, timesheet_id):
+        """Test integration with existing payroll system"""
+        print("\n=== PAYROLL SYSTEM INTEGRATION TEST ===")
+        
+        try:
+            # Check if payroll calculation was created after timesheet approval
+            # This would be in the payroll_calculations collection
+            # Since we don't have direct access, we'll test the employee leave balances update
+            
+            response = self.session.get(f"{API_BASE}/payroll/employees/{self.test_employee_id}/leave-balances")
+            
+            if response.status_code == 200:
+                leave_balances = response.json()
+                
+                # Check if leave balances are present and reasonable
+                annual_leave = leave_balances.get('annual_leave_balance', 0)
+                sick_leave = leave_balances.get('sick_leave_balance', 0)
+                
+                if annual_leave >= 0 and sick_leave >= 0:
+                    self.log_result(
+                        "Payroll System Integration - Leave Balances", 
+                        True, 
+                        "Leave balances are accessible and valid",
+                        f"Annual Leave: {annual_leave} hours, Sick Leave: {sick_leave} hours"
+                    )
+                else:
+                    self.log_result(
+                        "Payroll System Integration - Leave Balances", 
+                        False, 
+                        "Invalid leave balance values",
+                        f"Annual Leave: {annual_leave}, Sick Leave: {sick_leave}"
+                    )
+                
+                # Test payroll summary endpoint if available
+                try:
+                    from datetime import date
+                    today = date.today()
+                    start_date = today.replace(day=1)  # First day of month
+                    end_date = today
+                    
+                    summary_response = self.session.get(
+                        f"{API_BASE}/payroll/reports/payroll-summary?start_date={start_date}&end_date={end_date}"
+                    )
+                    
+                    if summary_response.status_code == 200:
+                        summary_data = summary_response.json()
+                        payroll_data = summary_data.get('data', {})
+                        
+                        self.log_result(
+                            "Payroll System Integration - Summary Report", 
+                            True, 
+                            "Payroll summary report accessible",
+                            f"Total employees: {payroll_data.get('employee_count', 0)}"
+                        )
+                    else:
+                        self.log_result(
+                            "Payroll System Integration - Summary Report", 
+                            False, 
+                            f"Payroll summary not accessible: {summary_response.status_code}"
+                        )
+                        
+                except Exception as summary_error:
+                    self.log_result(
+                        "Payroll System Integration - Summary Report", 
+                        False, 
+                        f"Error accessing payroll summary: {str(summary_error)}"
+                    )
+                    
+            else:
+                self.log_result(
+                    "Payroll System Integration", 
+                    False, 
+                    f"Failed to access leave balances: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Payroll System Integration", False, f"Error: {str(e)}")
     
     def test_invoice_generation_api(self, client_id):
         """Test POST /api/invoicing/generate/{job_id}"""
