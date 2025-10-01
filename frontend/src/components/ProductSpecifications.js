@@ -398,6 +398,27 @@ const ProductSpecifications = () => {
       newErrors.product_type = 'Product type is required';
     }
     
+    // Validate material layers - each layer must have required fields
+    formData.material_layers.forEach((layer, index) => {
+      const layerErrors = [];
+      
+      if (!layer.material_id || !layer.material_id.trim()) {
+        layerErrors.push('Material selection');
+      }
+      
+      if (!layer.layer_type || !layer.layer_type.trim()) {
+        layerErrors.push('Layer type');
+      }
+      
+      if (!layer.thickness || layer.thickness <= 0) {
+        layerErrors.push('Thickness');
+      }
+      
+      if (layerErrors.length > 0) {
+        newErrors[`material_layer_${index}`] = `Layer ${index + 1}: ${layerErrors.join(', ')} required`;
+      }
+    });
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
