@@ -399,6 +399,7 @@ class ProductSpecificationCreate(BaseModel):
     specifications: Dict[str, Any]
     materials_composition: List[Dict[str, Any]] = []
     material_layers: List[MaterialLayerAssignment] = []
+    machinery: List[MachinerySpec] = []
     manufacturing_notes: Optional[str] = None
     selected_thickness: Optional[float] = None
 
