@@ -397,7 +397,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Product Specifications CREATE 400 Bad Request Error Analysis"
     - "Complete Invoicing Workflow with Xero Integration"
     - "Xero Draft Invoice Creation"
     - "Invoice Generation with Archiving Integration"
