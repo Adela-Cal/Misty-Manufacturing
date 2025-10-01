@@ -92,6 +92,7 @@ class MachineryBackendTester:
                 "material_layers": [
                     {
                         "material_id": "test-material-001",
+                        "material_name": "Test Material",
                         "layer_type": "Outer Most Layer",
                         "thickness": 0.15,
                         "quantity": 2.0
@@ -287,6 +288,7 @@ class MachineryBackendTester:
                 "material_layers": [
                     {
                         "material_id": "test-material-001",
+                        "material_name": "Test Material",
                         "layer_type": "Outer Most Layer",
                         "thickness": 0.15,
                         "quantity": 2.0
