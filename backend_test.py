@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Enhanced Timesheet Workflow Functionality
-Tests the timesheet submission, approval, and manager selection features
+Backend API Testing Suite for Recently Implemented Features
+Tests machinery section in product specifications, timesheet workflow, and system stability
 """
 
 import requests
