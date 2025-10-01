@@ -159,6 +159,13 @@ export const apiHelpers = {
   updateUser: (userId, userData) => api.put(`/users/${userId}`, userData),
   deleteUser: (userId) => api.delete(`/users/${userId}`),
   changePassword: (passwordData) => api.post('/users/change-password', passwordData),
+  
+  // Machinery Rates
+  getMachineryRates: () => api.get('/machinery-rates'),
+  createMachineryRate: (data) => api.post('/machinery-rates', data),
+  getMachineryRate: (id) => api.get(`/machinery-rates/${id}`),
+  updateMachineryRate: (id, data) => api.put(`/machinery-rates/${id}`, data),
+  deleteMachineryRate: (id) => api.delete(`/machinery-rates/${id}`),
 };
 
 // File download helper
