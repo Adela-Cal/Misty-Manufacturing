@@ -18,6 +18,8 @@ const MaterialsManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [materialToDelete, setMaterialToDelete] = useState(null);
   const [formData, setFormData] = useState({
     supplier_id: '',  // Changed from supplier to supplier_id
     supplier_name: '',  // Keep for display purposes
