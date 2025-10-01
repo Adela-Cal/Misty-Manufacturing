@@ -984,6 +984,13 @@ const ProductSpecifications = () => {
                             />
                           </div>
                         </div>
+                        
+                        {/* Material Layer Error Display */}
+                        {errors[`material_layer_${index}`] && (
+                          <div className="mt-2 text-red-400 text-sm">
+                            {errors[`material_layer_${index}`]}
+                          </div>
+                        )}
                       </div>
                     ))}
                     
