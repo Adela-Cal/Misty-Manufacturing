@@ -23,6 +23,8 @@ const StaffSecurity = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [pendingTimesheets, setPendingTimesheets] = useState([]);
+  const [timesheetLoading, setTimesheetLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     email: '',
