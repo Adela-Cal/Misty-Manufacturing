@@ -365,6 +365,18 @@ class MaterialLayerAssignment(BaseModel):
     quantity: Optional[float] = None  # quantity/percentage if applicable
     notes: Optional[str] = None
 
+# Machinery Models for Product Specifications
+class MachineryFunction(BaseModel):
+    function: str  # "Slitting", "winding", "Cutting/Indexing", "splitting", "Packing", "Delivery Time"
+    rate_per_hour: Optional[float] = None  # $ rate per hour for this function
+
+class MachinerySpec(BaseModel):
+    machine_name: str
+    running_speed: Optional[float] = None  # Meters Per Minute
+    setup_time: Optional[str] = None  # Time in HH:MM format
+    pack_up_time: Optional[str] = None  # Time in HH:MM format
+    functions: List[MachineryFunction] = []  # Available functions for this machine
+
 class ProductSpecification(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     product_name: str
