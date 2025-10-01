@@ -445,7 +445,21 @@ const ProductSpecifications = () => {
       loadSpecifications();
     } catch (error) {
       console.error('Failed to save specification:', error);
-      const message = error.response?.data?.detail || 'Failed to save specification';
+      
+      let message = 'Failed to save specification';
+      if (error.response?.data?.detail) {
+        // Handle FastAPI validation errors (422 status)
+        if (Array.isArray(error.response.data.detail)) {
+          // Extract messages from validation error objects
+          message = error.response.data.detail
+            .map(err => err.msg || err.message || 'Validation error')
+            .join(', ');
+        } else if (typeof error.response.data.detail === 'string') {
+          // Handle simple string error messages
+          message = error.response.data.detail;
+        }
+      }
+      
       toast.error(message);
     }
   };
