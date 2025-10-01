@@ -1028,16 +1028,12 @@ const ProductSpecifications = () => {
                 )}
 
                 {/* Form Actions */}
-                <div className="sticky bottom-0 bg-gray-900 pt-6 border-t border-gray-700 mt-8">
+                <div className="pt-6 border-t border-gray-700">
                   <div className="flex items-center justify-end space-x-4">
                     {selectedSpec && (
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleDelete(selectedSpec);
-                        }}
+                        onClick={() => handleDelete(selectedSpec)}
                         className="misty-button misty-button-danger mr-auto"
                       >
                         <TrashIcon className="h-4 w-4 mr-2" />
