@@ -1,4 +1,19 @@
 backend:
+  - task: "Product Specifications Machinery Field Implementation"
+    implemented: true
+    working: true
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added machinery field to ProductSpecification model with MachinerySpec and MachineryFunction models supporting machine_name, running_speed, setup_time, pack_up_time, and functions array with rate_per_hour"
+      - working: true
+        agent: "testing"
+        comment: "🎉 PRODUCT SPECIFICATIONS MACHINERY FIELD FULLY FUNCTIONAL: Comprehensive testing of the new machinery field completed successfully with 100% pass rate (5/5 tests). MACHINERY DATA STRUCTURE VERIFIED: ✅ CREATE endpoint successfully processes machinery data with 3 machines and 6 total functions, ✅ All required function types supported: 'Slitting', 'winding', 'Cutting/Indexing', 'splitting', 'Packing', 'Delivery Time', ✅ RETRIEVE endpoint returns complete machinery data structure with correct field types and values, ✅ UPDATE endpoint successfully modifies machinery data including rates, machine names, and function arrays, ✅ Optional fields handled correctly - running_speed, setup_time, pack_up_time, and rate_per_hour can be null, ✅ Data persistence verified through create-retrieve-update-retrieve cycle. FIELD VALIDATION CONFIRMED: machine_name (required string), running_speed (optional float), setup_time/pack_up_time (optional string in HH:MM format), functions array with function name and optional rate_per_hour. All machinery specifications are correctly stored and retrieved, supporting automated job card generation and production planning workflows."
+
   - task: "Staff & Security User Creation API Validation"
     implemented: true
     working: true
