@@ -19,6 +19,8 @@ const ProductSpecifications = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedSpec, setSelectedSpec] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [specToDelete, setSpecToDelete] = useState(null);
   const [formData, setFormData] = useState({
     product_name: '',
     product_type: '',
