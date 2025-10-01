@@ -149,15 +149,18 @@ frontend:
 
   - task: "Product Specifications Delete Functionality and Button Layout"
     implemented: true
-    working: true
+    working: false
     file: "/app/frontend/src/components/ProductSpecifications.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "testing"
         comment: "✅ PRODUCT SPECIFICATIONS DELETE FUNCTIONALITY FULLY WORKING: Comprehensive testing completed successfully. Product Specifications page loads correctly, Actions column present in specifications table, 15 Edit (pencil) and 15 Delete (trash) icons found in table rows, Edit modal opens successfully when clicking pencil icon, CRITICAL SUCCESS: Delete Specification button is visible and properly positioned on the left with mr-auto class, Cancel and Update Specification buttons visible on the right, button layout and spacing verified as correct (Delete left, Cancel/Update right), confirmation dialog working perfectly with message 'Are you sure you want to delete the specification for Heavy Duty Spiral Paper Core (Updated)?'. All requested delete functionality and button layout improvements are working perfectly."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE IDENTIFIED: Frontend delete button UI interaction is failing despite backend working perfectly. BACKEND VERIFICATION: DELETE endpoint /api/product-specifications/{id} works correctly (tested via curl - successfully deleted specification and count reduced from 15 to 14). FRONTEND ISSUES: 1) Delete Specification button visible and positioned correctly (mr-auto class), 2) Confirmation dialog appears with correct message, 3) BUT button click action times out after dialog confirmation, 4) No DELETE request sent to backend from frontend, 5) Specification remains in UI list despite backend deletion working. ROOT CAUSE: JavaScript click handler or event listener issue preventing the actual API call after confirmation dialog. The delete functionality appears to work visually but fails to execute the backend request. User report confirmed - delete button not actually deleting specifications."
 
   - task: "Production Board Jumping Man Feature"
     implemented: true
