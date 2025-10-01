@@ -1224,6 +1224,21 @@ const ProductSpecifications = () => {
                                 <div>
                                   <label className="block text-xs font-medium text-gray-300 mb-1">
                                     Rate per Hour ($)
+                                    {machineryRates.find(rate => rate.function === func.function) && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const defaultRate = machineryRates.find(rate => rate.function === func.function);
+                                          if (defaultRate) {
+                                            handleMachineryFunctionChange(machineIndex, functionIndex, 'rate_per_hour', defaultRate.rate_per_hour);
+                                          }
+                                        }}
+                                        className="ml-2 text-xs text-blue-400 hover:text-blue-300"
+                                        title={`Apply default rate: $${machineryRates.find(rate => rate.function === func.function)?.rate_per_hour?.toFixed(2)}`}
+                                      >
+                                        (Use Default: ${machineryRates.find(rate => rate.function === func.function)?.rate_per_hour?.toFixed(2)})
+                                      </button>
+                                    )}
                                   </label>
                                   <input
                                     type="number"
