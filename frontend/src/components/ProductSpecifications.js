@@ -125,29 +125,37 @@ const ProductSpecifications = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (spec) => {
+  const handleDelete = (spec) => {
     console.log('handleDelete called with spec:', spec);
+    setSpecToDelete(spec);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!specToDelete) return;
     
-    const confirmed = window.confirm(`Are you sure you want to delete the specification for "${spec.product_name}"?`);
-    console.log('User confirmation:', confirmed);
-    
-    if (confirmed) {
-      console.log('Attempting to delete specification with ID:', spec.id);
-      try {
-        console.log('Calling API delete function...');
-        const result = await apiHelpers.deleteProductSpecification(spec.id);
-        console.log('API call result:', result);
-        
-        toast.success('Product specification deleted successfully');
-        setShowModal(false);
-        loadSpecifications();
-      } catch (error) {
-        console.error('Failed to delete specification:', error);
-        toast.error('Failed to delete specification');
-      }
-    } else {
-      console.log('User cancelled deletion');
+    console.log('Attempting to delete specification with ID:', specToDelete.id);
+    try {
+      console.log('Calling API delete function...');
+      const result = await apiHelpers.deleteProductSpecification(specToDelete.id);
+      console.log('API call result:', result);
+      
+      toast.success('Product specification deleted successfully');
+      setShowModal(false);
+      setShowDeleteConfirm(false);
+      setSpecToDelete(null);
+      loadSpecifications();
+    } catch (error) {
+      console.error('Failed to delete specification:', error);
+      toast.error('Failed to delete specification');
+      setShowDeleteConfirm(false);
+      setSpecToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setSpecToDelete(null);
   };
 
   const handleInputChange = (e) => {
