@@ -1017,7 +1017,11 @@ const ProductSpecifications = () => {
                     {selectedSpec && (
                       <button
                         type="button"
-                        onClick={() => handleDelete(selectedSpec)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDelete(selectedSpec);
+                        }}
                         className="misty-button misty-button-danger mr-auto"
                       >
                         <TrashIcon className="h-4 w-4 mr-2" />
