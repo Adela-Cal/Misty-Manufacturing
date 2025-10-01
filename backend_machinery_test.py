@@ -300,11 +300,11 @@ class MachineryBackendTester:
                         "pack_up_time": "00:15",
                         "functions": [
                             {
-                                "function_name": "Slitting",
+                                "function": "Slitting",
                                 "rate_per_hour": 550.0  # Updated rate
                             },
                             {
-                                "function_name": "winding",
+                                "function": "winding",
                                 "rate_per_hour": 325.0  # Updated rate
                             }
                         ]
