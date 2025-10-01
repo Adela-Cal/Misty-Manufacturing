@@ -334,6 +334,7 @@ test_plan:
     - "Complete Invoicing Workflow with Xero Integration"
     - "Xero Draft Invoice Creation"
     - "Invoice Generation with Archiving Integration"
+    - "Materials Management Tons Unit Option"
   stuck_tasks: 
     - "Order Creation with Client Product Dropdown Fix"
   test_all: false
