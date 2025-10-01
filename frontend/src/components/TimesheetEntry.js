@@ -28,6 +28,7 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
 
   useEffect(() => {
     loadTimesheet();
+    loadManagers();
   }, [employeeId]);
 
   useEffect(() => {
