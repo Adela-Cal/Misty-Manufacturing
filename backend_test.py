@@ -10296,8 +10296,8 @@ class InvoicingAPITester:
             self.log_result("Test Optional Machinery Fields", False, f"Error: {str(e)}")
 
     def run_all_tests(self):
-        """Run Product Specifications CREATE 400 Error Analysis"""
-        print("🚀 STARTING PRODUCT SPECIFICATIONS CREATE 400 ERROR ANALYSIS")
+        """Run Product Specifications Machinery Field Testing"""
+        print("🚀 STARTING PRODUCT SPECIFICATIONS MACHINERY FIELD TESTING")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 70)
         
@@ -10306,11 +10306,15 @@ class InvoicingAPITester:
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
         
-        # PRIMARY FOCUS: Test Product Specifications CREATE 400 error
+        # PRIMARY FOCUS: Test Product Specifications Machinery Field functionality
+        print("\n🔍 TESTING PRODUCT SPECIFICATIONS MACHINERY FIELD...")
+        self.test_product_specifications_machinery_field()
+        
+        # SECONDARY: Test Product Specifications CREATE 400 error (existing test)
         print("\n🔍 TESTING PRODUCT SPECIFICATIONS CREATE ENDPOINT...")
         self.test_product_specifications_create_400_error()
         
-        # SECONDARY: Test Staff & Security User Creation validation
+        # TERTIARY: Test Staff & Security User Creation validation
         print("\n🔍 TESTING STAFF & SECURITY USER CREATION...")
         validation_errors = self.test_staff_security_user_creation()
         
