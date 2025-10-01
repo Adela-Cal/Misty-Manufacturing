@@ -116,18 +116,32 @@ const MaterialsManagement = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (material) => {
-    if (window.confirm(`Are you sure you want to delete the material "${material.product_code}" from ${material.supplier}?`)) {
-      try {
-        await apiHelpers.deleteMaterial(material.id);
-        toast.success('Material deleted successfully');
-        setShowModal(false); // Close modal if deleting from within modal
-        loadMaterials();
-      } catch (error) {
-        console.error('Failed to delete material:', error);
-        toast.error('Failed to delete material');
-      }
+  const handleDelete = (material) => {
+    setMaterialToDelete(material);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!materialToDelete) return;
+    
+    try {
+      await apiHelpers.deleteMaterial(materialToDelete.id);
+      toast.success('Material deleted successfully');
+      setShowModal(false);
+      setShowDeleteConfirm(false);
+      setMaterialToDelete(null);
+      loadMaterials();
+    } catch (error) {
+      console.error('Failed to delete material:', error);
+      toast.error('Failed to delete material');
+      setShowDeleteConfirm(false);
+      setMaterialToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setMaterialToDelete(null);
   };
 
   const handleInputChange = (e) => {
