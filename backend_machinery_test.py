@@ -121,11 +121,11 @@ class MachineryBackendTester:
                         "pack_up_time": "00:20",
                         "functions": [
                             {
-                                "function_name": "Cutting/Indexing",
+                                "function": "Cutting/Indexing",
                                 "rate_per_hour": 400.0
                             },
                             {
-                                "function_name": "splitting",
+                                "function": "splitting",
                                 "rate_per_hour": 350.0
                             }
                         ]
