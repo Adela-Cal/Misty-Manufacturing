@@ -158,35 +158,44 @@ class TimesheetWorkflowTester:
         
         return None
     
-    def test_live_jobs_api(self):
-        """Test GET /api/invoicing/live-jobs"""
-        print("\n=== LIVE JOBS API TEST ===")
+    def test_get_current_week_timesheet(self, employee_id):
+        """Test GET /api/payroll/timesheets/current-week/{employee_id}"""
+        print("\n=== GET CURRENT WEEK TIMESHEET TEST ===")
         
         try:
-            response = self.session.get(f"{API_BASE}/invoicing/live-jobs")
+            response = self.session.get(f"{API_BASE}/payroll/timesheets/current-week/{employee_id}")
             
             if response.status_code == 200:
-                data = response.json()
-                jobs = data.get('data', [])
+                timesheet = response.json()
+                timesheet_id = timesheet.get('id')
                 
-                self.log_result(
-                    "Live Jobs API", 
-                    True, 
-                    f"Successfully retrieved {len(jobs)} live jobs ready for invoicing"
-                )
-                return jobs
+                if timesheet_id:
+                    self.test_timesheet_id = timesheet_id
+                    self.log_result(
+                        "Get Current Week Timesheet", 
+                        True, 
+                        f"Successfully retrieved/created timesheet with ID: {timesheet_id}",
+                        f"Week starting: {timesheet.get('week_starting')}, Status: {timesheet.get('status')}"
+                    )
+                    return timesheet
+                else:
+                    self.log_result(
+                        "Get Current Week Timesheet", 
+                        False, 
+                        "Timesheet response missing ID"
+                    )
             else:
                 self.log_result(
-                    "Live Jobs API", 
+                    "Get Current Week Timesheet", 
                     False, 
                     f"Failed with status {response.status_code}",
                     response.text
                 )
                 
         except Exception as e:
-            self.log_result("Live Jobs API", False, f"Error: {str(e)}")
+            self.log_result("Get Current Week Timesheet", False, f"Error: {str(e)}")
         
-        return []
+        return None
     
     def test_archived_jobs_api(self):
         """Test GET /api/invoicing/archived-jobs"""
