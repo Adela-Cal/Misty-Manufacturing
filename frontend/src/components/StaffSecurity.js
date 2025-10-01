@@ -217,7 +217,17 @@ const StaffSecurity = () => {
           toast.error('Failed to save user');
         }
       } else {
-        const message = error.response?.data?.detail || 'Failed to save user';
+        let message = 'Failed to save user';
+        if (error.response?.data?.detail) {
+          // Handle FastAPI validation errors that weren't caught by the 422 check above
+          if (Array.isArray(error.response.data.detail)) {
+            message = error.response.data.detail
+              .map(err => err.msg || err.message || 'Validation error')
+              .join(', ');
+          } else if (typeof error.response.data.detail === 'string') {
+            message = error.response.data.detail;
+          }
+        }
         toast.error(message);
       }
     }
