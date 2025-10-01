@@ -418,6 +418,10 @@ const ProductSpecifications = () => {
   };
 
   const addMachineryFunction = (machineIndex) => {
+    // Get default rate for Slitting function
+    const defaultRate = machineryRates.find(rate => rate.function === 'Slitting');
+    const defaultRateValue = defaultRate ? defaultRate.rate_per_hour : null;
+    
     setFormData(prev => ({
       ...prev,
       machinery: prev.machinery.map((machine, i) => 
@@ -425,7 +429,7 @@ const ProductSpecifications = () => {
           ...machine,
           functions: [
             ...machine.functions,
-            { function: 'Slitting', rate_per_hour: null }
+            { function: 'Slitting', rate_per_hour: defaultRateValue }
           ]
         } : machine
       )
