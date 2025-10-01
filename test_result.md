@@ -1,4 +1,19 @@
 backend:
+  - task: "Staff & Security User Creation API Validation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "User creation endpoint POST /api/users implemented with validation for username, email, password, full_name, role, employment_type, department, and phone fields"
+      - working: true
+        agent: "testing"
+        comment: "✅ STAFF & SECURITY USER CREATION VALIDATION FULLY ANALYZED: Comprehensive testing of POST /api/users endpoint completed successfully with 15 test scenarios (100% success rate). VALIDATION ERRORS IDENTIFIED: 7 specific 422 validation errors found and documented: 1) Missing username - 'Field required' for body.username, 2) Missing email - 'Field required' for body.email, 3) Invalid email format - 'value is not a valid email address: An email address must have an @-sign.', 4) Missing password - 'Field required' for body.password, 5) Missing full_name - 'Field required' for body.full_name, 6) Invalid role value - 'Input should be admin, production_manager, sales, production_team, manager or employee', 7) Invalid employment_type - 'Input should be full_time, part_time or casual'. DUPLICATE HANDLING: Username and email duplicates correctly return 400 status with appropriate error messages. VALID SCENARIOS: All valid user creation scenarios work perfectly including complete user data, different roles (admin, manager, employee, production_team), different employment types (full_time, part_time, casual), and minimal required fields only. The 422 errors are working as designed for proper validation - frontend needs to handle these validation error objects correctly by extracting the 'msg' field from each error in the detail array."
+
   - task: "Client Product Catalog Functionality"
     implemented: true
     working: true
