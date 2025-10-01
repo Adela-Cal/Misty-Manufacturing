@@ -355,7 +355,8 @@ const ProductSpecifications = () => {
 
   const calculateTotalThickness = () => {
     const total = formData.material_layers.reduce((sum, layer) => {
-      const thickness = parseFloat(layer.thickness) || 0;
+      // Only include layers that have actual thickness values (not null, not 0, not empty)
+      const thickness = layer.thickness && !isNaN(parseFloat(layer.thickness)) ? parseFloat(layer.thickness) : 0;
       const quantity = parseFloat(layer.quantity) || 1;  // Default quantity is 1 if not specified
       return sum + (thickness * quantity);
     }, 0);
