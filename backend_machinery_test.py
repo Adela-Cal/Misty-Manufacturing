@@ -453,7 +453,7 @@ class MachineryBackendTester:
                         # running_speed, setup_time, pack_up_time are optional
                         "functions": [
                             {
-                                "function_name": "Slitting"
+                                "function": "Slitting"
                                 # rate_per_hour is optional
                             }
                         ]
