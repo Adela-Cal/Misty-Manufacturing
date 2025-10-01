@@ -47,6 +47,7 @@ function AppRoutes() {
         <Route path="/products-materials" element={<MaterialsManagement />} />
         <Route path="/suppliers" element={<SuppliersManagement />} />
         <Route path="/product-specifications" element={<ProductSpecifications />} />
+        <Route path="/machinery-rates" element={<MachineryRates />} />
         <Route path="/calculators" element={<Calculators />} />
         <Route path="/stocktake" element={<Stocktake />} />
         <Route path="/payroll" element={<PayrollManagement />} />
