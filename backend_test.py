@@ -9482,6 +9482,391 @@ class InvoicingAPITester:
         
         return validation_errors_found
 
+    def test_product_specifications_create_400_error(self):
+        """Test Product Specifications CREATE endpoint to identify 400 Bad Request error"""
+        print("\n=== PRODUCT SPECIFICATIONS CREATE 400 ERROR ANALYSIS ===")
+        
+        # Test data structure from the screenshots
+        test_data = {
+            "product_name": "Paper Core - 40mm ID x 1.8mmT",
+            "product_type": "Spiral Paper Core",
+            "manufacturing_notes": "Paper cores intended for the Label Manufacturing Industry",
+            "specifications": {
+                "internal_diameter": 40,
+                "wall_thickness_required": 1.8
+            },
+            "material_layers": [
+                {
+                    "material_id": "test-material-1",
+                    "material_name": "Outer Layer Material",
+                    "layer_type": "Outer Most Layer",
+                    "thickness": 0.15,
+                    "quantity": 1
+                },
+                {
+                    "material_id": "test-material-2", 
+                    "material_name": "Central Layer Material",
+                    "layer_type": "Central Layer",
+                    "thickness": 0.54,
+                    "quantity": 3
+                },
+                {
+                    "material_id": "test-material-3",
+                    "material_name": "Outer Layer Material",
+                    "layer_type": "Outer Most Layer", 
+                    "thickness": 0.15,
+                    "quantity": 1
+                }
+            ]
+        }
+        
+        # Test 1: Full valid request
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=test_data)
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Product Specifications CREATE - Full Valid Request",
+                    True,
+                    "CREATE request successful with complete data structure"
+                )
+            elif response.status_code == 400:
+                self.log_result(
+                    "Product Specifications CREATE - Full Valid Request",
+                    False,
+                    f"400 Bad Request with complete data: {response.text}",
+                    f"Request data: {json.dumps(test_data, indent=2)}"
+                )
+            elif response.status_code == 422:
+                self.log_result(
+                    "Product Specifications CREATE - Full Valid Request",
+                    False,
+                    f"422 Validation Error (not 400): {response.text}",
+                    "This indicates validation issues, not structural problems"
+                )
+            else:
+                self.log_result(
+                    "Product Specifications CREATE - Full Valid Request",
+                    False,
+                    f"Unexpected status {response.status_code}: {response.text}"
+                )
+        except Exception as e:
+            self.log_result("Product Specifications CREATE - Full Valid Request", False, f"Exception: {str(e)}")
+        
+        # Test 2: Missing required fields (should cause 422, not 400)
+        minimal_data = {
+            "product_name": "Paper Core - 40mm ID x 1.8mmT"
+            # Missing product_type and specifications
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=minimal_data)
+            
+            if response.status_code == 422:
+                self.log_result(
+                    "Product Specifications CREATE - Missing Required Fields",
+                    True,
+                    "Correctly returns 422 for missing required fields (not 400)",
+                    f"Response: {response.text}"
+                )
+            elif response.status_code == 400:
+                self.log_result(
+                    "Product Specifications CREATE - Missing Required Fields",
+                    False,
+                    f"Returns 400 instead of expected 422 for validation: {response.text}",
+                    "This suggests structural issues in request handling"
+                )
+            else:
+                self.log_result(
+                    "Product Specifications CREATE - Missing Required Fields",
+                    False,
+                    f"Unexpected status {response.status_code}: {response.text}"
+                )
+        except Exception as e:
+            self.log_result("Product Specifications CREATE - Missing Required Fields", False, f"Exception: {str(e)}")
+        
+        # Test 3: Wrong data types (should cause 422, not 400)
+        wrong_types_data = {
+            "product_name": 123,  # Should be string
+            "product_type": "Spiral Paper Core",
+            "specifications": "not a dict",  # Should be dict
+            "material_layers": "not a list"  # Should be list
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=wrong_types_data)
+            
+            if response.status_code == 422:
+                self.log_result(
+                    "Product Specifications CREATE - Wrong Data Types",
+                    True,
+                    "Correctly returns 422 for wrong data types (not 400)",
+                    f"Response: {response.text}"
+                )
+            elif response.status_code == 400:
+                self.log_result(
+                    "Product Specifications CREATE - Wrong Data Types",
+                    False,
+                    f"Returns 400 instead of expected 422 for type validation: {response.text}",
+                    "This suggests JSON parsing or structural issues"
+                )
+            else:
+                self.log_result(
+                    "Product Specifications CREATE - Wrong Data Types",
+                    False,
+                    f"Unexpected status {response.status_code}: {response.text}"
+                )
+        except Exception as e:
+            self.log_result("Product Specifications CREATE - Wrong Data Types", False, f"Exception: {str(e)}")
+        
+        # Test 4: Malformed JSON (should cause 400)
+        try:
+            malformed_json = '{"product_name": "Test", "product_type": "Spiral Paper Core", "specifications": {'
+            response = self.session.post(
+                f"{API_BASE}/product-specifications", 
+                data=malformed_json,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code == 400:
+                self.log_result(
+                    "Product Specifications CREATE - Malformed JSON",
+                    True,
+                    "Correctly returns 400 for malformed JSON",
+                    f"Response: {response.text}"
+                )
+            else:
+                self.log_result(
+                    "Product Specifications CREATE - Malformed JSON",
+                    False,
+                    f"Expected 400 for malformed JSON but got {response.status_code}: {response.text}"
+                )
+        except Exception as e:
+            self.log_result("Product Specifications CREATE - Malformed JSON", False, f"Exception: {str(e)}")
+        
+        # Test 5: Invalid endpoint URL (should cause 404, not 400)
+        try:
+            response = self.session.post(f"{API_BASE}/product-specification", json=test_data)  # Missing 's'
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Product Specifications CREATE - Invalid Endpoint URL",
+                    True,
+                    "Correctly returns 404 for invalid endpoint (not 400)",
+                    f"Response: {response.text}"
+                )
+            elif response.status_code == 400:
+                self.log_result(
+                    "Product Specifications CREATE - Invalid Endpoint URL",
+                    False,
+                    f"Returns 400 instead of expected 404 for invalid URL: {response.text}",
+                    "This suggests routing issues"
+                )
+            else:
+                self.log_result(
+                    "Product Specifications CREATE - Invalid Endpoint URL",
+                    False,
+                    f"Unexpected status {response.status_code}: {response.text}"
+                )
+        except Exception as e:
+            self.log_result("Product Specifications CREATE - Invalid Endpoint URL", False, f"Exception: {str(e)}")
+        
+        # Test 6: Missing Content-Type header (should cause 400)
+        try:
+            response = self.session.post(
+                f"{API_BASE}/product-specifications", 
+                data=json.dumps(test_data)
+                # No Content-Type header
+            )
+            
+            if response.status_code == 400:
+                self.log_result(
+                    "Product Specifications CREATE - Missing Content-Type",
+                    True,
+                    "Correctly returns 400 for missing Content-Type header",
+                    f"Response: {response.text}"
+                )
+            elif response.status_code == 422:
+                self.log_result(
+                    "Product Specifications CREATE - Missing Content-Type",
+                    False,
+                    f"Returns 422 instead of expected 400 for missing Content-Type: {response.text}",
+                    "FastAPI may be handling this differently"
+                )
+            else:
+                self.log_result(
+                    "Product Specifications CREATE - Missing Content-Type",
+                    False,
+                    f"Unexpected status {response.status_code}: {response.text}"
+                )
+        except Exception as e:
+            self.log_result("Product Specifications CREATE - Missing Content-Type", False, f"Exception: {str(e)}")
+        
+        # Test 7: Authentication issues (should cause 401/403, not 400)
+        temp_session = requests.Session()
+        try:
+            response = temp_session.post(f"{API_BASE}/product-specifications", json=test_data)
+            
+            if response.status_code in [401, 403]:
+                self.log_result(
+                    "Product Specifications CREATE - No Authentication",
+                    True,
+                    f"Correctly returns {response.status_code} for missing authentication (not 400)",
+                    f"Response: {response.text}"
+                )
+            elif response.status_code == 400:
+                self.log_result(
+                    "Product Specifications CREATE - No Authentication",
+                    False,
+                    f"Returns 400 instead of expected 401/403 for auth issues: {response.text}",
+                    "This suggests authentication middleware issues"
+                )
+            else:
+                self.log_result(
+                    "Product Specifications CREATE - No Authentication",
+                    False,
+                    f"Unexpected status {response.status_code}: {response.text}"
+                )
+        except Exception as e:
+            self.log_result("Product Specifications CREATE - No Authentication", False, f"Exception: {str(e)}")
+        
+        # Test 8: Compare CREATE vs UPDATE endpoint structure
+        # First, try to get an existing specification to test UPDATE
+        try:
+            get_response = self.session.get(f"{API_BASE}/product-specifications")
+            
+            if get_response.status_code == 200:
+                specs = get_response.json()
+                if specs and len(specs) > 0:
+                    spec_id = specs[0]['id']
+                    
+                    # Test UPDATE with same data structure
+                    update_response = self.session.put(f"{API_BASE}/product-specifications/{spec_id}", json=test_data)
+                    
+                    if update_response.status_code == 200:
+                        self.log_result(
+                            "Product Specifications UPDATE vs CREATE Comparison",
+                            True,
+                            "UPDATE works with same data structure that might fail in CREATE",
+                            f"UPDATE successful, CREATE may have different validation"
+                        )
+                    elif update_response.status_code == 400:
+                        self.log_result(
+                            "Product Specifications UPDATE vs CREATE Comparison",
+                            False,
+                            f"Both CREATE and UPDATE return 400 with same data: {update_response.text}",
+                            "Issue is in data structure or validation logic"
+                        )
+                    elif update_response.status_code == 422:
+                        self.log_result(
+                            "Product Specifications UPDATE vs CREATE Comparison",
+                            False,
+                            f"UPDATE returns 422 while CREATE returns 400: {update_response.text}",
+                            "Different validation behavior between CREATE and UPDATE"
+                        )
+                    else:
+                        self.log_result(
+                            "Product Specifications UPDATE vs CREATE Comparison",
+                            False,
+                            f"UPDATE returns {update_response.status_code}: {update_response.text}"
+                        )
+                else:
+                    self.log_result(
+                        "Product Specifications UPDATE vs CREATE Comparison",
+                        False,
+                        "No existing specifications found to test UPDATE comparison"
+                    )
+            else:
+                self.log_result(
+                    "Product Specifications UPDATE vs CREATE Comparison",
+                    False,
+                    f"Failed to get existing specifications: {get_response.status_code}"
+                )
+        except Exception as e:
+            self.log_result("Product Specifications UPDATE vs CREATE Comparison", False, f"Exception: {str(e)}")
+        
+        # Test 9: Test with minimal valid data to isolate the issue
+        minimal_valid_data = {
+            "product_name": "Paper Core - 40mm ID x 1.8mmT",
+            "product_type": "Spiral Paper Core",
+            "specifications": {}
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=minimal_valid_data)
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Product Specifications CREATE - Minimal Valid Data",
+                    True,
+                    "CREATE works with minimal valid data - issue is with material_layers",
+                    f"Response: {response.text}"
+                )
+            elif response.status_code == 400:
+                self.log_result(
+                    "Product Specifications CREATE - Minimal Valid Data",
+                    False,
+                    f"400 error even with minimal data: {response.text}",
+                    "Issue is not with material_layers but with basic structure"
+                )
+            elif response.status_code == 422:
+                self.log_result(
+                    "Product Specifications CREATE - Minimal Valid Data",
+                    True,
+                    f"422 validation error with minimal data (expected): {response.text}",
+                    "Basic structure is correct, validation working properly"
+                )
+            else:
+                self.log_result(
+                    "Product Specifications CREATE - Minimal Valid Data",
+                    False,
+                    f"Unexpected status {response.status_code}: {response.text}"
+                )
+        except Exception as e:
+            self.log_result("Product Specifications CREATE - Minimal Valid Data", False, f"Exception: {str(e)}")
+        
+        # Test 10: Test material_layers structure specifically
+        material_layers_test_data = {
+            "product_name": "Paper Core - 40mm ID x 1.8mmT",
+            "product_type": "Spiral Paper Core", 
+            "specifications": {
+                "internal_diameter": 40,
+                "wall_thickness_required": 1.8
+            },
+            "material_layers": [
+                {
+                    "material_id": "missing-fields-test"
+                    # Missing required fields: material_name, layer_type, thickness
+                }
+            ]
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=material_layers_test_data)
+            
+            if response.status_code == 422:
+                self.log_result(
+                    "Product Specifications CREATE - Invalid Material Layers",
+                    True,
+                    f"422 validation error for invalid material_layers (expected): {response.text}",
+                    "material_layers validation working correctly"
+                )
+            elif response.status_code == 400:
+                self.log_result(
+                    "Product Specifications CREATE - Invalid Material Layers",
+                    False,
+                    f"400 error for invalid material_layers: {response.text}",
+                    "material_layers causing 400 instead of 422 - structural issue"
+                )
+            else:
+                self.log_result(
+                    "Product Specifications CREATE - Invalid Material Layers",
+                    False,
+                    f"Unexpected status {response.status_code}: {response.text}"
+                )
+        except Exception as e:
+            self.log_result("Product Specifications CREATE - Invalid Material Layers", False, f"Exception: {str(e)}")
+
     def run_all_tests(self):
         """Run Staff & Security API testing with focus on user creation validation"""
         print("🚀 STARTING STAFF & SECURITY API TESTING - USER CREATION VALIDATION")
