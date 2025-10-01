@@ -1073,6 +1073,171 @@ const ProductSpecifications = () => {
                   </div>
                 </div>
 
+                {/* Machinery Section */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white">Machinery</h3>
+                    <button
+                      type="button"
+                      onClick={addMachinery}
+                      className="misty-button misty-button-secondary flex items-center text-sm"
+                    >
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      Enter Machine
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    {formData.machinery.map((machine, machineIndex) => (
+                      <div key={machineIndex} className="p-6 bg-gray-800 rounded-lg">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-md font-medium text-white">Machine {machineIndex + 1}</h4>
+                          <button
+                            type="button"
+                            onClick={() => removeMachinery(machineIndex)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                        
+                        {/* Machine Basic Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Machine Name *
+                            </label>
+                            <input
+                              type="text"
+                              value={machine.machine_name}
+                              onChange={(e) => handleMachineryChange(machineIndex, 'machine_name', e.target.value)}
+                              className="misty-input w-full"
+                              placeholder="Enter machine name"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Running Speed (Meters Per Minute)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={machine.running_speed || ''}
+                              onChange={(e) => handleMachineryChange(machineIndex, 'running_speed', e.target.value ? parseFloat(e.target.value) : null)}
+                              className="misty-input w-full"
+                              placeholder="0.0"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Set up Time
+                            </label>
+                            <input
+                              type="time"
+                              value={machine.setup_time}
+                              onChange={(e) => handleMachineryChange(machineIndex, 'setup_time', e.target.value)}
+                              className="misty-input w-full"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Pack up Time
+                            </label>
+                            <input
+                              type="time"
+                              value={machine.pack_up_time}
+                              onChange={(e) => handleMachineryChange(machineIndex, 'pack_up_time', e.target.value)}
+                              className="misty-input w-full"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Functions Section */}
+                        <div className="border-t border-gray-700 pt-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h5 className="text-sm font-medium text-white">Functions & Rates</h5>
+                            <button
+                              type="button"
+                              onClick={() => addMachineryFunction(machineIndex)}
+                              className="misty-button misty-button-secondary text-xs flex items-center"
+                            >
+                              <PlusIcon className="h-3 w-3 mr-1" />
+                              Add Function
+                            </button>
+                          </div>
+
+                          <div className="space-y-3">
+                            {machine.functions.map((func, functionIndex) => (
+                              <div key={functionIndex} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-300 mb-1">
+                                    Function
+                                  </label>
+                                  <select
+                                    value={func.function}
+                                    onChange={(e) => handleMachineryFunctionChange(machineIndex, functionIndex, 'function', e.target.value)}
+                                    className="misty-select w-full text-sm"
+                                  >
+                                    <option value="Slitting">Slitting</option>
+                                    <option value="winding">Winding</option>
+                                    <option value="Cutting/Indexing">Cutting/Indexing</option>
+                                    <option value="splitting">Splitting</option>
+                                    <option value="Packing">Packing</option>
+                                    <option value="Delivery Time">Delivery Time</option>
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-300 mb-1">
+                                    Rate per Hour ($)
+                                  </label>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={func.rate_per_hour || ''}
+                                    onChange={(e) => handleMachineryFunctionChange(machineIndex, functionIndex, 'rate_per_hour', e.target.value ? parseFloat(e.target.value) : null)}
+                                    className="misty-input w-full text-sm"
+                                    placeholder="0.00"
+                                  />
+                                </div>
+
+                                <div className="flex items-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => removeMachineryFunction(machineIndex, functionIndex)}
+                                    className="text-red-400 hover:text-red-300 p-2"
+                                  >
+                                    <MinusIcon className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            {machine.functions.length === 0 && (
+                              <div className="text-center py-4 text-gray-400 text-sm">
+                                <p>No functions added yet.</p>
+                                <p className="text-xs">Click "Add Function" to add machine functions and rates.</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {formData.machinery.length === 0 && (
+                      <div className="text-center py-8 text-gray-400">
+                        <p>No machinery added yet.</p>
+                        <p className="text-sm">Click "Enter Machine" to add machinery specifications for the job card/run sheet.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Calculated Thickness Display and Selection */}
                 {calculatedThickness > 0 && (
                   <div className="mb-8">
