@@ -509,6 +509,7 @@ const ProductSpecifications = () => {
         specifications: formData.specifications || {},
         materials_composition: [],  // Keep empty for now
         material_layers: cleanMaterialLayers,
+        machinery: formData.machinery || [],  // Include machinery data
         manufacturing_notes: formData.manufacturing_notes || '',
         selected_thickness: formData.selected_thickness || calculatedThickness
       };
