@@ -436,10 +436,10 @@ const ProductSpecifications = () => {
       let submitData = {
         product_name: formData.product_name,
         product_type: formData.product_type,
-        specifications: { ...formData.specifications },
-        materials_composition: formData.materials_composition,
-        material_layers: formData.material_layers,  // Include new enhanced material layers
-        manufacturing_notes: formData.manufacturing_notes,
+        specifications: formData.specifications || {},  // Ensure specifications is always an object
+        materials_composition: formData.materials_composition || [],
+        material_layers: formData.material_layers || [],  // Include new enhanced material layers
+        manufacturing_notes: formData.manufacturing_notes || '',
         selected_thickness: formData.selected_thickness  // Include user-selected thickness
       };
 
