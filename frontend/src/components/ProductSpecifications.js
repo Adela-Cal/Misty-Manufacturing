@@ -69,6 +69,16 @@ const ProductSpecifications = () => {
     }
   };
 
+  const loadMachineryRates = async () => {
+    try {
+      const response = await apiHelpers.getMachineryRates();
+      setMachineryRates(response.data);
+    } catch (error) {
+      console.error('Failed to load machinery rates:', error);
+      // Don't show error toast for machinery rates as they're optional
+    }
+  };
+
   const loadSpecifications = async () => {
     try {
       setLoading(true);
