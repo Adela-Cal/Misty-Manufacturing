@@ -427,7 +427,8 @@ const ProductSpecifications = () => {
     e.preventDefault();
     
     if (!validateForm()) {
-      toast.error('Please fix the errors below');
+      const errorCount = Object.keys(errors).length;
+      toast.error(`Please fix the ${errorCount} validation error${errorCount > 1 ? 's' : ''} below`);
       return;
     }
     
