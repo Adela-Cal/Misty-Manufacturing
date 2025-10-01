@@ -455,6 +455,9 @@ const ProductSpecifications = () => {
         };
       }
       
+      // Debug: Log the exact data being sent to identify 400 error cause
+      console.log('Submitting data:', JSON.stringify(submitData, null, 2));
+      
       if (selectedSpec) {
         await apiHelpers.updateProductSpecification(selectedSpec.id, submitData);
         toast.success('Product specification updated successfully');
