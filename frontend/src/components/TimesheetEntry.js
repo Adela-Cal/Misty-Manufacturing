@@ -277,16 +277,28 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
       return;
     }
     
+    // Show manager selection modal
+    setShowManagerSelection(true);
+  };
+
+  const confirmSubmitToManager = async () => {
+    if (!selectedManager) {
+      toast.error('Please select a manager');
+      return;
+    }
+    
     try {
       setSubmitting(true);
       
       // Save first if there are changes
       await handleSave();
       
-      // Then submit for approval
+      // Then submit for approval to selected manager
       if (timesheet?.id) {
         await payrollApi.submitTimesheet(timesheet.id);
-        toast.success('Timesheet submitted for approval');
+        toast.success(`Timesheet submitted to ${managers.find(m => m.id === selectedManager)?.full_name} for approval`);
+        setShowManagerSelection(false);
+        setSelectedManager('');
         onClose?.();
       }
       
