@@ -15,6 +15,7 @@ const ProductSpecifications = () => {
   const [specifications, setSpecifications] = useState([]);
   const [materials, setMaterials] = useState([]);  // Materials from Products & Materials
   const [products, setProducts] = useState([]);   // Products from Products & Materials
+  const [machineryRates, setMachineryRates] = useState([]);  // Default machinery rates
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
