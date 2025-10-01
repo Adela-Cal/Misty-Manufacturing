@@ -9867,6 +9867,434 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result("Product Specifications CREATE - Invalid Material Layers", False, f"Exception: {str(e)}")
 
+    def test_product_specifications_machinery_field(self):
+        """Test the new machinery field functionality in Product Specifications"""
+        print("\n=== PRODUCT SPECIFICATIONS MACHINERY FIELD TEST ===")
+        
+        # Test 1: Create Product Specification with Machinery Data
+        machinery_spec_data = {
+            "product_name": "Test Paper Core with Machinery",
+            "product_type": "Spiral Paper Core",
+            "specifications": {
+                "internal_diameter": 40.0,
+                "wall_thickness_required": 1.8,
+                "core_length": 1000.0
+            },
+            "manufacturing_notes": "Test specification with machinery data for automated job card generation",
+            "machinery": [
+                {
+                    "machine_name": "Slitting Machine A1",
+                    "running_speed": 150.5,
+                    "setup_time": "00:30",
+                    "pack_up_time": "00:15",
+                    "functions": [
+                        {"function": "Slitting", "rate_per_hour": 85.0},
+                        {"function": "Cutting/Indexing", "rate_per_hour": 75.0}
+                    ]
+                },
+                {
+                    "machine_name": "Winding Station B2",
+                    "running_speed": 200.0,
+                    "setup_time": "00:20",
+                    "pack_up_time": "00:10",
+                    "functions": [
+                        {"function": "winding", "rate_per_hour": 90.0},
+                        {"function": "Packing", "rate_per_hour": 65.0}
+                    ]
+                },
+                {
+                    "machine_name": "Delivery Unit C1",
+                    "functions": [
+                        {"function": "Delivery Time", "rate_per_hour": 50.0},
+                        {"function": "splitting", "rate_per_hour": 70.0}
+                    ]
+                }
+            ]
+        }
+        
+        created_spec_id = None
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=machinery_spec_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                created_spec_id = result.get('data', {}).get('id')
+                
+                if created_spec_id:
+                    self.log_result(
+                        "Create Product Specification with Machinery", 
+                        True, 
+                        f"Successfully created product specification with machinery data",
+                        f"Spec ID: {created_spec_id}, Machines: 3, Total Functions: 6"
+                    )
+                else:
+                    self.log_result(
+                        "Create Product Specification with Machinery", 
+                        False, 
+                        "Product specification creation response missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Create Product Specification with Machinery", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Create Product Specification with Machinery", False, f"Error: {str(e)}")
+        
+        # Test 2: Retrieve and Verify Machinery Data Structure
+        if created_spec_id:
+            try:
+                response = self.session.get(f"{API_BASE}/product-specifications/{created_spec_id}")
+                
+                if response.status_code == 200:
+                    spec = response.json()
+                    machinery = spec.get('machinery', [])
+                    
+                    # Verify machinery structure
+                    if len(machinery) == 3:
+                        # Check first machine (Slitting Machine A1)
+                        machine1 = machinery[0]
+                        machine1_valid = (
+                            machine1.get('machine_name') == "Slitting Machine A1" and
+                            machine1.get('running_speed') == 150.5 and
+                            machine1.get('setup_time') == "00:30" and
+                            machine1.get('pack_up_time') == "00:15" and
+                            len(machine1.get('functions', [])) == 2
+                        )
+                        
+                        # Check functions for machine1
+                        functions1 = machine1.get('functions', [])
+                        slitting_func = next((f for f in functions1 if f.get('function') == 'Slitting'), None)
+                        cutting_func = next((f for f in functions1 if f.get('function') == 'Cutting/Indexing'), None)
+                        
+                        functions1_valid = (
+                            slitting_func and slitting_func.get('rate_per_hour') == 85.0 and
+                            cutting_func and cutting_func.get('rate_per_hour') == 75.0
+                        )
+                        
+                        # Check second machine (Winding Station B2)
+                        machine2 = machinery[1]
+                        machine2_valid = (
+                            machine2.get('machine_name') == "Winding Station B2" and
+                            machine2.get('running_speed') == 200.0 and
+                            len(machine2.get('functions', [])) == 2
+                        )
+                        
+                        # Check third machine (Delivery Unit C1) - no running speed/times
+                        machine3 = machinery[2]
+                        machine3_valid = (
+                            machine3.get('machine_name') == "Delivery Unit C1" and
+                            machine3.get('running_speed') is None and
+                            len(machine3.get('functions', [])) == 2
+                        )
+                        
+                        if machine1_valid and functions1_valid and machine2_valid and machine3_valid:
+                            self.log_result(
+                                "Retrieve and Verify Machinery Data Structure", 
+                                True, 
+                                "Machinery data structure matches expected format perfectly",
+                                f"All 3 machines with correct fields, 6 total functions with rates"
+                            )
+                        else:
+                            validation_issues = []
+                            if not machine1_valid: validation_issues.append("Machine1 structure invalid")
+                            if not functions1_valid: validation_issues.append("Machine1 functions invalid")
+                            if not machine2_valid: validation_issues.append("Machine2 structure invalid")
+                            if not machine3_valid: validation_issues.append("Machine3 structure invalid")
+                            
+                            self.log_result(
+                                "Retrieve and Verify Machinery Data Structure", 
+                                False, 
+                                "Machinery data structure validation failed",
+                                f"Issues: {', '.join(validation_issues)}"
+                            )
+                    else:
+                        self.log_result(
+                            "Retrieve and Verify Machinery Data Structure", 
+                            False, 
+                            f"Expected 3 machines but found {len(machinery)}",
+                            f"Machinery array length: {len(machinery)}"
+                        )
+                else:
+                    self.log_result(
+                        "Retrieve and Verify Machinery Data Structure", 
+                        False, 
+                        f"Failed to retrieve specification: {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Retrieve and Verify Machinery Data Structure", False, f"Error: {str(e)}")
+        
+        # Test 3: Update Specification to Modify Machinery Data
+        if created_spec_id:
+            updated_machinery_data = {
+                "product_name": "Updated Paper Core with Modified Machinery",
+                "product_type": "Spiral Paper Core",
+                "specifications": {
+                    "internal_diameter": 45.0,  # Updated diameter
+                    "wall_thickness_required": 2.0,  # Updated thickness
+                    "core_length": 1200.0  # Updated length
+                },
+                "manufacturing_notes": "Updated specification with modified machinery rates and new machine",
+                "machinery": [
+                    {
+                        "machine_name": "Slitting Machine A1",
+                        "running_speed": 175.0,  # Updated speed
+                        "setup_time": "00:25",  # Updated time
+                        "pack_up_time": "00:12",  # Updated time
+                        "functions": [
+                            {"function": "Slitting", "rate_per_hour": 95.0},  # Updated rate
+                            {"function": "Cutting/Indexing", "rate_per_hour": 80.0}  # Updated rate
+                        ]
+                    },
+                    {
+                        "machine_name": "Advanced Winding Station B3",  # New machine name
+                        "running_speed": 250.0,  # Updated speed
+                        "setup_time": "00:15",
+                        "pack_up_time": "00:08",
+                        "functions": [
+                            {"function": "winding", "rate_per_hour": 110.0},  # Updated rate
+                            {"function": "Packing", "rate_per_hour": 75.0},  # Updated rate
+                            {"function": "splitting", "rate_per_hour": 85.0}  # New function
+                        ]
+                    }
+                    # Removed third machine to test array modification
+                ]
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/product-specifications/{created_spec_id}", json=updated_machinery_data)
+                
+                if response.status_code == 200:
+                    # Verify the update by retrieving the specification
+                    get_response = self.session.get(f"{API_BASE}/product-specifications/{created_spec_id}")
+                    
+                    if get_response.status_code == 200:
+                        updated_spec = get_response.json()
+                        updated_machinery = updated_spec.get('machinery', [])
+                        
+                        # Verify updates
+                        if len(updated_machinery) == 2:  # Should now have 2 machines
+                            machine1 = updated_machinery[0]
+                            machine2 = updated_machinery[1]
+                            
+                            # Check updated values
+                            machine1_updated = (
+                                machine1.get('running_speed') == 175.0 and
+                                machine1.get('setup_time') == "00:25" and
+                                machine1.get('functions', [])[0].get('rate_per_hour') == 95.0
+                            )
+                            
+                            machine2_updated = (
+                                machine2.get('machine_name') == "Advanced Winding Station B3" and
+                                machine2.get('running_speed') == 250.0 and
+                                len(machine2.get('functions', [])) == 3  # Now has 3 functions
+                            )
+                            
+                            if machine1_updated and machine2_updated:
+                                self.log_result(
+                                    "Update Specification Machinery Data", 
+                                    True, 
+                                    "Successfully updated machinery data with modified rates and structure",
+                                    f"Updated to 2 machines, modified rates, added new function"
+                                )
+                            else:
+                                self.log_result(
+                                    "Update Specification Machinery Data", 
+                                    False, 
+                                    "Machinery update validation failed",
+                                    f"Machine1 valid: {machine1_updated}, Machine2 valid: {machine2_updated}"
+                                )
+                        else:
+                            self.log_result(
+                                "Update Specification Machinery Data", 
+                                False, 
+                                f"Expected 2 machines after update but found {len(updated_machinery)}"
+                            )
+                    else:
+                        self.log_result(
+                            "Update Specification Machinery Data", 
+                            False, 
+                            "Failed to retrieve updated specification for verification"
+                        )
+                else:
+                    self.log_result(
+                        "Update Specification Machinery Data", 
+                        False, 
+                        f"Update failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("Update Specification Machinery Data", False, f"Error: {str(e)}")
+        
+        # Test 4: Verify All Required Function Types
+        function_types_test_data = {
+            "product_name": "Complete Function Types Test",
+            "product_type": "Paper Core",
+            "specifications": {"test": "complete_functions"},
+            "machinery": [
+                {
+                    "machine_name": "Multi-Function Production Line",
+                    "running_speed": 180.0,
+                    "setup_time": "00:45",
+                    "pack_up_time": "00:20",
+                    "functions": [
+                        {"function": "Slitting", "rate_per_hour": 100.0},
+                        {"function": "winding", "rate_per_hour": 95.0},
+                        {"function": "Cutting/Indexing", "rate_per_hour": 85.0},
+                        {"function": "splitting", "rate_per_hour": 80.0},
+                        {"function": "Packing", "rate_per_hour": 70.0},
+                        {"function": "Delivery Time", "rate_per_hour": 60.0}
+                    ]
+                }
+            ]
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=function_types_test_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                function_test_spec_id = result.get('data', {}).get('id')
+                
+                if function_test_spec_id:
+                    # Verify all function types are present
+                    get_response = self.session.get(f"{API_BASE}/product-specifications/{function_test_spec_id}")
+                    
+                    if get_response.status_code == 200:
+                        spec = get_response.json()
+                        functions = spec.get('machinery', [{}])[0].get('functions', [])
+                        
+                        expected_functions = ["Slitting", "winding", "Cutting/Indexing", "splitting", "Packing", "Delivery Time"]
+                        found_functions = [f.get('function') for f in functions]
+                        
+                        all_functions_present = all(func in found_functions for func in expected_functions)
+                        
+                        if all_functions_present and len(functions) == 6:
+                            self.log_result(
+                                "Verify All Required Function Types", 
+                                True, 
+                                "All 6 required function types successfully stored and retrieved",
+                                f"Functions: {', '.join(found_functions)}"
+                            )
+                        else:
+                            missing_functions = [func for func in expected_functions if func not in found_functions]
+                            self.log_result(
+                                "Verify All Required Function Types", 
+                                False, 
+                                f"Missing or incorrect function types",
+                                f"Expected: {expected_functions}, Found: {found_functions}, Missing: {missing_functions}"
+                            )
+                    else:
+                        self.log_result(
+                            "Verify All Required Function Types", 
+                            False, 
+                            "Failed to retrieve specification for function verification"
+                        )
+                else:
+                    self.log_result(
+                        "Verify All Required Function Types", 
+                        False, 
+                        "Function types test specification creation missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Verify All Required Function Types", 
+                    False, 
+                    f"Failed to create function types test specification: {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Verify All Required Function Types", False, f"Error: {str(e)}")
+        
+        # Test 5: Test Optional Fields (machine without running_speed, setup_time, pack_up_time)
+        minimal_machinery_data = {
+            "product_name": "Minimal Machinery Configuration",
+            "product_type": "Paper Core",
+            "specifications": {"test": "minimal_machinery"},
+            "machinery": [
+                {
+                    "machine_name": "Basic Processing Unit",
+                    # No running_speed, setup_time, pack_up_time (all optional)
+                    "functions": [
+                        {"function": "Packing"},  # No rate_per_hour (optional)
+                        {"function": "Delivery Time", "rate_per_hour": 45.0}
+                    ]
+                }
+            ]
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/product-specifications", json=minimal_machinery_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                minimal_spec_id = result.get('data', {}).get('id')
+                
+                if minimal_spec_id:
+                    # Verify minimal configuration works
+                    get_response = self.session.get(f"{API_BASE}/product-specifications/{minimal_spec_id}")
+                    
+                    if get_response.status_code == 200:
+                        spec = get_response.json()
+                        machine = spec.get('machinery', [{}])[0]
+                        
+                        # Verify optional fields are handled correctly
+                        optional_fields_correct = (
+                            machine.get('machine_name') == "Basic Processing Unit" and
+                            machine.get('running_speed') is None and
+                            machine.get('setup_time') is None and
+                            machine.get('pack_up_time') is None and
+                            len(machine.get('functions', [])) == 2
+                        )
+                        
+                        # Check function with no rate
+                        packing_func = next((f for f in machine.get('functions', []) if f.get('function') == 'Packing'), None)
+                        delivery_func = next((f for f in machine.get('functions', []) if f.get('function') == 'Delivery Time'), None)
+                        
+                        functions_correct = (
+                            packing_func and packing_func.get('rate_per_hour') is None and
+                            delivery_func and delivery_func.get('rate_per_hour') == 45.0
+                        )
+                        
+                        if optional_fields_correct and functions_correct:
+                            self.log_result(
+                                "Test Optional Machinery Fields", 
+                                True, 
+                                "Optional fields handled correctly - null values preserved",
+                                f"Machine with minimal config and mixed function rates"
+                            )
+                        else:
+                            self.log_result(
+                                "Test Optional Machinery Fields", 
+                                False, 
+                                "Optional fields validation failed",
+                                f"Fields correct: {optional_fields_correct}, Functions correct: {functions_correct}"
+                            )
+                    else:
+                        self.log_result(
+                            "Test Optional Machinery Fields", 
+                            False, 
+                            "Failed to retrieve minimal machinery specification"
+                        )
+                else:
+                    self.log_result(
+                        "Test Optional Machinery Fields", 
+                        False, 
+                        "Minimal machinery specification creation missing ID"
+                    )
+            else:
+                self.log_result(
+                    "Test Optional Machinery Fields", 
+                    False, 
+                    f"Failed to create minimal machinery specification: {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Test Optional Machinery Fields", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run Product Specifications CREATE 400 Error Analysis"""
         print("🚀 STARTING PRODUCT SPECIFICATIONS CREATE 400 ERROR ANALYSIS")
