@@ -355,37 +355,18 @@ const ProductSpecifications = () => {
 
   const calculateTotalThickness = () => {
     const total = formData.material_layers.reduce((sum, layer) => {
-      // Only include layers that have actual thickness values (not null, not 0, not empty)
-      const thickness = layer.thickness && !isNaN(parseFloat(layer.thickness)) ? parseFloat(layer.thickness) : 0;
-      const quantity = parseFloat(layer.quantity) || 1;  // Default quantity is 1 if not specified
+      const thickness = parseFloat(layer.thickness) || 0;
+      const quantity = parseFloat(layer.quantity) || 1;
       return sum + (thickness * quantity);
     }, 0);
     
     setCalculatedThickness(total);
     
-    // Generate thickness options (±5%, ±10%, exact)
-    const options = [];
-    if (total > 0) {
-      options.push(
-        Math.round(total * 0.90 * 1000) / 1000,  // -10%
-        Math.round(total * 0.95 * 1000) / 1000,  // -5%
-        Math.round(total * 1000) / 1000,         // Exact
-        Math.round(total * 1.05 * 1000) / 1000,  // +5%
-        Math.round(total * 1.10 * 1000) / 1000   // +10%
-      );
-    }
-    
-    // Remove duplicates and sort
-    const uniqueOptions = [...new Set(options)].sort((a, b) => a - b);
-    setThicknessOptions(uniqueOptions);
-    
-    // Auto-select the exact thickness if not already selected
-    if (!formData.selected_thickness && total > 0) {
-      setFormData(prev => ({
-        ...prev,
-        selected_thickness: Math.round(total * 1000) / 1000
-      }));
-    }
+    // Auto-set the selected thickness to the calculated value
+    setFormData(prev => ({
+      ...prev,
+      selected_thickness: Math.round(total * 1000) / 1000
+    }));
   };
 
   const validateForm = () => {
