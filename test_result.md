@@ -394,10 +394,10 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Product Specifications CREATE 400 Bad Request Error Analysis"
     - "Complete Invoicing Workflow with Xero Integration"
     - "Xero Draft Invoice Creation"
     - "Invoice Generation with Archiving Integration"
-    - "Materials Management Tons Unit Option"
   stuck_tasks: 
     - "Order Creation with Client Product Dropdown Fix"
   test_all: false
