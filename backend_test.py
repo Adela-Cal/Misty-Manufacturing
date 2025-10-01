@@ -79,77 +79,82 @@ class TimesheetWorkflowTester:
             self.log_result("Authentication", False, f"Authentication error: {str(e)}")
             return False
     
-    def test_client_model_updates(self):
-        """Test client creation/update with payment_terms and lead_time_days"""
-        print("\n=== CLIENT MODEL UPDATES TEST ===")
+    def create_test_employee(self):
+        """Create a test employee for timesheet testing"""
+        print("\n=== CREATE TEST EMPLOYEE ===")
         
         try:
-            # Test client creation with new fields
-            client_data = {
-                "company_name": "Test Invoicing Client",
-                "contact_name": "John Doe",
-                "email": "john@testclient.com",
-                "phone": "0412345678",
-                "address": "123 Test Street",
-                "city": "Melbourne",
-                "state": "VIC",
-                "postal_code": "3000",
-                "abn": "12345678901",
-                "payment_terms": "Net 14 days",
-                "lead_time_days": 10
+            # First create a user account for the employee
+            user_data = {
+                "username": "test_employee",
+                "email": "test.employee@testcompany.com",
+                "password": "TestPass123!",
+                "full_name": "Test Employee",
+                "role": "employee",
+                "employment_type": "full_time",
+                "department": "Production",
+                "phone": "0412345678"
             }
             
-            response = self.session.post(f"{API_BASE}/clients", json=client_data)
+            user_response = self.session.post(f"{API_BASE}/users", json=user_data)
             
-            if response.status_code == 200:
-                result = response.json()
-                client_id = result.get('data', {}).get('id')
+            if user_response.status_code == 200:
+                user_result = user_response.json()
+                user_id = user_result.get('data', {}).get('id')
                 
-                if client_id:
-                    # Verify client was created with new fields
-                    get_response = self.session.get(f"{API_BASE}/clients/{client_id}")
-                    if get_response.status_code == 200:
-                        client = get_response.json()
+                if user_id:
+                    # Now create employee profile
+                    employee_data = {
+                        "user_id": user_id,
+                        "employee_number": "EMP001",
+                        "first_name": "Test",
+                        "last_name": "Employee",
+                        "email": "test.employee@testcompany.com",
+                        "phone": "0412345678",
+                        "department": "Production",
+                        "position": "Production Worker",
+                        "start_date": "2024-01-01",
+                        "employment_type": "full_time",
+                        "hourly_rate": 25.50,
+                        "weekly_hours": 38
+                    }
+                    
+                    emp_response = self.session.post(f"{API_BASE}/payroll/employees", json=employee_data)
+                    
+                    if emp_response.status_code == 200:
+                        emp_result = emp_response.json()
+                        employee_id = emp_result.get('data', {}).get('id')
                         
-                        has_payment_terms = client.get('payment_terms') == "Net 14 days"
-                        has_lead_time = client.get('lead_time_days') == 10
-                        
-                        if has_payment_terms and has_lead_time:
-                            self.log_result(
-                                "Client Model Updates", 
-                                True, 
-                                "Client created successfully with payment_terms and lead_time_days fields"
-                            )
-                            return client_id
-                        else:
-                            self.log_result(
-                                "Client Model Updates", 
-                                False, 
-                                "Client created but missing new fields",
-                                f"payment_terms: {client.get('payment_terms')}, lead_time_days: {client.get('lead_time_days')}"
-                            )
+                        self.test_employee_id = employee_id
+                        self.log_result(
+                            "Create Test Employee", 
+                            True, 
+                            f"Successfully created test employee with ID: {employee_id}"
+                        )
+                        return employee_id
                     else:
                         self.log_result(
-                            "Client Model Updates", 
+                            "Create Test Employee", 
                             False, 
-                            "Failed to retrieve created client"
+                            f"Employee creation failed with status {emp_response.status_code}",
+                            emp_response.text
                         )
                 else:
                     self.log_result(
-                        "Client Model Updates", 
+                        "Create Test Employee", 
                         False, 
-                        "Client creation response missing ID"
+                        "User creation response missing ID"
                     )
             else:
                 self.log_result(
-                    "Client Model Updates", 
+                    "Create Test Employee", 
                     False, 
-                    f"Client creation failed with status {response.status_code}",
-                    response.text
+                    f"User creation failed with status {user_response.status_code}",
+                    user_response.text
                 )
                 
         except Exception as e:
-            self.log_result("Client Model Updates", False, f"Error: {str(e)}")
+            self.log_result("Create Test Employee", False, f"Error: {str(e)}")
         
         return None
     
