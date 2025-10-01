@@ -11,6 +11,7 @@ import Reports from './components/Reports';
 import MaterialsManagement from './components/MaterialsManagement';
 import SuppliersManagement from './components/SuppliersManagement';
 import ProductSpecifications from './components/ProductSpecifications';
+import MachineryRates from './components/MachineryRates';
 import Calculators from './components/Calculators';
 import Stocktake from './components/Stocktake';
 import PayrollManagement from './components/PayrollManagement';
