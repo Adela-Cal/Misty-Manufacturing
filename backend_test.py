@@ -9144,6 +9144,344 @@ class InvoicingAPITester:
         except Exception as e:
             self.log_result("Invoice Generation with Archiving", False, f"Error: {str(e)}")
 
+    def test_staff_security_user_creation(self):
+        """Test Staff & Security API endpoints - User Creation with various validation scenarios"""
+        print("\n=== STAFF & SECURITY USER CREATION VALIDATION TEST ===")
+        
+        # Test scenarios to identify specific validation errors causing 422 status
+        test_scenarios = [
+            {
+                "name": "Valid Complete User Data",
+                "data": {
+                    "username": "teststaff001",
+                    "email": "teststaff001@company.com",
+                    "full_name": "Test Staff Member",
+                    "password": "SecurePass123!",
+                    "role": "employee",
+                    "employment_type": "full_time",
+                    "department": "Security",
+                    "phone": "0412345678"
+                },
+                "expected_success": True
+            },
+            {
+                "name": "Missing Username",
+                "data": {
+                    "email": "teststaff002@company.com",
+                    "full_name": "Test Staff Member 2",
+                    "password": "SecurePass123!",
+                    "role": "employee",
+                    "employment_type": "full_time",
+                    "department": "Security",
+                    "phone": "0412345679"
+                },
+                "expected_success": False
+            },
+            {
+                "name": "Missing Email",
+                "data": {
+                    "username": "teststaff003",
+                    "full_name": "Test Staff Member 3",
+                    "password": "SecurePass123!",
+                    "role": "employee",
+                    "employment_type": "full_time",
+                    "department": "Security",
+                    "phone": "0412345680"
+                },
+                "expected_success": False
+            },
+            {
+                "name": "Invalid Email Format",
+                "data": {
+                    "username": "teststaff004",
+                    "email": "invalid-email-format",
+                    "full_name": "Test Staff Member 4",
+                    "password": "SecurePass123!",
+                    "role": "employee",
+                    "employment_type": "full_time",
+                    "department": "Security",
+                    "phone": "0412345681"
+                },
+                "expected_success": False
+            },
+            {
+                "name": "Missing Password",
+                "data": {
+                    "username": "teststaff005",
+                    "email": "teststaff005@company.com",
+                    "full_name": "Test Staff Member 5",
+                    "role": "employee",
+                    "employment_type": "full_time",
+                    "department": "Security",
+                    "phone": "0412345682"
+                },
+                "expected_success": False
+            },
+            {
+                "name": "Missing Full Name",
+                "data": {
+                    "username": "teststaff006",
+                    "email": "teststaff006@company.com",
+                    "password": "SecurePass123!",
+                    "role": "employee",
+                    "employment_type": "full_time",
+                    "department": "Security",
+                    "phone": "0412345683"
+                },
+                "expected_success": False
+            },
+            {
+                "name": "Invalid Role Value",
+                "data": {
+                    "username": "teststaff007",
+                    "email": "teststaff007@company.com",
+                    "full_name": "Test Staff Member 7",
+                    "password": "SecurePass123!",
+                    "role": "invalid_role",
+                    "employment_type": "full_time",
+                    "department": "Security",
+                    "phone": "0412345684"
+                },
+                "expected_success": False
+            },
+            {
+                "name": "Invalid Employment Type",
+                "data": {
+                    "username": "teststaff008",
+                    "email": "teststaff008@company.com",
+                    "full_name": "Test Staff Member 8",
+                    "password": "SecurePass123!",
+                    "role": "employee",
+                    "employment_type": "invalid_employment",
+                    "department": "Security",
+                    "phone": "0412345685"
+                },
+                "expected_success": False
+            },
+            {
+                "name": "Duplicate Username",
+                "data": {
+                    "username": "teststaff001",  # Same as first test
+                    "email": "teststaff009@company.com",
+                    "full_name": "Test Staff Member 9",
+                    "password": "SecurePass123!",
+                    "role": "employee",
+                    "employment_type": "full_time",
+                    "department": "Security",
+                    "phone": "0412345686"
+                },
+                "expected_success": False
+            },
+            {
+                "name": "Duplicate Email",
+                "data": {
+                    "username": "teststaff010",
+                    "email": "teststaff001@company.com",  # Same as first test
+                    "full_name": "Test Staff Member 10",
+                    "password": "SecurePass123!",
+                    "role": "employee",
+                    "employment_type": "full_time",
+                    "department": "Security",
+                    "phone": "0412345687"
+                },
+                "expected_success": False
+            },
+            {
+                "name": "Valid Manager Role",
+                "data": {
+                    "username": "testmanager001",
+                    "email": "testmanager001@company.com",
+                    "full_name": "Test Manager",
+                    "password": "SecurePass123!",
+                    "role": "manager",
+                    "employment_type": "full_time",
+                    "department": "Operations",
+                    "phone": "0412345688"
+                },
+                "expected_success": True
+            },
+            {
+                "name": "Valid Admin Role",
+                "data": {
+                    "username": "testadmin001",
+                    "email": "testadmin001@company.com",
+                    "full_name": "Test Admin",
+                    "password": "SecurePass123!",
+                    "role": "admin",
+                    "employment_type": "full_time",
+                    "department": "IT",
+                    "phone": "0412345689"
+                },
+                "expected_success": True
+            },
+            {
+                "name": "Valid Part Time Employee",
+                "data": {
+                    "username": "testparttime001",
+                    "email": "testparttime001@company.com",
+                    "full_name": "Test Part Time Staff",
+                    "password": "SecurePass123!",
+                    "role": "production_team",
+                    "employment_type": "part_time",
+                    "department": "Production",
+                    "phone": "0412345690"
+                },
+                "expected_success": True
+            },
+            {
+                "name": "Valid Casual Employee",
+                "data": {
+                    "username": "testcasual001",
+                    "email": "testcasual001@company.com",
+                    "full_name": "Test Casual Staff",
+                    "password": "SecurePass123!",
+                    "role": "production_team",
+                    "employment_type": "casual",
+                    "department": "Production",
+                    "phone": "0412345691"
+                },
+                "expected_success": True
+            },
+            {
+                "name": "Minimal Required Fields Only",
+                "data": {
+                    "username": "testminimal001",
+                    "email": "testminimal001@company.com",
+                    "full_name": "Test Minimal Staff",
+                    "password": "SecurePass123!",
+                    "role": "employee"
+                    # Optional fields omitted: employment_type, department, phone
+                },
+                "expected_success": True
+            }
+        ]
+        
+        successful_tests = 0
+        failed_tests = 0
+        validation_errors_found = []
+        created_user_ids = []
+        
+        for scenario in test_scenarios:
+            try:
+                print(f"\n  Testing: {scenario['name']}")
+                response = self.session.post(f"{API_BASE}/users", json=scenario['data'])
+                
+                if scenario['expected_success']:
+                    if response.status_code == 200:
+                        result = response.json()
+                        user_id = result.get('data', {}).get('id')
+                        if user_id:
+                            created_user_ids.append(user_id)
+                        
+                        self.log_result(
+                            f"User Creation - {scenario['name']}", 
+                            True, 
+                            f"Successfully created user as expected",
+                            f"User ID: {user_id}"
+                        )
+                        successful_tests += 1
+                    else:
+                        self.log_result(
+                            f"User Creation - {scenario['name']}", 
+                            False, 
+                            f"Expected success but got status {response.status_code}",
+                            response.text
+                        )
+                        failed_tests += 1
+                        
+                        # Capture validation error details for analysis
+                        if response.status_code == 422:
+                            try:
+                                error_detail = response.json()
+                                validation_errors_found.append({
+                                    'scenario': scenario['name'],
+                                    'status': response.status_code,
+                                    'error': error_detail
+                                })
+                            except:
+                                validation_errors_found.append({
+                                    'scenario': scenario['name'],
+                                    'status': response.status_code,
+                                    'error': response.text
+                                })
+                else:
+                    # Expected to fail
+                    if response.status_code in [400, 422]:
+                        # Capture the specific validation error
+                        try:
+                            error_detail = response.json()
+                            validation_errors_found.append({
+                                'scenario': scenario['name'],
+                                'status': response.status_code,
+                                'error': error_detail
+                            })
+                        except:
+                            validation_errors_found.append({
+                                'scenario': scenario['name'],
+                                'status': response.status_code,
+                                'error': response.text
+                            })
+                        
+                        self.log_result(
+                            f"User Creation - {scenario['name']}", 
+                            True, 
+                            f"Correctly failed with status {response.status_code} as expected",
+                            f"Error: {response.text[:200]}"
+                        )
+                        successful_tests += 1
+                    else:
+                        self.log_result(
+                            f"User Creation - {scenario['name']}", 
+                            False, 
+                            f"Expected failure (400/422) but got status {response.status_code}",
+                            response.text
+                        )
+                        failed_tests += 1
+                        
+            except Exception as e:
+                self.log_result(f"User Creation - {scenario['name']}", False, f"Exception: {str(e)}")
+                failed_tests += 1
+        
+        # Summary of validation errors found
+        print(f"\n=== VALIDATION ERROR ANALYSIS ===")
+        print(f"Total scenarios tested: {len(test_scenarios)}")
+        print(f"Successful tests: {successful_tests}")
+        print(f"Failed tests: {failed_tests}")
+        print(f"Validation errors captured: {len(validation_errors_found)}")
+        
+        # Detailed analysis of 422 errors
+        error_422_scenarios = [err for err in validation_errors_found if err['status'] == 422]
+        if error_422_scenarios:
+            print(f"\n🚨 422 VALIDATION ERRORS FOUND ({len(error_422_scenarios)} scenarios):")
+            for error in error_422_scenarios:
+                print(f"  Scenario: {error['scenario']}")
+                print(f"  Status: {error['status']}")
+                print(f"  Error: {error['error']}")
+                print()
+        
+        # Clean up created test users
+        print(f"\n=== CLEANUP ===")
+        for user_id in created_user_ids:
+            try:
+                delete_response = self.session.delete(f"{API_BASE}/users/{user_id}")
+                if delete_response.status_code == 200:
+                    print(f"✅ Cleaned up test user: {user_id}")
+                else:
+                    print(f"⚠️ Failed to cleanup test user {user_id}: {delete_response.status_code}")
+            except Exception as e:
+                print(f"⚠️ Exception during cleanup of user {user_id}: {str(e)}")
+        
+        # Overall test result
+        overall_success = failed_tests == 0
+        self.log_result(
+            "Staff & Security User Creation Validation", 
+            overall_success, 
+            f"Completed comprehensive user creation testing",
+            f"Success: {successful_tests}/{len(test_scenarios)}, 422 Errors: {len(error_422_scenarios)}"
+        )
+        
+        return validation_errors_found
+
     def run_all_tests(self):
         """Run complete invoicing workflow tests with Xero integration focus"""
         print("🚀 STARTING COMPLETE INVOICING WORKFLOW TESTS WITH XERO INTEGRATION")
