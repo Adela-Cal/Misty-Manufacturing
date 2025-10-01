@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const StaffSecurity = () => {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
