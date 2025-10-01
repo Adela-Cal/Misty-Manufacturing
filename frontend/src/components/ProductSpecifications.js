@@ -112,6 +112,7 @@ const ProductSpecifications = () => {
       specifications: spec.specifications || {},
       materials_composition: spec.materials_composition || [],
       material_layers: spec.material_layers || [],  // Load enhanced material layers
+      machinery: spec.machinery || [],  // Load machinery specifications
       manufacturing_notes: spec.manufacturing_notes || '',
       selected_thickness: spec.selected_thickness || null,
       // Spiral Paper Core specific fields
