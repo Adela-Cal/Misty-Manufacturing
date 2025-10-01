@@ -401,7 +401,7 @@ class MachineryBackendTester:
                             "pack_up_time": "00:15",
                             "functions": [
                                 {
-                                    "function_name": function_type,
+                                    "function": function_type,
                                     "rate_per_hour": 200.0
                                 }
                             ]
