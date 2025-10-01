@@ -303,8 +303,8 @@ const ProductSpecifications = () => {
           layer_type: 'Outer Most Layer',
           width: null,
           width_range: null,
-          thickness: 0,
-          gsm: 0,  // Add GSM field
+          thickness: null,  // Don't default to 0 to avoid false calculations
+          gsm: null,  // Don't default to 0 to avoid false calculations
           quantity: 1,  // Default quantity to 1
           notes: ''
         }
