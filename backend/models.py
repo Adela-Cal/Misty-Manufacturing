@@ -384,6 +384,7 @@ class ProductSpecification(BaseModel):
     specifications: Dict[str, Any]  # Flexible spec storage
     materials_composition: List[Dict[str, Any]] = []  # Legacy materials (for backward compatibility)
     material_layers: List[MaterialLayerAssignment] = []  # New enhanced material layers
+    machinery: List[MachinerySpec] = []  # Machinery specifications for job card/run sheet
     manufacturing_notes: Optional[str] = None
     calculated_total_thickness: Optional[float] = None  # Auto-calculated from material layers
     selected_thickness: Optional[float] = None  # User-selected thickness from calculated options
