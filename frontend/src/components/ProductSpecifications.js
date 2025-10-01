@@ -988,49 +988,17 @@ const ProductSpecifications = () => {
                 {/* Calculated Thickness Display and Selection */}
                 {calculatedThickness > 0 && (
                   <div className="mb-8">
-                    <h3 className="text-lg font-semibold text-white mb-4">Calculated Thickness</h3>
+                    <h3 className="text-lg font-semibold text-white mb-4">Total Thickness</h3>
                     
                     <div className="misty-card p-4 bg-gray-700">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="text-md font-medium text-white mb-2">Total Calculated Thickness</h4>
-                          <div className="text-2xl font-bold text-yellow-400">
-                            {calculatedThickness.toFixed(3)} mm
-                          </div>
-                          <p className="text-sm text-gray-400 mt-1">
-                            Sum of all material layer thicknesses
-                          </p>
+                      <div className="text-center">
+                        <h4 className="text-md font-medium text-white mb-2">Calculated Thickness</h4>
+                        <div className="text-3xl font-bold text-yellow-400">
+                          {calculatedThickness.toFixed(3)} mm
                         </div>
-                        
-                        <div>
-                          <h4 className="text-md font-medium text-white mb-2">Select Final Thickness</h4>
-                          <select
-                            value={formData.selected_thickness || ''}
-                            onChange={(e) => setFormData(prev => ({ 
-                              ...prev, 
-                              selected_thickness: parseFloat(e.target.value) 
-                            }))}
-                            className="misty-select w-full"
-                          >
-                            <option value="">Select thickness option</option>
-                            {thicknessOptions.map((option, idx) => {
-                              const variance = ((option - calculatedThickness) / calculatedThickness * 100);
-                              const label = variance === 0 ? 'Exact' : 
-                                           variance > 0 ? `+${variance.toFixed(1)}%` : 
-                                           `${variance.toFixed(1)}%`;
-                              return (
-                                <option key={idx} value={option}>
-                                  {option.toFixed(3)} mm ({label})
-                                </option>
-                              );
-                            })}
-                          </select>
-                          {formData.selected_thickness && (
-                            <p className="text-sm text-gray-400 mt-1">
-                              Selected: {formData.selected_thickness.toFixed(3)} mm
-                            </p>
-                          )}
-                        </div>
+                        <p className="text-sm text-gray-400 mt-1">
+                          Sum of all material layer thicknesses
+                        </p>
                       </div>
                     </div>
                   </div>
