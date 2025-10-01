@@ -63,6 +63,29 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
     }
   };
 
+  const loadManagers = async () => {
+    try {
+      // Get all users with manager or admin roles
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/users`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const usersData = await response.json();
+        // Filter for managers and admins
+        const managerUsers = usersData.data.filter(user => 
+          user.role === 'manager' || user.role === 'admin'
+        );
+        setManagers(managerUsers);
+      }
+    } catch (error) {
+      console.error('Failed to load managers:', error);
+    }
+  };
+
   const generateEmptyWeek = () => {
     const { monday } = payrollUtils.getCurrentWeekDates();
     const weekEntries = [];
