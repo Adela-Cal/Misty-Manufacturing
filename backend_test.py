@@ -625,51 +625,92 @@ class TimesheetWorkflowTester:
         # Print summary
         self.print_test_summary()
     
-    def test_document_generation(self, client_id):
-        """Test document generation with new client fields"""
-        print("\n=== DOCUMENT GENERATION TEST ===")
+    def print_test_summary(self):
+        """Print comprehensive test summary"""
+        print("\n" + "="*60)
+        print("TIMESHEET WORKFLOW TEST SUMMARY")
+        print("="*60)
         
-        # Create a test order
-        order_id = self.create_test_order(client_id)
+        total_tests = len(self.test_results)
+        passed_tests = len([r for r in self.test_results if r['success']])
+        failed_tests = total_tests - passed_tests
         
-        if not order_id:
-            self.log_result(
-                "Document Generation", 
-                False, 
-                "Failed to create test order for document generation"
-            )
-            return
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {failed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%" if total_tests > 0 else "0%")
         
-        try:
-            # Test order acknowledgment generation
-            response = self.session.get(f"{API_BASE}/documents/acknowledgment/{order_id}")
-            
-            if response.status_code == 200:
-                # Check if response is PDF content
-                content_type = response.headers.get('content-type', '')
-                
-                if 'application/pdf' in content_type:
-                    self.log_result(
-                        "Document Generation", 
-                        True, 
-                        "Successfully generated order acknowledgment PDF with client payment terms and lead time"
-                    )
-                else:
-                    self.log_result(
-                        "Document Generation", 
-                        False, 
-                        f"Expected PDF but got content-type: {content_type}"
-                    )
+        print("\n" + "-"*60)
+        print("DETAILED RESULTS:")
+        print("-"*60)
+        
+        # Group results by category
+        categories = {}
+        for result in self.test_results:
+            test_name = result['test']
+            category = test_name.split(' - ')[0] if ' - ' in test_name else test_name
+            if category not in categories:
+                categories[category] = []
+            categories[category].append(result)
+        
+        for category, results in categories.items():
+            print(f"\n{category}:")
+            for result in results:
+                status = "✅ PASS" if result['success'] else "❌ FAIL"
+                print(f"  {status}: {result['message']}")
+                if result['details'] and not result['success']:
+                    print(f"    Details: {result['details']}")
+        
+        print("\n" + "="*60)
+        print("WORKFLOW ANALYSIS:")
+        print("="*60)
+        
+        # Analyze workflow completeness
+        workflow_steps = [
+            "Authentication",
+            "Create Test Employee", 
+            "Get Current Week Timesheet",
+            "Update Timesheet",
+            "Submit Timesheet",
+            "Get Pending Timesheets",
+            "Approve Timesheet"
+        ]
+        
+        completed_steps = []
+        failed_steps = []
+        
+        for step in workflow_steps:
+            step_results = [r for r in self.test_results if step.lower() in r['test'].lower()]
+            if step_results and any(r['success'] for r in step_results):
+                completed_steps.append(step)
             else:
-                self.log_result(
-                    "Document Generation", 
-                    False, 
-                    f"Failed with status {response.status_code}",
-                    response.text
-                )
-                
-        except Exception as e:
-            self.log_result("Document Generation", False, f"Error: {str(e)}")
+                failed_steps.append(step)
+        
+        print(f"Completed Workflow Steps: {len(completed_steps)}/{len(workflow_steps)}")
+        
+        if completed_steps:
+            print("\n✅ Completed Steps:")
+            for step in completed_steps:
+                print(f"  - {step}")
+        
+        if failed_steps:
+            print("\n❌ Failed Steps:")
+            for step in failed_steps:
+                print(f"  - {step}")
+        
+        # Check for critical issues
+        critical_issues = []
+        for result in self.test_results:
+            if not result['success'] and any(keyword in result['test'].lower() 
+                                           for keyword in ['submit', 'approve', 'pending']):
+                critical_issues.append(result['test'])
+        
+        if critical_issues:
+            print(f"\n🚨 CRITICAL ISSUES FOUND:")
+            for issue in critical_issues:
+                print(f"  - {issue}")
+        
+        print("\n" + "="*60)
     
     def test_role_permissions(self):
         """Test that invoicing endpoints require proper permissions"""
