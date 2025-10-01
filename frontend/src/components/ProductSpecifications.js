@@ -372,6 +372,80 @@ const ProductSpecifications = () => {
     }));
   };
 
+  // Machinery functions
+  const addMachinery = () => {
+    setFormData(prev => ({
+      ...prev,
+      machinery: [
+        ...prev.machinery,
+        {
+          machine_name: '',
+          running_speed: null,
+          setup_time: '',
+          pack_up_time: '',
+          functions: []
+        }
+      ]
+    }));
+  };
+
+  const removeMachinery = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      machinery: prev.machinery.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleMachineryChange = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      machinery: prev.machinery.map((machine, i) => 
+        i === index ? { ...machine, [field]: value } : machine
+      )
+    }));
+  };
+
+  const addMachineryFunction = (machineIndex) => {
+    setFormData(prev => ({
+      ...prev,
+      machinery: prev.machinery.map((machine, i) => 
+        i === machineIndex ? {
+          ...machine,
+          functions: [
+            ...machine.functions,
+            { function: 'Slitting', rate_per_hour: null }
+          ]
+        } : machine
+      )
+    }));
+  };
+
+  const removeMachineryFunction = (machineIndex, functionIndex) => {
+    setFormData(prev => ({
+      ...prev,
+      machinery: prev.machinery.map((machine, i) => 
+        i === machineIndex ? {
+          ...machine,
+          functions: machine.functions.filter((_, j) => j !== functionIndex)
+        } : machine
+      )
+    }));
+  };
+
+  const handleMachineryFunctionChange = (machineIndex, functionIndex, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      machinery: prev.machinery.map((machine, i) => 
+        i === machineIndex ? {
+          ...machine,
+          functions: machine.functions.map((func, j) => 
+            j === functionIndex ? { ...func, [field]: value } : func
+          )
+        } : machine
+      )
+    }));
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
