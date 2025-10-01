@@ -571,61 +571,59 @@ class TimesheetWorkflowTester:
         except Exception as e:
             self.log_result("Payroll System Integration", False, f"Error: {str(e)}")
     
-    def test_invoice_generation_api(self, client_id):
-        """Test POST /api/invoicing/generate/{job_id}"""
-        print("\n=== INVOICE GENERATION API TEST ===")
+    def run_timesheet_workflow_tests(self):
+        """Run the complete timesheet workflow test suite"""
+        print("\n" + "="*60)
+        print("ENHANCED TIMESHEET WORKFLOW TESTING")
+        print("="*60)
         
-        # First create a test order
-        order_id = self.create_test_order(client_id)
-        
-        if not order_id:
-            self.log_result(
-                "Invoice Generation API", 
-                False, 
-                "Failed to create test order for invoice generation"
-            )
+        # Step 1: Authenticate
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with tests")
             return
         
-        try:
-            # Test full invoice generation
-            invoice_data = {
-                "invoice_type": "full",
-                "due_date": (datetime.now() + timedelta(days=30)).isoformat()
-            }
-            
-            response = self.session.post(
-                f"{API_BASE}/invoicing/generate/{order_id}", 
-                json=invoice_data
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                invoice_id = result.get('invoice_id')
-                invoice_number = result.get('invoice_number')
-                
-                if invoice_id and invoice_number:
-                    self.log_result(
-                        "Invoice Generation API", 
-                        True, 
-                        f"Successfully generated invoice {invoice_number}",
-                        f"Invoice ID: {invoice_id}"
-                    )
-                else:
-                    self.log_result(
-                        "Invoice Generation API", 
-                        False, 
-                        "Invoice generated but missing ID or number in response"
-                    )
-            else:
-                self.log_result(
-                    "Invoice Generation API", 
-                    False, 
-                    f"Failed with status {response.status_code}",
-                    response.text
-                )
-                
-        except Exception as e:
-            self.log_result("Invoice Generation API", False, f"Error: {str(e)}")
+        # Step 2: Create test employee
+        employee_id = self.create_test_employee()
+        if not employee_id:
+            print("❌ Failed to create test employee - cannot proceed with timesheet tests")
+            return
+        
+        # Step 3: Test manager selection functionality
+        manager_id = self.test_manager_selection_functionality(employee_id)
+        
+        # Step 4: Get/Create current week timesheet
+        timesheet = self.test_get_current_week_timesheet(employee_id)
+        if not timesheet:
+            print("❌ Failed to get/create timesheet - cannot proceed")
+            return
+        
+        timesheet_id = timesheet.get('id')
+        
+        # Step 5: Update timesheet with work entries
+        if not self.test_update_timesheet(timesheet_id, employee_id):
+            print("❌ Failed to update timesheet - cannot proceed")
+            return
+        
+        # Step 6: Submit timesheet for approval
+        if not self.test_submit_timesheet(timesheet_id):
+            print("❌ Failed to submit timesheet - cannot proceed")
+            return
+        
+        # Step 7: Test pending timesheets endpoint (manager view)
+        pending_timesheets = self.test_get_pending_timesheets()
+        
+        # Step 8: Approve timesheet
+        if not self.test_approve_timesheet(timesheet_id):
+            print("❌ Failed to approve timesheet - workflow incomplete")
+        
+        # Step 9: Test status updates
+        self.test_timesheet_status_updates(timesheet_id)
+        
+        # Step 10: Test payroll system integration
+        self.test_payroll_system_integration(timesheet_id)
+        
+        # Print summary
+        self.print_test_summary()
     
     def test_document_generation(self, client_id):
         """Test document generation with new client fields"""
