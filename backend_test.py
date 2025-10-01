@@ -9483,8 +9483,8 @@ class InvoicingAPITester:
         return validation_errors_found
 
     def run_all_tests(self):
-        """Run complete invoicing workflow tests with Xero integration focus"""
-        print("🚀 STARTING COMPLETE INVOICING WORKFLOW TESTS WITH XERO INTEGRATION")
+        """Run Staff & Security API testing with focus on user creation validation"""
+        print("🚀 STARTING STAFF & SECURITY API TESTING - USER CREATION VALIDATION")
         print(f"Backend URL: {BACKEND_URL}")
         print("=" * 70)
         
@@ -9492,6 +9492,10 @@ class InvoicingAPITester:
         if not self.authenticate():
             print("❌ Authentication failed - cannot proceed with other tests")
             return self.generate_report()
+        
+        # PRIMARY FOCUS: Test Staff & Security User Creation validation
+        print("\n🔍 TESTING STAFF & SECURITY USER CREATION...")
+        validation_errors = self.test_staff_security_user_creation()
         
         # Test invoicing workflow endpoints in priority order
         print("\n🔍 TESTING INVOICING ENDPOINTS...")
