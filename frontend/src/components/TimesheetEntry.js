@@ -87,6 +87,38 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
     }
   };
 
+  const getWeekOptions = () => {
+    const options = [];
+    const today = new Date();
+    
+    // Generate last 8 weeks (including current week)
+    for (let i = 0; i < 8; i++) {
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() - (today.getDay() + 6) % 7 - (i * 7)); // Monday of the week
+      weekStart.setHours(0, 0, 0, 0);
+      
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6); // Sunday of the week
+      
+      const isCurrentWeek = i === 0;
+      
+      options.push({
+        value: weekStart.toISOString().split('T')[0],
+        label: `${formatDate(weekStart.toISOString())} - ${formatDate(weekEnd.toISOString())} ${isCurrentWeek ? '(Current Week)' : ''}`,
+        startDate: weekStart,
+        endDate: weekEnd
+      });
+    }
+    
+    return options;
+  };
+
+  const handleWeekChange = (weekStartString) => {
+    setSelectedWeekStart(weekStartString);
+    // You could load a different timesheet here for the selected week
+    // For now, we'll just update the selection
+  };
+
   const generateEmptyWeek = () => {
     const { monday } = payrollUtils.getCurrentWeekDates();
     const weekEntries = [];
