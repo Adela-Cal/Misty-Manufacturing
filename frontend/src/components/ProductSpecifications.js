@@ -88,6 +88,7 @@ const ProductSpecifications = () => {
       specifications: {},  // Start with empty specifications
       materials_composition: [],
       material_layers: [],  // New enhanced material layers
+      machinery: [],  // Machinery specifications
       manufacturing_notes: '',
       selected_thickness: null,
       // Spiral Paper Core specific fields
