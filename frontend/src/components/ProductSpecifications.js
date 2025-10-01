@@ -27,6 +27,7 @@ const ProductSpecifications = () => {
     specifications: {},
     materials_composition: [],
     material_layers: [],  // New enhanced material layers
+    machinery: [],  // Machinery specifications for job card/run sheet
     manufacturing_notes: '',
     selected_thickness: null,  // User-selected thickness from calculated options
     // Spiral Paper Core specific fields
