@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Invoicing System
-Tests the new invoicing functionality and related features
+Backend API Testing Suite for Product Specifications 422 Error Analysis
+Tests the exact Product Specifications CREATE request that's failing with 422 status
 """
 
 import requests
