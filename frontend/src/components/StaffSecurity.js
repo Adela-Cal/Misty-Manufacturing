@@ -465,6 +465,87 @@ const StaffSecurity = () => {
           </div>
         )}
 
+        {/* Timesheet Approval Section - Only visible to managers and admins */}
+        {(currentUser?.role === 'manager' || currentUser?.role === 'admin') && (
+          <div className="mt-12">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-2">Timesheet Approvals</h2>
+                <p className="text-gray-400">Review and approve submitted timesheets from team members</p>
+              </div>
+              <button
+                onClick={loadPendingTimesheets}
+                className="misty-button misty-button-secondary"
+                disabled={timesheetLoading}
+              >
+                {timesheetLoading ? 'Loading...' : 'Refresh'}
+              </button>
+            </div>
+
+            {pendingTimesheets.length > 0 ? (
+              <div className="misty-table">
+                <table className="w-full">
+                  <thead>
+                    <tr>
+                      <th className="py-2 text-sm">Employee</th>
+                      <th className="py-2 text-sm">Week Period</th>
+                      <th className="py-2 text-sm">Total Hours</th>
+                      <th className="py-2 text-sm">Overtime</th>
+                      <th className="py-2 text-sm">Submitted</th>
+                      <th className="py-2 text-sm">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingTimesheets.map((timesheet) => (
+                      <tr key={timesheet.id} className="border-b border-gray-700/50">
+                        <td className="text-sm py-2 px-3 font-medium">
+                          {timesheet.employee_name || 'Unknown Employee'}
+                        </td>
+                        <td className="text-sm py-2 px-3">
+                          {timesheet.week_starting} - {timesheet.week_ending}
+                        </td>
+                        <td className="text-sm py-2 px-3">
+                          {timesheet.total_regular_hours || 0}h
+                        </td>
+                        <td className="text-sm py-2 px-3">
+                          {timesheet.total_overtime_hours || 0}h
+                        </td>
+                        <td className="text-sm py-2 px-3">
+                          {timesheet.submitted_at ? new Date(timesheet.submitted_at).toLocaleDateString() : '—'}
+                        </td>
+                        <td className="text-sm py-2 px-3">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleTimesheetApproval(timesheet.id, 'approve')}
+                              className="misty-button misty-button-primary text-xs"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleTimesheetApproval(timesheet.id, 'reject')}
+                              className="misty-button misty-button-danger text-xs"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="mx-auto h-12 w-12 text-gray-400 mb-4">📋</div>
+                <h3 className="text-sm font-medium text-gray-300">No Pending Timesheets</h3>
+                <p className="mt-1 text-sm text-gray-400">
+                  All timesheets have been reviewed or no submissions are pending approval.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* User Form Modal */}
         {showModal && (
           <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
