@@ -149,6 +149,18 @@ backend:
         agent: "testing"
         comment: "✅ LIVE JOBS DATA STRUCTURE VERIFIED: GET /api/invoicing/live-jobs correctly returns jobs in 'invoicing' stage with complete client information. Each job includes client_email field populated from client record, client_name field, and items array with proper field names (product_name, unit_price, quantity). Data structure matches requirements for Xero draft invoice creation. Tested with job in invoicing stage - all required fields present and correctly formatted."
 
+  - task: "Product Specifications CREATE 400 Bad Request Error Analysis"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎯 PRODUCT SPECIFICATIONS CREATE 400 ERROR ROOT CAUSE IDENTIFIED: Comprehensive testing of POST /api/product-specifications endpoint completed with 10 different test scenarios. CRITICAL FINDINGS: ✅ Backend API is working correctly - CREATE endpoint successfully processes the exact data structure from user screenshots (Paper Core - 40mm ID x 1.8mmT with 3 material layers), ✅ All validation scenarios work properly: missing required fields return 422 (not 400), wrong data types return 422 (not 400), invalid material_layers return 422 with proper field validation, authentication issues return 403 (not 400), ✅ CREATE vs UPDATE comparison shows both endpoints work with identical data structure, ✅ Minimal valid data works correctly, material_layers validation works correctly. ROOT CAUSE CONCLUSION: The 400 Bad Request error is NOT coming from the backend API. The user's 'AxiosError: Request failed with status code 400' is likely caused by: 1) Frontend sending malformed requests (wrong Content-Type, malformed JSON, wrong endpoint URL), 2) Network/proxy issues between frontend and backend, 3) Frontend error handling issues, 4) Authentication token problems. RECOMMENDATION: Main agent should investigate frontend implementation, check network requests in browser dev tools, verify API endpoint URLs, and ensure proper request formatting."
+
   - task: "Enhanced Product Specifications Validation - Material Layers"
     implemented: true
     working: true
