@@ -34,8 +34,8 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # Force correct environment values for current environment  
-os.environ['XERO_REDIRECT_URI'] = 'https://product-specs-1.preview.emergentagent.com/api/xero/callback'
-os.environ['FRONTEND_URL'] = 'https://product-specs-1.preview.emergentagent.com'
+os.environ['XERO_REDIRECT_URI'] = 'https://manufactxero.preview.emergentagent.com/api/xero/callback'
+os.environ['FRONTEND_URL'] = 'https://manufactxero.preview.emergentagent.com'
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -1934,12 +1934,12 @@ async def generate_invoice_pdf(order_id: str):
 
 # Xero Integration Configuration
 # Force correct environment values for current environment  
-os.environ['XERO_REDIRECT_URI'] = 'https://product-specs-1.preview.emergentagent.com/api/xero/callback'
-os.environ['FRONTEND_URL'] = 'https://product-specs-1.preview.emergentagent.com'
+os.environ['XERO_REDIRECT_URI'] = 'https://manufactxero.preview.emergentagent.com/api/xero/callback'
+os.environ['FRONTEND_URL'] = 'https://manufactxero.preview.emergentagent.com'
 
 XERO_CLIENT_ID = os.getenv("XERO_CLIENT_ID")
 XERO_CLIENT_SECRET = os.getenv("XERO_CLIENT_SECRET")  
-XERO_CALLBACK_URL = "https://product-specs-1.preview.emergentagent.com/api/xero/callback"
+XERO_CALLBACK_URL = "https://manufactxero.preview.emergentagent.com/api/xero/callback"
 XERO_SCOPES = "openid profile email accounting.transactions accounting.contacts accounting.settings offline_access"
 
 # Debug: Print at module load time
@@ -1954,7 +1954,7 @@ XERO_DEFAULT_TAX_TYPE = "OUTPUT"  # Default GST/tax type
 async def debug_xero_config():
     """Debug endpoint to check Xero configuration"""
     # Debug: print the actual value being used right now
-    current_callback_url = "https://product-specs-1.preview.emergentagent.com/api/xero/callback"
+    current_callback_url = "https://manufactxero.preview.emergentagent.com/api/xero/callback"
     print(f"🚀 DEBUG ENDPOINT: XERO_CALLBACK_URL = {XERO_CALLBACK_URL}")
     print(f"🚀 DEBUG ENDPOINT: current_callback_url = {current_callback_url}")
     
@@ -2091,7 +2091,7 @@ async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_manage
     auth_params = {
         "response_type": "code",
         "client_id": XERO_CLIENT_ID,
-        "redirect_uri": "https://product-specs-1.preview.emergentagent.com/api/xero/callback",
+        "redirect_uri": "https://manufactxero.preview.emergentagent.com/api/xero/callback",
         "scope": XERO_SCOPES,
         "state": state
     }
@@ -2101,12 +2101,12 @@ async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_manage
     # Debug logging
     logger.info(f"Generated Xero OAuth URL: {auth_url}")
     logger.info(f"Client ID: {XERO_CLIENT_ID}")
-    logger.info(f"Callback URL: https://product-specs-1.preview.emergentagent.com/api/xero/callback")
+    logger.info(f"Callback URL: https://manufactxero.preview.emergentagent.com/api/xero/callback")
     logger.info(f"Scopes: {XERO_SCOPES}")
     
     return {"auth_url": auth_url, "state": state, "debug_info": {
         "client_id": XERO_CLIENT_ID,
-        "callback_url": "https://product-specs-1.preview.emergentagent.com/api/xero/callback",
+        "callback_url": "https://manufactxero.preview.emergentagent.com/api/xero/callback",
         "scopes": XERO_SCOPES
     }}
 
