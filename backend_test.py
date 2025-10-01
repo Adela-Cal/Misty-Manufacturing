@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Product Specifications 422 Error Analysis
-Tests the exact Product Specifications CREATE request that's failing with 422 status
+Backend API Testing Suite for Enhanced Timesheet Workflow Functionality
+Tests the timesheet submission, approval, and manager selection features
 """
 
 import requests
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -17,7 +17,7 @@ load_dotenv('/app/frontend/.env')
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
 API_BASE = f"{BACKEND_URL}/api"
 
-class InvoicingAPITester:
+class TimesheetWorkflowTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
