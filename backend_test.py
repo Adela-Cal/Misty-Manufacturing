@@ -1162,6 +1162,116 @@ class BackendAPITester:
         
         print("\n" + "="*60)
     
+    def run_timesheet_mongodb_serialization_tests(self):
+        """Run comprehensive timesheet MongoDB serialization testing as requested in review"""
+        print("\n" + "="*60)
+        print("TIMESHEET MONGODB SERIALIZATION TESTING")
+        print("Testing MongoDB date serialization fix for bson.errors.InvalidDocument")
+        print("="*60)
+        
+        # Step 1: Authenticate
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with tests")
+            return
+        
+        # Step 2: Create test employee using specific data from review request
+        employee_id = self.create_test_employee()
+        if not employee_id:
+            print("❌ Failed to create test employee - cannot proceed with timesheet tests")
+            return
+        
+        # Step 3: Test the specific endpoint that was throwing bson.errors.InvalidDocument
+        timesheet = self.test_get_current_week_timesheet(employee_id)
+        if not timesheet:
+            print("❌ Failed to get/create timesheet - this is the main issue to fix")
+            return
+        
+        timesheet_id = timesheet.get('id')
+        
+        # Step 4: Test prepare_for_mongo() fix specifically
+        self.test_prepare_for_mongo_fix()
+        
+        # Step 5: Test timesheet creation without serialization errors
+        if not self.test_update_timesheet(timesheet_id, employee_id):
+            print("❌ Failed to update timesheet - may still have serialization issues")
+        else:
+            print("✅ Timesheet update successful - no MongoDB serialization errors")
+        
+        # Step 6: Test complete workflow to ensure no serialization issues anywhere
+        if self.test_submit_timesheet(timesheet_id):
+            print("✅ Timesheet submission successful - no MongoDB serialization errors")
+            
+            # Step 7: Test approval workflow
+            if self.test_approve_timesheet(timesheet_id):
+                print("✅ Timesheet approval successful - complete workflow working without serialization errors")
+            else:
+                print("⚠️ Timesheet approval failed - may have serialization issues in approval process")
+        else:
+            print("❌ Timesheet submission failed - may still have serialization issues")
+        
+        # Print summary focused on MongoDB serialization
+        self.print_mongodb_serialization_summary()
+    
+    def print_mongodb_serialization_summary(self):
+        """Print summary focused on MongoDB serialization issues"""
+        print("\n" + "="*60)
+        print("MONGODB SERIALIZATION TEST SUMMARY")
+        print("="*60)
+        
+        total_tests = len(self.test_results)
+        passed_tests = len([r for r in self.test_results if r['success']])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {failed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%" if total_tests > 0 else "0%")
+        
+        # Check for MongoDB serialization specific issues
+        serialization_issues = []
+        serialization_fixes = []
+        
+        for result in self.test_results:
+            if not result['success'] and result['details']:
+                if any(keyword in result['details'].lower() for keyword in ['bson.errors.invaliddocument', 'cannot encode object', 'datetime.date']):
+                    serialization_issues.append(result['test'])
+            elif result['success'] and 'mongodb serialization' in result['test'].lower():
+                serialization_fixes.append(result['test'])
+        
+        print("\n" + "-"*60)
+        print("MONGODB SERIALIZATION ANALYSIS:")
+        print("-"*60)
+        
+        if not serialization_issues:
+            print("✅ NO MongoDB serialization errors detected!")
+            print("✅ The bson.errors.InvalidDocument: cannot encode object: datetime.date errors appear to be RESOLVED")
+        else:
+            print("🚨 CRITICAL MongoDB serialization issues found:")
+            for issue in serialization_issues:
+                print(f"  ❌ {issue}")
+        
+        if serialization_fixes:
+            print("\n✅ MongoDB serialization fixes verified:")
+            for fix in serialization_fixes:
+                print(f"  ✅ {fix}")
+        
+        print("\n" + "="*60)
+        print("CONCLUSION:")
+        print("="*60)
+        
+        if not serialization_issues and serialization_fixes:
+            print("🎉 SUCCESS: MongoDB date serialization fix is working correctly!")
+            print("🎉 The prepare_for_mongo() function is properly converting date/datetime objects")
+            print("🎉 No more bson.errors.InvalidDocument errors in timesheet functionality")
+        elif not serialization_issues:
+            print("✅ No MongoDB serialization errors detected, but fix verification incomplete")
+        else:
+            print("❌ FAILURE: MongoDB serialization issues still present")
+            print("❌ The bson.errors.InvalidDocument errors are NOT resolved")
+            print("❌ prepare_for_mongo() function may not be working correctly")
+        
+        print("\n" + "="*60)
+
     def test_machinery_product_specifications_create(self):
         """Test POST /api/product-specifications with machinery data"""
         print("\n=== MACHINERY PRODUCT SPECIFICATIONS CREATE TEST ===")
