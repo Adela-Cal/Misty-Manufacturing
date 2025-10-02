@@ -1451,10 +1451,8 @@ class BackendAPITester:
                 "items": [
                     {
                         "product_name": "Test Paper Core - 40mm ID x 1.8mmT",
-                        "description": "Test product for Xero integration",
                         "quantity": 100,
-                        "unit_price": 15.50,
-                        "specifications": "40mm internal diameter, 1.8mm wall thickness"
+                        "unit_price": 15.50
                     }
                 ],
                 "total_amount": 1705.00,  # Including GST
