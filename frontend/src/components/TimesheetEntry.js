@@ -88,10 +88,14 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
       if (response.ok) {
         const usersData = await response.json();
         // Filter for managers and admins
-        const managerUsers = usersData.data.filter(user => 
-          user.role === 'manager' || user.role === 'admin'
+        const userData = usersData.data || usersData || [];
+        const managerUsers = userData.filter(user => 
+          user && (user.role === 'manager' || user.role === 'admin')
         );
         setManagers(managerUsers);
+        console.log('Loaded managers:', managerUsers);
+      } else {
+        console.error('Failed to fetch users:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Failed to load managers:', error);
