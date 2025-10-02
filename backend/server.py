@@ -2748,7 +2748,10 @@ async def generate_job_invoice(
         {"$set": update_data}
     )
     
-    # For full invoices, create archived order record
+    # Note: Jobs will now go to accounting transactions instead of being immediately archived
+    # Archiving will happen when the accounting transaction is completed
+    
+    # For full invoices, the job is now in accounting_transaction stage
     if invoice_data.get("invoice_type") != "partial":
         # Get the updated order data for archiving
         job = await db.orders.find_one({"id": job_id})
