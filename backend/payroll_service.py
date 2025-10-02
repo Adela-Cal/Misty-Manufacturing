@@ -135,8 +135,8 @@ class TimesheetService:
             entry_datetime = datetime.combine(entry_date, datetime.min.time())
             entries.append(TimesheetEntry(
                 date=entry_datetime,
-                regular_hours=Decimal('0'),
-                overtime_hours=Decimal('0'),
+                regular_hours=0.0,
+                overtime_hours=0.0,
                 leave_hours={},
                 notes=None
             ))
