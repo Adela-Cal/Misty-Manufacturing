@@ -2038,14 +2038,12 @@ XERO_DEFAULT_TAX_TYPE = "OUTPUT"  # Default GST/tax type
 async def debug_xero_config():
     """Debug endpoint to check Xero configuration"""
     # Debug: print the actual value being used right now
-    current_callback_url = "https://machinery-timesheet.preview.emergentagent.com/api/xero/callback"
     print(f"🚀 DEBUG ENDPOINT: XERO_CALLBACK_URL = {XERO_CALLBACK_URL}")
-    print(f"🚀 DEBUG ENDPOINT: current_callback_url = {current_callback_url}")
     
     return {
         "client_id": XERO_CLIENT_ID,
-        "callback_url": current_callback_url,  # Use the hardcoded current value
-        "callback_url_from_variable": XERO_CALLBACK_URL,  # Show what the variable contains
+        "callback_url": XERO_CALLBACK_URL,
+        "callback_url_from_variable": XERO_CALLBACK_URL,
         "scopes": XERO_SCOPES,
         "expected_auth_url_start": "https://login.xero.com/identity/connect/authorize",
         "frontend_url": os.getenv("FRONTEND_URL", "https://app.emergent.sh"),
