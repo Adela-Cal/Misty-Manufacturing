@@ -16,6 +16,7 @@ const Invoicing = () => {
   const [activeTab, setActiveTab] = useState('live-jobs');
   const [liveJobs, setLiveJobs] = useState([]);
   const [archivedJobs, setArchivedJobs] = useState([]);
+  const [accountingTransactions, setAccountingTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
