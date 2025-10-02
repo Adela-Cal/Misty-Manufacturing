@@ -2349,8 +2349,8 @@ if __name__ == "__main__":
     
     # Run timesheet debug tests (focus on reported issues)
     tester.run_timesheet_debug_tests()
-            
-            if response.status_code == 200:
+
+def main():
                 result = response.json()
                 default_currency_material_id = result.get('data', {}).get('id')
                 
