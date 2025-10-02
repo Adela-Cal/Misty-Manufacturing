@@ -2193,47 +2193,27 @@ async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_manage
         "scopes": XERO_SCOPES
     }}
 
-@api_router.get("/xero/callback", response_class=HTMLResponse)
+@api_router.get("/xero/callback")
 async def handle_xero_oauth_redirect(code: str = None, state: str = None, error: str = None):
-    """Handle Xero OAuth redirect - redirect to frontend callback handler"""
+    """Handle Xero OAuth redirect - just redirect to frontend"""
     if error:
-        return HTMLResponse(
-            content=f"<html><body><script>window.opener.postMessage({{ type: 'xero-auth-error', error: '{error}' }}, '*'); window.close();</script></body></html>",
-            media_type="text/html"
+        # Redirect to frontend with error
+        return Response(
+            status_code=302,
+            headers={"Location": f"{os.getenv('FRONTEND_URL')}/xero/callback?error={error}"}
         )
     
     if code and state:
-        # Send data directly to parent window instead of redirecting
-        html_content = f"""<html>
-<head><title>Connecting to Xero</title></head>
-<body>
-<script>
-console.log('Xero callback script executing...');
-if (window.opener) {{
-    console.log('Sending message to opener window...');
-    window.opener.postMessage({{ 
-        type: 'xero-auth-success', 
-        code: '{code}', 
-        state: '{state}' 
-    }}, '*');
-    window.close();
-}} else {{
-    console.log('No opener found, redirecting to frontend...');
-    window.location.href = '{os.getenv("FRONTEND_URL")}/xero/callback?code={code}&state={state}';
-}}
-</script>
-<p>Connecting to Xero... This window will close automatically.</p>
-</body>
-</html>"""
-        
-        return HTMLResponse(
-            content=html_content,
-            headers={"Content-Type": "text/html; charset=utf-8"}
+        # Redirect to frontend with code and state
+        return Response(
+            status_code=302,
+            headers={"Location": f"{os.getenv('FRONTEND_URL')}/xero/callback?code={code}&state={state}"}
         )
     
-    return HTMLResponse(
-        content="<html><body><script>window.close();</script></body></html>",
-        media_type="text/html"
+    # Default redirect to frontend
+    return Response(
+        status_code=302,
+        headers={"Location": f"{os.getenv('FRONTEND_URL')}/"}
     )
 
 @api_router.post("/xero/auth/callback")
