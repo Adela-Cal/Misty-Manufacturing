@@ -173,14 +173,15 @@ class TimesheetService:
         total_leave = {}
         
         for entry in timesheet.entries:
-            total_regular += entry.regular_hours
-            total_overtime += entry.overtime_hours
+            # Convert float values to Decimal for consistent arithmetic
+            total_regular += Decimal(str(entry.regular_hours))
+            total_overtime += Decimal(str(entry.overtime_hours))
             
             # Sum leave hours by type
             for leave_type, hours in entry.leave_hours.items():
                 if leave_type not in total_leave:
                     total_leave[leave_type] = Decimal('0')
-                total_leave[leave_type] += hours
+                total_leave[leave_type] += Decimal(str(hours))
         
         timesheet.total_regular_hours = total_regular
         timesheet.total_overtime_hours = total_overtime
