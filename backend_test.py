@@ -1552,16 +1552,16 @@ class BackendAPITester:
         
         return []
     
-    def create_test_job_for_accounting_workflow(self):
-        """Create a test job/order for accounting workflow testing"""
-        print("\n=== CREATE TEST JOB FOR ACCOUNTING WORKFLOW ===")
+    def create_test_job_for_enhanced_accounting_workflow(self):
+        """Create a test job/order for enhanced accounting workflow testing with Xero integration"""
+        print("\n=== CREATE TEST JOB FOR ENHANCED ACCOUNTING WORKFLOW ===")
         
         try:
             # First get a client to use
             clients_response = self.session.get(f"{API_BASE}/clients")
             if clients_response.status_code != 200:
                 self.log_result(
-                    "Create Test Job - Get Clients", 
+                    "Create Enhanced Test Job - Get Clients", 
                     False, 
                     f"Failed to get clients: {clients_response.status_code}"
                 )
@@ -1570,7 +1570,7 @@ class BackendAPITester:
             clients = clients_response.json()
             if not clients:
                 self.log_result(
-                    "Create Test Job - Get Clients", 
+                    "Create Enhanced Test Job - Get Clients", 
                     False, 
                     "No clients found in system"
                 )
@@ -1578,27 +1578,37 @@ class BackendAPITester:
             
             client = clients[0]  # Use first client
             
-            # Create test order data
+            # Create test order data with realistic product information
             from datetime import datetime, timedelta
             
             order_data = {
                 "client_id": client["id"],
-                "purchase_order_number": f"TEST-PO-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                "purchase_order_number": f"XERO-TEST-PO-{datetime.now().strftime('%Y%m%d%H%M%S')}",
                 "items": [
                     {
-                        "product_id": "test-product-001",
-                        "product_name": "Test Accounting Product",
-                        "description": "Test product for accounting transactions workflow",
-                        "quantity": 100,
-                        "unit_price": 15.50,
-                        "total_price": 1550.00
+                        "product_id": "xero-test-product-001",
+                        "product_name": "Paper Core - 40mm ID x 1.8mmT",
+                        "description": "Spiral paper core for label manufacturing industry",
+                        "quantity": 500,
+                        "unit_price": 2.75,
+                        "total_price": 1375.00,
+                        "specifications": "40mm internal diameter, 1.8mm wall thickness"
+                    },
+                    {
+                        "product_id": "xero-test-product-002", 
+                        "product_name": "Paper Core - 76mm ID x 3mmT",
+                        "description": "Heavy duty spiral paper core",
+                        "quantity": 200,
+                        "unit_price": 4.25,
+                        "total_price": 850.00,
+                        "specifications": "76mm internal diameter, 3mm wall thickness"
                     }
                 ],
-                "due_date": (datetime.now() + timedelta(days=14)).isoformat(),
-                "delivery_address": "123 Test Street, Test City, TEST 1234",
-                "delivery_instructions": "Test delivery for accounting workflow",
-                "runtime_estimate": "2-3 days",
-                "notes": "Test order for accounting transactions workflow testing"
+                "due_date": (datetime.now() + timedelta(days=21)).isoformat(),
+                "delivery_address": "123 Manufacturing Street, Industrial Park, SYDNEY NSW 2000",
+                "delivery_instructions": "Deliver to warehouse dock, contact supervisor on arrival",
+                "runtime_estimate": "3-4 days",
+                "notes": "Test order for enhanced accounting transactions workflow with Xero integration"
             }
             
             response = self.session.post(f"{API_BASE}/orders", json=order_data)
@@ -1610,10 +1620,10 @@ class BackendAPITester:
                 
                 if job_id:
                     self.log_result(
-                        "Create Test Job for Accounting Workflow", 
+                        "Create Enhanced Test Job for Accounting Workflow", 
                         True, 
-                        f"Successfully created test job: {order_number}",
-                        f"Job ID: {job_id}, Client: {client['company_name']}"
+                        f"Successfully created test job for Xero integration: {order_number}",
+                        f"Job ID: {job_id}, Client: {client['company_name']}, Total: $2,225.00"
                     )
                     
                     # Move job to invoicing stage (simulate production completion)
@@ -1622,22 +1632,176 @@ class BackendAPITester:
                     return job_id
                 else:
                     self.log_result(
-                        "Create Test Job for Accounting Workflow", 
+                        "Create Enhanced Test Job for Accounting Workflow", 
                         False, 
                         "Job created but no ID returned"
                     )
             else:
                 self.log_result(
-                    "Create Test Job for Accounting Workflow", 
+                    "Create Enhanced Test Job for Accounting Workflow", 
                     False, 
                     f"Failed to create job: {response.status_code}",
                     response.text
                 )
                 
         except Exception as e:
-            self.log_result("Create Test Job for Accounting Workflow", False, f"Error: {str(e)}")
+            self.log_result("Create Enhanced Test Job for Accounting Workflow", False, f"Error: {str(e)}")
         
         return None
+
+    def test_enhanced_invoice_generation_with_xero(self, job_id):
+        """Test enhanced invoice generation that automatically creates Xero draft invoice"""
+        print("\n=== ENHANCED INVOICE GENERATION WITH XERO INTEGRATION TEST ===")
+        
+        try:
+            # Get job details first
+            job_response = self.session.get(f"{API_BASE}/orders/{job_id}")
+            if job_response.status_code != 200:
+                self.log_result(
+                    "Enhanced Invoice Generation - Get Job", 
+                    False, 
+                    f"Failed to get job details: {job_response.status_code}"
+                )
+                return False
+            
+            job = job_response.json()
+            
+            # Prepare invoice data
+            from datetime import datetime, timedelta
+            
+            invoice_data = {
+                "invoice_type": "full",
+                "items": job["items"],
+                "subtotal": job["subtotal"],
+                "gst": job["gst"],
+                "total_amount": job["total_amount"],
+                "due_date": (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
+            }
+            
+            response = self.session.post(f"{API_BASE}/invoicing/generate/{job_id}", json=invoice_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                invoice_id = result.get('invoice_id')
+                invoice_number = result.get('invoice_number')
+                xero_draft_created = result.get('xero_draft_created', False)
+                
+                self.log_result(
+                    "Enhanced Invoice Generation with Xero", 
+                    True, 
+                    f"Successfully generated invoice with Xero integration: {invoice_number}",
+                    f"Invoice ID: {invoice_id}, Xero draft created: {xero_draft_created}, Message: {result.get('message')}"
+                )
+                
+                # Verify job moved to accounting_transaction stage
+                updated_job_response = self.session.get(f"{API_BASE}/orders/{job_id}")
+                if updated_job_response.status_code == 200:
+                    updated_job = updated_job_response.json()
+                    current_stage = updated_job.get('current_stage')
+                    status = updated_job.get('status')
+                    
+                    if current_stage == 'accounting_transaction' and status == 'accounting_draft':
+                        self.log_result(
+                            "Job Stage Update to Accounting Transaction", 
+                            True, 
+                            f"Job correctly moved to accounting_transaction stage with accounting_draft status",
+                            f"Stage: {current_stage}, Status: {status}"
+                        )
+                    else:
+                        self.log_result(
+                            "Job Stage Update to Accounting Transaction", 
+                            False, 
+                            f"Job not in expected stage/status",
+                            f"Expected: accounting_transaction/accounting_draft, Got: {current_stage}/{status}"
+                        )
+                
+                return True
+            else:
+                self.log_result(
+                    "Enhanced Invoice Generation with Xero", 
+                    False, 
+                    f"Failed to generate invoice: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Enhanced Invoice Generation with Xero", False, f"Error: {str(e)}")
+        
+        return False
+
+    def test_verify_job_in_accounting_transactions_with_xero(self, job_id):
+        """Verify job is in accounting transactions with Xero details"""
+        print("\n=== VERIFY JOB IN ACCOUNTING TRANSACTIONS WITH XERO DETAILS ===")
+        
+        try:
+            # Get the specific job
+            job_response = self.session.get(f"{API_BASE}/orders/{job_id}")
+            
+            if job_response.status_code == 200:
+                job = job_response.json()
+                current_stage = job.get('current_stage')
+                status = job.get('status')
+                invoice_id = job.get('invoice_id')
+                
+                if current_stage == 'accounting_transaction' and status == 'accounting_draft':
+                    self.log_result(
+                        "Job in Accounting Transactions with Xero", 
+                        True, 
+                        f"Job correctly in accounting transaction stage",
+                        f"Stage: {current_stage}, Status: {status}, Invoice ID: {invoice_id}"
+                    )
+                    
+                    # Check if invoice has Xero details
+                    if invoice_id:
+                        # Get invoice details to check for Xero integration
+                        invoice_response = self.session.get(f"{API_BASE}/invoices/{invoice_id}")
+                        if invoice_response.status_code == 200:
+                            invoice = invoice_response.json()
+                            xero_invoice_id = invoice.get('xero_invoice_id')
+                            xero_invoice_number = invoice.get('xero_invoice_number')
+                            xero_status = invoice.get('xero_status')
+                            
+                            if xero_invoice_id or xero_invoice_number:
+                                self.log_result(
+                                    "Xero Integration Details in Invoice", 
+                                    True, 
+                                    f"Invoice contains Xero integration details",
+                                    f"Xero Invoice ID: {xero_invoice_id}, Xero Number: {xero_invoice_number}, Xero Status: {xero_status}"
+                                )
+                            else:
+                                self.log_result(
+                                    "Xero Integration Details in Invoice", 
+                                    False, 
+                                    "Invoice missing Xero integration details (expected if Xero disconnected)",
+                                    f"Available fields: {list(invoice.keys())}"
+                                )
+                        else:
+                            self.log_result(
+                                "Get Invoice Details", 
+                                False, 
+                                f"Failed to get invoice details: {invoice_response.status_code}"
+                            )
+                    
+                    return True
+                else:
+                    self.log_result(
+                        "Job in Accounting Transactions with Xero", 
+                        False, 
+                        f"Job not in expected accounting transaction stage",
+                        f"Current stage: {current_stage}, Status: {status}"
+                    )
+            else:
+                self.log_result(
+                    "Job in Accounting Transactions with Xero", 
+                    False, 
+                    f"Failed to get job: {job_response.status_code}",
+                    job_response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Job in Accounting Transactions with Xero", False, f"Error: {str(e)}")
+        
+        return False
     
     def move_job_to_invoicing_stage(self, job_id):
         """Move job to invoicing stage to prepare for invoice generation"""
