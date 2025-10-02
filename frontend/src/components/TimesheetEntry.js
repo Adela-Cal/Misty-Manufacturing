@@ -434,54 +434,53 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
             </select>
           </div>
         </div>
-        
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-3 mt-4">
-            {canEdit() && (
-              <>
-                <button
-                  onClick={handleSave}
-                  disabled={submitting}
-                  className="misty-button misty-button-secondary"
-                  data-testid="save-timesheet"
-                >
-                  Save Draft
-                </button>
-                
-                {!isManager && (
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="misty-button misty-button-primary"
-                    data-testid="submit-timesheet"
-                  >
-                    Submit for Approval
-                  </button>
-                )}
-              </>
-            )}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="mb-6 flex items-center justify-end space-x-3">
+        {canEdit() && (
+          <>
+            <button
+              onClick={handleSave}
+              disabled={submitting}
+              className="misty-button misty-button-secondary"
+              data-testid="save-timesheet"
+            >
+              Save Draft
+            </button>
             
-            {isManager && timesheet?.status === 'submitted' && (
+            {!isManager && (
               <button
-                onClick={handleApprove}
+                onClick={handleSubmit}
                 disabled={submitting}
                 className="misty-button misty-button-primary"
-                data-testid="approve-timesheet"
+                data-testid="submit-timesheet"
               >
-                <CheckCircleIcon className="h-4 w-4 mr-1" />
-                Approve & Calculate Pay
+                Submit for Approval
               </button>
             )}
-            
-            <button
-              onClick={onClose}
-              className="misty-button misty-button-secondary"
-              data-testid="close-timesheet"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+          </>
+        )}
+        
+        {isManager && timesheet?.status === 'submitted' && (
+          <button
+            onClick={handleApprove}
+            disabled={submitting}
+            className="misty-button misty-button-primary"
+            data-testid="approve-timesheet"
+          >
+            <CheckCircleIcon className="h-4 w-4 mr-1" />
+            Approve & Calculate Pay
+          </button>
+        )}
+        
+        <button
+          onClick={onClose}
+          className="misty-button misty-button-secondary"
+          data-testid="close-timesheet"
+        >
+          Close
+        </button>
       </div>
 
       {/* Error Summary */}
