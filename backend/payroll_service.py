@@ -1,10 +1,24 @@
 from typing import List, Optional, Dict, Any
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
 import calendar
 from payroll_models import *
 from models import User
 import logging
+
+def prepare_for_mongo(data):
+    """Helper function to prepare data for MongoDB storage by converting date objects to ISO strings"""
+    if isinstance(data, dict):
+        return {key: prepare_for_mongo(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [prepare_for_mongo(item) for item in data]
+    elif isinstance(data, date) and not isinstance(data, datetime):
+        # Convert date to datetime at midnight UTC for consistency
+        return datetime.combine(data, datetime.min.time().replace(tzinfo=timezone.utc))
+    elif isinstance(data, datetime) and data.tzinfo is None:
+        # Add UTC timezone to naive datetime objects
+        return data.replace(tzinfo=timezone.utc)
+    return data
 
 class PayrollCalculationService:
     def __init__(self):
