@@ -3509,8 +3509,8 @@ def main():
 if __name__ == "__main__":
     tester = BackendAPITester()
     
-    # Run timesheet debug tests (focus on reported issues)
-    tester.run_timesheet_mongodb_serialization_tests()
+    # Run Xero webhook tests as requested in review
+    tester.run_xero_webhook_tests()
 
 def main():
     """Main test execution"""
