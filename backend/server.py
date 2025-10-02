@@ -2023,7 +2023,7 @@ os.environ['FRONTEND_URL'] = 'https://machinery-timesheet.preview.emergentagent.
 
 XERO_CLIENT_ID = os.getenv("XERO_CLIENT_ID")
 XERO_CLIENT_SECRET = os.getenv("XERO_CLIENT_SECRET")  
-XERO_CALLBACK_URL = os.getenv("XERO_REDIRECT_URI", "https://machinery-timesheet.preview.emergentagent.com/api/xero/callback")
+XERO_CALLBACK_URL = os.getenv("XERO_REDIRECT_URI")
 XERO_SCOPES = "openid profile email accounting.transactions accounting.contacts accounting.settings offline_access"
 
 # Debug: Print at module load time
