@@ -176,7 +176,7 @@ class Timesheet(BaseModel):
 
 class TimesheetCreate(BaseModel):
     employee_id: str
-    week_starting: date
+    week_starting: datetime
     entries: List[TimesheetEntry]
 
 # Payroll Calculation Models
