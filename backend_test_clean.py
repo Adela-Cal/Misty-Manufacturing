@@ -75,17 +75,66 @@ class BackendAPITester:
             self.log_result("Authentication", False, f"Authentication error: {str(e)}")
             return False
     
-    def test_timesheet_mongodb_serialization_fix(self):
-        """Test the specific MongoDB serialization fix for timesheets"""
-        print("\n=== TIMESHEET MONGODB SERIALIZATION FIX TEST ===")
-        
+    def create_test_employee_if_needed(self):
+        """Create a test employee if none exist"""
         try:
-            # First, get a valid employee ID from existing employees
+            # Check if employees exist
             employees_response = self.session.get(f"{API_BASE}/payroll/employees")
             
             if employees_response.status_code == 200:
                 employees = employees_response.json()
                 if employees:
+                    return employees[0].get('id')  # Return existing employee ID
+            
+            # Create a test employee
+            employee_data = {
+                "user_id": "test-user-id-123",
+                "employee_number": "EMP001",
+                "first_name": "Test",
+                "last_name": "Employee",
+                "email": "test.employee@testcompany.com",
+                "phone": "0412345678",
+                "department": "Production",
+                "position": "Production Worker",
+                "start_date": "2024-01-01",
+                "employment_type": "full_time",
+                "hourly_rate": 25.50,
+                "weekly_hours": 38
+            }
+            
+            create_response = self.session.post(f"{API_BASE}/payroll/employees", json=employee_data)
+            
+            if create_response.status_code == 200:
+                result = create_response.json()
+                employee_id = result.get('data', {}).get('id')
+                self.log_result(
+                    "Create Test Employee", 
+                    True, 
+                    f"Successfully created test employee with ID: {employee_id}"
+                )
+                return employee_id
+            else:
+                self.log_result(
+                    "Create Test Employee", 
+                    False, 
+                    f"Failed to create test employee: {create_response.status_code}",
+                    create_response.text
+                )
+                return None
+                
+        except Exception as e:
+            self.log_result("Create Test Employee", False, f"Error: {str(e)}")
+            return None
+
+    def test_timesheet_mongodb_serialization_fix(self):
+        """Test the specific MongoDB serialization fix for timesheets"""
+        print("\n=== TIMESHEET MONGODB SERIALIZATION FIX TEST ===")
+        
+        try:
+            # Get or create a test employee
+            employee_id = self.create_test_employee_if_needed()
+            
+            if employee_id:
                     employee_id = employees[0].get('id')
                     employee_name = f"{employees[0].get('first_name', '')} {employees[0].get('last_name', '')}"
                     
