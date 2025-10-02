@@ -4506,24 +4506,13 @@ class BackendAPITester:
     
 def main():
     """Main test execution"""
-    print("Starting Enhanced Timesheet Workflow Testing...")
+    print("Starting Accounting Transactions Workflow Testing...")
     print(f"Backend URL: {BACKEND_URL}")
     
-    tester = TimesheetWorkflowTester()
+    tester = BackendAPITester()
     
-    # Run the complete timesheet workflow test suite
-    tester.run_timesheet_workflow_tests()
+    # Run the accounting transactions workflow test suite
+    tester.run_accounting_transactions_workflow_tests()
 
 if __name__ == "__main__":
-    tester = BackendAPITester()
-    
-    # Run Xero OAuth callback 404 debug tests as requested in review
-    tester.run_xero_oauth_callback_debug_tests()
-
-def main():
-    """Main test execution"""
-    print("Starting Xero & Timesheet Fix Testing...")
-    print(f"Backend URL: {BACKEND_URL}")
-    
-    tester = BackendAPITester()
-    tester.run_xero_timesheet_fix_tests()
+    main()
