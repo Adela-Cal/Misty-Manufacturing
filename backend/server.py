@@ -2740,8 +2740,8 @@ async def generate_job_invoice(
         update_data["partially_invoiced"] = True
         update_data["current_stage"] = "delivery"  # Keep in delivery stage for remaining items
         update_data["status"] = "pending"  # Keep as pending for partial invoices
-        # Remove completion data for partial invoices
-        del update_data["completed_at"]
+        # Remove invoice date for partial invoices
+        del update_data["invoice_date"]
     
     await db.orders.update_one(
         {"id": job_id},
