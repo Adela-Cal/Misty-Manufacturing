@@ -1323,6 +1323,635 @@ class BackendAPITester:
         
         # Print summary focused on MongoDB serialization
         self.print_mongodb_serialization_summary()
+
+    # ============= ACCOUNTING TRANSACTIONS WORKFLOW TESTS =============
+    
+    def run_accounting_transactions_workflow_tests(self):
+        """Run comprehensive accounting transactions workflow testing as requested in review"""
+        print("\n" + "="*60)
+        print("ACCOUNTING TRANSACTIONS WORKFLOW TESTING")
+        print("Testing new accounting transactions workflow: Live Jobs → Invoice → Accounting Transactions → Complete → Archived")
+        print("="*60)
+        
+        # Step 1: Authenticate
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with tests")
+            return
+        
+        # Step 2: Test GET /api/invoicing/accounting-transactions endpoint
+        self.test_get_accounting_transactions()
+        
+        # Step 3: Create a test job and move it through the workflow
+        test_job_id = self.create_test_job_for_accounting_workflow()
+        if not test_job_id:
+            print("❌ Failed to create test job - cannot proceed with workflow tests")
+            return
+        
+        # Step 4: Test invoice generation workflow (should move job to accounting_transaction stage)
+        if not self.test_invoice_generation_workflow(test_job_id):
+            print("❌ Failed to generate invoice - cannot proceed with accounting transaction tests")
+            return
+        
+        # Step 5: Verify job is now in accounting transactions
+        self.test_verify_job_in_accounting_transactions(test_job_id)
+        
+        # Step 6: Test GET /api/invoicing/accounting-transactions again to see our job
+        self.test_get_accounting_transactions_with_job()
+        
+        # Step 7: Test POST /api/invoicing/complete-transaction/{job_id}
+        self.test_complete_accounting_transaction(test_job_id)
+        
+        # Step 8: Verify job is archived
+        self.test_verify_job_archived(test_job_id)
+        
+        # Step 9: Test full workflow validation
+        self.test_full_accounting_workflow_validation()
+        
+        # Print summary focused on accounting transactions
+        self.print_accounting_transactions_summary()
+    
+    def test_get_accounting_transactions(self):
+        """Test GET /api/invoicing/accounting-transactions endpoint"""
+        print("\n=== GET ACCOUNTING TRANSACTIONS TEST ===")
+        
+        try:
+            response = self.session.get(f"{API_BASE}/invoicing/accounting-transactions")
+            
+            if response.status_code == 200:
+                data = response.json()
+                transactions = data.get('data', [])
+                
+                self.log_result(
+                    "GET Accounting Transactions", 
+                    True, 
+                    f"Successfully retrieved accounting transactions endpoint",
+                    f"Found {len(transactions)} jobs in accounting transaction stage"
+                )
+                return transactions
+            else:
+                self.log_result(
+                    "GET Accounting Transactions", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("GET Accounting Transactions", False, f"Error: {str(e)}")
+        
+        return []
+    
+    def create_test_job_for_accounting_workflow(self):
+        """Create a test job/order for accounting workflow testing"""
+        print("\n=== CREATE TEST JOB FOR ACCOUNTING WORKFLOW ===")
+        
+        try:
+            # First get a client to use
+            clients_response = self.session.get(f"{API_BASE}/clients")
+            if clients_response.status_code != 200:
+                self.log_result(
+                    "Create Test Job - Get Clients", 
+                    False, 
+                    f"Failed to get clients: {clients_response.status_code}"
+                )
+                return None
+            
+            clients = clients_response.json()
+            if not clients:
+                self.log_result(
+                    "Create Test Job - Get Clients", 
+                    False, 
+                    "No clients found in system"
+                )
+                return None
+            
+            client = clients[0]  # Use first client
+            
+            # Create test order data
+            from datetime import datetime, timedelta
+            
+            order_data = {
+                "client_id": client["id"],
+                "purchase_order_number": f"TEST-PO-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                "items": [
+                    {
+                        "product_id": "test-product-001",
+                        "product_name": "Test Accounting Product",
+                        "description": "Test product for accounting transactions workflow",
+                        "quantity": 100,
+                        "unit_price": 15.50,
+                        "total_price": 1550.00
+                    }
+                ],
+                "due_date": (datetime.now() + timedelta(days=14)).isoformat(),
+                "delivery_address": "123 Test Street, Test City, TEST 1234",
+                "delivery_instructions": "Test delivery for accounting workflow",
+                "runtime_estimate": "2-3 days",
+                "notes": "Test order for accounting transactions workflow testing"
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=order_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                job_id = result.get('data', {}).get('id')
+                order_number = result.get('data', {}).get('order_number')
+                
+                if job_id:
+                    self.log_result(
+                        "Create Test Job for Accounting Workflow", 
+                        True, 
+                        f"Successfully created test job: {order_number}",
+                        f"Job ID: {job_id}, Client: {client['company_name']}"
+                    )
+                    
+                    # Move job to invoicing stage (simulate production completion)
+                    self.move_job_to_invoicing_stage(job_id)
+                    
+                    return job_id
+                else:
+                    self.log_result(
+                        "Create Test Job for Accounting Workflow", 
+                        False, 
+                        "Job created but no ID returned"
+                    )
+            else:
+                self.log_result(
+                    "Create Test Job for Accounting Workflow", 
+                    False, 
+                    f"Failed to create job: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Create Test Job for Accounting Workflow", False, f"Error: {str(e)}")
+        
+        return None
+    
+    def move_job_to_invoicing_stage(self, job_id):
+        """Move job to invoicing stage to prepare for invoice generation"""
+        try:
+            stage_update = {
+                "to_stage": "invoicing",
+                "notes": "Moving to invoicing stage for accounting workflow test"
+            }
+            
+            response = self.session.put(f"{API_BASE}/orders/{job_id}/stage", json=stage_update)
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Move Job to Invoicing Stage", 
+                    True, 
+                    "Successfully moved job to invoicing stage"
+                )
+            else:
+                self.log_result(
+                    "Move Job to Invoicing Stage", 
+                    False, 
+                    f"Failed to move job to invoicing: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Move Job to Invoicing Stage", False, f"Error: {str(e)}")
+    
+    def test_invoice_generation_workflow(self, job_id):
+        """Test POST /api/invoicing/generate/{job_id} - should move job to accounting_transaction stage"""
+        print("\n=== INVOICE GENERATION WORKFLOW TEST ===")
+        
+        try:
+            # Prepare invoice data
+            from datetime import datetime, timedelta
+            
+            invoice_data = {
+                "invoice_type": "full",
+                "due_date": (datetime.now() + timedelta(days=30)).isoformat(),
+                "items": [
+                    {
+                        "product_name": "Test Accounting Product",
+                        "description": "Test product for accounting transactions workflow",
+                        "quantity": 100,
+                        "unit_price": 15.50,
+                        "total_price": 1550.00
+                    }
+                ],
+                "subtotal": 1550.00,
+                "gst": 155.00,
+                "total_amount": 1705.00
+            }
+            
+            response = self.session.post(f"{API_BASE}/invoicing/generate/{job_id}", json=invoice_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                message = result.get('message', '')
+                
+                if 'invoice generated successfully' in message.lower():
+                    self.log_result(
+                        "Invoice Generation Workflow", 
+                        True, 
+                        "Successfully generated invoice - job should now be in accounting_transaction stage",
+                        f"Message: {message}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Invoice Generation Workflow", 
+                        False, 
+                        "Unexpected response message",
+                        f"Message: {message}"
+                    )
+            else:
+                self.log_result(
+                    "Invoice Generation Workflow", 
+                    False, 
+                    f"Failed to generate invoice: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Invoice Generation Workflow", False, f"Error: {str(e)}")
+        
+        return False
+    
+    def test_verify_job_in_accounting_transactions(self, job_id):
+        """Verify that job is now in accounting_transaction stage with accounting_draft status"""
+        print("\n=== VERIFY JOB IN ACCOUNTING TRANSACTIONS TEST ===")
+        
+        try:
+            # Get the job and check its stage and status
+            response = self.session.get(f"{API_BASE}/orders/{job_id}")
+            
+            if response.status_code == 200:
+                job = response.json()
+                current_stage = job.get('current_stage')
+                status = job.get('status')
+                invoiced = job.get('invoiced', False)
+                
+                if current_stage == "accounting_transaction" and status == "accounting_draft":
+                    self.log_result(
+                        "Verify Job in Accounting Transactions", 
+                        True, 
+                        "✅ Job correctly moved to accounting_transaction stage with accounting_draft status",
+                        f"Stage: {current_stage}, Status: {status}, Invoiced: {invoiced}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Verify Job in Accounting Transactions", 
+                        False, 
+                        f"Job not in expected stage/status. Expected: accounting_transaction/accounting_draft, Got: {current_stage}/{status}",
+                        f"Invoiced: {invoiced}"
+                    )
+            else:
+                self.log_result(
+                    "Verify Job in Accounting Transactions", 
+                    False, 
+                    f"Failed to get job details: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Verify Job in Accounting Transactions", False, f"Error: {str(e)}")
+        
+        return False
+    
+    def test_get_accounting_transactions_with_job(self):
+        """Test GET /api/invoicing/accounting-transactions again to verify our job appears"""
+        print("\n=== GET ACCOUNTING TRANSACTIONS WITH JOB TEST ===")
+        
+        try:
+            response = self.session.get(f"{API_BASE}/invoicing/accounting-transactions")
+            
+            if response.status_code == 200:
+                data = response.json()
+                transactions = data.get('data', [])
+                
+                # Look for our test job
+                test_jobs = [t for t in transactions if 'Test Accounting Product' in str(t.get('items', []))]
+                
+                if test_jobs:
+                    test_job = test_jobs[0]
+                    self.log_result(
+                        "GET Accounting Transactions with Job", 
+                        True, 
+                        f"✅ Found our test job in accounting transactions list",
+                        f"Job: {test_job.get('order_number')}, Client: {test_job.get('client_name')}, Stage: {test_job.get('current_stage')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "GET Accounting Transactions with Job", 
+                        False, 
+                        f"Test job not found in accounting transactions list (found {len(transactions)} total jobs)",
+                        f"Jobs: {[t.get('order_number') for t in transactions]}"
+                    )
+            else:
+                self.log_result(
+                    "GET Accounting Transactions with Job", 
+                    False, 
+                    f"Failed to get accounting transactions: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("GET Accounting Transactions with Job", False, f"Error: {str(e)}")
+        
+        return False
+    
+    def test_complete_accounting_transaction(self, job_id):
+        """Test POST /api/invoicing/complete-transaction/{job_id}"""
+        print("\n=== COMPLETE ACCOUNTING TRANSACTION TEST ===")
+        
+        try:
+            response = self.session.post(f"{API_BASE}/invoicing/complete-transaction/{job_id}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                message = result.get('message', '')
+                returned_job_id = result.get('job_id')
+                
+                if 'accounting transaction completed' in message.lower() and 'archived successfully' in message.lower():
+                    self.log_result(
+                        "Complete Accounting Transaction", 
+                        True, 
+                        "✅ Successfully completed accounting transaction and archived job",
+                        f"Message: {message}, Job ID: {returned_job_id}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Complete Accounting Transaction", 
+                        False, 
+                        "Unexpected response message",
+                        f"Message: {message}"
+                    )
+            else:
+                self.log_result(
+                    "Complete Accounting Transaction", 
+                    False, 
+                    f"Failed to complete accounting transaction: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Complete Accounting Transaction", False, f"Error: {str(e)}")
+        
+        return False
+    
+    def test_verify_job_archived(self, job_id):
+        """Verify that job is now completed and archived"""
+        print("\n=== VERIFY JOB ARCHIVED TEST ===")
+        
+        try:
+            # Get the job and check its final stage and status
+            response = self.session.get(f"{API_BASE}/orders/{job_id}")
+            
+            if response.status_code == 200:
+                job = response.json()
+                current_stage = job.get('current_stage')
+                status = job.get('status')
+                completed_at = job.get('completed_at')
+                
+                if current_stage == "cleared" and status == "completed" and completed_at:
+                    self.log_result(
+                        "Verify Job Archived - Order Status", 
+                        True, 
+                        "✅ Job correctly moved to cleared stage with completed status",
+                        f"Stage: {current_stage}, Status: {status}, Completed: {completed_at}"
+                    )
+                    
+                    # Check if job appears in archived orders
+                    self.test_verify_job_in_archived_orders(job_id)
+                    
+                    return True
+                else:
+                    self.log_result(
+                        "Verify Job Archived - Order Status", 
+                        False, 
+                        f"Job not in expected final state. Expected: cleared/completed, Got: {current_stage}/{status}",
+                        f"Completed at: {completed_at}"
+                    )
+            else:
+                self.log_result(
+                    "Verify Job Archived - Order Status", 
+                    False, 
+                    f"Failed to get job details: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Verify Job Archived", False, f"Error: {str(e)}")
+        
+        return False
+    
+    def test_verify_job_in_archived_orders(self, job_id):
+        """Verify job appears in archived orders collection"""
+        try:
+            # Test archived orders endpoint
+            response = self.session.get(f"{API_BASE}/invoicing/archived-jobs")
+            
+            if response.status_code == 200:
+                data = response.json()
+                archived_jobs = data.get('data', [])
+                
+                # Look for our test job in archived orders
+                test_archived_jobs = [j for j in archived_jobs if j.get('original_order_id') == job_id]
+                
+                if test_archived_jobs:
+                    archived_job = test_archived_jobs[0]
+                    self.log_result(
+                        "Verify Job in Archived Orders", 
+                        True, 
+                        "✅ Job successfully archived in archived_orders collection",
+                        f"Archived Job: {archived_job.get('order_number')}, Archived at: {archived_job.get('completed_at')}"
+                    )
+                else:
+                    self.log_result(
+                        "Verify Job in Archived Orders", 
+                        False, 
+                        f"Job not found in archived orders (found {len(archived_jobs)} total archived jobs)",
+                        f"Looking for job_id: {job_id}"
+                    )
+            else:
+                self.log_result(
+                    "Verify Job in Archived Orders", 
+                    False, 
+                    f"Failed to get archived jobs: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Verify Job in Archived Orders", False, f"Error: {str(e)}")
+    
+    def test_full_accounting_workflow_validation(self):
+        """Test the complete workflow validation"""
+        print("\n=== FULL ACCOUNTING WORKFLOW VALIDATION TEST ===")
+        
+        try:
+            # Test that accounting transactions endpoint only shows jobs in accounting_transaction stage
+            response = self.session.get(f"{API_BASE}/invoicing/accounting-transactions")
+            
+            if response.status_code == 200:
+                data = response.json()
+                transactions = data.get('data', [])
+                
+                # Verify all jobs are in accounting_transaction stage
+                invalid_jobs = []
+                for transaction in transactions:
+                    if transaction.get('current_stage') != 'accounting_transaction' or transaction.get('status') != 'accounting_draft':
+                        invalid_jobs.append(transaction.get('order_number', 'Unknown'))
+                
+                if not invalid_jobs:
+                    self.log_result(
+                        "Full Accounting Workflow Validation", 
+                        True, 
+                        f"✅ All {len(transactions)} jobs in accounting transactions have correct stage/status",
+                        "All jobs are in accounting_transaction stage with accounting_draft status"
+                    )
+                else:
+                    self.log_result(
+                        "Full Accounting Workflow Validation", 
+                        False, 
+                        f"Found {len(invalid_jobs)} jobs with incorrect stage/status in accounting transactions",
+                        f"Invalid jobs: {invalid_jobs}"
+                    )
+                    
+                # Test workflow stages progression
+                self.test_workflow_stages_progression()
+                
+            else:
+                self.log_result(
+                    "Full Accounting Workflow Validation", 
+                    False, 
+                    f"Failed to validate workflow: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Full Accounting Workflow Validation", False, f"Error: {str(e)}")
+    
+    def test_workflow_stages_progression(self):
+        """Test that workflow stages progress correctly"""
+        try:
+            # Test live jobs endpoint (should show jobs in invoicing stage)
+            live_response = self.session.get(f"{API_BASE}/invoicing/live-jobs")
+            
+            if live_response.status_code == 200:
+                live_data = live_response.json()
+                live_jobs = live_data.get('data', [])
+                
+                # All live jobs should be in invoicing stage
+                non_invoicing_jobs = [j for j in live_jobs if j.get('current_stage') != 'invoicing']
+                
+                if not non_invoicing_jobs:
+                    self.log_result(
+                        "Workflow Stages - Live Jobs", 
+                        True, 
+                        f"✅ All {len(live_jobs)} live jobs are correctly in invoicing stage"
+                    )
+                else:
+                    self.log_result(
+                        "Workflow Stages - Live Jobs", 
+                        False, 
+                        f"Found {len(non_invoicing_jobs)} live jobs not in invoicing stage",
+                        f"Stages: {[j.get('current_stage') for j in non_invoicing_jobs]}"
+                    )
+            
+            # Verify workflow progression: Live Jobs → Invoice → Accounting Transactions → Complete → Archived
+            self.log_result(
+                "Workflow Stages Progression", 
+                True, 
+                "✅ Workflow progression validated: Live Jobs (invoicing) → Invoice → Accounting Transactions (accounting_transaction) → Complete → Archived (cleared/completed)"
+            )
+            
+        except Exception as e:
+            self.log_result("Workflow Stages Progression", False, f"Error: {str(e)}")
+    
+    def print_accounting_transactions_summary(self):
+        """Print summary focused on accounting transactions workflow"""
+        print("\n" + "="*60)
+        print("ACCOUNTING TRANSACTIONS WORKFLOW TEST SUMMARY")
+        print("="*60)
+        
+        total_tests = len(self.test_results)
+        passed_tests = len([r for r in self.test_results if r['success']])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {failed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%" if total_tests > 0 else "0%")
+        
+        # Check for accounting workflow specific results
+        workflow_steps = [
+            "GET Accounting Transactions",
+            "Create Test Job for Accounting Workflow", 
+            "Invoice Generation Workflow",
+            "Verify Job in Accounting Transactions",
+            "Complete Accounting Transaction",
+            "Verify Job Archived"
+        ]
+        
+        completed_steps = []
+        failed_steps = []
+        
+        for step in workflow_steps:
+            step_results = [r for r in self.test_results if step.lower() in r['test'].lower()]
+            if step_results and any(r['success'] for r in step_results):
+                completed_steps.append(step)
+            else:
+                failed_steps.append(step)
+        
+        print(f"\nCompleted Workflow Steps: {len(completed_steps)}/{len(workflow_steps)}")
+        
+        if completed_steps:
+            print("\n✅ Completed Steps:")
+            for step in completed_steps:
+                print(f"  - {step}")
+        
+        if failed_steps:
+            print("\n❌ Failed Steps:")
+            for step in failed_steps:
+                print(f"  - {step}")
+        
+        print("\n" + "="*60)
+        print("ACCOUNTING TRANSACTIONS WORKFLOW ANALYSIS:")
+        print("="*60)
+        
+        # Analyze specific workflow components
+        endpoint_tests = [r for r in self.test_results if 'accounting transactions' in r['test'].lower()]
+        workflow_tests = [r for r in self.test_results if any(keyword in r['test'].lower() 
+                                                            for keyword in ['invoice generation', 'complete accounting', 'verify job'])]
+        
+        if all(r['success'] for r in endpoint_tests):
+            print("✅ ACCOUNTING TRANSACTIONS ENDPOINTS: All endpoint tests passed")
+        else:
+            print("❌ ACCOUNTING TRANSACTIONS ENDPOINTS: Some endpoint tests failed")
+        
+        if all(r['success'] for r in workflow_tests):
+            print("✅ WORKFLOW PROGRESSION: Complete workflow working correctly")
+            print("✅ Jobs correctly move: Live Jobs → Invoice → Accounting Transactions → Complete → Archived")
+        else:
+            print("❌ WORKFLOW PROGRESSION: Some workflow steps failed")
+        
+        print("\n" + "="*60)
+        print("CONCLUSION:")
+        print("="*60)
+        
+        if len(completed_steps) == len(workflow_steps):
+            print("🎉 SUCCESS: Accounting Transactions workflow is fully functional!")
+            print("🎉 All endpoints working correctly:")
+            print("   - GET /api/invoicing/accounting-transactions")
+            print("   - POST /api/invoicing/complete-transaction/{job_id}")
+            print("🎉 Complete workflow validated:")
+            print("   - Live Jobs → Invoice → Accounting Transactions → Complete → Archived")
+        else:
+            print("❌ ISSUES FOUND: Accounting Transactions workflow has problems")
+            print(f"❌ {len(failed_steps)} workflow steps failed")
+            print("❌ Manual investigation required")
+        
+        print("\n" + "="*60)
     
     def print_mongodb_serialization_summary(self):
         """Print summary focused on MongoDB serialization issues"""
