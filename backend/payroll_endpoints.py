@@ -129,7 +129,7 @@ async def get_current_week_timesheet(employee_id: str, current_user: dict = Depe
     week_starting = timesheet_service.get_current_week_starting()
     
     # Convert date to datetime for MongoDB compatibility
-    week_starting_dt = datetime.combine(week_starting, datetime.min.time())
+    week_starting_dt = datetime.combine(week_starting, datetime.min.time()).replace(tzinfo=timezone.utc)
     
     # Try to find existing timesheet
     existing_timesheet = await db.timesheets.find_one({
