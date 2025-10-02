@@ -11535,5 +11535,7 @@ if __name__ == "__main__":
         }
 
 if __name__ == "__main__":
-    tester = InvoicingAPITester()
-    report = tester.run_all_tests()
+    tester = BackendAPITester()
+    
+    # Run timesheet debug tests (focus on reported issues)
+    tester.run_timesheet_debug_tests()
