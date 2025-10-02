@@ -1324,13 +1324,13 @@ class BackendAPITester:
         # Print summary focused on MongoDB serialization
         self.print_mongodb_serialization_summary()
 
-    # ============= ACCOUNTING TRANSACTIONS WORKFLOW TESTS =============
+    # ============= ENHANCED ACCOUNTING TRANSACTIONS WORKFLOW WITH XERO INTEGRATION TESTS =============
     
-    def run_accounting_transactions_workflow_tests(self):
-        """Run comprehensive accounting transactions workflow testing as requested in review"""
+    def run_enhanced_accounting_transactions_xero_tests(self):
+        """Run comprehensive enhanced accounting transactions workflow with Xero integration testing"""
         print("\n" + "="*60)
-        print("ACCOUNTING TRANSACTIONS WORKFLOW TESTING")
-        print("Testing new accounting transactions workflow: Live Jobs → Invoice → Accounting Transactions → Complete → Archived")
+        print("ENHANCED ACCOUNTING TRANSACTIONS WORKFLOW WITH XERO INTEGRATION TESTING")
+        print("Testing enhanced workflow: Live Jobs → Invoice → Accounting Transactions (with Xero draft) → Complete → Archived")
         print("="*60)
         
         # Step 1: Authenticate
@@ -1338,37 +1338,40 @@ class BackendAPITester:
             print("❌ Authentication failed - cannot proceed with tests")
             return
         
-        # Step 2: Test GET /api/invoicing/accounting-transactions endpoint
-        self.test_get_accounting_transactions()
+        # Step 2: Test Xero connection status (both connected and disconnected scenarios)
+        self.test_xero_connection_status()
         
-        # Step 3: Create a test job and move it through the workflow
-        test_job_id = self.create_test_job_for_accounting_workflow()
+        # Step 3: Test GET /api/invoicing/accounting-transactions endpoint
+        self.test_get_accounting_transactions_enhanced()
+        
+        # Step 4: Test Xero helper functions
+        self.test_xero_helper_functions()
+        
+        # Step 5: Create a test job and move it through the enhanced workflow
+        test_job_id = self.create_test_job_for_enhanced_accounting_workflow()
         if not test_job_id:
             print("❌ Failed to create test job - cannot proceed with workflow tests")
             return
         
-        # Step 4: Test invoice generation workflow (should move job to accounting_transaction stage)
-        if not self.test_invoice_generation_workflow(test_job_id):
-            print("❌ Failed to generate invoice - cannot proceed with accounting transaction tests")
+        # Step 6: Test enhanced invoice generation with Xero integration
+        if not self.test_enhanced_invoice_generation_with_xero(test_job_id):
+            print("❌ Failed to generate invoice with Xero integration - cannot proceed")
             return
         
-        # Step 5: Verify job is now in accounting transactions
-        self.test_verify_job_in_accounting_transactions(test_job_id)
+        # Step 7: Verify job is in accounting transactions with Xero details
+        self.test_verify_job_in_accounting_transactions_with_xero(test_job_id)
         
-        # Step 6: Test GET /api/invoicing/accounting-transactions again to see our job
-        self.test_get_accounting_transactions_with_job()
+        # Step 8: Test GET /api/invoicing/accounting-transactions with Xero details
+        self.test_get_accounting_transactions_with_xero_details()
         
-        # Step 7: Test POST /api/invoicing/complete-transaction/{job_id}
-        self.test_complete_accounting_transaction(test_job_id)
+        # Step 9: Test complete workflow (Live Jobs → Invoice → Accounting Transactions → Complete → Archived)
+        self.test_complete_enhanced_workflow(test_job_id)
         
-        # Step 8: Verify job is archived
-        self.test_verify_job_archived(test_job_id)
+        # Step 10: Test both connected and disconnected Xero scenarios
+        self.test_xero_connected_and_disconnected_scenarios()
         
-        # Step 9: Test full workflow validation
-        self.test_full_accounting_workflow_validation()
-        
-        # Print summary focused on accounting transactions
-        self.print_accounting_transactions_summary()
+        # Print summary focused on enhanced accounting transactions with Xero
+        self.print_enhanced_accounting_transactions_summary()
     
     def test_get_accounting_transactions(self):
         """Test GET /api/invoicing/accounting-transactions endpoint"""
