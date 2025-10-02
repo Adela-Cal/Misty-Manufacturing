@@ -2197,7 +2197,10 @@ async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_manage
 async def handle_xero_oauth_redirect(code: str = None, state: str = None, error: str = None):
     """Handle Xero OAuth redirect - redirect to frontend callback handler"""
     if error:
-        return HTMLResponse(f"<html><body><script>window.opener.postMessage({{ type: 'xero-auth-error', error: '{error}' }}, '*'); window.close();</script></body></html>")
+        return HTMLResponse(
+            content=f"<html><body><script>window.opener.postMessage({{ type: 'xero-auth-error', error: '{error}' }}, '*'); window.close();</script></body></html>",
+            media_type="text/html"
+        )
     
     if code and state:
         # Send data directly to parent window instead of redirecting
