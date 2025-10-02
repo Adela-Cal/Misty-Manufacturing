@@ -1162,6 +1162,118 @@ class BackendAPITester:
         
         print("\n" + "="*60)
     
+    def run_xero_oauth_callback_debug_tests(self):
+        """Run comprehensive Xero OAuth callback 404 debugging tests as requested in review"""
+        print("\n" + "="*60)
+        print("XERO OAUTH CALLBACK 404 DEBUG TESTING")
+        print("Debugging the reported issue: User gets 404 after Xero OAuth redirect")
+        print("="*60)
+        
+        # Step 1: Authenticate
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with tests")
+            return
+        
+        # Step 2: Test GET /api/xero/callback endpoint accessibility
+        self.test_xero_oauth_callback_404_debug()
+        
+        # Step 3: Test Xero integration status
+        self.test_xero_integration_status()
+        
+        # Step 4: Test Xero debug configuration
+        self.test_xero_debug_configuration()
+        
+        # Step 5: Test webhook endpoints (related to Xero integration)
+        self.test_xero_webhook_intent_to_receive()
+        self.test_xero_webhook_post_endpoint()
+        self.test_xero_callback_endpoint_accessibility()
+        self.test_xero_webhook_url_configuration()
+        
+        # Print summary focused on OAuth callback issues
+        self.print_xero_oauth_callback_summary()
+    
+    def print_xero_oauth_callback_summary(self):
+        """Print summary focused on Xero OAuth callback 404 issues"""
+        print("\n" + "="*60)
+        print("XERO OAUTH CALLBACK 404 DEBUG SUMMARY")
+        print("="*60)
+        
+        total_tests = len(self.test_results)
+        passed_tests = len([r for r in self.test_results if r['success']])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {failed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%" if total_tests > 0 else "0%")
+        
+        # Check for OAuth callback specific issues
+        callback_404_issues = []
+        callback_working = []
+        
+        for result in self.test_results:
+            if 'xero' in result['test'].lower() and 'callback' in result['test'].lower():
+                if not result['success'] and '404' in result['message']:
+                    callback_404_issues.append(result['test'])
+                elif result['success']:
+                    callback_working.append(result['test'])
+        
+        print("\n" + "-"*60)
+        print("OAUTH CALLBACK 404 ANALYSIS:")
+        print("-"*60)
+        
+        if not callback_404_issues:
+            print("✅ NO OAuth callback 404 errors detected!")
+            print("✅ The GET /api/xero/callback endpoint appears to be accessible")
+        else:
+            print("🚨 CRITICAL OAuth callback 404 issues found:")
+            for issue in callback_404_issues:
+                print(f"  ❌ {issue}")
+        
+        if callback_working:
+            print("\n✅ Working OAuth callback components:")
+            for working in callback_working:
+                print(f"  ✅ {working}")
+        
+        print("\n" + "="*60)
+        print("ROOT CAUSE ANALYSIS:")
+        print("="*60)
+        
+        # Analyze the specific issue reported
+        get_callback_results = [r for r in self.test_results if 'GET' in r['test'] and 'callback' in r['test'].lower()]
+        
+        if get_callback_results:
+            get_result = get_callback_results[0]
+            if not get_result['success'] and '404' in get_result['message']:
+                print("🚨 CONFIRMED: GET /api/xero/callback returns 404")
+                print("🚨 This explains why users get '404 not found' after Xero OAuth redirect")
+                print("🚨 The callback endpoint is not properly registered or accessible")
+                print("\n💡 SOLUTION NEEDED:")
+                print("  1. Verify /api/xero/callback route is properly registered in FastAPI")
+                print("  2. Check if the endpoint is accessible via the correct URL")
+                print("  3. Ensure the callback URL matches Xero Developer console configuration")
+            elif get_result['success']:
+                print("✅ GET /api/xero/callback is accessible and working")
+                print("✅ The 404 issue may be resolved or was environment-specific")
+                print("✅ OAuth callback flow should work correctly")
+        
+        print("\n" + "="*60)
+        print("NEXT STEPS:")
+        print("="*60)
+        
+        if callback_404_issues:
+            print("❌ IMMEDIATE ACTION REQUIRED:")
+            print("  1. Fix the GET /api/xero/callback endpoint accessibility")
+            print("  2. Verify FastAPI route registration")
+            print("  3. Test the complete OAuth flow end-to-end")
+            print("  4. Update Xero Developer console if callback URL changed")
+        else:
+            print("✅ OAuth callback endpoints appear to be working")
+            print("✅ Test the complete OAuth flow with a real Xero connection")
+            print("✅ Verify the issue is resolved in the production environment")
+        
+        print("\n" + "="*60)
+    
     def run_timesheet_mongodb_serialization_tests(self):
         """Run comprehensive timesheet MongoDB serialization testing as requested in review"""
         print("\n" + "="*60)
