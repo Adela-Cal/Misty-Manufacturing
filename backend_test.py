@@ -3898,8 +3898,6 @@ def main():
     
     tester = BackendAPITester()
     tester.run_xero_timesheet_fix_tests()
-                
-                # Verify the material was created and retrieve it to check currency
                 if default_currency_material_id:
                     get_response = self.session.get(f"{API_BASE}/materials/{default_currency_material_id}")
                     if get_response.status_code == 200:
