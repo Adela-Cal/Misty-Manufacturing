@@ -2201,26 +2201,30 @@ async def handle_xero_oauth_redirect(code: str = None, state: str = None, error:
     
     if code and state:
         # Send data directly to parent window instead of redirecting
-        return HTMLResponse(f"""
-        <html>
-        <body>
-        <script>
-        if (window.opener) {{
-            window.opener.postMessage({{ 
-                type: 'xero-auth-success', 
-                code: '{code}', 
-                state: '{state}' 
-            }}, '*');
-            window.close();
-        }} else {{
-            // Fallback redirect to frontend
-            window.location.href = '{os.getenv("FRONTEND_URL", "https://app.emergent.sh")}/xero/callback?code={code}&state={state}';
-        }}
-        </script>
-        <p>Connecting to Xero... This window will close automatically.</p>
-        </body>
-        </html>
-        """)
+        return HTMLResponse(
+            content=f"""<html>
+<head><title>Connecting to Xero</title></head>
+<body>
+<script>
+console.log('Xero callback script executing...');
+if (window.opener) {{
+    console.log('Sending message to opener window...');
+    window.opener.postMessage({{ 
+        type: 'xero-auth-success', 
+        code: '{code}', 
+        state: '{state}' 
+    }}, '*');
+    window.close();
+}} else {{
+    console.log('No opener found, redirecting to frontend...');
+    window.location.href = '{os.getenv("FRONTEND_URL")}/xero/callback?code={code}&state={state}';
+}}
+</script>
+<p>Connecting to Xero... This window will close automatically.</p>
+</body>
+</html>""",
+            media_type="text/html"
+        )
     
     return HTMLResponse("<html><body><script>window.close();</script></body></html>")
 
