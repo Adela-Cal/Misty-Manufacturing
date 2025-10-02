@@ -3174,6 +3174,69 @@ async def xero_oauth_callback_direct(code: str = None, state: str = None, error:
         headers={"Location": f"{os.getenv('FRONTEND_URL')}/"}
     )
 
+# Direct Xero token exchange route (bypasses /api routing)
+@app.post("/xero-auth-callback")
+async def xero_auth_callback_direct(callback_data: dict):
+    """Direct Xero token exchange that bypasses /api routing issues"""
+    try:
+        # Get auth credentials from environment
+        XERO_CLIENT_ID = os.getenv("XERO_CLIENT_ID")
+        XERO_CLIENT_SECRET = os.getenv("XERO_CLIENT_SECRET")  
+        XERO_CALLBACK_URL = os.getenv("XERO_REDIRECT_URI")
+        
+        auth_code = callback_data.get("code")
+        state = callback_data.get("state")
+        
+        if not auth_code or not state:
+            return {"error": "Missing authorization code or state"}
+        
+        # Exchange code for tokens
+        token_url = "https://identity.xero.com/connect/token"
+        
+        # Prepare authentication
+        auth_string = f"{XERO_CLIENT_ID}:{XERO_CLIENT_SECRET}"
+        auth_bytes = auth_string.encode('ascii')
+        auth_b64 = base64.b64encode(auth_bytes).decode('ascii')
+        
+        headers = {
+            "Authorization": f"Basic {auth_b64}",
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        
+        token_data = {
+            "grant_type": "authorization_code",
+            "code": auth_code,
+            "redirect_uri": XERO_CALLBACK_URL
+        }
+        
+        response = requests.post(token_url, headers=headers, data=token_data)
+        response.raise_for_status()
+        
+        tokens = response.json()
+        
+        # Store tokens (simplified - no user context for now)
+        token_record = {
+            "user_id": "system",  # Simplified for testing
+            "access_token": tokens["access_token"],
+            "refresh_token": tokens["refresh_token"],
+            "expires_at": datetime.now(timezone.utc) + timedelta(seconds=tokens.get("expires_in", 1800)),
+            "created_at": datetime.now(timezone.utc),
+            "tenant_id": None
+        }
+        
+        # Store in database
+        await db.xero_tokens.replace_one(
+            {"user_id": "system"},
+            token_record,
+            upsert=True
+        )
+        
+        return {"message": "Xero connection successful", "access_token_expires_in": tokens.get("expires_in", 1800)}
+        
+    except Exception as e:
+        logger.error(f"Xero token exchange failed: {str(e)}")
+        return {"error": f"Failed to exchange authorization code: {str(e)}"}
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
