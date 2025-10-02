@@ -372,13 +372,10 @@ class BackendAPITester:
         print("\n=== PREPARE_FOR_MONGO FUNCTIONALITY TEST ===")
         
         try:
-            # Test creating a new timesheet to verify prepare_for_mongo is working
-            employees_response = self.session.get(f"{API_BASE}/payroll/employees")
+            # Get or create a test employee
+            employee_id = self.create_test_employee_if_needed()
             
-            if employees_response.status_code == 200:
-                employees = employees_response.json()
-                if employees:
-                    employee_id = employees[0].get('id')
+            if employee_id:
                     
                     # Create a new timesheet which should use prepare_for_mongo internally
                     from datetime import date, timedelta
