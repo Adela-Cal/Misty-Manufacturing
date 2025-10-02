@@ -500,8 +500,8 @@ frontend:
 
 metadata:
   created_by: "testing_agent"
-  version: "1.9"
-  test_sequence: 10
+  version: "2.0"
+  test_sequence: 11
 
 test_plan:
   current_focus:
