@@ -117,6 +117,10 @@ async def get_employee_leave_balances(employee_id: str, current_user: dict = Dep
 async def get_current_week_timesheet(employee_id: str, current_user: dict = Depends(require_any_role)):
     """Get or create current week timesheet"""
     
+    # Validate employee_id parameter
+    if not employee_id or employee_id in ['undefined', 'null', 'None']:
+        raise HTTPException(status_code=400, detail="Valid employee ID is required")
+    
     # Check access permissions
     if current_user["role"] not in ["admin", "manager", "production_manager"] and current_user["user_id"] != employee_id:
         raise HTTPException(status_code=403, detail="Access denied")
