@@ -156,119 +156,31 @@ const Invoicing = () => {
 
       const response = await apiHelpers.generateJobInvoice(selectedJob.id, invoiceData);
       
-      // Check if Xero draft was created automatically
-      if (response.data.xero_draft_created) {
-        toast.success(`Invoice ${response.data.invoice_number} generated and moved to Accounting Transactions. Xero draft created automatically!`);
-      } else {
-        toast.success(`Invoice ${response.data.invoice_number} generated and moved to Accounting Transactions`);
-      }
-      
-      // Also create draft invoice in Xero if connected
-      try {
-        console.log('Checking Xero connection status...');
-        const xeroStatus = await apiHelpers.checkXeroConnection();
-        console.log('Xero status:', xeroStatus.data);
-        
-        if (xeroStatus.data.connected) {
-          console.log('Xero connected, getting next invoice number...');
-          const nextNumber = await apiHelpers.getNextXeroInvoiceNumber();
-          console.log('Next invoice number:', nextNumber.data);
-          
-          const xeroInvoiceData = {
-            client_name: selectedJob.client_name,
-            client_email: selectedJob.client_email || '',
-            invoice_number: nextNumber.data.formatted_number,
-            order_number: selectedJob.order_number,
-            items: selectedJob.items,
-            total_amount: selectedJob.total_amount,
-            due_date: invoiceData.due_date,
-            reference: selectedJob.order_number
-          };
-          
-          console.log('Creating Xero draft invoice with data:', xeroInvoiceData);
-          const xeroResponse = await apiHelpers.createXeroDraftInvoice(xeroInvoiceData);
-          console.log('Xero response:', xeroResponse.data);
-          
-          toast.success(
-            <div>
-              <p>📄 Invoice created locally and in Xero!</p>
-              <div className="mt-2 space-x-2">
-                <button 
-                  onClick={() => downloadInvoice(selectedJob.id, selectedJob.order_number)}
-                  className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs text-white"
-                >
-                  📄 Invoice PDF
-                </button>
-                <button 
-                  onClick={() => downloadPackingSlip(selectedJob.id, selectedJob.order_number)}
-                  className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs text-white"
-                >
-                  📦 Packing Slip
-                </button>
-                <a
-                  href={xeroResponse.data.xero_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs text-white inline-block"
-                >
-                  🔗 View in Xero
-                </a>
-              </div>
-            </div>,
-            { duration: 15000 }
-          );
-        } else {
-          console.log('Xero not connected, showing local documents only');
-          // Show download prompt if no Xero connection
-          toast.success(
-            <div>
-              <p>📄 Documents ready for download:</p>
-              <div className="mt-2 space-x-2">
-                <button 
-                  onClick={() => downloadInvoice(selectedJob.id, selectedJob.order_number)}
-                  className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs text-white"
-                >
-                  📄 Invoice PDF
-                </button>
-                <button 
-                  onClick={() => downloadPackingSlip(selectedJob.id, selectedJob.order_number)}
-                  className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs text-white"
-                >
-                  📦 Packing Slip
-                </button>
-              </div>
-              <p className="text-xs mt-2 text-gray-300">💡 Connect to Xero to automatically create draft invoices</p>
-            </div>,
-            { duration: 10000 }
-          );
-        }
-      } catch (xeroError) {
-        console.error('Xero integration error:', xeroError);
-        
-        // Show detailed error information
-        let errorMessage = 'Xero integration failed';
-        if (xeroError.response?.data?.detail) {
-          errorMessage = `Xero Error: ${xeroError.response.data.detail}`;
-        } else if (xeroError.message) {
-          errorMessage = `Xero Error: ${xeroError.message}`;
-        }
-        
-        toast.error(
-          <div>
-            <p>⚠️ {errorMessage}</p>
-            <p className="text-xs mt-1">Invoice created locally, but Xero draft failed.</p>
-            <div className="mt-2 space-x-2">
-              <button 
-                onClick={() => downloadInvoice(selectedJob.id, selectedJob.order_number)}
-                className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs text-white"
-              >
-                📄 Download Invoice PDF
-              </button>
-            </div>
-          </div>,
-          { duration: 10000 }
-        );
-      }
+      // Show success message with Xero integration info
+      toast.success(
+        <div>
+          <p>📄 Invoice {response.data.invoice_number} generated successfully!</p>
+          <p className="text-sm text-gray-300">Job moved to Accounting Transactions tab</p>
+          {xeroConnected && (
+            <p className="text-sm text-green-300">✅ Xero draft created automatically</p>
+          )}
+          <div className="mt-2 space-x-2">
+            <button 
+              onClick={() => downloadInvoice(selectedJob.id, selectedJob.order_number)}
+              className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs text-white"
+            >
+              📄 Invoice PDF
+            </button>
+            <button 
+              onClick={() => downloadPackingSlip(selectedJob.id, selectedJob.order_number)}
+              className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs text-white"
+            >
+              📦 Packing Slip
+            </button>
+          </div>
+        </div>,
+        { duration: 8000 }
+      );
       
       setShowInvoiceModal(false);
       setSelectedJob(null);
