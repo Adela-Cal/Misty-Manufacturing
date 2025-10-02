@@ -3888,8 +3888,8 @@ def main():
 if __name__ == "__main__":
     tester = BackendAPITester()
     
-    # Run Xero webhook tests as requested in review
-    tester.run_xero_webhook_tests()
+    # Run Xero OAuth callback 404 debug tests as requested in review
+    tester.run_xero_oauth_callback_debug_tests()
 
 def main():
     """Main test execution"""
