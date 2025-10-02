@@ -221,7 +221,8 @@ async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(requ
     payroll_calculation = payroll_calc_service.calculate_weekly_pay(employee, timesheet)
     
     # Save payroll calculation
-    await db.payroll_calculations.insert_one(payroll_calculation.dict())
+    payroll_dict = prepare_for_mongo(payroll_calculation.dict())
+    await db.payroll_calculations.insert_one(payroll_dict)
     
     # Update timesheet status
     await db.timesheets.update_one(
