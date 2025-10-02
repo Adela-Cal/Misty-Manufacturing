@@ -169,9 +169,10 @@ async def update_timesheet(timesheet_id: str, timesheet_data: TimesheetCreate, c
     timesheet = timesheet_service.calculate_timesheet_totals(timesheet)
     
     # Save updated timesheet
+    timesheet_dict = prepare_for_mongo(timesheet.dict())
     await db.timesheets.update_one(
         {"id": timesheet_id},
-        {"$set": timesheet.dict()}
+        {"$set": timesheet_dict}
     )
     
     return StandardResponse(success=True, message="Timesheet updated successfully")
