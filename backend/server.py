@@ -2229,7 +2229,10 @@ if (window.opener) {{
             media_type="text/html"
         )
     
-    return HTMLResponse("<html><body><script>window.close();</script></body></html>")
+    return HTMLResponse(
+        content="<html><body><script>window.close();</script></body></html>",
+        media_type="text/html"
+    )
 
 @api_router.post("/xero/auth/callback")
 async def handle_xero_callback(
