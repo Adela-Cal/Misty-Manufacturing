@@ -161,9 +161,9 @@ class Timesheet(BaseModel):
     entries: List[TimesheetEntry] = []
     
     # Calculated totals
-    total_regular_hours: Decimal = Decimal('0')
-    total_overtime_hours: Decimal = Decimal('0')
-    total_leave_hours: Dict[LeaveType, Decimal] = {}
+    total_regular_hours: float = 0.0
+    total_overtime_hours: float = 0.0
+    total_leave_hours: Dict[LeaveType, float] = {}
     
     status: TimesheetStatus = TimesheetStatus.DRAFT
     submitted_at: Optional[datetime] = None
