@@ -274,6 +274,17 @@ const Invoicing = () => {
     }
   };
 
+  const completeAccountingTransaction = async (job) => {
+    try {
+      await apiHelpers.completeAccountingTransaction(job.id);
+      toast.success(`Job ${job.order_number} completed and archived successfully`);
+      loadData(); // Refresh data
+    } catch (error) {
+      console.error('Failed to complete accounting transaction:', error);
+      toast.error('Failed to complete transaction');
+    }
+  };
+
   const downloadInvoice = async (jobId, orderNumber) => {
     try {
       // Use fetch instead of axios for blob handling
