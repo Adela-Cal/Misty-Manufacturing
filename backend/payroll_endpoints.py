@@ -141,7 +141,8 @@ async def get_current_week_timesheet(employee_id: str, current_user: dict = Depe
     
     # Create new timesheet if it doesn't exist
     new_timesheet = timesheet_service.generate_weekly_timesheet(employee_id, week_starting)
-    await db.timesheets.insert_one(new_timesheet.dict())
+    timesheet_dict = prepare_for_mongo(new_timesheet.dict())
+    await db.timesheets.insert_one(timesheet_dict)
     
     return new_timesheet
 
