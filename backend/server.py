@@ -2854,6 +2854,87 @@ async def get_monthly_invoicing_report(
         "invoiced_jobs": invoiced_jobs
     }
 
+# ============= ACCOUNTING TRANSACTIONS ENDPOINTS =============
+
+@api_router.get("/invoicing/accounting-transactions")
+async def get_accounting_transactions(current_user: dict = Depends(require_admin_or_manager)):
+    """Get all jobs in accounting transaction stage (invoiced but not completed)"""
+    transactions = await db.orders.find({
+        "current_stage": "accounting_transaction",
+        "status": "accounting_draft"
+    }).to_list(length=None)
+    
+    # Convert ObjectId to string and enrich with client information
+    for transaction in transactions:
+        # Remove MongoDB ObjectId if present
+        if "_id" in transaction:
+            del transaction["_id"]
+            
+        client = await db.clients.find_one({"id": transaction["client_id"]})
+        if client:
+            transaction["client_name"] = client["company_name"]
+            transaction["client_email"] = client.get("email", "")
+        
+    return {"data": transactions}
+
+@api_router.post("/invoicing/complete-transaction/{job_id}")
+async def complete_accounting_transaction(
+    job_id: str,
+    current_user: dict = Depends(require_admin_or_manager)
+):
+    """Complete accounting transaction and archive the job"""
+    # Get job/order
+    job = await db.orders.find_one({"id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    if job.get("current_stage") != "accounting_transaction":
+        raise HTTPException(status_code=400, detail="Job is not in accounting transaction stage")
+    
+    # Update job to completed status
+    await db.orders.update_one(
+        {"id": job_id},
+        {"$set": {
+            "current_stage": "cleared",
+            "status": "completed",
+            "completed_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    # Get the updated order data for archiving
+    updated_job = await db.orders.find_one({"id": job_id})
+    if updated_job:
+        # Create archived order
+        archived_order = ArchivedOrder(
+            original_order_id=updated_job["id"],
+            order_number=updated_job["order_number"],
+            client_id=updated_job["client_id"],
+            client_name=updated_job.get("client_name", ""),
+            purchase_order_number=updated_job.get("purchase_order_number"),
+            items=updated_job["items"],
+            subtotal=updated_job["subtotal"],
+            gst=updated_job["gst"],
+            total_amount=updated_job["total_amount"],
+            due_date=updated_job["due_date"],
+            delivery_address=updated_job.get("delivery_address"),
+            delivery_instructions=updated_job.get("delivery_instructions"),
+            runtime_estimate=updated_job.get("runtime_estimate"),
+            notes=updated_job.get("notes"),
+            created_by=updated_job["created_by"],
+            created_at=updated_job["created_at"],
+            completed_at=datetime.now(timezone.utc),
+            archived_by=current_user["user_id"]
+        )
+        
+        # Insert into archived orders collection
+        await db.archived_orders.insert_one(archived_order.dict())
+    
+    return {
+        "message": "Accounting transaction completed and job archived successfully",
+        "job_id": job_id
+    }
+
 # ============= ARCHIVED ORDERS ENDPOINTS =============
 
 @api_router.get("/clients/{client_id}/archived-orders")
