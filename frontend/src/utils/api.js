@@ -142,6 +142,10 @@ export const apiHelpers = {
   generateJobInvoice: (jobId, invoiceData) => api.post(`/invoicing/generate/${jobId}`, invoiceData),
   getMonthlyReport: (month, year) => api.get('/invoicing/monthly-report', { params: { month, year } }),
   
+  // Accounting Transactions
+  getAccountingTransactions: () => api.get('/invoicing/accounting-transactions'),
+  completeAccountingTransaction: (jobId) => api.post(`/invoicing/complete-transaction/${jobId}`),
+  
   // Xero Integration
   checkXeroConnection: () => api.get('/xero/status'),
   getXeroAuthUrl: () => api.get('/xero/auth/url'),
