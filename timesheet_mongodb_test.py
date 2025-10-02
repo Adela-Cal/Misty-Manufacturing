@@ -456,11 +456,13 @@ class TimesheetMongoDBTester:
             print("❌ Authentication failed - cannot proceed with tests")
             return
         
-        # Step 2: Create test employee using specific data from review request
-        employee_id = self.create_test_employee()
+        # Step 2: Get existing employee or create test employee (will detect MongoDB serialization issues)
+        employee_id = self.get_existing_employee_or_create()
         if not employee_id:
-            print("❌ Failed to create test employee - cannot proceed with timesheet tests")
-            return
+            print("❌ Failed to get/create test employee - but this reveals the MongoDB serialization issue!")
+            print("🔍 The prepare_for_mongo() function needs to handle Decimal objects")
+            # Continue with testing using a mock employee ID to test other aspects
+            self.test_employee_id = "mock-employee-for-testing"
         
         # Step 3: Test the specific endpoint that was throwing bson.errors.InvalidDocument
         timesheet = self.test_get_current_week_timesheet(employee_id)
