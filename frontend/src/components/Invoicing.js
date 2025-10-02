@@ -156,7 +156,12 @@ const Invoicing = () => {
 
       const response = await apiHelpers.generateJobInvoice(selectedJob.id, invoiceData);
       
-      toast.success(`Invoice ${response.data.invoice_number} generated successfully`);
+      // Check if Xero draft was created automatically
+      if (response.data.xero_draft_created) {
+        toast.success(`Invoice ${response.data.invoice_number} generated and moved to Accounting Transactions. Xero draft created automatically!`);
+      } else {
+        toast.success(`Invoice ${response.data.invoice_number} generated and moved to Accounting Transactions`);
+      }
       
       // Also create draft invoice in Xero if connected
       try {
