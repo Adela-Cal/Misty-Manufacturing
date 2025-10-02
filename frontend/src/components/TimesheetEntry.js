@@ -434,9 +434,9 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
             </select>
           </div>
         </div>
-          
-          {/* Action Buttons */}
-          <div className="flex items-center space-x-3">
+        
+        {/* Action Buttons */}
+        <div className="flex items-center space-x-3 mt-4">
             {canEdit() && (
               <>
                 <button
