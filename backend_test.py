@@ -80,77 +80,49 @@ class BackendAPITester:
             return False
     
     def create_test_employee(self):
-        """Create a test employee for timesheet testing"""
+        """Create a test employee for timesheet testing using the specific data from review request"""
         print("\n=== CREATE TEST EMPLOYEE ===")
         
         try:
-            # First create a user account for the employee
-            user_data = {
-                "username": "test_employee",
-                "email": "test.employee@testcompany.com",
-                "password": "TestPass123!",
-                "full_name": "Test Employee",
-                "role": "employee",
-                "employment_type": "full_time",
+            # Use the specific employee data from the review request
+            employee_data = {
+                "user_id": "test-user-timesheet-001",
+                "employee_number": "TS001", 
+                "first_name": "Timesheet",
+                "last_name": "Tester",
+                "email": "timesheet.tester@testcompany.com",
+                "phone": "0412345678",
                 "department": "Production",
-                "phone": "0412345678"
+                "position": "Production Worker", 
+                "start_date": "2024-01-01",
+                "employment_type": "full_time",
+                "hourly_rate": 25.50,
+                "weekly_hours": 38.0,
+                "annual_leave_entitlement": 20,
+                "sick_leave_entitlement": 10,
+                "personal_leave_entitlement": 2
             }
             
-            user_response = self.session.post(f"{API_BASE}/users", json=user_data)
+            emp_response = self.session.post(f"{API_BASE}/payroll/employees", json=employee_data)
             
-            if user_response.status_code == 200:
-                user_result = user_response.json()
-                user_id = user_result.get('data', {}).get('id')
+            if emp_response.status_code == 200:
+                emp_result = emp_response.json()
+                employee_id = emp_result.get('data', {}).get('id')
                 
-                if user_id:
-                    # Now create employee profile
-                    employee_data = {
-                        "user_id": user_id,
-                        "employee_number": "EMP001",
-                        "first_name": "Test",
-                        "last_name": "Employee",
-                        "email": "test.employee@testcompany.com",
-                        "phone": "0412345678",
-                        "department": "Production",
-                        "position": "Production Worker",
-                        "start_date": "2024-01-01",
-                        "employment_type": "full_time",
-                        "hourly_rate": 25.50,
-                        "weekly_hours": 38
-                    }
-                    
-                    emp_response = self.session.post(f"{API_BASE}/payroll/employees", json=employee_data)
-                    
-                    if emp_response.status_code == 200:
-                        emp_result = emp_response.json()
-                        employee_id = emp_result.get('data', {}).get('id')
-                        
-                        self.test_employee_id = employee_id
-                        self.log_result(
-                            "Create Test Employee", 
-                            True, 
-                            f"Successfully created test employee with ID: {employee_id}"
-                        )
-                        return employee_id
-                    else:
-                        self.log_result(
-                            "Create Test Employee", 
-                            False, 
-                            f"Employee creation failed with status {emp_response.status_code}",
-                            emp_response.text
-                        )
-                else:
-                    self.log_result(
-                        "Create Test Employee", 
-                        False, 
-                        "User creation response missing ID"
-                    )
+                self.test_employee_id = employee_id
+                self.log_result(
+                    "Create Test Employee", 
+                    True, 
+                    f"Successfully created test employee with ID: {employee_id}",
+                    f"Employee: {employee_data['first_name']} {employee_data['last_name']}, Number: {employee_data['employee_number']}"
+                )
+                return employee_id
             else:
                 self.log_result(
                     "Create Test Employee", 
                     False, 
-                    f"User creation failed with status {user_response.status_code}",
-                    user_response.text
+                    f"Employee creation failed with status {emp_response.status_code}",
+                    emp_response.text
                 )
                 
         except Exception as e:
