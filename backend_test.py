@@ -1588,20 +1588,16 @@ class BackendAPITester:
                     {
                         "product_id": "xero-test-product-001",
                         "product_name": "Paper Core - 40mm ID x 1.8mmT",
-                        "description": "Spiral paper core for label manufacturing industry",
                         "quantity": 500,
                         "unit_price": 2.75,
-                        "total_price": 1375.00,
-                        "specifications": "40mm internal diameter, 1.8mm wall thickness"
+                        "total_price": 1375.00
                     },
                     {
                         "product_id": "xero-test-product-002", 
                         "product_name": "Paper Core - 76mm ID x 3mmT",
-                        "description": "Heavy duty spiral paper core",
                         "quantity": 200,
                         "unit_price": 4.25,
-                        "total_price": 850.00,
-                        "specifications": "76mm internal diameter, 3mm wall thickness"
+                        "total_price": 850.00
                     }
                 ],
                 "due_date": (datetime.now() + timedelta(days=21)).isoformat(),
