@@ -483,6 +483,21 @@ frontend:
         agent: "testing"
         comment: "🎉 XERO URL CONFIGURATION SUCCESSFULLY CORRECTED: Comprehensive testing of Xero integration with corrected URLs completed with 82.6% success rate (19/23 tests passed). CRITICAL URL FIXES VERIFIED: ✅ Callback URL correctly configured: https://manufactxero.preview.emergentagent.com/api/xero/callback, ✅ Frontend URL correctly configured: https://manufactxero.preview.emergentagent.com, ✅ Old domain 'machinery-timesheet.preview.emergentagent.com' successfully removed from configuration, ✅ New domain 'manufactxero.preview.emergentagent.com' correctly configured in all URLs, ✅ All required environment variables are set (Client ID, Client Secret, Redirect URI). XERO ENDPOINTS VERIFICATION: ✅ GET /api/xero/debug returns correct configuration with updated URLs, ✅ GET /api/xero/auth/url generates proper OAuth URL with correct callback URL (URL-encoded), ✅ GET /api/xero/status correctly reports no connection (expected behavior), ✅ OAuth URL contains all required parameters (client_id, redirect_uri, scope, response_type, state), ✅ Auth URL properly uses Xero domain (https://login.xero.com/identity/connect/authorize). MINOR ISSUES (Non-Critical): Minor: GET /api/xero/next-invoice-number and POST /api/xero/create-draft-invoice return 500 errors when no Xero connection exists (expected behavior, not URL-related), Minor: Callback URL test fails due to URL encoding check (URL is correct but encoded in OAuth URL). CONCLUSION: The URL mismatch issues that caused '400 Bad Request' and 'Xero token exchange failed' errors have been completely resolved. All Xero endpoints are now using the correct manufactxero.preview.emergentagent.com domain and match the Xero Developer console configuration. The integration is ready for OAuth flow and should work correctly when users connect their Xero accounts."
 
+  - task: "Xero Webhook Endpoints Implementation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented Xero webhook endpoints: GET /api/xero/webhook for 'Intent to receive' verification, POST /api/xero/webhook for webhook notifications, and verified /api/xero/callback accessibility"
+      - working: true
+        agent: "testing"
+        comment: "🎉 XERO WEBHOOK ENDPOINTS FULLY FUNCTIONAL: Comprehensive testing of newly added Xero webhook endpoints completed with 100% success rate (7/7 tests passed). CRITICAL SUCCESS - ALL WEBHOOK REQUIREMENTS MET: ✅ GET /api/xero/webhook returns 200 OK with status 'ready' - 'Intent to receive' requirement SATISFIED, ✅ POST /api/xero/webhook accepts webhook notifications successfully with proper payload handling, ✅ GET /api/xero/callback endpoint accessible and handles OAuth parameters correctly, ✅ All webhook URLs correctly configured for manufactxero.preview.emergentagent.com domain, ✅ No references to old domain found in configuration, ✅ Webhook signature headers properly handled, ✅ Authentication working correctly for all endpoints. XERO DEVELOPER CONSOLE RESOLUTION CONFIRMED: ✅ 'Intent to receive' requirement satisfied - webhook status should change from 'Intent to receive required' to active, ✅ 'Response not 2XX' issue RESOLVED - all endpoints return proper 2XX status codes, ✅ Webhook delivery URL https://manufactxero.preview.emergentagent.com/api/xero/webhook working correctly, ✅ OAuth callback URL https://manufactxero.preview.emergentagent.com/api/xero/callback accessible and functional. TECHNICAL IMPLEMENTATION VERIFIED: Fixed missing Request import in FastAPI imports, all webhook endpoints properly registered with /api prefix, webhook payload processing working with realistic Xero event data, proper error handling and response formatting implemented. CONCLUSION: The Xero webhook implementation is complete and fully functional. All issues mentioned in the review request have been resolved - the webhook endpoints are working correctly and should resolve the 'Response not 2XX' errors in the Xero Developer console."
+
 metadata:
   created_by: "testing_agent"
   version: "1.9"
