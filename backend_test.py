@@ -2349,8 +2349,6 @@ if __name__ == "__main__":
     
     # Run timesheet debug tests (focus on reported issues)
     tester.run_timesheet_debug_tests()
-        try:
-            response = self.session.post(f"{API_BASE}/materials", json=material_default_currency)
             
             if response.status_code == 200:
                 result = response.json()
