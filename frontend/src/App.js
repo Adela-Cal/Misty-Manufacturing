@@ -53,6 +53,7 @@ function AppRoutes() {
         <Route path="/payroll" element={<PayrollManagement />} />
         <Route path="/staff-security" element={<StaffSecurity />} />
         <Route path="/xero/callback" element={<XeroCallback />} />
+        <Route path="/xero-oauth-callback" element={<XeroCallback />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
