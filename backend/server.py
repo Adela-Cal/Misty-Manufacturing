@@ -2724,13 +2724,13 @@ async def generate_job_invoice(
     # Insert invoice record
     await db.invoices.insert_one(invoice_record)
     
-    # Update job status and trigger archiving
+    # Update job status and move to accounting transactions
     update_data = {
         "invoiced": True,
         "invoice_id": invoice_record["id"],
-        "current_stage": "cleared",
-        "status": "completed",  # Set status to completed to trigger archiving
-        "completed_at": datetime.now(timezone.utc),
+        "current_stage": "accounting_transaction",  # New stage for accounting processing
+        "status": "accounting_draft",  # New status for accounting transactions
+        "invoice_date": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc)
     }
     
