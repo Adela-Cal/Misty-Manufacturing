@@ -2183,7 +2183,7 @@ async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_manage
     # Debug logging
     logger.info(f"Generated Xero OAuth URL: {auth_url}")
     logger.info(f"Client ID: {XERO_CLIENT_ID}")
-    logger.info(f"Callback URL: https://machinery-timesheet.preview.emergentagent.com/api/xero/callback")
+    logger.info(f"Callback URL: {XERO_CALLBACK_URL}")
     logger.info(f"Scopes: {XERO_SCOPES}")
     
     return {"auth_url": auth_url, "state": state, "debug_info": {
