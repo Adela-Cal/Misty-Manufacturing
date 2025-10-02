@@ -131,8 +131,10 @@ class TimesheetService:
         entries = []
         for i in range(7):
             entry_date = week_starting + timedelta(days=i)
+            # Convert date to datetime for MongoDB compatibility
+            entry_datetime = datetime.combine(entry_date, datetime.min.time())
             entries.append(TimesheetEntry(
-                date=entry_date,
+                date=entry_datetime,
                 regular_hours=Decimal('0'),
                 overtime_hours=Decimal('0'),
                 leave_hours={},
