@@ -464,7 +464,7 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
               Save Draft
             </button>
             
-            {(!isManager || (isManager && !selectedEmployee)) && (
+            {timesheet?.status === 'draft' && (
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
