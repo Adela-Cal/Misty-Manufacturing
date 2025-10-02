@@ -642,7 +642,7 @@ class XeroIntegrationTester:
                     url_issues.append(f"Old domain still present: {result['test']}")
                 elif '400 bad request' in result['details'].lower():
                     url_issues.append(f"400 Bad Request error: {result['test']}")
-            elif result['success'] and 'manufactxero.preview.emergentagent.com' in result.get('details', ''):
+            elif result['success'] and 'manufactxero.preview.emergentagent.com' in (result.get('details') or ''):
                 url_fixes.append(f"Correct domain verified: {result['test']}")
         
         if not url_issues:
