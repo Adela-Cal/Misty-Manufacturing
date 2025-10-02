@@ -56,7 +56,8 @@ async def create_employee(employee_data: EmployeeProfileCreate, current_user: di
     new_employee.sick_leave_balance = Decimal(str(employee_data.sick_leave_entitlement * accrual_rate))
     new_employee.personal_leave_balance = Decimal(str(employee_data.personal_leave_entitlement * accrual_rate))
     
-    await db.employee_profiles.insert_one(new_employee.dict())
+    employee_dict = prepare_for_mongo(new_employee.dict())
+    await db.employee_profiles.insert_one(employee_dict)
     
     logger.info(f"Created employee profile for {new_employee.first_name} {new_employee.last_name}")
     
