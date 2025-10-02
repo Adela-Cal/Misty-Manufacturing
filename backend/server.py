@@ -2204,8 +2204,7 @@ async def handle_xero_oauth_redirect(code: str = None, state: str = None, error:
     
     if code and state:
         # Send data directly to parent window instead of redirecting
-        return HTMLResponse(
-            content=f"""<html>
+        html_content = f"""<html>
 <head><title>Connecting to Xero</title></head>
 <body>
 <script>
@@ -2225,8 +2224,11 @@ if (window.opener) {{
 </script>
 <p>Connecting to Xero... This window will close automatically.</p>
 </body>
-</html>""",
-            media_type="text/html"
+</html>"""
+        
+        return HTMLResponse(
+            content=html_content,
+            headers={"Content-Type": "text/html; charset=utf-8"}
         )
     
     return HTMLResponse(
