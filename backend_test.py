@@ -496,6 +496,118 @@ class BackendAPITester:
         except Exception as e:
             self.log_result("Timesheet Status Updates", False, f"Error: {str(e)}")
     
+    def test_prepare_for_mongo_fix(self):
+        """Test that prepare_for_mongo() function properly converts date/datetime objects"""
+        print("\n=== PREPARE_FOR_MONGO() FIX VERIFICATION TEST ===")
+        
+        try:
+            # Test creating a new timesheet which should trigger prepare_for_mongo()
+            if not self.test_employee_id:
+                self.log_result(
+                    "prepare_for_mongo() Fix Verification", 
+                    False, 
+                    "No test employee ID available"
+                )
+                return
+            
+            # Create timesheet data with date objects that would cause serialization issues
+            today = date.today()
+            week_start = today - timedelta(days=today.weekday())  # Monday
+            
+            entries = []
+            for i in range(5):  # Monday to Friday
+                entry_date = week_start + timedelta(days=i)
+                entries.append({
+                    "date": entry_date.isoformat(),  # This should be properly handled
+                    "regular_hours": 8.0,
+                    "overtime_hours": 0.0,
+                    "leave_hours": {},
+                    "notes": f"Test day {i+1} for MongoDB serialization"
+                })
+            
+            timesheet_data = {
+                "employee_id": self.test_employee_id,
+                "week_starting": week_start.isoformat(),  # This should be properly handled
+                "entries": entries
+            }
+            
+            # First get current week timesheet (this triggers prepare_for_mongo internally)
+            response = self.session.get(f"{API_BASE}/payroll/timesheets/current-week/{self.test_employee_id}")
+            
+            if response.status_code == 200:
+                timesheet = response.json()
+                timesheet_id = timesheet.get('id')
+                
+                if timesheet_id:
+                    # Now try to update it (this also triggers prepare_for_mongo)
+                    update_response = self.session.put(f"{API_BASE}/payroll/timesheets/{timesheet_id}", json=timesheet_data)
+                    
+                    if update_response.status_code == 200:
+                        self.log_result(
+                            "prepare_for_mongo() Fix Verification", 
+                            True, 
+                            "✅ prepare_for_mongo() function working correctly - no MongoDB serialization errors",
+                            "Date/datetime objects properly converted for MongoDB storage"
+                        )
+                        
+                        # Verify the data was actually saved by retrieving it again
+                        verify_response = self.session.get(f"{API_BASE}/payroll/timesheets/current-week/{self.test_employee_id}")
+                        if verify_response.status_code == 200:
+                            verified_timesheet = verify_response.json()
+                            self.log_result(
+                                "prepare_for_mongo() Data Persistence", 
+                                True, 
+                                "Data successfully persisted after prepare_for_mongo() conversion",
+                                f"Timesheet entries: {len(verified_timesheet.get('entries', []))}"
+                            )
+                        else:
+                            self.log_result(
+                                "prepare_for_mongo() Data Persistence", 
+                                False, 
+                                f"Failed to verify data persistence: {verify_response.status_code}"
+                            )
+                    else:
+                        error_text = update_response.text.lower()
+                        if 'bson.errors.invaliddocument' in error_text or 'cannot encode object' in error_text:
+                            self.log_result(
+                                "prepare_for_mongo() Fix Verification", 
+                                False, 
+                                "🚨 CRITICAL: prepare_for_mongo() fix NOT working - still getting MongoDB serialization errors!",
+                                update_response.text
+                            )
+                        else:
+                            self.log_result(
+                                "prepare_for_mongo() Fix Verification", 
+                                False, 
+                                f"Update failed with status {update_response.status_code} (not serialization related)",
+                                update_response.text
+                            )
+                else:
+                    self.log_result(
+                        "prepare_for_mongo() Fix Verification", 
+                        False, 
+                        "Could not get timesheet ID for testing"
+                    )
+            else:
+                error_text = response.text.lower()
+                if 'bson.errors.invaliddocument' in error_text or 'cannot encode object' in error_text:
+                    self.log_result(
+                        "prepare_for_mongo() Fix Verification", 
+                        False, 
+                        "🚨 CRITICAL: prepare_for_mongo() fix NOT working - getting MongoDB serialization errors on timesheet creation!",
+                        response.text
+                    )
+                else:
+                    self.log_result(
+                        "prepare_for_mongo() Fix Verification", 
+                        False, 
+                        f"Failed to get current week timesheet: {response.status_code}",
+                        response.text
+                    )
+                
+        except Exception as e:
+            self.log_result("prepare_for_mongo() Fix Verification", False, f"Error: {str(e)}")
+
     def test_payroll_system_integration(self, timesheet_id):
         """Test integration with existing payroll system"""
         print("\n=== PAYROLL SYSTEM INTEGRATION TEST ===")
