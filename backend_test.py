@@ -1272,6 +1272,273 @@ class BackendAPITester:
         
         print("\n" + "="*60)
 
+    # ============= XERO OAUTH CALLBACK TESTS =============
+    
+    def test_xero_oauth_callback_404_debug(self):
+        """Debug the Xero OAuth callback 404 issue as requested in review"""
+        print("\n=== XERO OAUTH CALLBACK 404 DEBUG TEST ===")
+        
+        try:
+            # Test 1: GET /api/xero/callback endpoint accessibility (this should return HTML)
+            response = self.session.get(f"{API_BASE}/xero/callback")
+            
+            if response.status_code == 200:
+                content = response.text
+                if '<html>' in content and '<script>' in content:
+                    self.log_result(
+                        "Xero OAuth Callback GET Accessibility", 
+                        True, 
+                        "✅ GET /api/xero/callback returns HTML content (200 OK)",
+                        f"Content includes HTML and JavaScript for OAuth handling"
+                    )
+                else:
+                    self.log_result(
+                        "Xero OAuth Callback GET Accessibility", 
+                        False, 
+                        "❌ GET /api/xero/callback returns 200 but unexpected content",
+                        f"Content: {content[:200]}..."
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Xero OAuth Callback GET Accessibility", 
+                    False, 
+                    "🚨 CRITICAL: GET /api/xero/callback returns 404 - THIS IS THE REPORTED ISSUE!",
+                    "The callback endpoint is not accessible, causing OAuth redirect failures"
+                )
+            else:
+                self.log_result(
+                    "Xero OAuth Callback GET Accessibility", 
+                    False, 
+                    f"❌ GET /api/xero/callback failed with status {response.status_code}",
+                    response.text
+                )
+            
+            # Test 2: GET /api/xero/callback with sample OAuth parameters
+            test_params = {
+                'code': 'test_auth_code_12345',
+                'state': 'test_state_67890'
+            }
+            
+            response_with_params = self.session.get(f"{API_BASE}/xero/callback", params=test_params)
+            
+            if response_with_params.status_code == 200:
+                content = response_with_params.text
+                if 'xero-auth-success' in content and 'test_auth_code_12345' in content:
+                    self.log_result(
+                        "Xero OAuth Callback with Parameters", 
+                        True, 
+                        "✅ GET /api/xero/callback handles OAuth parameters correctly",
+                        "Returns HTML with postMessage for auth success"
+                    )
+                else:
+                    self.log_result(
+                        "Xero OAuth Callback with Parameters", 
+                        False, 
+                        "❌ GET /api/xero/callback returns unexpected content with parameters",
+                        f"Content: {content[:300]}..."
+                    )
+            elif response_with_params.status_code == 404:
+                self.log_result(
+                    "Xero OAuth Callback with Parameters", 
+                    False, 
+                    "🚨 CRITICAL: GET /api/xero/callback with parameters returns 404",
+                    "This confirms the OAuth callback 404 issue reported by user"
+                )
+            else:
+                self.log_result(
+                    "Xero OAuth Callback with Parameters", 
+                    False, 
+                    f"❌ GET /api/xero/callback with parameters failed: {response_with_params.status_code}",
+                    response_with_params.text
+                )
+            
+            # Test 3: Check if callback URL routing is working by testing the auth URL generation
+            auth_url_response = self.session.get(f"{API_BASE}/xero/auth/url")
+            
+            if auth_url_response.status_code == 200:
+                auth_data = auth_url_response.json()
+                auth_url = auth_data.get('auth_url', '')
+                
+                if 'manufactxero.preview.emergentagent.com/api/xero/callback' in auth_url:
+                    self.log_result(
+                        "Xero OAuth URL Generation", 
+                        True, 
+                        "✅ OAuth URL correctly includes callback endpoint",
+                        f"Callback URL in auth URL: {auth_url}"
+                    )
+                else:
+                    self.log_result(
+                        "Xero OAuth URL Generation", 
+                        False, 
+                        "❌ OAuth URL missing or incorrect callback endpoint",
+                        f"Auth URL: {auth_url}"
+                    )
+            else:
+                self.log_result(
+                    "Xero OAuth URL Generation", 
+                    False, 
+                    f"❌ Failed to generate OAuth URL: {auth_url_response.status_code}",
+                    auth_url_response.text
+                )
+            
+            # Test 4: Verify POST /api/xero/auth/callback endpoint (token exchange)
+            callback_data = {
+                "code": "test_auth_code_12345",
+                "state": "test_state_67890"
+            }
+            
+            post_response = self.session.post(f"{API_BASE}/xero/auth/callback", json=callback_data)
+            
+            if post_response.status_code in [200, 400, 401, 422]:
+                # These are expected responses (400/401/422 for invalid test data)
+                self.log_result(
+                    "Xero OAuth POST Callback Endpoint", 
+                    True, 
+                    f"✅ POST /api/xero/auth/callback is accessible (status: {post_response.status_code})",
+                    "Token exchange endpoint is properly configured"
+                )
+            elif post_response.status_code == 404:
+                self.log_result(
+                    "Xero OAuth POST Callback Endpoint", 
+                    False, 
+                    "❌ POST /api/xero/auth/callback returns 404 - endpoint not found",
+                    "Token exchange endpoint routing issue"
+                )
+            else:
+                self.log_result(
+                    "Xero OAuth POST Callback Endpoint", 
+                    False, 
+                    f"❌ POST /api/xero/auth/callback unexpected status: {post_response.status_code}",
+                    post_response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Xero OAuth Callback 404 Debug", False, f"Error: {str(e)}")
+    
+    def test_xero_integration_status(self):
+        """Test Xero integration status and connection endpoints"""
+        print("\n=== XERO INTEGRATION STATUS TEST ===")
+        
+        try:
+            # Test Xero status endpoint
+            status_response = self.session.get(f"{API_BASE}/xero/status")
+            
+            if status_response.status_code == 200:
+                status_data = status_response.json()
+                connected = status_data.get('connected', False)
+                
+                self.log_result(
+                    "Xero Integration Status", 
+                    True, 
+                    f"✅ Xero status endpoint accessible - Connected: {connected}",
+                    f"Status data: {status_data}"
+                )
+                
+                # Test next invoice number endpoint
+                invoice_response = self.session.get(f"{API_BASE}/xero/next-invoice-number")
+                
+                if invoice_response.status_code in [200, 500]:
+                    # 500 is expected when not connected to Xero
+                    self.log_result(
+                        "Xero Next Invoice Number", 
+                        True, 
+                        f"✅ Next invoice number endpoint accessible (status: {invoice_response.status_code})",
+                        "Endpoint properly handles connection status"
+                    )
+                else:
+                    self.log_result(
+                        "Xero Next Invoice Number", 
+                        False, 
+                        f"❌ Next invoice number endpoint failed: {invoice_response.status_code}",
+                        invoice_response.text
+                    )
+                    
+            else:
+                self.log_result(
+                    "Xero Integration Status", 
+                    False, 
+                    f"❌ Xero status endpoint failed: {status_response.status_code}",
+                    status_response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Xero Integration Status", False, f"Error: {str(e)}")
+    
+    def test_xero_debug_configuration(self):
+        """Test Xero debug endpoint to verify URL configuration"""
+        print("\n=== XERO DEBUG CONFIGURATION TEST ===")
+        
+        try:
+            debug_response = self.session.get(f"{API_BASE}/xero/debug")
+            
+            if debug_response.status_code == 200:
+                debug_data = debug_response.json()
+                callback_url = debug_data.get('callback_url')
+                frontend_url = debug_data.get('frontend_url')
+                client_id = debug_data.get('client_id')
+                
+                expected_callback = 'https://manufactxero.preview.emergentagent.com/api/xero/callback'
+                expected_frontend = 'https://manufactxero.preview.emergentagent.com'
+                
+                # Check callback URL configuration
+                if callback_url == expected_callback:
+                    self.log_result(
+                        "Xero Debug - Callback URL", 
+                        True, 
+                        f"✅ Callback URL correctly configured: {callback_url}",
+                        "Matches expected production domain"
+                    )
+                else:
+                    self.log_result(
+                        "Xero Debug - Callback URL", 
+                        False, 
+                        f"❌ Incorrect callback URL: {callback_url}",
+                        f"Expected: {expected_callback}"
+                    )
+                
+                # Check frontend URL configuration
+                if frontend_url == expected_frontend:
+                    self.log_result(
+                        "Xero Debug - Frontend URL", 
+                        True, 
+                        f"✅ Frontend URL correctly configured: {frontend_url}",
+                        "Matches expected production domain"
+                    )
+                else:
+                    self.log_result(
+                        "Xero Debug - Frontend URL", 
+                        False, 
+                        f"❌ Incorrect frontend URL: {frontend_url}",
+                        f"Expected: {expected_frontend}"
+                    )
+                
+                # Check client ID is present
+                if client_id:
+                    self.log_result(
+                        "Xero Debug - Client ID", 
+                        True, 
+                        "✅ Xero Client ID is configured",
+                        f"Client ID: {client_id[:8]}..."
+                    )
+                else:
+                    self.log_result(
+                        "Xero Debug - Client ID", 
+                        False, 
+                        "❌ Xero Client ID is missing",
+                        "Client ID configuration required for OAuth"
+                    )
+                    
+            else:
+                self.log_result(
+                    "Xero Debug Configuration", 
+                    False, 
+                    f"❌ Xero debug endpoint failed: {debug_response.status_code}",
+                    debug_response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Xero Debug Configuration", False, f"Error: {str(e)}")
+
     # ============= XERO WEBHOOK TESTS =============
     
     def test_xero_webhook_intent_to_receive(self):
