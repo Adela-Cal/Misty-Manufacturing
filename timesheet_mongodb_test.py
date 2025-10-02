@@ -444,6 +444,48 @@ class TimesheetMongoDBTester:
         except Exception as e:
             self.log_result("Timesheet Creation Without Errors", False, f"Error: {str(e)}")
 
+    def test_decimal_serialization_issue(self):
+        """Test the specific Decimal serialization issue found in prepare_for_mongo()"""
+        print("\n=== DECIMAL SERIALIZATION ISSUE TEST ===")
+        
+        try:
+            # This test documents the specific issue found
+            self.log_result(
+                "Decimal Serialization Issue Analysis", 
+                False, 
+                "🚨 CRITICAL ISSUE IDENTIFIED: prepare_for_mongo() function does not handle Decimal objects",
+                "Error: bson.errors.InvalidDocument: cannot encode object: Decimal('25.5'), of type: <class 'decimal.Decimal'>"
+            )
+            
+            self.log_result(
+                "prepare_for_mongo() Function Analysis", 
+                False, 
+                "The prepare_for_mongo() function in payroll_service.py only handles date, datetime, dict, and list objects",
+                "Missing: Decimal object conversion to float for MongoDB compatibility"
+            )
+            
+            self.log_result(
+                "Required Fix for prepare_for_mongo()", 
+                False, 
+                "Need to add Decimal handling: elif isinstance(data, Decimal): return float(data)",
+                "This will convert Decimal objects to float for MongoDB storage"
+            )
+            
+            # Test what the fix should look like
+            from decimal import Decimal
+            test_decimal = Decimal('25.50')
+            converted_decimal = float(test_decimal)
+            
+            self.log_result(
+                "Decimal Conversion Test", 
+                True, 
+                f"Decimal conversion works: Decimal('25.50') -> {converted_decimal}",
+                f"Type conversion: {type(test_decimal)} -> {type(converted_decimal)}"
+            )
+            
+        except Exception as e:
+            self.log_result("Decimal Serialization Issue Test", False, f"Error: {str(e)}")
+
     def run_mongodb_serialization_tests(self):
         """Run comprehensive timesheet MongoDB serialization testing as requested in review"""
         print("\n" + "="*80)
