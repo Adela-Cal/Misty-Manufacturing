@@ -167,7 +167,7 @@ class BackendAPITester:
                             self.log_result(
                                 "Timesheet MongoDB Serialization Fix", 
                                 True, 
-                                f"✅ NO SERIALIZATION ERRORS: Successfully retrieved timesheet for {employee_name}",
+                                f"✅ NO SERIALIZATION ERRORS: Successfully retrieved timesheet for employee {employee_id}",
                                 f"Date fields properly serialized: {'; '.join(date_field_details)}"
                             )
                         else:
