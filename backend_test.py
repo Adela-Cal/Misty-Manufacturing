@@ -2345,9 +2345,10 @@ def main():
     tester.run_timesheet_workflow_tests()
 
 if __name__ == "__main__":
-    main()
-        
-        default_currency_material_id = None
+    tester = BackendAPITester()
+    
+    # Run timesheet debug tests (focus on reported issues)
+    tester.run_timesheet_debug_tests()
         try:
             response = self.session.post(f"{API_BASE}/materials", json=material_default_currency)
             
