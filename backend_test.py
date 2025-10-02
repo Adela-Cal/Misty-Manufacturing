@@ -131,8 +131,8 @@ class BackendAPITester:
         return None
     
     def test_get_current_week_timesheet(self, employee_id):
-        """Test GET /api/payroll/timesheets/current-week/{employee_id}"""
-        print("\n=== GET CURRENT WEEK TIMESHEET TEST ===")
+        """Test GET /api/payroll/timesheets/current-week/{employee_id} - specifically testing MongoDB serialization fix"""
+        print("\n=== GET CURRENT WEEK TIMESHEET TEST (MongoDB Serialization Fix) ===")
         
         try:
             response = self.session.get(f"{API_BASE}/payroll/timesheets/current-week/{employee_id}")
@@ -143,11 +143,26 @@ class BackendAPITester:
                 
                 if timesheet_id:
                     self.test_timesheet_id = timesheet_id
+                    
+                    # Check for date serialization issues that were causing bson.errors.InvalidDocument
+                    week_starting = timesheet.get('week_starting')
+                    created_at = timesheet.get('created_at')
+                    updated_at = timesheet.get('updated_at')
+                    
+                    # Verify dates are properly serialized (should be strings, not date objects)
+                    date_checks = []
+                    if week_starting:
+                        date_checks.append(f"week_starting: {type(week_starting).__name__}")
+                    if created_at:
+                        date_checks.append(f"created_at: {type(created_at).__name__}")
+                    if updated_at:
+                        date_checks.append(f"updated_at: {type(updated_at).__name__}")
+                    
                     self.log_result(
-                        "Get Current Week Timesheet", 
+                        "Get Current Week Timesheet - MongoDB Serialization", 
                         True, 
-                        f"Successfully retrieved/created timesheet with ID: {timesheet_id}",
-                        f"Week starting: {timesheet.get('week_starting')}, Status: {timesheet.get('status')}"
+                        f"Successfully retrieved/created timesheet with ID: {timesheet_id} - NO bson.errors.InvalidDocument!",
+                        f"Week starting: {week_starting}, Status: {timesheet.get('status')}, Date types: {', '.join(date_checks)}"
                     )
                     return timesheet
                 else:
@@ -155,6 +170,23 @@ class BackendAPITester:
                         "Get Current Week Timesheet", 
                         False, 
                         "Timesheet response missing ID"
+                    )
+            elif response.status_code == 500:
+                # Check if this is the specific MongoDB serialization error
+                error_text = response.text.lower()
+                if 'bson.errors.invaliddocument' in error_text or 'cannot encode object' in error_text:
+                    self.log_result(
+                        "Get Current Week Timesheet - MongoDB Serialization", 
+                        False, 
+                        "🚨 CRITICAL: bson.errors.InvalidDocument error detected - MongoDB serialization issue NOT fixed!",
+                        response.text
+                    )
+                else:
+                    self.log_result(
+                        "Get Current Week Timesheet", 
+                        False, 
+                        f"500 Internal Server Error (not serialization related)",
+                        response.text
                     )
             else:
                 self.log_result(
