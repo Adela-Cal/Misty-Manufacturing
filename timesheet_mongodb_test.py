@@ -476,6 +476,9 @@ class TimesheetMongoDBTester:
         # Step 5: Test timesheet creation without serialization errors
         self.test_timesheet_creation_without_errors()
         
+        # Step 6: Test the specific Decimal serialization issue
+        self.test_decimal_serialization_issue()
+        
         # Print summary focused on MongoDB serialization
         self.print_mongodb_serialization_summary()
     
