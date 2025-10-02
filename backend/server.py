@@ -2752,34 +2752,9 @@ async def generate_job_invoice(
     # Archiving will happen when the accounting transaction is completed
     
     # For full invoices, the job is now in accounting_transaction stage
-    if invoice_data.get("invoice_type") != "partial":
-        # Get the updated order data for archiving
-        job = await db.orders.find_one({"id": job_id})
-        if job:
-            # Create archived order
-            archived_order = ArchivedOrder(
-                original_order_id=job["id"],
-                order_number=job["order_number"],
-                client_id=job["client_id"],
-                client_name=job.get("client_name", ""),
-                purchase_order_number=job.get("purchase_order_number"),
-                items=job["items"],
-                subtotal=job["subtotal"],
-                gst=job["gst"],
-                total_amount=job["total_amount"],
-                due_date=job["due_date"],
-                delivery_address=job.get("delivery_address"),
-                delivery_instructions=job.get("delivery_instructions"),
-                runtime_estimate=job.get("runtime_estimate"),
-                notes=job.get("notes"),
-                created_by=job["created_by"],
-                created_at=job["created_at"],
-                completed_at=datetime.now(timezone.utc),
-                archived_by=current_user["user_id"]
-            )
-            
-            # Insert into archived orders collection
-            await db.archived_orders.insert_one(archived_order.dict())
+    # Archiving will be handled when the accounting transaction is completed
+    # if invoice_data.get("invoice_type") != "partial":
+    #     # Archiving logic moved to complete_accounting_transaction endpoint
     
     return {
         "message": "Invoice generated successfully",
