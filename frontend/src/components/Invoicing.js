@@ -491,6 +491,7 @@ const Invoicing = () => {
             <nav className="-mb-px flex space-x-8">
               {[
                 { key: 'live-jobs', label: 'Live Jobs', icon: ClipboardDocumentListIcon },
+                { key: 'accounting-transactions', label: 'Accounting Transactions', icon: BanknotesIcon },
                 { key: 'archived', label: 'Archived Jobs', icon: DocumentArrowDownIcon },
                 { key: 'reports', label: 'Monthly Reports', icon: CalendarDaysIcon }
               ].map((tab) => (
