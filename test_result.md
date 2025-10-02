@@ -469,12 +469,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "New Machinery Rates Endpoints"
+    - "Timesheet Save Draft Functionality"
     - "Complete Invoicing Workflow with Xero Integration"
     - "Xero Draft Invoice Creation"
     - "Invoice Generation with Archiving Integration"
   stuck_tasks: 
     - "Order Creation with Client Product Dropdown Fix"
+    - "Timesheet Save Draft Functionality"
   test_all: false
   test_priority: "high_first"
 
