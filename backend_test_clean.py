@@ -258,8 +258,10 @@ class BackendAPITester:
                 checks = []
                 all_checks_passed = True
                 
-                # Check that auth URL contains the correct callback URL
-                if auth_url and expected_callback_url in auth_url:
+                # Check that auth URL contains the correct callback URL (URL-encoded)
+                import urllib.parse
+                encoded_callback_url = urllib.parse.quote(expected_callback_url, safe='')
+                if auth_url and encoded_callback_url in auth_url:
                     checks.append("✅ auth_url contains correct callback URL from environment")
                 else:
                     checks.append(f"❌ auth_url missing correct callback URL: {auth_url}")
