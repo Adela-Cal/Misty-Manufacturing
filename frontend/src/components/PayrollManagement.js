@@ -477,7 +477,7 @@ const PayrollManagement = () => {
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowTimesheetModal(false)}>
           <div className="modal-content max-w-6xl max-h-[90vh] overflow-y-auto">
             <TimesheetEntry
-              employeeId={selectedEmployee?.id || user?.user_id || user?.sub}
+              employeeId={selectedEmployee?.id || user?.id || user?.user_id || user?.sub}
               onClose={() => setShowTimesheetModal(false)}
               isManager={user?.role === 'admin' || user?.role === 'manager'}
             />
