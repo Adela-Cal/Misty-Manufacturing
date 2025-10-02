@@ -9,7 +9,9 @@ import {
   CurrencyDollarIcon,
   ClipboardDocumentListIcon,
   MagnifyingGlassIcon,
-  CubeIcon
+  CubeIcon,
+  BanknotesIcon,
+  CheckCircleIcon
 } from '@heroicons/react/24/outline';
 
 const Invoicing = () => {
