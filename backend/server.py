@@ -2905,30 +2905,33 @@ async def complete_accounting_transaction(
     # Get the updated order data for archiving
     updated_job = await db.orders.find_one({"id": job_id})
     if updated_job:
-        # Create archived order
-        archived_order = ArchivedOrder(
-            original_order_id=updated_job["id"],
-            order_number=updated_job["order_number"],
-            client_id=updated_job["client_id"],
-            client_name=updated_job.get("client_name", ""),
-            purchase_order_number=updated_job.get("purchase_order_number"),
-            items=updated_job["items"],
-            subtotal=updated_job["subtotal"],
-            gst=updated_job["gst"],
-            total_amount=updated_job["total_amount"],
-            due_date=updated_job["due_date"],
-            delivery_address=updated_job.get("delivery_address"),
-            delivery_instructions=updated_job.get("delivery_instructions"),
-            runtime_estimate=updated_job.get("runtime_estimate"),
-            notes=updated_job.get("notes"),
-            created_by=updated_job["created_by"],
-            created_at=updated_job["created_at"],
-            completed_at=datetime.now(timezone.utc),
-            archived_by=current_user["user_id"]
-        )
+        # Create archived order dict
+        archived_order = {
+            "id": str(uuid.uuid4()),
+            "original_order_id": updated_job["id"],
+            "order_number": updated_job["order_number"],
+            "client_id": updated_job["client_id"],
+            "client_name": updated_job.get("client_name", ""),
+            "purchase_order_number": updated_job.get("purchase_order_number"),
+            "items": updated_job["items"],
+            "subtotal": updated_job["subtotal"],
+            "gst": updated_job["gst"],
+            "total_amount": updated_job["total_amount"],
+            "due_date": updated_job["due_date"],
+            "delivery_address": updated_job.get("delivery_address"),
+            "delivery_instructions": updated_job.get("delivery_instructions"),
+            "runtime_estimate": updated_job.get("runtime_estimate"),
+            "notes": updated_job.get("notes"),
+            "created_by": updated_job["created_by"],
+            "created_at": updated_job["created_at"],
+            "completed_at": datetime.now(timezone.utc),
+            "archived_by": current_user["user_id"],
+            "invoice_id": updated_job.get("invoice_id"),
+            "invoice_date": updated_job.get("invoice_date")
+        }
         
         # Insert into archived orders collection
-        await db.archived_orders.insert_one(archived_order.dict())
+        await db.archived_orders.insert_one(archived_order)
     
     return {
         "message": "Accounting transaction completed and job archived successfully",
