@@ -2748,18 +2748,57 @@ async def generate_job_invoice(
         {"$set": update_data}
     )
     
-    # Note: Jobs will now go to accounting transactions instead of being immediately archived
-    # Archiving will happen when the accounting transaction is completed
-    
-    # For full invoices, the job is now in accounting_transaction stage
-    # Archiving will be handled when the accounting transaction is completed
-    # if invoice_data.get("invoice_type") != "partial":
-    #     # Archiving logic moved to complete_accounting_transaction endpoint
+    # For full invoices in accounting transactions, automatically create Xero draft
+    if invoice_data.get("invoice_type") != "partial":
+        try:
+            # Check if Xero is connected
+            xero_token = await db.xero_tokens.find_one({"user_id": "system"})
+            if xero_token and xero_token.get("access_token"):
+                logger.info("Creating Xero draft invoice for accounting transaction")
+                
+                # Get client info for Xero invoice
+                client = await db.clients.find_one({"id": job["client_id"]})
+                
+                # Get next Xero invoice number
+                next_number_response = await get_next_xero_invoice_number()
+                next_invoice_number = next_number_response["formatted_number"]
+                
+                # Prepare Xero invoice data
+                xero_invoice_data = {
+                    "client_name": client["company_name"] if client else job.get("client_name", "Unknown Client"),
+                    "client_email": client.get("email", "") if client else "",
+                    "invoice_number": next_invoice_number,
+                    "order_number": job["order_number"],
+                    "items": invoice_data.get("items", job["items"]),
+                    "total_amount": invoice_data.get("total_amount", job["total_amount"]),
+                    "due_date": invoice_data.get("due_date"),
+                    "reference": job["order_number"]
+                }
+                
+                # Create draft invoice in Xero
+                xero_response = await create_xero_draft_invoice(xero_invoice_data)
+                logger.info(f"Xero draft invoice created successfully: {xero_response}")
+                
+                # Update the invoice record with Xero details
+                await db.invoices.update_one(
+                    {"id": invoice_record["id"]},
+                    {"$set": {
+                        "xero_invoice_id": xero_response.get("invoice_id"),
+                        "xero_invoice_number": next_invoice_number,
+                        "xero_status": "draft"
+                    }}
+                )
+                
+        except Exception as e:
+            logger.error(f"Failed to create Xero draft invoice: {str(e)}")
+            # Don't fail the entire invoice process if Xero fails
+            pass
     
     return {
-        "message": "Invoice generated successfully",
+        "message": "Invoice generated successfully and moved to accounting transactions",
         "invoice_id": invoice_record["id"],
-        "invoice_number": invoice_number
+        "invoice_number": invoice_number,
+        "xero_draft_created": "xero_invoice_id" in locals()
     }
 
 @api_router.get("/invoicing/archived-jobs")
