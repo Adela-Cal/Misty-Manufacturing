@@ -202,18 +202,11 @@ class BackendAPITester:
                             f"Unexpected status code: {response.status_code}",
                             response.text
                         )
-                else:
-                    self.log_result(
-                        "Timesheet MongoDB Serialization Fix", 
-                        False, 
-                        "No employees found in system - cannot test timesheet endpoint"
-                    )
             else:
                 self.log_result(
                     "Timesheet MongoDB Serialization Fix", 
                     False, 
-                    f"Failed to get employees list: {employees_response.status_code}",
-                    employees_response.text
+                    "Could not get or create test employee for timesheet testing"
                 )
                 
         except Exception as e:
