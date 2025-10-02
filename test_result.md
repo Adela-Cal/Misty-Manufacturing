@@ -498,6 +498,21 @@ frontend:
         agent: "testing"
         comment: "🎉 XERO WEBHOOK ENDPOINTS FULLY FUNCTIONAL: Comprehensive testing of newly added Xero webhook endpoints completed with 100% success rate (7/7 tests passed). CRITICAL SUCCESS - ALL WEBHOOK REQUIREMENTS MET: ✅ GET /api/xero/webhook returns 200 OK with status 'ready' - 'Intent to receive' requirement SATISFIED, ✅ POST /api/xero/webhook accepts webhook notifications successfully with proper payload handling, ✅ GET /api/xero/callback endpoint accessible and handles OAuth parameters correctly, ✅ All webhook URLs correctly configured for manufactxero.preview.emergentagent.com domain, ✅ No references to old domain found in configuration, ✅ Webhook signature headers properly handled, ✅ Authentication working correctly for all endpoints. XERO DEVELOPER CONSOLE RESOLUTION CONFIRMED: ✅ 'Intent to receive' requirement satisfied - webhook status should change from 'Intent to receive required' to active, ✅ 'Response not 2XX' issue RESOLVED - all endpoints return proper 2XX status codes, ✅ Webhook delivery URL https://manufactxero.preview.emergentagent.com/api/xero/webhook working correctly, ✅ OAuth callback URL https://manufactxero.preview.emergentagent.com/api/xero/callback accessible and functional. TECHNICAL IMPLEMENTATION VERIFIED: Fixed missing Request import in FastAPI imports, all webhook endpoints properly registered with /api prefix, webhook payload processing working with realistic Xero event data, proper error handling and response formatting implemented. CONCLUSION: The Xero webhook implementation is complete and fully functional. All issues mentioned in the review request have been resolved - the webhook endpoints are working correctly and should resolve the 'Response not 2XX' errors in the Xero Developer console."
 
+  - task: "Xero Callback 404 Router Registration Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed the missing router registration issue where api_router was defined but never included in the main FastAPI app with app.include_router(api_router). This was causing all /api/* routes to return 404 errors."
+      - working: true
+        agent: "testing"
+        comment: "🎉 XERO CALLBACK 404 ISSUE COMPLETELY RESOLVED! Comprehensive testing of the router registration fix completed with 100% success rate (8/8 tests passed). CRITICAL SUCCESS: The missing router registration issue has been completely fixed - api_router is now properly included with app.include_router(api_router). VERIFIED FIXES: ✅ GET /api/xero/callback now returns 200 instead of 404, ✅ OAuth callback handles parameters correctly (code=test123&state=test456), ✅ ALL Xero endpoints are now accessible (4/4): /api/xero/status, /api/xero/auth/url, /api/xero/debug, /api/xero/next-invoice-number, ✅ Router registration fix is working correctly - all /api/xero/* routes are accessible. ROOT CAUSE RESOLVED: The issue was that api_router was defined on line 49 with prefix='/api' but was never included in the main FastAPI app. After adding app.include_router(api_router), all /api/* routes are now properly registered and accessible. CONCLUSION: Users should no longer get 404 errors after Xero OAuth redirect. The Xero integration callback flow is now working correctly and ready for production use."
+
 metadata:
   created_by: "testing_agent"
   version: "2.0"
