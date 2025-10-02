@@ -3153,6 +3153,27 @@ app.include_router(payroll_router, prefix="/api")
 # Mount static files for uploads
 app.mount("/uploads", StaticFiles(directory="/app/uploads"), name="uploads")
 
+# Direct Xero callback route (not under /api to avoid routing issues)
+@app.get("/xero-oauth-callback")
+async def xero_oauth_callback_direct(code: str = None, state: str = None, error: str = None):
+    """Direct Xero OAuth callback route that bypasses /api routing issues"""
+    if error:
+        return Response(
+            status_code=302,
+            headers={"Location": f"{os.getenv('FRONTEND_URL')}/xero/callback?error={error}"}
+        )
+    
+    if code and state:
+        return Response(
+            status_code=302,
+            headers={"Location": f"{os.getenv('FRONTEND_URL')}/xero/callback?code={code}&state={state}"}
+        )
+    
+    return Response(
+        status_code=302,
+        headers={"Location": f"{os.getenv('FRONTEND_URL')}/"}
+    )
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
