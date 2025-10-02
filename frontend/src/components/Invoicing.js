@@ -121,6 +121,9 @@ const Invoicing = () => {
       if (activeTab === 'live-jobs') {
         const response = await apiHelpers.getLiveJobs();
         setLiveJobs(response.data.data || []);
+      } else if (activeTab === 'accounting-transactions') {
+        const response = await apiHelpers.getAccountingTransactions();
+        setAccountingTransactions(response.data.data || []);
       } else if (activeTab === 'archived') {
         const response = await apiHelpers.getArchivedJobs(reportMonth, reportYear);
         setArchivedJobs(response.data.data || []);
