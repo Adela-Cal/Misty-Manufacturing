@@ -2351,8 +2351,14 @@ if __name__ == "__main__":
     tester.run_timesheet_debug_tests()
 
 def main():
-                result = response.json()
-                default_currency_material_id = result.get('data', {}).get('id')
+    """Main test execution"""
+    print("Starting Xero & Timesheet Fix Testing...")
+    print(f"Backend URL: {BACKEND_URL}")
+    
+    tester = BackendAPITester()
+    tester.run_xero_timesheet_fix_tests()
+
+    def test_timesheet_mongodb_serialization_fix(self):
                 
                 # Verify the material was created and retrieve it to check currency
                 if default_currency_material_id:
