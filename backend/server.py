@@ -2027,6 +2027,7 @@ XERO_CALLBACK_URL = os.getenv("XERO_REDIRECT_URI")
 XERO_SCOPES = "openid profile email accounting.transactions accounting.contacts accounting.settings offline_access"
 
 # Debug: Print at module load time
+print(f"🔥 DEBUG: XERO_REDIRECT_URI env var: {os.getenv('XERO_REDIRECT_URI')}")
 print(f"🔥 MODULE LOAD: XERO_CALLBACK_URL set to: {XERO_CALLBACK_URL}")
 
 # Xero Account Configuration
