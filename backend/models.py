@@ -26,6 +26,7 @@ class ProductionStage(str, Enum):
     FINISHING = "finishing"
     DELIVERY = "delivery"
     INVOICING = "invoicing"
+    ACCOUNTING_TRANSACTION = "accounting_transaction"  # New stage for accounting processing
     CLEARED = "cleared"
 
 class OrderStatus(str, Enum):
@@ -33,6 +34,7 @@ class OrderStatus(str, Enum):
     COMPLETED = "completed"
     CANCELLED = "cancelled"
     OVERDUE = "overdue"
+    ACCOUNTING_DRAFT = "accounting_draft"  # New status for accounting transactions
     ARCHIVED = "archived"
 
 # User Models
