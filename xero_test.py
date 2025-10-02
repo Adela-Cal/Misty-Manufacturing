@@ -13,8 +13,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv('/app/frontend/.env')
 
-# Get backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
+# Use internal backend URL for testing
+BACKEND_URL = 'http://localhost:8001'
 API_BASE = f"{BACKEND_URL}/api"
 
 class XeroIntegrationTester:
