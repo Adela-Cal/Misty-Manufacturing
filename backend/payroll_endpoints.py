@@ -310,7 +310,8 @@ async def create_leave_request(leave_data: LeaveRequestCreate, current_user: dic
         requested_by=current_user["user_id"]
     )
     
-    await db.leave_requests.insert_one(leave_request.dict())
+    leave_dict = prepare_for_mongo(leave_request.dict())
+    await db.leave_requests.insert_one(leave_dict)
     
     return StandardResponse(success=True, message="Leave request created successfully", data={"id": leave_request.id})
 
