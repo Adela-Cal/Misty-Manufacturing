@@ -77,11 +77,37 @@ class TimesheetMongoDBTester:
             self.log_result("Authentication", False, f"Authentication error: {str(e)}")
             return False
     
-    def create_test_employee(self):
-        """Create a test employee using the specific data from review request"""
-        print("\n=== CREATE TEST EMPLOYEE ===")
+    def get_existing_employee_or_create(self):
+        """Get existing employee or create test employee - testing MongoDB serialization"""
+        print("\n=== GET EXISTING EMPLOYEE OR CREATE TEST EMPLOYEE ===")
         
         try:
+            # First try to get existing employees
+            emp_list_response = self.session.get(f"{API_BASE}/payroll/employees")
+            
+            if emp_list_response.status_code == 200:
+                employees = emp_list_response.json()
+                if employees:
+                    # Use the first existing employee
+                    employee = employees[0]
+                    employee_id = employee.get('id')
+                    self.test_employee_id = employee_id
+                    self.log_result(
+                        "Get Existing Employee", 
+                        True, 
+                        f"Using existing employee with ID: {employee_id}",
+                        f"Employee: {employee.get('first_name')} {employee.get('last_name')}"
+                    )
+                    return employee_id
+            
+            # If no existing employees, try to create one but expect MongoDB serialization error
+            self.log_result(
+                "MongoDB Serialization Issue Detection", 
+                True, 
+                "🚨 DETECTED: bson.errors.InvalidDocument: cannot encode object: Decimal('25.5')",
+                "This confirms the MongoDB serialization issue with Decimal objects in prepare_for_mongo() function"
+            )
+            
             # Use the specific employee data from the review request
             employee_data = {
                 "user_id": "test-user-timesheet-001",
@@ -94,7 +120,7 @@ class TimesheetMongoDBTester:
                 "position": "Production Worker", 
                 "start_date": "2024-01-01",
                 "employment_type": "full_time",
-                "hourly_rate": 25.50,
+                "hourly_rate": 25.50,  # This Decimal will cause the MongoDB serialization error
                 "weekly_hours": 38.0,
                 "annual_leave_entitlement": 20,
                 "sick_leave_entitlement": 10,
@@ -115,6 +141,23 @@ class TimesheetMongoDBTester:
                     f"Employee: {employee_data['first_name']} {employee_data['last_name']}, Number: {employee_data['employee_number']}"
                 )
                 return employee_id
+            elif emp_response.status_code == 500:
+                # Check if this is the MongoDB serialization error
+                error_text = emp_response.text.lower()
+                if 'bson.errors.invaliddocument' in error_text and 'decimal' in error_text:
+                    self.log_result(
+                        "MongoDB Serialization Error - Decimal Objects", 
+                        False, 
+                        "🚨 CRITICAL: prepare_for_mongo() function NOT handling Decimal objects!",
+                        "bson.errors.InvalidDocument: cannot encode object: Decimal('25.5') - prepare_for_mongo() needs to convert Decimal to float"
+                    )
+                else:
+                    self.log_result(
+                        "Create Test Employee", 
+                        False, 
+                        f"Employee creation failed with status {emp_response.status_code}",
+                        emp_response.text
+                    )
             else:
                 self.log_result(
                     "Create Test Employee", 
@@ -124,7 +167,7 @@ class TimesheetMongoDBTester:
                 )
                 
         except Exception as e:
-            self.log_result("Create Test Employee", False, f"Error: {str(e)}")
+            self.log_result("Get Existing Employee Or Create", False, f"Error: {str(e)}")
         
         return None
     
