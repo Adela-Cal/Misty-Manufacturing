@@ -550,9 +550,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Complete Invoicing Workflow with Xero Integration"
-    - "Xero Draft Invoice Creation"
-    - "Invoice Generation with Archiving Integration"
+    - "Enhanced Accounting Transactions Workflow with Xero Integration"
   stuck_tasks: 
     - "Order Creation with Client Product Dropdown Fix"
   test_all: false
