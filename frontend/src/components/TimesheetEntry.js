@@ -453,10 +453,10 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="misty-button misty-button-primary"
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium px-4 py-2 rounded-lg transition-colors duration-200"
                 data-testid="submit-timesheet"
               >
-                Submit for Approval
+                Submit Timesheet
               </button>
             )}
           </>
