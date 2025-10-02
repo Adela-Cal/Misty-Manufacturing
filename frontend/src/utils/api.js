@@ -145,7 +145,15 @@ export const apiHelpers = {
   // Xero Integration
   checkXeroConnection: () => api.get('/xero/status'),
   getXeroAuthUrl: () => api.get('/xero/auth/url'),
-  handleXeroCallback: (data) => api.post('/xero/auth/callback', data),
+  handleXeroCallback: (data) => {
+    // Use direct route to bypass /api routing issues
+    return axios.post(`${BACKEND_URL}/xero-auth-callback`, data, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+  },
   disconnectXero: () => api.delete('/xero/disconnect'),
   getNextXeroInvoiceNumber: () => api.get('/xero/next-invoice-number'),
   createXeroDraftInvoice: (invoiceData) => api.post('/xero/create-draft-invoice', invoiceData),
