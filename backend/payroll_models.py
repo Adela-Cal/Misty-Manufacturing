@@ -156,8 +156,8 @@ class TimesheetEntry(BaseModel):
 class Timesheet(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     employee_id: str
-    week_starting: date  # Monday of the week
-    week_ending: date    # Sunday of the week
+    week_starting: datetime  # Monday of the week (as datetime for MongoDB compatibility)
+    week_ending: datetime    # Sunday of the week (as datetime for MongoDB compatibility)
     entries: List[TimesheetEntry] = []
     
     # Calculated totals
