@@ -2193,8 +2193,8 @@ async def get_xero_auth_url(current_user: dict = Depends(require_admin_or_manage
         "scopes": XERO_SCOPES
     }}
 
-@api_router.get("/xero/callback")
-async def handle_xero_oauth_redirect(code: str = None, state: str = None, error: str = None):
+@api_router.get("/xero/oauth-redirect")
+async def handle_xero_oauth_redirect_new(code: str = None, state: str = None, error: str = None):
     """Handle Xero OAuth redirect - just redirect to frontend"""
     if error:
         # Redirect to frontend with error
