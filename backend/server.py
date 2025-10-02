@@ -2438,6 +2438,32 @@ async def get_xero_tax_rates(current_user: dict = Depends(require_admin_or_manag
         logger.error(f"Failed to get Xero tax rates: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get tax rates: {str(e)}")
 
+@api_router.post("/xero/webhook")
+async def handle_xero_webhook(request: Request):
+    """Handle Xero webhook notifications"""
+    try:
+        # Get the raw body
+        body = await request.body()
+        
+        # Get webhook signature from headers
+        xero_signature = request.headers.get("x-xero-signature")
+        
+        # Log the webhook for debugging
+        logger.info(f"Received Xero webhook: {body[:100]}...")  # Log first 100 chars
+        
+        # For now, just return success - webhook validation can be added later
+        return {"status": "received"}
+        
+    except Exception as e:
+        logger.error(f"Xero webhook error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Webhook processing failed")
+
+@api_router.get("/xero/webhook")
+async def xero_webhook_intent():
+    """Handle Xero webhook 'Intent to receive' verification"""
+    # Return 200 to confirm we can receive webhooks
+    return {"status": "ready", "message": "Webhook endpoint is ready to receive notifications"}
+
 async def validate_sales_account(accounting_api, tenant_id: str) -> str:
     """Validate that Sales account with code 200 exists, or find suitable alternative"""
     try:
