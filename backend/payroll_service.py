@@ -7,11 +7,14 @@ from models import User
 import logging
 
 def prepare_for_mongo(data):
-    """Helper function to prepare data for MongoDB storage by converting date objects to ISO strings"""
+    """Helper function to prepare data for MongoDB storage by converting date/datetime/decimal objects"""
     if isinstance(data, dict):
         return {key: prepare_for_mongo(value) for key, value in data.items()}
     elif isinstance(data, list):
         return [prepare_for_mongo(item) for item in data]
+    elif isinstance(data, Decimal):
+        # Convert Decimal objects to float for MongoDB compatibility
+        return float(data)
     elif isinstance(data, date) and not isinstance(data, datetime):
         # Convert date to datetime at midnight UTC for consistency
         return datetime.combine(data, datetime.min.time().replace(tzinfo=timezone.utc))
