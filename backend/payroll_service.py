@@ -123,8 +123,9 @@ class TimesheetService:
     def generate_weekly_timesheet(self, employee_id: str, week_starting: date) -> Timesheet:
         """Generate blank timesheet for the week"""
         
-        # Calculate week ending (Sunday)
-        week_ending = week_starting + timedelta(days=6)
+        # Convert dates to datetime objects for MongoDB compatibility
+        week_starting_dt = datetime.combine(week_starting, datetime.min.time())
+        week_ending_dt = datetime.combine(week_starting + timedelta(days=6), datetime.min.time())
         
         # Create entries for each day of the week
         entries = []
@@ -140,8 +141,8 @@ class TimesheetService:
         
         return Timesheet(
             employee_id=employee_id,
-            week_starting=week_starting,
-            week_ending=week_ending,
+            week_starting=week_starting_dt,
+            week_ending=week_ending_dt,
             entries=entries,
             status=TimesheetStatus.DRAFT
         )
