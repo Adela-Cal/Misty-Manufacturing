@@ -2574,7 +2574,7 @@ if __name__ == "__main__":
     tester = BackendAPITester()
     
     # Run timesheet debug tests (focus on reported issues)
-    tester.run_timesheet_debug_tests()
+    tester.run_timesheet_mongodb_serialization_tests()
 
 def main():
     """Main test execution"""
@@ -12207,4 +12207,4 @@ if __name__ == "__main__":
     tester = BackendAPITester()
     
     # Run timesheet debug tests (focus on reported issues)
-    tester.run_timesheet_debug_tests()
+    tester.run_timesheet_mongodb_serialization_tests()
