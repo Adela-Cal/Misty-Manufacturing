@@ -2050,7 +2050,7 @@ async def debug_xero_config():
         "environment_check": {
             "client_id_set": bool(XERO_CLIENT_ID),
             "client_secret_set": bool(XERO_CLIENT_SECRET),
-            "redirect_uri": current_callback_url  # Use the hardcoded current value
+            "redirect_uri": XERO_CALLBACK_URL
         }
     }
 
