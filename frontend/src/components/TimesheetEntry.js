@@ -39,7 +39,18 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
   const loadTimesheet = async () => {
     try {
       setLoading(true);
-      const response = await payrollApi.getCurrentWeekTimesheet(employeeId);
+      
+      // Use current user ID if employeeId is not provided
+      const actualEmployeeId = employeeId || user?.id || user?.user_id || user?.sub;
+      console.log('Loading timesheet for employeeId:', actualEmployeeId, 'user:', user);
+      
+      if (!actualEmployeeId) {
+        toast.error('Unable to determine employee ID');
+        setLoading(false);
+        return;
+      }
+      
+      const response = await payrollApi.getCurrentWeekTimesheet(actualEmployeeId);
       const timesheetData = response.data;
       
       setTimesheet(timesheetData);
