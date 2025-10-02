@@ -12810,3 +12810,7 @@ if __name__ == "__main__":
     
     # Run timesheet debug tests (focus on reported issues)
     tester.run_timesheet_mongodb_serialization_tests()
+# Run Xero integration tests
+if __name__ == "__main__":
+    tester = BackendAPITester()
+    tester.run_xero_integration_tests()
