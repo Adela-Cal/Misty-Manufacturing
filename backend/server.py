@@ -2458,6 +2458,129 @@ async def xero_webhook_intent():
     # Return 200 to confirm we can receive webhooks
     return {"status": "ready", "message": "Webhook endpoint is ready to receive notifications"}
 
+# ============= INTERNAL XERO HELPER FUNCTIONS =============
+
+async def get_next_xero_invoice_number():
+    """Internal helper to get next invoice number from Xero"""
+    try:
+        # Get system Xero token (simplified for accounting transactions)
+        xero_token = await db.xero_tokens.find_one({"user_id": "system"})
+        if not xero_token:
+            raise Exception("No Xero connection found")
+        
+        api_client, tenant_id = await get_xero_api_client("system")
+        
+        if not tenant_id:
+            # Get tenant info
+            from xero_python.identity import IdentityApi
+            identity_api = IdentityApi(api_client)
+            connections = identity_api.get_connections()
+            
+            if not connections or not connections[0]:
+                raise Exception("No Xero organization connected")
+            
+            tenant_id = connections[0].tenant_id
+            
+            # Update stored token record with tenant_id
+            await db.xero_tokens.update_one(
+                {"user_id": "system"},
+                {"$set": {"tenant_id": tenant_id}}
+            )
+        
+        # Get invoices to determine next number
+        accounting_api = AccountingApi(api_client)
+        
+        invoices_response = accounting_api.get_invoices(
+            xero_tenant_id=tenant_id,
+            order="InvoiceNumber DESC",
+            page=1
+        )
+        
+        next_number = 1
+        if invoices_response.invoices and len(invoices_response.invoices) > 0:
+            latest_invoice = invoices_response.invoices[0]
+            if latest_invoice.invoice_number:
+                try:
+                    # Extract numeric part and increment
+                    import re
+                    numeric_part = re.findall(r'\d+', latest_invoice.invoice_number)
+                    if numeric_part:
+                        next_number = int(numeric_part[-1]) + 1
+                except (ValueError, IndexError):
+                    next_number = 1
+        
+        formatted_number = f"INV-{next_number:04d}"
+        
+        return {
+            "next_number": next_number,
+            "formatted_number": formatted_number
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get next Xero invoice number: {str(e)}")
+        raise Exception(f"Failed to get next invoice number: {str(e)}")
+
+async def create_xero_draft_invoice(invoice_data):
+    """Internal helper to create draft invoice in Xero"""
+    try:
+        api_client, tenant_id = await get_xero_api_client("system")
+        
+        if not tenant_id:
+            raise Exception("No Xero tenant ID available")
+        
+        from xero_python.accounting import Contact, Invoice, LineItem
+        
+        # Create or get contact
+        contact = Contact(name=invoice_data["client_name"])
+        if invoice_data.get("client_email"):
+            contact.email_address = invoice_data["client_email"]
+        
+        # Create line items
+        line_items = []
+        for item in invoice_data["items"]:
+            line_item = LineItem(
+                description=f"{item.get('description', 'Product')} - {item.get('specifications', '')}",
+                quantity=float(item.get("quantity", 1)),
+                unit_amount=float(item.get("unit_price", 0))
+            )
+            line_items.append(line_item)
+        
+        # Create invoice
+        invoice = Invoice(
+            type="ACCREC",  # Accounts Receivable 
+            contact=contact,
+            date=datetime.now(timezone.utc).date(),
+            due_date=datetime.strptime(invoice_data["due_date"], '%Y-%m-%d').date() if invoice_data.get("due_date") else None,
+            line_items=line_items,
+            invoice_number=invoice_data["invoice_number"],
+            reference=invoice_data.get("reference", ""),
+            status="DRAFT"  # Create as draft
+        )
+        
+        accounting_api = AccountingApi(api_client)
+        
+        # Create the invoice
+        invoices = [invoice]
+        created_invoices = accounting_api.create_invoices(
+            xero_tenant_id=tenant_id, 
+            invoices=invoices
+        )
+        
+        if created_invoices.invoices and len(created_invoices.invoices) > 0:
+            created_invoice = created_invoices.invoices[0]
+            return {
+                "success": True,
+                "invoice_id": created_invoice.invoice_id,
+                "invoice_number": created_invoice.invoice_number,
+                "status": created_invoice.status
+            }
+        else:
+            raise Exception("No invoice was created")
+        
+    except Exception as e:
+        logger.error(f"Failed to create Xero draft invoice: {str(e)}")
+        raise Exception(f"Failed to create Xero draft: {str(e)}")
+
 async def validate_sales_account(accounting_api, tenant_id: str) -> str:
     """Validate that Sales account with code 200 exists, or find suitable alternative"""
     try:
