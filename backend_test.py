@@ -3898,8 +3898,6 @@ def main():
     
     tester = BackendAPITester()
     tester.run_xero_timesheet_fix_tests()
-
-    def test_timesheet_mongodb_serialization_fix(self):
                 
                 # Verify the material was created and retrieve it to check currency
                 if default_currency_material_id:
