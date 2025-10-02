@@ -135,11 +135,8 @@ class BackendAPITester:
             employee_id = self.create_test_employee_if_needed()
             
             if employee_id:
-                    employee_id = employees[0].get('id')
-                    employee_name = f"{employees[0].get('first_name', '')} {employees[0].get('last_name', '')}"
-                    
-                    # Test the current-week endpoint that was throwing serialization errors
-                    response = self.session.get(f"{API_BASE}/payroll/timesheets/current-week/{employee_id}")
+                # Test the current-week endpoint that was throwing serialization errors
+                response = self.session.get(f"{API_BASE}/payroll/timesheets/current-week/{employee_id}")
                     
                     if response.status_code == 200:
                         timesheet_data = response.json()
