@@ -147,7 +147,7 @@ class LeaveRequestCreate(BaseModel):
 
 # Timesheet Models
 class TimesheetEntry(BaseModel):
-    date: date
+    date: datetime  # Changed to datetime for MongoDB compatibility
     regular_hours: Decimal = Decimal('0')
     overtime_hours: Decimal = Decimal('0')
     leave_hours: Dict[LeaveType, Decimal] = {}
