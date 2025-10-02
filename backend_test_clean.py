@@ -447,18 +447,11 @@ class BackendAPITester:
                                 f"GET timesheet failed: {response.status_code}",
                                 response.text
                             )
-                else:
-                    self.log_result(
-                        "prepare_for_mongo Functionality", 
-                        False, 
-                        "No employees available for testing"
-                    )
             else:
                 self.log_result(
                     "prepare_for_mongo Functionality", 
                     False, 
-                    f"Failed to get employees: {employees_response.status_code}",
-                    employees_response.text
+                    "Could not get or create test employee for prepare_for_mongo testing"
                 )
                 
         except Exception as e:
