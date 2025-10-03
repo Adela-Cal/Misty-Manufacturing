@@ -113,7 +113,7 @@ const ProductSpecifications = () => {
     setSelectedSpec(null);
     setFormData({
       product_name: '',
-      product_type: 'Paper Core',
+      product_type: 'Spiral Paper Core',
       specifications: {},  // Start with empty specifications
       materials_composition: [],
       material_layers: [],  // New enhanced material layers
@@ -125,7 +125,24 @@ const ProductSpecifications = () => {
       wall_thickness_required: '',
       selected_material_id: '',
       layers_required: 0,
-      layer_specifications: []
+      layer_specifications: [],
+      // Pallet specific fields
+      pallet_dimensions: {
+        length: '',
+        width: '', 
+        height: ''
+      },
+      pallet_price: '',
+      pallet_supplier: '',
+      // Cardboard Boxes specific fields
+      box_dimensions: {
+        length: '',
+        width: '',
+        height: ''
+      },
+      box_wall_thickness: '',
+      box_flute_type: '',
+      box_supplier: ''
     });
     setCalculatedThickness(0);
     setThicknessOptions([]);
