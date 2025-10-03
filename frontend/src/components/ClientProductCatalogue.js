@@ -298,6 +298,198 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
     }
   };
 
+  const handlePrint = (product) => {
+    const printWindow = window.open('', '_blank');
+    const clientName = clients.find(c => c.id === clientId)?.company_name || 'Client';
+    
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Product Quote - ${product.product_code}</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            color: #333;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+          }
+          .quote-title {
+            font-size: 18px;
+            color: #666;
+          }
+          .product-info {
+            margin-bottom: 30px;
+          }
+          .product-info h2 {
+            background-color: #f5f5f5;
+            padding: 10px;
+            margin: 0 0 20px 0;
+            border-left: 4px solid #007bff;
+          }
+          .info-row {
+            display: flex;
+            margin-bottom: 10px;
+            border-bottom: 1px dotted #ccc;
+            padding-bottom: 5px;
+          }
+          .info-label {
+            font-weight: bold;
+            width: 200px;
+            flex-shrink: 0;
+          }
+          .info-value {
+            flex: 1;
+          }
+          .price-section {
+            background-color: #f8f9fa;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+          }
+          .price {
+            font-size: 28px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+          }
+          .price-note {
+            color: #666;
+            font-style: italic;
+          }
+          .materials-section {
+            margin-top: 30px;
+          }
+          .materials-list {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+          }
+          .material-item {
+            margin-bottom: 5px;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+          }
+          .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+          }
+          @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="company-name">${clientName}</div>
+          <div class="quote-title">Product Quote</div>
+        </div>
+
+        <div class="product-info">
+          <h2>Product Information</h2>
+          <div class="info-row">
+            <div class="info-label">Product Code:</div>
+            <div class="info-value">${product.product_code}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Description:</div>
+            <div class="info-value">${product.product_description}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Product Type:</div>
+            <div class="info-value">${product.product_type === 'finished_goods' ? 'Finished Goods' : 'Paper Cores'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Minimum Order Quantity:</div>
+            <div class="info-value">${product.minimum_order_quantity} units</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Consignment:</div>
+            <div class="info-value">${product.consignment ? 'Yes' : 'No'}</div>
+          </div>
+          ${product.product_type === 'paper_cores' && product.core_id ? `
+          <div class="info-row">
+            <div class="info-label">Core ID:</div>
+            <div class="info-value">${product.core_id}</div>
+          </div>` : ''}
+          ${product.product_type === 'paper_cores' && product.core_width ? `
+          <div class="info-row">
+            <div class="info-label">Core Width:</div>
+            <div class="info-value">${product.core_width}</div>
+          </div>` : ''}
+          ${product.product_type === 'paper_cores' && product.core_thickness ? `
+          <div class="info-row">
+            <div class="info-label">Core Thickness:</div>
+            <div class="info-value">${product.core_thickness}</div>
+          </div>` : ''}
+          ${product.product_type === 'paper_cores' ? `
+          <div class="info-row">
+            <div class="info-label">Strength & Quality Important:</div>
+            <div class="info-value">${product.strength_quality_important ? 'Yes' : 'No'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Delivery Included:</div>
+            <div class="info-value">${product.delivery_included ? 'Yes' : 'No'}</div>
+          </div>` : ''}
+        </div>
+
+        ${product.product_type === 'paper_cores' && product.material_used && product.material_used.length > 0 ? `
+        <div class="materials-section">
+          <h2>Materials Used</h2>
+          <div class="materials-list">
+            ${materials.filter(m => product.material_used.includes(m.id))
+              .map(material => `
+                <div class="material-item">
+                  ${material.supplier} - ${material.product_code}${material.gsm ? ` (${material.gsm} GSM)` : ''}
+                </div>
+              `).join('')}
+          </div>
+        </div>` : ''}
+
+        <div class="price-section">
+          <div class="price">$${product.price_ex_gst.toFixed(2)}</div>
+          <div class="price-note">Price ex GST per unit</div>
+        </div>
+
+        <div class="footer">
+          <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+          <p>This quote is valid for 30 days from the date of generation.</p>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+            window.onafterprint = function() {
+              window.close();
+            }
+          }
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+  };
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
