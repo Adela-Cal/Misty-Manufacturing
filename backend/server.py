@@ -3568,7 +3568,7 @@ async def xero_oauth_callback_direct(code: str = None, state: str = None, error:
 
 # Direct CSV export route (bypasses /api routing issues)
 @app.get("/export-drafted-csv")
-async def export_drafted_invoices_csv_direct():
+async def export_drafted_invoices_csv_direct(authorization: str = Header(None)):
     """Export all accounting transactions (drafted invoices) to CSV - Direct route bypassing /api issues"""
     try:
         # Get all jobs in accounting transaction stage
