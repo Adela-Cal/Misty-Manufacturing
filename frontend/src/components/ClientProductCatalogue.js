@@ -414,6 +414,23 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
       }
       
       setShowModal(false);
+      setSelectedProduct(null);
+      // Reset form data
+      setFormData({
+        product_type: 'finished_goods',
+        product_code: '',
+        product_description: '',
+        price_ex_gst: '',
+        minimum_order_quantity: '',
+        consignment: false,
+        material_used: [],
+        core_id: '',
+        core_width: '',
+        core_thickness: '',
+        strength_quality_important: false,
+        delivery_included: false,
+        consumables: []
+      });
       loadData();
     } catch (error) {
       console.error('Failed to save product:', error);
