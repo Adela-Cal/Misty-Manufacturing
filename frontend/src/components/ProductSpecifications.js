@@ -755,6 +755,8 @@ const ProductSpecifications = () => {
     'Composite Core',
     'Pallet',
     'Cardboard Boxes',
+    'Plastic Bags',
+    'Tapes',
     'Other'
   ];
 
