@@ -10,6 +10,158 @@ import {
   CheckIcon
 } from '@heroicons/react/24/outline';
 
+// Consumables Selector Component
+const ConsumablesSelector = ({ productSpecs, productSection, onAddConsumable, onCancel }) => {
+  const [selectedSpec, setSelectedSpec] = useState(null);
+  const [measurementUnit, setMeasurementUnit] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [quantityCoresPerCarton, setQuantityCoresPerCarton] = useState('');
+
+  const handleSpecSelection = (spec) => {
+    setSelectedSpec(spec);
+    setMeasurementUnit('');
+    setQuantity(1);
+    setQuantityCoresPerCarton('');
+  };
+
+  const getMeasurementOptions = () => {
+    if (!selectedSpec) return [];
+
+    if (productSection === 'finished_goods') {
+      // For finished goods: cartons, tape, bags all have Per unit, Per order, Per Meter
+      return ['Per Unit', 'Per Order', 'Per Meter'];
+    } else if (productSection === 'paper_cores') {
+      // For paper cores: different options based on consumable type
+      if (selectedSpec.product_type === 'Cardboard Boxes') {
+        return ['Quantity of Cores Per Carton'];
+      } else if (selectedSpec.product_type === 'Tapes') {
+        return ['Per Meter'];
+      } else if (selectedSpec.product_type === 'Plastic Bags') {
+        return ['Per Quantity of Cores'];
+      }
+    }
+    return [];
+  };
+
+  const handleAdd = () => {
+    if (!selectedSpec || !measurementUnit) {
+      toast.error('Please select a consumable and measurement unit');
+      return;
+    }
+
+    const coresPerCarton = measurementUnit === 'Quantity of Cores Per Carton' ? parseInt(quantityCoresPerCarton) || null : null;
+    onAddConsumable(selectedSpec, measurementUnit, quantity, coresPerCarton);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Available Consumables */}
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-3">
+          Select Consumable Type
+        </label>
+        <div className="space-y-2 max-h-48 overflow-y-auto">
+          {productSpecs.length > 0 ? (
+            productSpecs.map((spec) => (
+              <div
+                key={spec.id}
+                className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                  selectedSpec?.id === spec.id
+                    ? 'border-yellow-400 bg-yellow-400/10'
+                    : 'border-gray-600 hover:border-gray-500'
+                }`}
+                onClick={() => handleSpecSelection(spec)}
+              >
+                <div className="font-medium text-white">{spec.product_name}</div>
+                <div className="text-sm text-gray-400">{spec.product_type}</div>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-gray-400">No consumable specifications available. Create specifications for Cardboard Boxes, Tapes, or Plastic Bags first.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Measurement Unit Options */}
+      {selectedSpec && (
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-3">
+            Measurement Unit
+          </label>
+          <div className="space-y-2">
+            {getMeasurementOptions().map((option) => (
+              <label key={option} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="measurement_unit"
+                  value={option}
+                  checked={measurementUnit === option}
+                  onChange={(e) => setMeasurementUnit(e.target.value)}
+                  className="text-yellow-400"
+                />
+                <span className="text-white">{option}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Additional Fields */}
+      {measurementUnit === 'Quantity of Cores Per Carton' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Quantity of Cores Per Carton *
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={quantityCoresPerCarton}
+            onChange={(e) => setQuantityCoresPerCarton(e.target.value)}
+            className="misty-input w-32"
+            placeholder="50"
+            required
+          />
+        </div>
+      )}
+
+      {measurementUnit && measurementUnit !== 'Quantity of Cores Per Carton' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Quantity
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={quantity}
+            onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+            className="misty-input w-32"
+            placeholder="1"
+          />
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="misty-button misty-button-secondary"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={handleAdd}
+          className="misty-button misty-button-primary"
+          disabled={!selectedSpec || !measurementUnit}
+        >
+          Add Consumable
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const ClientProductCatalogue = ({ clientId, onClose }) => {
   const [products, setProducts] = useState([]);
   const [materials, setMaterials] = useState([]);
