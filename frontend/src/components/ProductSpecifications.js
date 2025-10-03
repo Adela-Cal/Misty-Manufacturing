@@ -841,6 +841,40 @@ const ProductSpecifications = () => {
           currency: formData.box_currency || 'AUD'
         };
       }
+
+      // For Plastic Bags, add specific fields to specifications
+      if (formData.product_type === 'Plastic Bags') {
+        submitData.specifications = {
+          ...submitData.specifications,
+          thickness: formData.plastic_thickness ? parseFloat(formData.plastic_thickness) : null,
+          composite: formData.plastic_composite || null,
+          dimensions: {
+            width: formData.plastic_dimensions.width ? parseFloat(formData.plastic_dimensions.width) : null,
+            length: formData.plastic_dimensions.length ? parseFloat(formData.plastic_dimensions.length) : null,
+            height: formData.plastic_dimensions.height ? parseFloat(formData.plastic_dimensions.height) : null
+          },
+          supplier: formData.plastic_supplier || null,
+          price: formData.plastic_price ? parseFloat(formData.plastic_price) : null,
+          currency: formData.plastic_currency || 'AUD'
+        };
+      }
+
+      // For Tapes, add specific fields to specifications
+      if (formData.product_type === 'Tapes') {
+        submitData.specifications = {
+          ...submitData.specifications,
+          thickness: formData.tape_thickness ? parseFloat(formData.tape_thickness) : null,
+          size: {
+            width: formData.tape_size.width ? parseFloat(formData.tape_size.width) : null,
+            length: formData.tape_size.length ? parseFloat(formData.tape_size.length) : null
+          },
+          adhesive_type: formData.tape_adhesive_type || null,
+          substrate_type: formData.tape_substrate_type || null,
+          supplier: formData.tape_supplier || null,
+          price: formData.tape_price ? parseFloat(formData.tape_price) : null,
+          currency: formData.tape_currency || 'AUD'
+        };
+      }
       
       if (selectedSpec) {
         await apiHelpers.updateProductSpecification(selectedSpec.id, submitData);
