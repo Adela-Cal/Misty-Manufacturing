@@ -665,6 +665,49 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                   </div>
                 )}
 
+                {/* Consumables Section */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-semibold text-white">Consumables</h4>
+                    <button
+                      type="button"
+                      onClick={handleAddConsumables}
+                      className="misty-button misty-button-secondary flex items-center text-sm"
+                    >
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      Add Consumables
+                    </button>
+                  </div>
+
+                  {formData.consumables.length > 0 ? (
+                    <div className="space-y-3">
+                      {formData.consumables.map((consumable) => (
+                        <div key={consumable.id} className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
+                          <div className="flex-1">
+                            <div className="font-medium text-white">{consumable.specification_name}</div>
+                            <div className="text-sm text-gray-400">
+                              Type: {consumable.product_type} | Unit: {consumable.measurement_unit}
+                              {consumable.quantity_cores_per_carton && ` | ${consumable.quantity_cores_per_carton} cores per carton`}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeConsumable(consumable.id)}
+                            className="text-red-400 hover:text-red-300 ml-4"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-gray-400">
+                      <p className="text-sm">No consumables added yet.</p>
+                      <p className="text-xs">Click "Add Consumables" to add packaging materials like cartons, tapes, and bags.</p>
+                    </div>
+                  )}
+                </div>
+
                 {/* Form Actions */}
                 <div className="flex justify-end space-x-3 pt-6 border-t border-gray-700">
                   <button
