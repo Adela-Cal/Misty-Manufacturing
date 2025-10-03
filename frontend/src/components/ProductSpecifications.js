@@ -193,7 +193,29 @@ const ProductSpecifications = () => {
       box_flute_type: '',
       box_supplier: '',
       box_price: '',
-      box_currency: 'AUD'
+      box_currency: 'AUD',
+      // Plastic Bags specific fields
+      plastic_thickness: '',
+      plastic_composite: '',
+      plastic_dimensions: {
+        width: '',
+        length: '',
+        height: ''
+      },
+      plastic_supplier: '',
+      plastic_price: '',
+      plastic_currency: 'AUD',
+      // Tapes specific fields
+      tape_thickness: '',
+      tape_size: {
+        width: '',
+        length: ''
+      },
+      tape_adhesive_type: '',
+      tape_substrate_type: '',
+      tape_supplier: '',
+      tape_price: '',
+      tape_currency: 'AUD'
     });
     setCalculatedThickness(0);
     setThicknessOptions([]);
