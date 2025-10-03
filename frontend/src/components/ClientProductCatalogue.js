@@ -36,7 +36,9 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
     core_width: '',
     core_thickness: '',
     strength_quality_important: false,
-    delivery_included: false
+    delivery_included: false,
+    // Consumables
+    consumables: []
   });
   const [errors, setErrors] = useState({});
 
