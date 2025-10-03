@@ -21,6 +21,7 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [copyProductId, setCopyProductId] = useState(null);
   const [targetClientId, setTargetClientId] = useState('');
+  const [showConsumablesModal, setShowConsumablesModal] = useState(false);
   
   const [formData, setFormData] = useState({
     product_type: 'finished_goods',
