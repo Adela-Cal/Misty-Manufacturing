@@ -683,6 +683,56 @@ const ProductSpecifications = () => {
         newErrors.box_price = 'Price per unit is required';
       }
     }
+
+    // Validate Plastic Bags specific fields
+    if (formData.product_type === 'Plastic Bags') {
+      if (!formData.plastic_thickness || formData.plastic_thickness <= 0) {
+        newErrors.plastic_thickness = 'Thickness is required';
+      }
+      if (!formData.plastic_composite.trim()) {
+        newErrors.plastic_composite = 'Composite is required';
+      }
+      if (!formData.plastic_dimensions.width || formData.plastic_dimensions.width <= 0) {
+        newErrors.plastic_width = 'Width is required';
+      }
+      if (!formData.plastic_dimensions.length || formData.plastic_dimensions.length <= 0) {
+        newErrors.plastic_length = 'Length is required';
+      }
+      if (!formData.plastic_dimensions.height || formData.plastic_dimensions.height <= 0) {
+        newErrors.plastic_height = 'Height is required';
+      }
+      if (!formData.plastic_supplier.trim()) {
+        newErrors.plastic_supplier = 'Supplier is required';
+      }
+      if (!formData.plastic_price || formData.plastic_price <= 0) {
+        newErrors.plastic_price = 'Price per unit is required';
+      }
+    }
+
+    // Validate Tapes specific fields
+    if (formData.product_type === 'Tapes') {
+      if (!formData.tape_thickness || formData.tape_thickness <= 0) {
+        newErrors.tape_thickness = 'Thickness is required';
+      }
+      if (!formData.tape_size.width || formData.tape_size.width <= 0) {
+        newErrors.tape_width = 'Width is required';
+      }
+      if (!formData.tape_size.length || formData.tape_size.length <= 0) {
+        newErrors.tape_length = 'Length is required';
+      }
+      if (!formData.tape_adhesive_type.trim()) {
+        newErrors.tape_adhesive_type = 'Adhesive type is required';
+      }
+      if (!formData.tape_substrate_type.trim()) {
+        newErrors.tape_substrate_type = 'Substrate type is required';
+      }
+      if (!formData.tape_supplier.trim()) {
+        newErrors.tape_supplier = 'Supplier is required';
+      }
+      if (!formData.tape_price || formData.tape_price <= 0) {
+        newErrors.tape_price = 'Price per unit is required';
+      }
+    }
     
     // Validate material layers - each layer must have required fields
     formData.material_layers.forEach((layer, index) => {
