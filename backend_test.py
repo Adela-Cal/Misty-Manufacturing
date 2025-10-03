@@ -6005,13 +6005,13 @@ class BackendAPITester:
     
 def main():
     """Main test execution"""
-    print("Starting Enhanced Accounting Transactions Workflow with Xero Integration Testing...")
+    print("Starting Enhanced Xero Invoice Formatting Testing...")
     print(f"Backend URL: {BACKEND_URL}")
     
     tester = BackendAPITester()
     
-    # Run the enhanced accounting transactions workflow test suite
-    tester.run_enhanced_accounting_transactions_xero_tests()
+    # Run the enhanced Xero invoice formatting test suite as requested in review
+    tester.run_enhanced_xero_invoice_formatting_tests()
 
 if __name__ == "__main__":
     main()
