@@ -1443,6 +1443,7 @@ const ProductSpecifications = () => {
                     )}
                   </div>
                 </div>
+                )}
 
                 {/* Calculated Thickness Display and Selection */}
                 {calculatedThickness > 0 && (
