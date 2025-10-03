@@ -588,6 +588,35 @@ const ProductSpecifications = () => {
           layer_specifications: formData.layer_specifications || null
         };
       }
+
+      // For Pallets, add specific fields to specifications
+      if (formData.product_type === 'Pallet') {
+        submitData.specifications = {
+          ...submitData.specifications,
+          dimensions: {
+            length: formData.pallet_dimensions.length ? parseFloat(formData.pallet_dimensions.length) : null,
+            width: formData.pallet_dimensions.width ? parseFloat(formData.pallet_dimensions.width) : null,
+            height: formData.pallet_dimensions.height ? parseFloat(formData.pallet_dimensions.height) : null
+          },
+          price: formData.pallet_price ? parseFloat(formData.pallet_price) : null,
+          supplier: formData.pallet_supplier || null
+        };
+      }
+
+      // For Cardboard Boxes, add specific fields to specifications  
+      if (formData.product_type === 'Cardboard Boxes') {
+        submitData.specifications = {
+          ...submitData.specifications,
+          dimensions: {
+            length: formData.box_dimensions.length ? parseFloat(formData.box_dimensions.length) : null,
+            width: formData.box_dimensions.width ? parseFloat(formData.box_dimensions.width) : null,
+            height: formData.box_dimensions.height ? parseFloat(formData.box_dimensions.height) : null
+          },
+          wall_thickness: formData.box_wall_thickness ? parseFloat(formData.box_wall_thickness) : null,
+          flute_type: formData.box_flute_type || null,
+          supplier: formData.box_supplier || null
+        };
+      }
       
       if (selectedSpec) {
         await apiHelpers.updateProductSpecification(selectedSpec.id, submitData);
