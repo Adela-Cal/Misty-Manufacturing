@@ -158,7 +158,12 @@ const ProductSpecifications = () => {
       specifications: spec.specifications || {},
       materials_composition: spec.materials_composition || [],
       material_layers: spec.material_layers || [],  // Load enhanced material layers
-      machinery: spec.machinery || [],  // Load machinery specifications
+      machinery: (spec.machinery || []).map(machine => ({
+        ...machine,
+        // Map old field names to new field names for backward compatibility
+        setup_hours: machine.setup_hours || (machine.setup_time ? convertTimeToHours(machine.setup_time) : null),
+        pack_up_hours: machine.pack_up_hours || (machine.pack_up_time ? convertTimeToHours(machine.pack_up_time) : null)
+      })),  // Load machinery specifications
       manufacturing_notes: spec.manufacturing_notes || '',
       selected_thickness: spec.selected_thickness || null,
       // Spiral Paper Core specific fields
