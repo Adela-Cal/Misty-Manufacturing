@@ -164,6 +164,46 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
     }));
   };
 
+  // Consumables handlers
+  const handleAddConsumables = () => {
+    setShowConsumablesModal(true);
+  };
+
+  const addConsumable = (specification, measurementUnit, quantity = 1, quantityCoresPerCarton = null) => {
+    const newConsumable = {
+      id: Date.now(), // temporary ID for frontend
+      specification_id: specification.id,
+      specification_name: specification.product_name,
+      product_type: specification.product_type,
+      measurement_unit: measurementUnit,
+      quantity: quantity,
+      quantity_cores_per_carton: quantityCoresPerCarton,
+      product_section: formData.product_type // 'finished_goods' or 'paper_cores'
+    };
+
+    setFormData(prev => ({
+      ...prev,
+      consumables: [...prev.consumables, newConsumable]
+    }));
+    
+    setShowConsumablesModal(false);
+    toast.success(`${specification.product_name} added as consumable`);
+  };
+
+  const removeConsumable = (consumableId) => {
+    setFormData(prev => ({
+      ...prev,
+      consumables: prev.consumables.filter(c => c.id !== consumableId)
+    }));
+  };
+
+  // Get consumable product specifications (Cardboard Boxes, Plastic Bags, Tapes)
+  const getConsumableSpecs = () => {
+    return productSpecifications.filter(spec => 
+      ['Cardboard Boxes', 'Plastic Bags', 'Tapes'].includes(spec.product_type)
+    );
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
