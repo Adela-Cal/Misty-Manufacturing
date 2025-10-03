@@ -264,7 +264,29 @@ const ProductSpecifications = () => {
       box_flute_type: spec.specifications?.flute_type || '',
       box_supplier: spec.specifications?.supplier || '',
       box_price: spec.specifications?.price || '',
-      box_currency: spec.specifications?.currency || 'AUD'
+      box_currency: spec.specifications?.currency || 'AUD',
+      // Plastic Bags specific fields
+      plastic_thickness: spec.specifications?.thickness || '',
+      plastic_composite: spec.specifications?.composite || '',
+      plastic_dimensions: {
+        width: spec.specifications?.dimensions?.width || '',
+        length: spec.specifications?.dimensions?.length || '',
+        height: spec.specifications?.dimensions?.height || ''
+      },
+      plastic_supplier: spec.specifications?.supplier || '',
+      plastic_price: spec.specifications?.price || '',
+      plastic_currency: spec.specifications?.currency || 'AUD',
+      // Tapes specific fields
+      tape_thickness: spec.specifications?.thickness || '',
+      tape_size: {
+        width: spec.specifications?.size?.width || '',
+        length: spec.specifications?.size?.length || ''
+      },
+      tape_adhesive_type: spec.specifications?.adhesive_type || '',
+      tape_substrate_type: spec.specifications?.substrate_type || '',
+      tape_supplier: spec.specifications?.supplier || '',
+      tape_price: spec.specifications?.price || '',
+      tape_currency: spec.specifications?.currency || 'AUD'
     });
     setCalculatedThickness(spec.calculated_total_thickness || 0);
     setThicknessOptions(spec.thickness_options || []);
