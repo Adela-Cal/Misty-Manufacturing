@@ -145,6 +145,7 @@ export const apiHelpers = {
   // Accounting Transactions
   getAccountingTransactions: () => api.get('/invoicing/accounting-transactions'),
   completeAccountingTransaction: (jobId) => api.post(`/invoicing/complete-transaction/${jobId}`),
+  exportDraftedInvoicesCSV: () => api.get('/invoicing/export-drafted-csv', { responseType: 'text' }),
   
   // Xero Integration
   checkXeroConnection: () => api.get('/xero/status'),
