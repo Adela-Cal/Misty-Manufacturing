@@ -7,7 +7,8 @@ import {
   TrashIcon, 
   DocumentDuplicateIcon,
   XMarkIcon,
-  CheckIcon
+  CheckIcon,
+  PrinterIcon
 } from '@heroicons/react/24/outline';
 
 // Consumables Selector Component
