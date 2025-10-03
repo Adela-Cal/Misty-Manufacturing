@@ -67,6 +67,7 @@ const ProductSpecifications = () => {
     loadSpecifications();
     loadMaterials();
     loadProducts();
+    loadSuppliers();
     loadMachineryRates();
   }, []);
 
