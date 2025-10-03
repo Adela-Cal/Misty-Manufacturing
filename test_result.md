@@ -233,6 +233,21 @@ backend:
         agent: "testing"
         comment: "🎉 STAFF & SECURITY ERROR HANDLING FIX COMPLETELY VERIFIED! Comprehensive testing of the fixed React child error handling completed successfully. CRITICAL SUCCESS: Main agent's error handling fix in StaffSecurity.js (lines 219-231) completely resolves the 'Objects are not valid as a React child' error. TESTING RESULTS: ✅ Login with demo credentials (Callum/Peach7510) working perfectly, ✅ Staff & Security page loads correctly, ✅ Create New User Account modal opens successfully, ✅ Form validation triggers properly with invalid data scenarios (empty form, invalid email format, missing required fields), ✅ Error toast displays 'Please fix the validation errors' (proper string message, not object), ✅ NO React child errors detected in console logs, ✅ Form remains functional after validation errors, ✅ Backend 422 validation errors are properly handled and converted to readable messages. SOLUTION CONFIRMED: The error handling now properly extracts error messages from FastAPI validation error objects using .map(err => err.msg || err.message || 'Validation error').join(', ') instead of trying to render the entire error object. All functionality working as expected - the React child error is completely resolved and validation error handling is working properly."
 
+  - task: "CSV Export Functionality for Drafted Invoices"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented GET /api/invoicing/export-drafted-csv endpoint to export accounting transactions in Xero import format with all required fields including ContactName, InvoiceNumber, InvoiceDate, DueDate, Description, Quantity, UnitAmount, AccountCode, TaxType and optional fields like EmailAddress, Reference, Currency"
+      - working: true
+        agent: "testing"
+        comment: "🎉 CSV EXPORT FUNCTIONALITY FULLY OPERATIONAL WITH 100% XERO COMPLIANCE: Comprehensive testing of the new CSV export functionality completed with perfect success rate (26/26 tests passed). ENDPOINT VERIFICATION: ✅ GET /api/invoicing/export-drafted-csv endpoint accessible and working correctly, ✅ Returns proper CSV content type (text/csv) with correct file download headers, ✅ Filename includes date stamp (drafted_invoices_YYYYMMDD.csv) for proper file management. XERO IMPORT FORMAT COMPLIANCE: ✅ All required Xero fields present: ContactName, InvoiceNumber, InvoiceDate, DueDate, Description, Quantity, UnitAmount, AccountCode, TaxType, ✅ All optional fields included: EmailAddress, InventoryItemCode, Discount, Reference, Currency, ✅ Date formatting perfect (DD/MM/YYYY) as required by Xero, ✅ Account code correctly uses XERO_SALES_ACCOUNT_CODE (200), ✅ Tax type correctly set to OUTPUT for GST sales, ✅ Currency correctly set to AUD. DATA MAPPING EXCELLENCE: ✅ Client information properly mapped (ContactName from client_name, EmailAddress from client_email), ✅ Invoice details correctly formatted (InvoiceNumber, dates), ✅ Line items perfectly mapped (product_name to Description, quantity, unit_price to UnitAmount), ✅ Order number used as Reference field, ✅ Each line item creates separate CSV row as required. CSV STRUCTURE VERIFICATION: ✅ Proper CSV formatting with headers and data rows, ✅ All 27 columns consistent across all rows, ✅ CSV parseable without errors, ✅ Handles empty scenarios gracefully (headers only when no data). PRODUCTION READY: The CSV export functionality is 100% compliant with Xero import requirements and ready for production use. All accounting transactions in 'accounting_draft' status are correctly exported with complete field mapping for seamless Xero import."
+
 frontend:
   - task: "Product Specifications Machinery Section Implementation"
     implemented: true
