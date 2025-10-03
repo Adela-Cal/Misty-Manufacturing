@@ -592,7 +592,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "CSV Export Functionality for Drafted Invoices"
+    - "Updated Product Specifications with New Product Types"
   stuck_tasks: 
     - "Order Creation with Client Product Dropdown Fix"
   test_all: false
