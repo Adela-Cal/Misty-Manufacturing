@@ -96,6 +96,17 @@ const ProductSpecifications = () => {
     }
   };
 
+  // Helper function to convert time format (HH:MM) to decimal hours
+  const convertTimeToHours = (timeString) => {
+    if (!timeString) return null;
+    try {
+      const [hours, minutes] = timeString.split(':').map(Number);
+      return hours + (minutes / 60);
+    } catch {
+      return null;
+    }
+  };
+
   const loadSpecifications = async () => {
     try {
       setLoading(true);
