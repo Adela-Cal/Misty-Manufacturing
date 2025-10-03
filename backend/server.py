@@ -2521,7 +2521,7 @@ async def get_next_xero_invoice_number():
         raise Exception(f"Failed to get next invoice number: {str(e)}")
 
 async def create_xero_draft_invoice(invoice_data):
-    """Internal helper to create draft invoice in Xero"""
+    """Internal helper to create draft invoice in Xero with proper formatting"""
     try:
         api_client, tenant_id = await get_xero_api_client("system")
         
@@ -2530,32 +2530,78 @@ async def create_xero_draft_invoice(invoice_data):
         
         from xero_python.accounting import Contact, Invoice, LineItem
         
-        # Create or get contact
+        # Create contact with proper formatting
         contact = Contact(name=invoice_data["client_name"])
+        
+        # Add email address if available (not required)
         if invoice_data.get("client_email"):
             contact.email_address = invoice_data["client_email"]
         
-        # Create line items
+        # Create line items with proper Xero formatting
         line_items = []
         for item in invoice_data["items"]:
+            # Build description - combine product name and specifications
+            description_parts = []
+            if item.get("product_name"):
+                description_parts.append(item["product_name"])
+            if item.get("specifications"):
+                description_parts.append(item["specifications"])
+            if item.get("description"):
+                description_parts.append(item["description"])
+            
+            # Use the first non-empty description or default
+            description = " - ".join(description_parts) if description_parts else "Product/Service"
+            
+            # Create line item with required fields
             line_item = LineItem(
-                description=f"{item.get('description', 'Product')} - {item.get('specifications', '')}",
+                description=description,
                 quantity=float(item.get("quantity", 1)),
-                unit_amount=float(item.get("unit_price", 0))
+                unit_amount=float(item.get("unit_price", 0)),
+                account_code=os.getenv("XERO_SALES_ACCOUNT_CODE", "200")  # Use configured sales account
             )
+            
+            # Add inventory item code if available (optional)
+            if item.get("product_code"):
+                line_item.item_code = item["product_code"]
+            
+            # Add discount if available (optional)
+            if item.get("discount_percent"):
+                line_item.discount_rate = float(item["discount_percent"])
+            
             line_items.append(line_item)
         
-        # Create invoice
+        # Create invoice with proper date formatting
+        invoice_date = datetime.now(timezone.utc).date()
+        due_date = None
+        
+        if invoice_data.get("due_date"):
+            try:
+                due_date = datetime.strptime(invoice_data["due_date"], '%Y-%m-%d').date()
+            except ValueError:
+                # If date parsing fails, default to 30 days from invoice date
+                due_date = invoice_date + timedelta(days=30)
+        else:
+            # Default to 30 days if no due date specified
+            due_date = invoice_date + timedelta(days=30)
+        
+        # Create invoice with all required fields
         invoice = Invoice(
-            type="ACCREC",  # Accounts Receivable 
-            contact=contact,
-            date=datetime.now(timezone.utc).date(),
-            due_date=datetime.strptime(invoice_data["due_date"], '%Y-%m-%d').date() if invoice_data.get("due_date") else None,
-            line_items=line_items,
-            invoice_number=invoice_data["invoice_number"],
-            reference=invoice_data.get("reference", ""),
+            type="ACCREC",  # Accounts Receivable (required)
+            contact=contact,  # Contact (required)
+            date=invoice_date,  # Invoice date (required)
+            due_date=due_date,  # Due date (required)
+            line_items=line_items,  # Line items (required)
+            invoice_number=invoice_data["invoice_number"],  # Invoice number (required)
             status="DRAFT"  # Create as draft
         )
+        
+        # Add reference (order number) if available (optional)
+        if invoice_data.get("reference") or invoice_data.get("order_number"):
+            invoice.reference = invoice_data.get("reference") or invoice_data.get("order_number")
+        
+        # Add currency if specified (optional)
+        if invoice_data.get("currency"):
+            invoice.currency_code = invoice_data["currency"]
         
         accounting_api = AccountingApi(api_client)
         
@@ -2572,7 +2618,8 @@ async def create_xero_draft_invoice(invoice_data):
                 "success": True,
                 "invoice_id": created_invoice.invoice_id,
                 "invoice_number": created_invoice.invoice_number,
-                "status": created_invoice.status
+                "status": created_invoice.status,
+                "total": float(created_invoice.total) if created_invoice.total else 0
             }
         else:
             raise Exception("No invoice was created")
