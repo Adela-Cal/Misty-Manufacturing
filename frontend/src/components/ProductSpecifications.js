@@ -166,7 +166,24 @@ const ProductSpecifications = () => {
       wall_thickness_required: spec.specifications?.wall_thickness_required || '',
       selected_material_id: spec.specifications?.selected_material_id || '',
       layers_required: spec.specifications?.layers_required || 0,
-      layer_specifications: spec.specifications?.layer_specifications || []
+      layer_specifications: spec.specifications?.layer_specifications || [],
+      // Pallet specific fields
+      pallet_dimensions: {
+        length: spec.specifications?.dimensions?.length || '',
+        width: spec.specifications?.dimensions?.width || '',
+        height: spec.specifications?.dimensions?.height || ''
+      },
+      pallet_price: spec.specifications?.price || '',
+      pallet_supplier: spec.specifications?.supplier || '',
+      // Cardboard Boxes specific fields
+      box_dimensions: {
+        length: spec.specifications?.dimensions?.length || '',
+        width: spec.specifications?.dimensions?.width || '',
+        height: spec.specifications?.dimensions?.height || ''
+      },
+      box_wall_thickness: spec.specifications?.wall_thickness || '',
+      box_flute_type: spec.specifications?.flute_type || '',
+      box_supplier: spec.specifications?.supplier || ''
     });
     setCalculatedThickness(spec.calculated_total_thickness || 0);
     setThicknessOptions(spec.thickness_options || []);
