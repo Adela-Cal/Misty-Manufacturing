@@ -6772,8 +6772,11 @@ def main_csv_export():
         # Print summary
         self.print_test_summary()
 
-if __name__ == "__main__":
+def main_accounting_transactions_review():
+    """Main function to run accounting transactions review tests"""
     tester = BackendAPITester()
-    
-    # Run the specific tests requested in the review
     tester.run_accounting_transactions_review_tests()
+
+if __name__ == "__main__":
+    # Run the specific tests requested in the review
+    main_accounting_transactions_review()
