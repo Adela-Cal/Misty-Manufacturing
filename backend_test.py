@@ -1075,6 +1075,504 @@ class BackendAPITester:
         # Print summary
         self.print_test_summary()
     
+    def test_csv_export_functionality(self):
+        """Test the new CSV export functionality for drafted invoices"""
+        print("\n=== CSV EXPORT FUNCTIONALITY TESTING ===")
+        
+        try:
+            # Test 1: GET /api/invoicing/export-drafted-csv endpoint
+            response = self.session.get(f"{API_BASE}/invoicing/export-drafted-csv")
+            
+            if response.status_code == 200:
+                # Check if response is CSV format
+                content_type = response.headers.get('content-type', '')
+                content_disposition = response.headers.get('content-disposition', '')
+                
+                if 'text/csv' in content_type:
+                    self.log_result(
+                        "CSV Export - Content Type", 
+                        True, 
+                        "Correctly returns CSV content type",
+                        f"Content-Type: {content_type}"
+                    )
+                else:
+                    self.log_result(
+                        "CSV Export - Content Type", 
+                        False, 
+                        f"Incorrect content type: {content_type}",
+                        "Expected: text/csv"
+                    )
+                
+                if 'attachment' in content_disposition and 'drafted_invoices_' in content_disposition:
+                    self.log_result(
+                        "CSV Export - File Download", 
+                        True, 
+                        "Correctly sets CSV file download headers",
+                        f"Content-Disposition: {content_disposition}"
+                    )
+                else:
+                    self.log_result(
+                        "CSV Export - File Download", 
+                        False, 
+                        f"Incorrect download headers: {content_disposition}",
+                        "Expected: attachment with drafted_invoices filename"
+                    )
+                
+                # Parse CSV content
+                csv_content = response.text
+                lines = csv_content.strip().split('\n')
+                
+                if len(lines) >= 1:
+                    # Check CSV headers
+                    headers = lines[0].split(',')
+                    required_headers = [
+                        "ContactName", "InvoiceNumber", "InvoiceDate", "DueDate", 
+                        "Description", "Quantity", "UnitAmount", "AccountCode", "TaxType"
+                    ]
+                    
+                    missing_headers = [h for h in required_headers if h not in headers]
+                    
+                    if not missing_headers:
+                        self.log_result(
+                            "CSV Export - Required Headers", 
+                            True, 
+                            "All required Xero headers present",
+                            f"Headers: {len(headers)} total"
+                        )
+                    else:
+                        self.log_result(
+                            "CSV Export - Required Headers", 
+                            False, 
+                            f"Missing required headers: {missing_headers}",
+                            f"Available headers: {headers}"
+                        )
+                    
+                    # Check optional headers
+                    optional_headers = ["EmailAddress", "InventoryItemCode", "Discount", "Reference", "Currency"]
+                    present_optional = [h for h in optional_headers if h in headers]
+                    
+                    self.log_result(
+                        "CSV Export - Optional Headers", 
+                        True, 
+                        f"Optional headers present: {len(present_optional)}/{len(optional_headers)}",
+                        f"Present: {present_optional}"
+                    )
+                    
+                    # Test CSV data rows
+                    if len(lines) > 1:
+                        data_rows = len(lines) - 1  # Exclude header
+                        self.log_result(
+                            "CSV Export - Data Rows", 
+                            True, 
+                            f"CSV contains {data_rows} data rows",
+                            f"Total lines: {len(lines)} (including header)"
+                        )
+                        
+                        # Test first data row format
+                        if len(lines) >= 2:
+                            first_row = lines[1].split(',')
+                            if len(first_row) == len(headers):
+                                self.log_result(
+                                    "CSV Export - Row Format", 
+                                    True, 
+                                    "Data rows match header column count",
+                                    f"Columns: {len(first_row)}"
+                                )
+                                
+                                # Test specific field formats
+                                self.test_csv_field_formats(headers, first_row)
+                            else:
+                                self.log_result(
+                                    "CSV Export - Row Format", 
+                                    False, 
+                                    f"Column count mismatch: {len(first_row)} vs {len(headers)}",
+                                    f"First row: {first_row[:5]}..."
+                                )
+                    else:
+                        self.log_result(
+                            "CSV Export - Data Rows", 
+                            True, 
+                            "CSV contains only headers (no accounting transactions)",
+                            "This is expected if no drafted invoices exist"
+                        )
+                else:
+                    self.log_result(
+                        "CSV Export - CSV Structure", 
+                        False, 
+                        "CSV appears to be empty or malformed",
+                        f"Content length: {len(csv_content)}"
+                    )
+                    
+            elif response.status_code == 403:
+                self.log_result(
+                    "CSV Export - Authorization", 
+                    False, 
+                    "Access denied - insufficient permissions",
+                    "User may not have admin or manager role"
+                )
+            else:
+                self.log_result(
+                    "CSV Export - Endpoint Access", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("CSV Export Functionality", False, f"Error: {str(e)}")
+    
+    def test_csv_field_formats(self, headers, row_data):
+        """Test specific CSV field formats for Xero compliance"""
+        print("\n=== CSV FIELD FORMAT TESTING ===")
+        
+        try:
+            # Create header-to-data mapping
+            field_map = dict(zip(headers, row_data))
+            
+            # Test date formats (DD/MM/YYYY)
+            date_fields = ["InvoiceDate", "DueDate"]
+            for field in date_fields:
+                if field in field_map and field_map[field]:
+                    date_value = field_map[field].strip('"')
+                    # Check DD/MM/YYYY format
+                    import re
+                    if re.match(r'\d{2}/\d{2}/\d{4}', date_value):
+                        self.log_result(
+                            f"CSV Format - {field}", 
+                            True, 
+                            f"Correct date format: {date_value}",
+                            "Format: DD/MM/YYYY"
+                        )
+                    else:
+                        self.log_result(
+                            f"CSV Format - {field}", 
+                            False, 
+                            f"Incorrect date format: {date_value}",
+                            "Expected: DD/MM/YYYY"
+                        )
+            
+            # Test account code
+            if "AccountCode" in field_map:
+                account_code = field_map["AccountCode"].strip('"')
+                expected_code = "200"  # XERO_SALES_ACCOUNT_CODE
+                if account_code == expected_code:
+                    self.log_result(
+                        "CSV Format - Account Code", 
+                        True, 
+                        f"Correct account code: {account_code}",
+                        "Uses XERO_SALES_ACCOUNT_CODE (200)"
+                    )
+                else:
+                    self.log_result(
+                        "CSV Format - Account Code", 
+                        False, 
+                        f"Incorrect account code: {account_code}",
+                        f"Expected: {expected_code}"
+                    )
+            
+            # Test tax type
+            if "TaxType" in field_map:
+                tax_type = field_map["TaxType"].strip('"')
+                if tax_type == "OUTPUT":
+                    self.log_result(
+                        "CSV Format - Tax Type", 
+                        True, 
+                        f"Correct tax type: {tax_type}",
+                        "OUTPUT for GST sales"
+                    )
+                else:
+                    self.log_result(
+                        "CSV Format - Tax Type", 
+                        False, 
+                        f"Incorrect tax type: {tax_type}",
+                        "Expected: OUTPUT"
+                    )
+            
+            # Test currency
+            if "Currency" in field_map:
+                currency = field_map["Currency"].strip('"')
+                if currency == "AUD":
+                    self.log_result(
+                        "CSV Format - Currency", 
+                        True, 
+                        f"Correct currency: {currency}",
+                        "Australian Dollar"
+                    )
+                else:
+                    self.log_result(
+                        "CSV Format - Currency", 
+                        False, 
+                        f"Incorrect currency: {currency}",
+                        "Expected: AUD"
+                    )
+            
+            # Test numeric fields
+            numeric_fields = ["Quantity", "UnitAmount"]
+            for field in numeric_fields:
+                if field in field_map and field_map[field]:
+                    value = field_map[field].strip('"')
+                    try:
+                        float(value)
+                        self.log_result(
+                            f"CSV Format - {field}", 
+                            True, 
+                            f"Valid numeric value: {value}",
+                            "Properly formatted number"
+                        )
+                    except ValueError:
+                        self.log_result(
+                            f"CSV Format - {field}", 
+                            False, 
+                            f"Invalid numeric value: {value}",
+                            "Should be a valid number"
+                        )
+                        
+        except Exception as e:
+            self.log_result("CSV Field Format Testing", False, f"Error: {str(e)}")
+    
+    def test_csv_empty_scenarios(self):
+        """Test CSV export with empty scenarios"""
+        print("\n=== CSV EMPTY SCENARIOS TESTING ===")
+        
+        try:
+            # Test when no accounting transactions exist
+            response = self.session.get(f"{API_BASE}/invoicing/export-drafted-csv")
+            
+            if response.status_code == 200:
+                csv_content = response.text
+                lines = csv_content.strip().split('\n')
+                
+                if len(lines) == 1:  # Only headers
+                    self.log_result(
+                        "CSV Empty Scenario - No Data", 
+                        True, 
+                        "Gracefully handles empty data with headers only",
+                        "CSV contains headers but no data rows"
+                    )
+                elif len(lines) > 1:
+                    self.log_result(
+                        "CSV Empty Scenario - Has Data", 
+                        True, 
+                        f"CSV contains {len(lines)-1} accounting transactions",
+                        "Data is available for export"
+                    )
+                else:
+                    self.log_result(
+                        "CSV Empty Scenario - Malformed", 
+                        False, 
+                        "CSV appears to be malformed or completely empty",
+                        f"Lines: {len(lines)}"
+                    )
+            else:
+                self.log_result(
+                    "CSV Empty Scenario", 
+                    False, 
+                    f"Failed to test empty scenario: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("CSV Empty Scenarios", False, f"Error: {str(e)}")
+    
+    def test_csv_data_mapping(self):
+        """Test that accounting transactions are properly mapped to CSV"""
+        print("\n=== CSV DATA MAPPING TESTING ===")
+        
+        try:
+            # First check if we have any accounting transactions
+            response = self.session.get(f"{API_BASE}/invoicing/accounting-transactions")
+            
+            if response.status_code == 200:
+                transactions = response.json()
+                transaction_count = len(transactions) if isinstance(transactions, list) else 0
+                
+                self.log_result(
+                    "CSV Data Mapping - Source Data", 
+                    True, 
+                    f"Found {transaction_count} accounting transactions",
+                    "These should be included in CSV export"
+                )
+                
+                # Now test CSV export
+                csv_response = self.session.get(f"{API_BASE}/invoicing/export-drafted-csv")
+                
+                if csv_response.status_code == 200:
+                    csv_content = csv_response.text
+                    lines = csv_content.strip().split('\n')
+                    csv_rows = len(lines) - 1  # Exclude header
+                    
+                    if transaction_count == 0 and csv_rows == 0:
+                        self.log_result(
+                            "CSV Data Mapping - Consistency", 
+                            True, 
+                            "CSV correctly shows no data when no transactions exist",
+                            "Empty state handled properly"
+                        )
+                    elif transaction_count > 0 and csv_rows > 0:
+                        self.log_result(
+                            "CSV Data Mapping - Consistency", 
+                            True, 
+                            f"CSV contains {csv_rows} rows for {transaction_count} transactions",
+                            "Data mapping appears to be working"
+                        )
+                        
+                        # Test specific field mapping
+                        if len(lines) >= 2:
+                            headers = lines[0].split(',')
+                            first_row = lines[1].split(',')
+                            field_map = dict(zip(headers, first_row))
+                            
+                            # Check required fields are populated
+                            required_fields = ["ContactName", "InvoiceNumber", "Description"]
+                            populated_required = 0
+                            
+                            for field in required_fields:
+                                if field in field_map and field_map[field].strip('"'):
+                                    populated_required += 1
+                            
+                            if populated_required == len(required_fields):
+                                self.log_result(
+                                    "CSV Data Mapping - Required Fields", 
+                                    True, 
+                                    "All required fields are populated",
+                                    f"Fields: {required_fields}"
+                                )
+                            else:
+                                self.log_result(
+                                    "CSV Data Mapping - Required Fields", 
+                                    False, 
+                                    f"Only {populated_required}/{len(required_fields)} required fields populated",
+                                    f"Check: {required_fields}"
+                                )
+                    else:
+                        self.log_result(
+                            "CSV Data Mapping - Consistency", 
+                            False, 
+                            f"Mismatch: {transaction_count} transactions but {csv_rows} CSV rows",
+                            "Data mapping may have issues"
+                        )
+                else:
+                    self.log_result(
+                        "CSV Data Mapping - Export Failed", 
+                        False, 
+                        f"CSV export failed: {csv_response.status_code}",
+                        csv_response.text
+                    )
+            else:
+                self.log_result(
+                    "CSV Data Mapping - Source Data", 
+                    False, 
+                    f"Failed to get accounting transactions: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("CSV Data Mapping", False, f"Error: {str(e)}")
+    
+    def run_csv_export_tests(self):
+        """Run comprehensive CSV export functionality tests"""
+        print("\n" + "="*60)
+        print("CSV EXPORT FUNCTIONALITY TESTING")
+        print("Testing new CSV export for drafted invoices with Xero import format")
+        print("="*60)
+        
+        # Step 1: Authenticate
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with tests")
+            return
+        
+        # Step 2: Test CSV export endpoint
+        self.test_csv_export_functionality()
+        
+        # Step 3: Test empty scenarios
+        self.test_csv_empty_scenarios()
+        
+        # Step 4: Test data mapping
+        self.test_csv_data_mapping()
+        
+        # Print summary
+        self.print_csv_export_summary()
+    
+    def print_csv_export_summary(self):
+        """Print CSV export test summary"""
+        print("\n" + "="*60)
+        print("CSV EXPORT TEST SUMMARY")
+        print("="*60)
+        
+        total_tests = len(self.test_results)
+        passed_tests = len([r for r in self.test_results if r['success']])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {failed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%" if total_tests > 0 else "0%")
+        
+        # Check CSV-specific results
+        csv_tests = [r for r in self.test_results if 'csv' in r['test'].lower()]
+        csv_passed = len([r for r in csv_tests if r['success']])
+        
+        print(f"\nCSV-Specific Tests: {len(csv_tests)}")
+        print(f"CSV Tests Passed: {csv_passed}")
+        
+        print("\n" + "-"*60)
+        print("CSV EXPORT ANALYSIS:")
+        print("-"*60)
+        
+        # Analyze key CSV functionality
+        key_features = {
+            "Endpoint Access": any("endpoint access" in r['test'].lower() for r in csv_tests if r['success']),
+            "CSV Format": any("content type" in r['test'].lower() for r in csv_tests if r['success']),
+            "Required Headers": any("required headers" in r['test'].lower() for r in csv_tests if r['success']),
+            "Date Format": any("date" in r['test'].lower() and "format" in r['test'].lower() for r in csv_tests if r['success']),
+            "Account Code": any("account code" in r['test'].lower() for r in csv_tests if r['success']),
+            "Data Mapping": any("data mapping" in r['test'].lower() for r in csv_tests if r['success'])
+        }
+        
+        working_features = [k for k, v in key_features.items() if v]
+        failing_features = [k for k, v in key_features.items() if not v]
+        
+        if working_features:
+            print("✅ Working Features:")
+            for feature in working_features:
+                print(f"  ✅ {feature}")
+        
+        if failing_features:
+            print("\n❌ Issues Found:")
+            for feature in failing_features:
+                print(f"  ❌ {feature}")
+        
+        print("\n" + "="*60)
+        print("XERO IMPORT COMPLIANCE:")
+        print("="*60)
+        
+        # Check Xero compliance
+        compliance_checks = {
+            "Required Fields": any("required headers" in r['test'].lower() for r in csv_tests if r['success']),
+            "Date Format (DD/MM/YYYY)": any("date" in r['test'].lower() and r['success'] for r in csv_tests),
+            "Account Code (200)": any("account code" in r['test'].lower() and r['success'] for r in csv_tests),
+            "Tax Type (OUTPUT)": any("tax type" in r['test'].lower() and r['success'] for r in csv_tests),
+            "Currency (AUD)": any("currency" in r['test'].lower() and r['success'] for r in csv_tests)
+        }
+        
+        compliant_items = [k for k, v in compliance_checks.items() if v]
+        non_compliant_items = [k for k, v in compliance_checks.items() if not v]
+        
+        compliance_rate = (len(compliant_items) / len(compliance_checks)) * 100
+        print(f"Xero Compliance Rate: {compliance_rate:.1f}%")
+        
+        if compliant_items:
+            print("\n✅ Xero Compliant:")
+            for item in compliant_items:
+                print(f"  ✅ {item}")
+        
+        if non_compliant_items:
+            print("\n❌ Non-Compliant:")
+            for item in non_compliant_items:
+                print(f"  ❌ {item}")
+        
+        print("\n" + "="*60)
+
     def print_test_summary(self):
         """Print comprehensive test summary"""
         print("\n" + "="*60)
