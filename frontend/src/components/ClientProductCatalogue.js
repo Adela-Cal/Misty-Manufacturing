@@ -401,7 +401,8 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
         core_width: formData.product_type === 'paper_cores' ? formData.core_width || null : null,
         core_thickness: formData.product_type === 'paper_cores' ? formData.core_thickness || null : null,
         strength_quality_important: formData.product_type === 'paper_cores' ? formData.strength_quality_important : false,
-        delivery_included: formData.product_type === 'paper_cores' ? formData.delivery_included : false
+        delivery_included: formData.product_type === 'paper_cores' ? formData.delivery_included : false,
+        consumables: formData.consumables
       };
 
       if (selectedProduct) {
