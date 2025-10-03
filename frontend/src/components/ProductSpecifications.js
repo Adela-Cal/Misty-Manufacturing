@@ -708,7 +708,9 @@ const ProductSpecifications = () => {
           },
           wall_thickness: formData.box_wall_thickness ? parseFloat(formData.box_wall_thickness) : null,
           flute_type: formData.box_flute_type || null,
-          supplier: formData.box_supplier || null
+          supplier: formData.box_supplier || null,
+          price: formData.box_price ? parseFloat(formData.box_price) : null,
+          currency: formData.box_currency || 'AUD'
         };
       }
       
