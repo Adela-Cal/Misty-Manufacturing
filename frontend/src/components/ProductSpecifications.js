@@ -1910,13 +1910,9 @@ const ProductSpecifications = () => {
                               required
                             >
                               <option value="">Select Supplier</option>
-                              {/* Get unique suppliers from products data */}
-                              {[...new Set(products
-                                .filter(product => product.supplier && product.supplier.trim() !== '')
-                                .map(product => product.supplier)
-                              )].map(supplier => (
-                                <option key={supplier} value={supplier}>
-                                  {supplier}
+                              {suppliers.map(supplier => (
+                                <option key={supplier.id} value={supplier.supplier_name}>
+                                  {supplier.supplier_name}
                                 </option>
                               ))}
                             </select>
