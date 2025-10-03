@@ -6511,5 +6511,13 @@ def main():
     # Run the enhanced Xero invoice formatting test suite as requested in review
     tester.run_enhanced_xero_invoice_formatting_tests()
 
+def main_csv_export():
+    """Main function to run CSV export tests specifically"""
+    tester = BackendAPITester()
+    
+    # Run the CSV export test suite as requested in review
+    tester.run_csv_export_tests()
+
 if __name__ == "__main__":
-    main()
+    # Run CSV export tests for the review request
+    main_csv_export()
