@@ -580,7 +580,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Enhanced Xero Invoice Formatting"
+    - "CSV Export Functionality for Drafted Invoices"
   stuck_tasks: 
     - "Order Creation with Client Product Dropdown Fix"
   test_all: false
