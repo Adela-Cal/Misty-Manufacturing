@@ -1559,20 +1559,35 @@ const ProductSpecifications = () => {
                       <div className="misty-card p-6">
                         <h4 className="text-md font-medium text-white mb-4">Commercial Details</h4>
                         <div className="space-y-4">
+                          {/* Price Per Unit Section */}
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">
-                              Price per Unit ($) *
+                              Price Per Unit *
                             </label>
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={formData.pallet_price}
-                              onChange={(e) => setFormData(prev => ({ ...prev, pallet_price: e.target.value }))}
-                              className="misty-input w-full"
-                              placeholder="25.00"
-                              required
-                            />
+                            <div className="flex gap-2">
+                              <select
+                                value={formData.pallet_currency}
+                                onChange={(e) => setFormData(prev => ({ ...prev, pallet_currency: e.target.value }))}
+                                className="misty-select w-24"
+                              >
+                                <option value="AUD">AUD</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="NZD">NZD</option>
+                                <option value="CAD">CAD</option>
+                              </select>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={formData.pallet_price}
+                                onChange={(e) => setFormData(prev => ({ ...prev, pallet_price: e.target.value }))}
+                                className="misty-input flex-1"
+                                placeholder="25.00"
+                                required
+                              />
+                            </div>
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">
