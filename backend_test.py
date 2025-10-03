@@ -6518,6 +6518,262 @@ def main_csv_export():
     # Run the CSV export test suite as requested in review
     tester.run_csv_export_tests()
 
+    def test_accounting_transactions_data_accessibility(self):
+        """Test GET /api/invoicing/accounting-transactions for client-side CSV generation"""
+        print("\n=== ACCOUNTING TRANSACTIONS DATA ACCESSIBILITY TEST ===")
+        
+        try:
+            # Test 1: GET /api/invoicing/accounting-transactions endpoint
+            response = self.session.get(f"{API_BASE}/invoicing/accounting-transactions")
+            
+            if response.status_code == 200:
+                data = response.json()
+                transactions = data.get('data', [])
+                
+                self.log_result(
+                    "Accounting Transactions - Endpoint Access", 
+                    True, 
+                    f"Successfully accessed accounting transactions endpoint",
+                    f"Found {len(transactions)} accounting transactions"
+                )
+                
+                if len(transactions) > 0:
+                    # Test data completeness for first transaction
+                    first_transaction = transactions[0]
+                    
+                    # Check required fields for CSV export
+                    required_fields = {
+                        'client_name': 'Client name for ContactName field',
+                        'client_email': 'Client email for EmailAddress field', 
+                        'order_number': 'Order number for Reference field',
+                        'items': 'Items array with product details',
+                        'total_amount': 'Total amount for invoice'
+                    }
+                    
+                    missing_fields = []
+                    present_fields = []
+                    
+                    for field, description in required_fields.items():
+                        if field in first_transaction and first_transaction[field] is not None:
+                            present_fields.append(field)
+                        else:
+                            missing_fields.append(field)
+                    
+                    if not missing_fields:
+                        self.log_result(
+                            "Accounting Transactions - Required Fields", 
+                            True, 
+                            "All required fields present for CSV generation",
+                            f"Fields: {present_fields}"
+                        )
+                    else:
+                        self.log_result(
+                            "Accounting Transactions - Required Fields", 
+                            False, 
+                            f"Missing required fields: {missing_fields}",
+                            f"Present: {present_fields}"
+                        )
+                    
+                    # Test items array structure
+                    items = first_transaction.get('items', [])
+                    if items and len(items) > 0:
+                        first_item = items[0]
+                        item_required_fields = {
+                            'product_name': 'Product name for Description field',
+                            'quantity': 'Quantity for CSV',
+                            'unit_price': 'Unit price for UnitAmount field'
+                        }
+                        
+                        item_missing = []
+                        item_present = []
+                        
+                        for field, description in item_required_fields.items():
+                            if field in first_item and first_item[field] is not None:
+                                item_present.append(field)
+                            else:
+                                item_missing.append(field)
+                        
+                        if not item_missing:
+                            self.log_result(
+                                "Accounting Transactions - Item Fields", 
+                                True, 
+                                "All required item fields present for CSV generation",
+                                f"Item fields: {item_present}"
+                            )
+                        else:
+                            self.log_result(
+                                "Accounting Transactions - Item Fields", 
+                                False, 
+                                f"Missing item fields: {item_missing}",
+                                f"Present: {item_present}"
+                            )
+                        
+                        # Test data format for CSV generation
+                        sample_data = {
+                            'client_name': first_transaction.get('client_name'),
+                            'client_email': first_transaction.get('client_email'),
+                            'order_number': first_transaction.get('order_number'),
+                            'total_amount': first_transaction.get('total_amount'),
+                            'first_item': {
+                                'product_name': first_item.get('product_name'),
+                                'quantity': first_item.get('quantity'),
+                                'unit_price': first_item.get('unit_price')
+                            }
+                        }
+                        
+                        self.log_result(
+                            "Accounting Transactions - Data Format", 
+                            True, 
+                            "Data structure suitable for client-side CSV generation",
+                            f"Sample: {sample_data}"
+                        )
+                    else:
+                        self.log_result(
+                            "Accounting Transactions - Items Array", 
+                            False, 
+                            "No items found in transaction",
+                            "Items array is empty or missing"
+                        )
+                else:
+                    self.log_result(
+                        "Accounting Transactions - Data Available", 
+                        True, 
+                        "No accounting transactions found (empty state)",
+                        "This is expected if no jobs are in accounting_transaction stage"
+                    )
+                    
+            elif response.status_code == 403:
+                self.log_result(
+                    "Accounting Transactions - Authorization", 
+                    False, 
+                    "Access denied - insufficient permissions",
+                    "User may not have admin or manager role"
+                )
+            else:
+                self.log_result(
+                    "Accounting Transactions - Endpoint Access", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Accounting Transactions Data Accessibility", False, f"Error: {str(e)}")
+    
+    def test_accounting_transactions_client_side_csv_compatibility(self):
+        """Test that the data format is compatible with client-side CSV generation"""
+        print("\n=== CLIENT-SIDE CSV COMPATIBILITY TEST ===")
+        
+        try:
+            response = self.session.get(f"{API_BASE}/invoicing/accounting-transactions")
+            
+            if response.status_code == 200:
+                data = response.json()
+                transactions = data.get('data', [])
+                
+                if len(transactions) > 0:
+                    # Simulate client-side CSV generation
+                    csv_headers = [
+                        "ContactName", "InvoiceNumber", "InvoiceDate", "DueDate", 
+                        "Description", "Quantity", "UnitAmount", "AccountCode", 
+                        "TaxType", "EmailAddress", "Reference", "Currency"
+                    ]
+                    
+                    csv_rows = []
+                    
+                    for transaction in transactions:
+                        # Each item becomes a separate CSV row
+                        items = transaction.get('items', [])
+                        
+                        for item in items:
+                            csv_row = {
+                                'ContactName': transaction.get('client_name', ''),
+                                'InvoiceNumber': f"INV-{transaction.get('order_number', '')}",
+                                'InvoiceDate': '01/01/2024',  # Would be actual date
+                                'DueDate': '31/01/2024',      # Would be actual due date
+                                'Description': item.get('product_name', ''),
+                                'Quantity': item.get('quantity', 0),
+                                'UnitAmount': item.get('unit_price', 0),
+                                'AccountCode': '200',
+                                'TaxType': 'OUTPUT',
+                                'EmailAddress': transaction.get('client_email', ''),
+                                'Reference': transaction.get('order_number', ''),
+                                'Currency': 'AUD'
+                            }
+                            csv_rows.append(csv_row)
+                    
+                    if csv_rows:
+                        self.log_result(
+                            "Client-Side CSV Generation - Simulation", 
+                            True, 
+                            f"Successfully simulated CSV generation with {len(csv_rows)} rows",
+                            f"From {len(transactions)} transactions"
+                        )
+                        
+                        # Test first row completeness
+                        first_row = csv_rows[0]
+                        empty_fields = [k for k, v in first_row.items() if not v]
+                        
+                        if not empty_fields:
+                            self.log_result(
+                                "Client-Side CSV Generation - Data Completeness", 
+                                True, 
+                                "All CSV fields can be populated from API data",
+                                "No empty fields in generated CSV row"
+                            )
+                        else:
+                            self.log_result(
+                                "Client-Side CSV Generation - Data Completeness", 
+                                False, 
+                                f"Some CSV fields would be empty: {empty_fields}",
+                                "API data may be incomplete for CSV generation"
+                            )
+                    else:
+                        self.log_result(
+                            "Client-Side CSV Generation - Simulation", 
+                            False, 
+                            "Could not generate any CSV rows",
+                            "Data structure may not be suitable for CSV generation"
+                        )
+                else:
+                    self.log_result(
+                        "Client-Side CSV Generation - No Data", 
+                        True, 
+                        "No transactions available for CSV generation",
+                        "This is expected if no accounting transactions exist"
+                    )
+            else:
+                self.log_result(
+                    "Client-Side CSV Compatibility", 
+                    False, 
+                    f"Could not access data for testing: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Client-Side CSV Compatibility", False, f"Error: {str(e)}")
+
+    def run_accounting_transactions_review_tests(self):
+        """Run the specific tests requested in the review for accounting transactions data accessibility"""
+        print("\n" + "="*60)
+        print("ACCOUNTING TRANSACTIONS DATA ACCESSIBILITY TESTING")
+        print("Testing GET /api/invoicing/accounting-transactions for client-side CSV generation")
+        print("="*60)
+        
+        # Step 1: Authenticate
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with tests")
+            return
+        
+        # Step 2: Test accounting transactions data accessibility (PRIORITY TEST)
+        self.test_accounting_transactions_data_accessibility()
+        self.test_accounting_transactions_client_side_csv_compatibility()
+        
+        # Print summary
+        self.print_test_summary()
+
 if __name__ == "__main__":
-    # Run CSV export tests for the review request
-    main_csv_export()
+    tester = BackendAPITester()
+    
+    # Run the specific tests requested in the review
+    tester.run_accounting_transactions_review_tests()
