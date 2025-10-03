@@ -1428,8 +1428,8 @@ const ProductSpecifications = () => {
                 </div>
                 )}
 
-                {/* Machinery Section - Only show for non-Cardboard Boxes and non-Pallet types */}
-                {formData.product_type !== 'Cardboard Boxes' && formData.product_type !== 'Pallet' && (
+                {/* Machinery Section - Only show for non-Cardboard Boxes, non-Pallet, non-Plastic Bags, and non-Tapes types */}
+                {formData.product_type !== 'Cardboard Boxes' && formData.product_type !== 'Pallet' && formData.product_type !== 'Plastic Bags' && formData.product_type !== 'Tapes' && (
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-white">Machinery</h3>
