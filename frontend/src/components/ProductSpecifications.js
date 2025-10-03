@@ -196,6 +196,7 @@ const ProductSpecifications = () => {
         height: spec.specifications?.dimensions?.height || ''
       },
       pallet_price: spec.specifications?.price || '',
+      pallet_currency: spec.specifications?.currency || 'AUD',
       pallet_supplier: spec.specifications?.supplier || '',
       // Cardboard Boxes specific fields
       box_dimensions: {
@@ -205,7 +206,9 @@ const ProductSpecifications = () => {
       },
       box_wall_thickness: spec.specifications?.wall_thickness || '',
       box_flute_type: spec.specifications?.flute_type || '',
-      box_supplier: spec.specifications?.supplier || ''
+      box_supplier: spec.specifications?.supplier || '',
+      box_price: spec.specifications?.price || '',
+      box_currency: spec.specifications?.currency || 'AUD'
     });
     setCalculatedThickness(spec.calculated_total_thickness || 0);
     setThicknessOptions(spec.thickness_options || []);
