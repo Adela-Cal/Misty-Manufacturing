@@ -6755,6 +6755,471 @@ class BackendAPITester:
         # Print summary
         self.print_test_summary()
 
+    def test_product_specifications_cardboard_boxes(self):
+        """Test Product Specifications functionality for Cardboard Boxes after recent changes"""
+        print("\n=== PRODUCT SPECIFICATIONS CARDBOARD BOXES TESTING ===")
+        
+        try:
+            # Test 1: Check product type dropdown options (should not include "Cardboard Tube")
+            # This is a frontend test, but we can verify the backend accepts the correct types
+            valid_product_types = [
+                'Spiral Paper Core',
+                'Composite Core', 
+                'Pallet',
+                'Cardboard Boxes',
+                'Other'
+            ]
+            
+            invalid_product_types = ['Cardboard Tube']
+            
+            # Test valid product types
+            for product_type in valid_product_types:
+                test_spec_data = {
+                    "product_name": f"Test {product_type} Specification",
+                    "product_type": product_type,
+                    "specifications": {
+                        "test_field": "test_value"
+                    },
+                    "material_layers": [],
+                    "manufacturing_notes": f"Test specification for {product_type}"
+                }
+                
+                response = self.session.post(f"{API_BASE}/product-specifications", json=test_spec_data)
+                
+                if response.status_code == 200:
+                    self.log_result(
+                        f"Valid Product Type - {product_type}", 
+                        True, 
+                        f"Backend correctly accepts '{product_type}' as valid product type"
+                    )
+                    
+                    # Clean up - delete the test specification
+                    result = response.json()
+                    spec_id = result.get('data', {}).get('id')
+                    if spec_id:
+                        self.session.delete(f"{API_BASE}/product-specifications/{spec_id}")
+                else:
+                    self.log_result(
+                        f"Valid Product Type - {product_type}", 
+                        False, 
+                        f"Backend rejected valid product type '{product_type}': {response.status_code}",
+                        response.text
+                    )
+            
+            # Test invalid product types
+            for product_type in invalid_product_types:
+                test_spec_data = {
+                    "product_name": f"Test {product_type} Specification",
+                    "product_type": product_type,
+                    "specifications": {
+                        "test_field": "test_value"
+                    },
+                    "material_layers": [],
+                    "manufacturing_notes": f"Test specification for {product_type}"
+                }
+                
+                response = self.session.post(f"{API_BASE}/product-specifications", json=test_spec_data)
+                
+                # Backend should still accept it (validation is frontend-side)
+                # But we're testing that frontend no longer offers this option
+                if response.status_code == 200:
+                    self.log_result(
+                        f"Invalid Product Type - {product_type}", 
+                        True, 
+                        f"Backend accepts '{product_type}' but frontend should not offer this option",
+                        "Frontend validation should prevent this from being submitted"
+                    )
+                    
+                    # Clean up
+                    result = response.json()
+                    spec_id = result.get('data', {}).get('id')
+                    if spec_id:
+                        self.session.delete(f"{API_BASE}/product-specifications/{spec_id}")
+                        
+        except Exception as e:
+            self.log_result("Product Type Validation", False, f"Error: {str(e)}")
+    
+    def test_cardboard_boxes_create_operation(self):
+        """Test creation of Product Specification with Cardboard Boxes type"""
+        print("\n=== CARDBOARD BOXES CREATE OPERATION TEST ===")
+        
+        try:
+            # Test data for Cardboard Boxes specification with all required fields
+            cardboard_boxes_data = {
+                "product_name": "Test Cardboard Box - 300x200x150mm",
+                "product_type": "Cardboard Boxes",
+                "specifications": {
+                    "dimensions": {
+                        "width": 300,
+                        "length": 200, 
+                        "height": 150
+                    },
+                    "wall_thickness": 4.5,
+                    "flute_type": "B",
+                    "supplier": "Test Cardboard Supplier"
+                },
+                "material_layers": [
+                    {
+                        "material_id": "test-material-001",
+                        "layer_type": "Outer Most Layer",
+                        "thickness": 2.0,
+                        "quantity": 1.0,
+                        "material_name": "Corrugated Cardboard B-Flute"
+                    }
+                ],
+                "manufacturing_notes": "Standard cardboard box for shipping products"
+            }
+            
+            response = self.session.post(f"{API_BASE}/product-specifications", json=cardboard_boxes_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                spec_id = result.get('data', {}).get('id')
+                
+                self.log_result(
+                    "Cardboard Boxes CREATE", 
+                    True, 
+                    "Successfully created Cardboard Boxes specification",
+                    f"ID: {spec_id}, Dimensions: 300x200x150mm, Wall Thickness: 4.5mm, Flute: B"
+                )
+                
+                # Verify the created specification
+                if spec_id:
+                    verify_response = self.session.get(f"{API_BASE}/product-specifications/{spec_id}")
+                    
+                    if verify_response.status_code == 200:
+                        spec_data = verify_response.json()
+                        specifications = spec_data.get('specifications', {})
+                        
+                        # Check required fields for Cardboard Boxes
+                        required_fields = ['dimensions', 'wall_thickness', 'flute_type', 'supplier']
+                        missing_fields = []
+                        
+                        for field in required_fields:
+                            if field not in specifications:
+                                missing_fields.append(field)
+                        
+                        if not missing_fields:
+                            self.log_result(
+                                "Cardboard Boxes Data Structure", 
+                                True, 
+                                "All required fields present in Cardboard Boxes specification",
+                                f"Fields: {required_fields}"
+                            )
+                            
+                            # Verify dimensions structure
+                            dimensions = specifications.get('dimensions', {})
+                            if all(key in dimensions for key in ['width', 'length', 'height']):
+                                self.log_result(
+                                    "Cardboard Boxes Dimensions", 
+                                    True, 
+                                    "Dimensions structure correct (width, length, height)",
+                                    f"Dimensions: {dimensions}"
+                                )
+                            else:
+                                self.log_result(
+                                    "Cardboard Boxes Dimensions", 
+                                    False, 
+                                    "Missing dimension fields",
+                                    f"Available: {list(dimensions.keys())}"
+                                )
+                        else:
+                            self.log_result(
+                                "Cardboard Boxes Data Structure", 
+                                False, 
+                                f"Missing required fields: {missing_fields}",
+                                f"Available fields: {list(specifications.keys())}"
+                            )
+                    
+                    # Store spec_id for update test
+                    self.test_cardboard_spec_id = spec_id
+                    return spec_id
+                    
+            else:
+                self.log_result(
+                    "Cardboard Boxes CREATE", 
+                    False, 
+                    f"Failed to create Cardboard Boxes specification: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Cardboard Boxes CREATE Operation", False, f"Error: {str(e)}")
+        
+        return None
+    
+    def test_cardboard_boxes_update_operation(self, spec_id):
+        """Test UPDATE operation for Cardboard Boxes specifications"""
+        print("\n=== CARDBOARD BOXES UPDATE OPERATION TEST ===")
+        
+        try:
+            # Updated data for Cardboard Boxes specification
+            updated_cardboard_data = {
+                "product_name": "Updated Cardboard Box - 350x250x200mm",
+                "product_type": "Cardboard Boxes",
+                "specifications": {
+                    "dimensions": {
+                        "width": 350,
+                        "length": 250,
+                        "height": 200
+                    },
+                    "wall_thickness": 5.0,
+                    "flute_type": "C",
+                    "supplier": "Updated Cardboard Supplier Ltd"
+                },
+                "material_layers": [
+                    {
+                        "material_id": "test-material-002",
+                        "layer_type": "Outer Most Layer", 
+                        "thickness": 2.5,
+                        "quantity": 1.0,
+                        "material_name": "Corrugated Cardboard C-Flute"
+                    }
+                ],
+                "manufacturing_notes": "Updated cardboard box specification with larger dimensions"
+            }
+            
+            response = self.session.put(f"{API_BASE}/product-specifications/{spec_id}", json=updated_cardboard_data)
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Cardboard Boxes UPDATE", 
+                    True, 
+                    "Successfully updated Cardboard Boxes specification",
+                    "Dimensions: 350x250x200mm, Wall Thickness: 5.0mm, Flute: C"
+                )
+                
+                # Verify the update
+                verify_response = self.session.get(f"{API_BASE}/product-specifications/{spec_id}")
+                
+                if verify_response.status_code == 200:
+                    spec_data = verify_response.json()
+                    specifications = spec_data.get('specifications', {})
+                    
+                    # Check if updates were applied
+                    dimensions = specifications.get('dimensions', {})
+                    wall_thickness = specifications.get('wall_thickness')
+                    flute_type = specifications.get('flute_type')
+                    supplier = specifications.get('supplier')
+                    
+                    updates_correct = (
+                        dimensions.get('width') == 350 and
+                        dimensions.get('length') == 250 and
+                        dimensions.get('height') == 200 and
+                        wall_thickness == 5.0 and
+                        flute_type == "C" and
+                        supplier == "Updated Cardboard Supplier Ltd"
+                    )
+                    
+                    if updates_correct:
+                        self.log_result(
+                            "Cardboard Boxes UPDATE Verification", 
+                            True, 
+                            "All updates correctly applied to specification",
+                            f"New dimensions: {dimensions}, Wall thickness: {wall_thickness}, Flute: {flute_type}"
+                        )
+                    else:
+                        self.log_result(
+                            "Cardboard Boxes UPDATE Verification", 
+                            False, 
+                            "Updates not correctly applied",
+                            f"Expected vs Actual - Dimensions: {dimensions}, Wall: {wall_thickness}, Flute: {flute_type}"
+                        )
+                else:
+                    self.log_result(
+                        "Cardboard Boxes UPDATE Verification", 
+                        False, 
+                        f"Failed to verify update: {verify_response.status_code}",
+                        verify_response.text
+                    )
+                    
+            else:
+                self.log_result(
+                    "Cardboard Boxes UPDATE", 
+                    False, 
+                    f"Failed to update Cardboard Boxes specification: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Cardboard Boxes UPDATE Operation", False, f"Error: {str(e)}")
+    
+    def test_cardboard_boxes_data_structure_validation(self):
+        """Test that Cardboard Boxes specifications include all required fields"""
+        print("\n=== CARDBOARD BOXES DATA STRUCTURE VALIDATION ===")
+        
+        try:
+            # Test with missing required fields
+            test_cases = [
+                {
+                    "name": "Missing Dimensions",
+                    "data": {
+                        "product_name": "Test Box - Missing Dimensions",
+                        "product_type": "Cardboard Boxes",
+                        "specifications": {
+                            "wall_thickness": 4.0,
+                            "flute_type": "B",
+                            "supplier": "Test Supplier"
+                        },
+                        "material_layers": []
+                    },
+                    "should_fail": False  # Backend doesn't enforce this, frontend should
+                },
+                {
+                    "name": "Missing Wall Thickness",
+                    "data": {
+                        "product_name": "Test Box - Missing Wall Thickness",
+                        "product_type": "Cardboard Boxes",
+                        "specifications": {
+                            "dimensions": {"width": 100, "length": 100, "height": 100},
+                            "flute_type": "B",
+                            "supplier": "Test Supplier"
+                        },
+                        "material_layers": []
+                    },
+                    "should_fail": False
+                },
+                {
+                    "name": "Missing Flute Type",
+                    "data": {
+                        "product_name": "Test Box - Missing Flute Type",
+                        "product_type": "Cardboard Boxes",
+                        "specifications": {
+                            "dimensions": {"width": 100, "length": 100, "height": 100},
+                            "wall_thickness": 4.0,
+                            "supplier": "Test Supplier"
+                        },
+                        "material_layers": []
+                    },
+                    "should_fail": False
+                },
+                {
+                    "name": "Missing Supplier",
+                    "data": {
+                        "product_name": "Test Box - Missing Supplier",
+                        "product_type": "Cardboard Boxes",
+                        "specifications": {
+                            "dimensions": {"width": 100, "length": 100, "height": 100},
+                            "wall_thickness": 4.0,
+                            "flute_type": "B"
+                        },
+                        "material_layers": []
+                    },
+                    "should_fail": False
+                },
+                {
+                    "name": "Complete Cardboard Boxes",
+                    "data": {
+                        "product_name": "Complete Cardboard Box Specification",
+                        "product_type": "Cardboard Boxes",
+                        "specifications": {
+                            "dimensions": {
+                                "width": 300,
+                                "length": 200,
+                                "height": 150
+                            },
+                            "wall_thickness": 4.5,
+                            "flute_type": "B",
+                            "supplier": "Complete Box Supplier"
+                        },
+                        "material_layers": [
+                            {
+                                "material_id": "test-material-complete",
+                                "layer_type": "Outer Most Layer",
+                                "thickness": 2.0,
+                                "quantity": 1.0
+                            }
+                        ],
+                        "manufacturing_notes": "Complete specification with all required fields"
+                    },
+                    "should_fail": False
+                }
+            ]
+            
+            created_specs = []
+            
+            for test_case in test_cases:
+                response = self.session.post(f"{API_BASE}/product-specifications", json=test_case["data"])
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    spec_id = result.get('data', {}).get('id')
+                    if spec_id:
+                        created_specs.append(spec_id)
+                    
+                    if test_case["should_fail"]:
+                        self.log_result(
+                            f"Data Structure - {test_case['name']}", 
+                            False, 
+                            "Backend should have rejected incomplete data but accepted it",
+                            "Frontend validation should prevent this"
+                        )
+                    else:
+                        self.log_result(
+                            f"Data Structure - {test_case['name']}", 
+                            True, 
+                            "Backend correctly processed the specification",
+                            f"ID: {spec_id}"
+                        )
+                else:
+                    if test_case["should_fail"]:
+                        self.log_result(
+                            f"Data Structure - {test_case['name']}", 
+                            True, 
+                            f"Backend correctly rejected incomplete data: {response.status_code}"
+                        )
+                    else:
+                        self.log_result(
+                            f"Data Structure - {test_case['name']}", 
+                            False, 
+                            f"Backend unexpectedly rejected valid data: {response.status_code}",
+                            response.text
+                        )
+            
+            # Clean up created specifications
+            for spec_id in created_specs:
+                try:
+                    self.session.delete(f"{API_BASE}/product-specifications/{spec_id}")
+                except:
+                    pass  # Ignore cleanup errors
+                    
+        except Exception as e:
+            self.log_result("Cardboard Boxes Data Structure Validation", False, f"Error: {str(e)}")
+    
+    def run_product_specifications_tests(self):
+        """Run Product Specifications tests for Cardboard Boxes functionality"""
+        print("\n" + "="*60)
+        print("PRODUCT SPECIFICATIONS CARDBOARD BOXES TESTING")
+        print("="*60)
+        
+        # Step 1: Authenticate
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with tests")
+            return
+        
+        # Step 2: Test product type validation
+        self.test_product_specifications_cardboard_boxes()
+        
+        # Step 3: Test CREATE operation for Cardboard Boxes
+        spec_id = self.test_cardboard_boxes_create_operation()
+        
+        # Step 4: Test UPDATE operation for Cardboard Boxes
+        if spec_id:
+            self.test_cardboard_boxes_update_operation(spec_id)
+            
+            # Clean up the test specification
+            try:
+                self.session.delete(f"{API_BASE}/product-specifications/{spec_id}")
+                self.log_result("Cleanup", True, "Test specification cleaned up successfully")
+            except:
+                self.log_result("Cleanup", False, "Failed to clean up test specification")
+        
+        # Step 5: Test data structure validation
+        self.test_cardboard_boxes_data_structure_validation()
+        
+        # Print summary
+        self.print_test_summary()
+
 def main():
     """Main test execution"""
     print("Starting Enhanced Xero Invoice Formatting Testing...")
