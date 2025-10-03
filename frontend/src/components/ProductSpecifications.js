@@ -1957,6 +1957,368 @@ const ProductSpecifications = () => {
                   </div>
                 )}
 
+                {/* Plastic Bags Specifications */}
+                {formData.product_type === 'Plastic Bags' && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4">Plastic Bags Specifications</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Thickness and Composite */}
+                      <div className="misty-card p-6">
+                        <h4 className="text-md font-medium text-white mb-4">Material Properties</h4>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Thickness (μm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.plastic_thickness}
+                              onChange={(e) => setFormData(prev => ({ ...prev, plastic_thickness: e.target.value }))}
+                              className="misty-input w-full"
+                              placeholder="25.0"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Composite *
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.plastic_composite}
+                              onChange={(e) => setFormData(prev => ({ ...prev, plastic_composite: e.target.value }))}
+                              className="misty-input w-full"
+                              placeholder="PE/PA/PE"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Dimensions */}
+                      <div className="misty-card p-6">
+                        <h4 className="text-md font-medium text-white mb-4">Dimensions</h4>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Width (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.plastic_dimensions.width}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                plastic_dimensions: {
+                                  ...prev.plastic_dimensions,
+                                  width: e.target.value
+                                }
+                              }))}
+                              className="misty-input w-full"
+                              placeholder="300"
+                              required
+                            />
+                            <div className="text-xs text-gray-400 mt-1">mmW</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Length (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.plastic_dimensions.length}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                plastic_dimensions: {
+                                  ...prev.plastic_dimensions,
+                                  length: e.target.value
+                                }
+                              }))}
+                              className="misty-input w-full"
+                              placeholder="400"
+                              required
+                            />
+                            <div className="text-xs text-gray-400 mt-1">mmL</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Height (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.plastic_dimensions.height}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                plastic_dimensions: {
+                                  ...prev.plastic_dimensions,
+                                  height: e.target.value
+                                }
+                              }))}
+                              className="misty-input w-full"
+                              placeholder="50"
+                              required
+                            />
+                            <div className="text-xs text-gray-400 mt-1">mmH</div>
+                          </div>
+                        </div>
+                        {/* Dimension Preview */}
+                        {(formData.plastic_dimensions.width || formData.plastic_dimensions.length || formData.plastic_dimensions.height) && (
+                          <div className="mt-4 p-3 bg-gray-700 rounded-md">
+                            <div className="text-sm text-gray-300">
+                              Preview: {formData.plastic_dimensions.width || '0'}mmW x {formData.plastic_dimensions.length || '0'}mmL x {formData.plastic_dimensions.height || '0'}mmH
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Supplier and Price */}
+                      <div className="misty-card p-6 md:col-span-2">
+                        <h4 className="text-md font-medium text-white mb-4">Commercial Details</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Supplier *
+                            </label>
+                            <select
+                              value={formData.plastic_supplier}
+                              onChange={(e) => setFormData(prev => ({ ...prev, plastic_supplier: e.target.value }))}
+                              className="misty-select w-full"
+                              required
+                            >
+                              <option value="">Select Supplier</option>
+                              {suppliers.map(supplier => (
+                                <option key={supplier.id} value={supplier.supplier_name}>
+                                  {supplier.supplier_name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Price Per Unit *
+                            </label>
+                            <div className="flex gap-2">
+                              <select
+                                value={formData.plastic_currency}
+                                onChange={(e) => setFormData(prev => ({ ...prev, plastic_currency: e.target.value }))}
+                                className="misty-select w-24"
+                              >
+                                <option value="AUD">AUD</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="NZD">NZD</option>
+                                <option value="CAD">CAD</option>
+                              </select>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={formData.plastic_price}
+                                onChange={(e) => setFormData(prev => ({ ...prev, plastic_price: e.target.value }))}
+                                className="misty-input flex-1"
+                                placeholder="5.50"
+                                required
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tapes Specifications */}
+                {formData.product_type === 'Tapes' && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4">Tapes Specifications</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Thickness and Types */}
+                      <div className="misty-card p-6">
+                        <h4 className="text-md font-medium text-white mb-4">Material Properties</h4>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Thickness (μm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.tape_thickness}
+                              onChange={(e) => setFormData(prev => ({ ...prev, tape_thickness: e.target.value }))}
+                              className="misty-input w-full"
+                              placeholder="50.0"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Adhesive Type *
+                            </label>
+                            <select
+                              value={formData.tape_adhesive_type}
+                              onChange={(e) => setFormData(prev => ({ ...prev, tape_adhesive_type: e.target.value }))}
+                              className="misty-select w-full"
+                              required
+                            >
+                              <option value="">Select Adhesive Type</option>
+                              <option value="Acrylic">Acrylic</option>
+                              <option value="Hot Melt">Hot Melt</option>
+                              <option value="Rubber">Rubber</option>
+                              <option value="Silicone">Silicone</option>
+                              <option value="Water-based">Water-based</option>
+                              <option value="Solvent-based">Solvent-based</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Substrate Type *
+                            </label>
+                            <select
+                              value={formData.tape_substrate_type}
+                              onChange={(e) => setFormData(prev => ({ ...prev, tape_substrate_type: e.target.value }))}
+                              className="misty-select w-full"
+                              required
+                            >
+                              <option value="">Select Substrate Type</option>
+                              <option value="Paper">Paper</option>
+                              <option value="Film">Film</option>
+                              <option value="Fabric">Fabric</option>
+                              <option value="Foam">Foam</option>
+                              <option value="Metal">Metal</option>
+                              <option value="Glass">Glass</option>
+                              <option value="Plastic">Plastic</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Size */}
+                      <div className="misty-card p-6">
+                        <h4 className="text-md font-medium text-white mb-4">Size</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Width (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.tape_size.width}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                tape_size: {
+                                  ...prev.tape_size,
+                                  width: e.target.value
+                                }
+                              }))}
+                              className="misty-input w-full"
+                              placeholder="25"
+                              required
+                            />
+                            <div className="text-xs text-gray-400 mt-1">mmW</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Length (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.tape_size.length}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                tape_size: {
+                                  ...prev.tape_size,
+                                  length: e.target.value
+                                }
+                              }))}
+                              className="misty-input w-full"
+                              placeholder="50000"
+                              required
+                            />
+                            <div className="text-xs text-gray-400 mt-1">mmL</div>
+                          </div>
+                        </div>
+                        {/* Size Preview */}
+                        {(formData.tape_size.width || formData.tape_size.length) && (
+                          <div className="mt-4 p-3 bg-gray-700 rounded-md">
+                            <div className="text-sm text-gray-300">
+                              Preview: {formData.tape_size.width || '0'}mmW x {formData.tape_size.length || '0'}mmL
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Supplier and Price */}
+                      <div className="misty-card p-6 md:col-span-2">
+                        <h4 className="text-md font-medium text-white mb-4">Commercial Details</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Supplier *
+                            </label>
+                            <select
+                              value={formData.tape_supplier}
+                              onChange={(e) => setFormData(prev => ({ ...prev, tape_supplier: e.target.value }))}
+                              className="misty-select w-full"
+                              required
+                            >
+                              <option value="">Select Supplier</option>
+                              {suppliers.map(supplier => (
+                                <option key={supplier.id} value={supplier.supplier_name}>
+                                  {supplier.supplier_name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Price Per Unit *
+                            </label>
+                            <div className="flex gap-2">
+                              <select
+                                value={formData.tape_currency}
+                                onChange={(e) => setFormData(prev => ({ ...prev, tape_currency: e.target.value }))}
+                                className="misty-select w-24"
+                              >
+                                <option value="AUD">AUD</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="NZD">NZD</option>
+                                <option value="CAD">CAD</option>
+                              </select>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={formData.tape_price}
+                                onChange={(e) => setFormData(prev => ({ ...prev, tape_price: e.target.value }))}
+                                className="misty-input flex-1"
+                                placeholder="12.50"
+                                required
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Legacy Materials Composition - Replaced by Enhanced Material Layers Above */}
                 {formData.materials_composition.length > 0 && (
                   <div className="mb-8">
