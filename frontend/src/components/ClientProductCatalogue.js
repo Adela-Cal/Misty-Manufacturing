@@ -194,7 +194,10 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
     strength_quality_important: false,
     delivery_included: false,
     // Consumables
-    consumables: []
+    consumables: [],
+    // Shared Product functionality
+    is_shared_product: false,
+    shared_with_clients: []
   });
   const [errors, setErrors] = useState({});
 
