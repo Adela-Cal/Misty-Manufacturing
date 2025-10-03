@@ -202,19 +202,16 @@ const Invoicing = () => {
     }
   };
 
-  const exportDraftedInvoicesToCSV = async () => {
+  const exportDraftedInvoicesToCSV = () => {
     try {
-      // Get accounting transactions data using existing API call
-      const response = await apiHelpers.getAccountingTransactions();
-      const transactions = response.data.data || [];
-      
-      if (transactions.length === 0) {
-        toast.info('No drafted invoices to export');
+      // Use already loaded accounting transactions data from state
+      if (accountingTransactions.length === 0) {
+        toast.info('No drafted invoices to export. Switch to "Accounting Transactions" tab first to load data.');
         return;
       }
       
-      // Generate CSV content client-side
-      const csvContent = generateCSVContent(transactions);
+      // Generate CSV content client-side using loaded data
+      const csvContent = generateCSVContent(accountingTransactions);
       
       // Create blob and download
       const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -232,10 +229,10 @@ const Invoicing = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
-      toast.success(`Drafted invoices exported successfully! (${transactions.length} transactions)`);
+      toast.success(`Drafted invoices exported successfully! (${accountingTransactions.length} transactions)`);
     } catch (error) {
       console.error('Failed to export CSV:', error);
-      toast.error('Failed to export drafted invoices');
+      toast.error('Failed to export drafted invoices: ' + error.message);
     }
   };
 
