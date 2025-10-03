@@ -523,9 +523,15 @@ const Invoicing = () => {
               <button
                 onClick={exportDraftedInvoicesToCSV}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center space-x-2"
+                title={accountingTransactions.length === 0 ? "Switch to 'Accounting Transactions' tab first to load data" : "Export drafted invoices to CSV"}
               >
                 <DocumentArrowDownIcon className="h-4 w-4" />
                 <span>Export Drafts .CSV</span>
+                {accountingTransactions.length > 0 && (
+                  <span className="bg-green-800 text-xs px-2 py-1 rounded-full">
+                    {accountingTransactions.length}
+                  </span>
+                )}
               </button>
             </div>
           </div>
