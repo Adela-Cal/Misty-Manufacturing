@@ -147,6 +147,7 @@ const ProductSpecifications = () => {
         height: ''
       },
       pallet_price: '',
+      pallet_currency: 'AUD',
       pallet_supplier: '',
       // Cardboard Boxes specific fields
       box_dimensions: {
@@ -156,7 +157,9 @@ const ProductSpecifications = () => {
       },
       box_wall_thickness: '',
       box_flute_type: '',
-      box_supplier: ''
+      box_supplier: '',
+      box_price: '',
+      box_currency: 'AUD'
     });
     setCalculatedThickness(0);
     setThicknessOptions([]);
