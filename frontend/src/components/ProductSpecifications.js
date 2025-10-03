@@ -36,7 +36,24 @@ const ProductSpecifications = () => {
     wall_thickness_required: '',
     selected_material_id: '',
     layers_required: 0,
-    layer_specifications: []
+    layer_specifications: [],
+    // Pallet specific fields
+    pallet_dimensions: {
+      length: '',
+      width: '', 
+      height: ''
+    },
+    pallet_price: '',
+    pallet_supplier: '',
+    // Cardboard Boxes specific fields
+    box_dimensions: {
+      length: '',
+      width: '',
+      height: ''
+    },
+    box_wall_thickness: '',
+    box_flute_type: '',
+    box_supplier: ''
   });
   const [errors, setErrors] = useState({});
   const [calculatedThickness, setCalculatedThickness] = useState(0);
