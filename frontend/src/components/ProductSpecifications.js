@@ -1257,15 +1257,21 @@ const ProductSpecifications = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">
-                              Machine Name *
+                              Machine Type *
                             </label>
-                            <input
-                              type="text"
-                              value={machine.machine_name}
+                            <select
+                              value={machine.machine_name || ''}
                               onChange={(e) => handleMachineryChange(machineIndex, 'machine_name', e.target.value)}
-                              className="misty-input w-full"
-                              placeholder="Enter machine name"
-                            />
+                              className="misty-select w-full"
+                              required
+                            >
+                              <option value="">Select Machine Type</option>
+                              {machineryRates.map((rate, index) => (
+                                <option key={index} value={rate.function}>
+                                  {rate.function} - ${rate.rate_per_hour?.toFixed(2)}/hr
+                                </option>
+                              ))}
+                            </select>
                           </div>
 
                           <div>
@@ -1285,25 +1291,33 @@ const ProductSpecifications = () => {
 
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">
-                              Set up Time
+                              Set up Time (Hours)
                             </label>
                             <input
-                              type="time"
-                              value={machine.setup_time}
-                              onChange={(e) => handleMachineryChange(machineIndex, 'setup_time', e.target.value)}
+                              type="number"
+                              step="0.25"
+                              min="0"
+                              max="24"
+                              value={machine.setup_hours || ''}
+                              onChange={(e) => handleMachineryChange(machineIndex, 'setup_hours', e.target.value ? parseFloat(e.target.value) : null)}
                               className="misty-input w-full"
+                              placeholder="1.5"
                             />
                           </div>
 
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">
-                              Pack up Time
+                              Pack up Time (Hours)
                             </label>
                             <input
-                              type="time"
-                              value={machine.pack_up_time}
-                              onChange={(e) => handleMachineryChange(machineIndex, 'pack_up_time', e.target.value)}
+                              type="number"
+                              step="0.25"
+                              min="0"
+                              max="24"
+                              value={machine.pack_up_hours || ''}
+                              onChange={(e) => handleMachineryChange(machineIndex, 'pack_up_hours', e.target.value ? parseFloat(e.target.value) : null)}
                               className="misty-input w-full"
+                              placeholder="1.0"
                             />
                           </div>
                         </div>
