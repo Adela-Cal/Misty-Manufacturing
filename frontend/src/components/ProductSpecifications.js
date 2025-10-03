@@ -1757,6 +1757,35 @@ const ProductSpecifications = () => {
                               ))}
                             </select>
                           </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Price Per Unit *
+                            </label>
+                            <div className="flex gap-2">
+                              <select
+                                value={formData.box_currency}
+                                onChange={(e) => setFormData(prev => ({ ...prev, box_currency: e.target.value }))}
+                                className="misty-select w-24"
+                              >
+                                <option value="AUD">AUD</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="NZD">NZD</option>
+                                <option value="CAD">CAD</option>
+                              </select>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={formData.box_price}
+                                onChange={(e) => setFormData(prev => ({ ...prev, box_price: e.target.value }))}
+                                className="misty-input flex-1"
+                                placeholder="15.00"
+                                required
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
