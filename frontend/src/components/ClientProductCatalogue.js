@@ -49,15 +49,17 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [productsRes, materialsRes, clientsRes] = await Promise.all([
+      const [productsRes, materialsRes, clientsRes, productSpecsRes] = await Promise.all([
         apiHelpers.getClientCatalogue(clientId),
         apiHelpers.getMaterials(),
-        apiHelpers.getClients()
+        apiHelpers.getClients(),
+        apiHelpers.getProductSpecifications()
       ]);
       
       setProducts(productsRes.data);
       setMaterials(materialsRes.data);
       setClients(clientsRes.data.filter(client => client.id !== clientId));
+      setProductSpecifications(productSpecsRes.data);
     } catch (error) {
       console.error('Failed to load data:', error);
       toast.error('Failed to load product catalogue data');
