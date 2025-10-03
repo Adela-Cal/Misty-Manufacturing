@@ -3536,11 +3536,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API router
-app.include_router(api_router)
-
-# Include payroll router
-app.include_router(payroll_router, prefix="/api")
+# Router already included above, removing duplicate registration
 
 # Mount static files for uploads
 app.mount("/uploads", StaticFiles(directory="/app/uploads"), name="uploads")
