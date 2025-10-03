@@ -815,7 +815,14 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                 </thead>
                 <tbody>
                   {products.map((product) => (
-                    <tr key={product.id}>
+                    <tr 
+                      key={product.id}
+                      className={`cursor-pointer hover:bg-gray-700/50 transition-colors ${
+                        selectedProductForEdit?.id === product.id ? 'bg-blue-900/30 ring-2 ring-blue-500' : ''
+                      }`}
+                      onDoubleClick={() => handleProductDoubleClick(product)}
+                      title="Double-click to edit"
+                    >
                       <td className="font-medium">{product.product_code}</td>
                       <td>{product.product_description}</td>
                       <td>
@@ -842,29 +849,16 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                         )}
                       </td>
                       <td>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handleEdit(product)}
-                            className="text-gray-400 hover:text-yellow-400 transition-colors"
-                            title="Edit product"
-                          >
-                            <PencilIcon className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleCopy(product.id)}
-                            className="text-gray-400 hover:text-blue-400 transition-colors"
-                            title="Copy to another client"
-                          >
-                            <DocumentDuplicateIcon className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handlePrint(product)}
-                            className="text-gray-400 hover:text-green-400 transition-colors"
-                            title="Print product quote"
-                          >
-                            <PrinterIcon className="h-4 w-4" />
-                          </button>
-                        </div>
+                        {product.is_shared_product ? (
+                          <div className="flex items-center space-x-1">
+                            <CheckIcon className="h-4 w-4 text-green-400" />
+                            <span className="text-xs text-green-400">
+                              {product.shared_with_clients?.length || 0} clients
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}
