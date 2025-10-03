@@ -614,6 +614,13 @@ const ProductSpecifications = () => {
         newErrors[`material_layer_${index}`] = `Layer ${index + 1}: ${layerErrors.join(', ')} required`;
       }
     });
+
+    // Validate machinery - each machine must have a machine type selected
+    formData.machinery.forEach((machine, index) => {
+      if (!machine.machine_name || !machine.machine_name.trim()) {
+        newErrors[`machinery_${index}`] = `Machine ${index + 1}: Machine type is required`;
+      }
+    });
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
