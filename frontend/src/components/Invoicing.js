@@ -439,6 +439,15 @@ const Invoicing = () => {
                   {checkingXeroStatus ? 'Connecting...' : 'Connect to Xero'}
                 </button>
               )}
+              
+              {/* Export CSV Button */}
+              <button
+                onClick={exportDraftedInvoicesToCSV}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center space-x-2"
+              >
+                <DocumentArrowDownIcon className="h-4 w-4" />
+                <span>Export Currently drafted Invoices to .CSV</span>
+              </button>
             </div>
           </div>
         </div>
