@@ -633,7 +633,9 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
         core_thickness: '',
         strength_quality_important: false,
         delivery_included: false,
-        consumables: []
+        consumables: [],
+        is_shared_product: false,
+        shared_with_clients: []
       });
       loadData();
     } catch (error) {
