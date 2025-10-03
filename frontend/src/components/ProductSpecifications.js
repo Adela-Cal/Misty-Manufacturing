@@ -444,8 +444,8 @@ const ProductSpecifications = () => {
         {
           machine_name: '',
           running_speed: null,
-          setup_time: '',
-          pack_up_time: '',
+          setup_hours: null,
+          pack_up_hours: null,
           functions: []
         }
       ]
