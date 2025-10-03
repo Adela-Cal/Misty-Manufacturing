@@ -300,7 +300,8 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
 
   const handlePrint = (product) => {
     const printWindow = window.open('', '_blank');
-    const clientName = clients.find(c => c.id === clientId)?.company_name || 'Client';
+    // Get client name from the current client being viewed
+    const clientName = 'Client Product Catalogue';
     
     const printContent = `
       <!DOCTYPE html>
