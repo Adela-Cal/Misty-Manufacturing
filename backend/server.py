@@ -2933,17 +2933,31 @@ async def generate_job_invoice(
                 next_number_response = await get_next_xero_invoice_number()
                 next_invoice_number = next_number_response["formatted_number"]
                 
-                # Prepare Xero invoice data
+                # Prepare Xero invoice data with proper formatting
                 xero_invoice_data = {
                     "client_name": client["company_name"] if client else job.get("client_name", "Unknown Client"),
                     "client_email": client.get("email", "") if client else "",
                     "invoice_number": next_invoice_number,
                     "order_number": job["order_number"],
-                    "items": invoice_data.get("items", job["items"]),
+                    "items": [],
                     "total_amount": invoice_data.get("total_amount", job["total_amount"]),
                     "due_date": invoice_data.get("due_date"),
                     "reference": job["order_number"]
                 }
+                
+                # Format items for Xero with proper field mapping
+                items = invoice_data.get("items", job["items"])
+                for item in items:
+                    xero_item = {
+                        "product_name": item.get("product_name", item.get("description", "Product")),
+                        "description": item.get("description", ""),
+                        "specifications": item.get("specifications", ""),
+                        "quantity": item.get("quantity", 1),
+                        "unit_price": item.get("unit_price", item.get("price", 0)),
+                        "product_code": item.get("product_code", ""),  # For InventoryItemCode
+                        "discount_percent": item.get("discount_percent", 0) if item.get("discount_percent") else None
+                    }
+                    xero_invoice_data["items"].append(xero_item)
                 
                 # Create draft invoice in Xero
                 xero_response = await create_xero_draft_invoice(xero_invoice_data)
