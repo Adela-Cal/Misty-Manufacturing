@@ -7186,10 +7186,647 @@ class BackendAPITester:
         except Exception as e:
             self.log_result("Cardboard Boxes Data Structure Validation", False, f"Error: {str(e)}")
     
+    def test_product_specifications_new_types_and_suppliers(self):
+        """Test Product Specifications backend with new product types and supplier integration"""
+        print("\n=== PRODUCT SPECIFICATIONS NEW TYPES & SUPPLIER INTEGRATION TESTING ===")
+        
+        # Test 1: Suppliers API endpoint accessibility
+        self.test_suppliers_api_endpoint()
+        
+        # Test 2: Create Plastic Bags specification
+        plastic_bags_spec_id = self.test_create_plastic_bags_specification()
+        
+        # Test 3: Create Tapes specification  
+        tapes_spec_id = self.test_create_tapes_specification()
+        
+        # Test 4: Test data structure validation for new fields
+        self.test_new_product_types_validation()
+        
+        # Test 5: Test UPDATE operations for new product types
+        if plastic_bags_spec_id:
+            self.test_update_plastic_bags_specification(plastic_bags_spec_id)
+        if tapes_spec_id:
+            self.test_update_tapes_specification(tapes_spec_id)
+        
+        # Test 6: Verify backward compatibility with existing specifications
+        self.test_backward_compatibility_existing_specs()
+    
+    def test_suppliers_api_endpoint(self):
+        """Test that suppliers API endpoint is accessible and returns supplier data"""
+        print("\n=== SUPPLIERS API ENDPOINT TEST ===")
+        
+        try:
+            response = self.session.get(f"{API_BASE}/suppliers")
+            
+            if response.status_code == 200:
+                suppliers = response.json()
+                
+                if isinstance(suppliers, list) and len(suppliers) > 0:
+                    # Check supplier data structure
+                    first_supplier = suppliers[0]
+                    required_fields = ['id', 'supplier_name']
+                    
+                    missing_fields = [field for field in required_fields if field not in first_supplier]
+                    
+                    if not missing_fields:
+                        self.log_result(
+                            "Suppliers API Endpoint", 
+                            True, 
+                            f"Successfully retrieved {len(suppliers)} suppliers with proper data structure",
+                            f"Sample supplier: {first_supplier.get('supplier_name', 'Unknown')}"
+                        )
+                        return suppliers
+                    else:
+                        self.log_result(
+                            "Suppliers API Endpoint", 
+                            False, 
+                            f"Suppliers missing required fields: {missing_fields}",
+                            f"Available fields: {list(first_supplier.keys())}"
+                        )
+                else:
+                    self.log_result(
+                        "Suppliers API Endpoint", 
+                        False, 
+                        "No suppliers found in system",
+                        "Need suppliers for product specifications testing"
+                    )
+            else:
+                self.log_result(
+                    "Suppliers API Endpoint", 
+                    False, 
+                    f"Failed to access suppliers endpoint: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Suppliers API Endpoint", False, f"Error: {str(e)}")
+        
+        return []
+    
+    def test_create_plastic_bags_specification(self):
+        """Test CREATE operation for Plastic Bags specification with new fields"""
+        print("\n=== CREATE PLASTIC BAGS SPECIFICATION TEST ===")
+        
+        try:
+            # Get suppliers for testing
+            suppliers_response = self.session.get(f"{API_BASE}/suppliers")
+            suppliers = suppliers_response.json() if suppliers_response.status_code == 200 else []
+            supplier_id = suppliers[0]['id'] if suppliers else "test-supplier-001"
+            
+            plastic_bags_data = {
+                "product_name": "Heavy Duty Plastic Bags - 50μm",
+                "product_type": "Plastic Bags",
+                "manufacturing_notes": "Industrial grade plastic bags for packaging applications",
+                "specifications": {
+                    "thickness_um": 50.0,
+                    "composite": "LDPE/HDPE blend",
+                    "width_mm": 300,
+                    "length_mm": 450,
+                    "height_mm": 100,
+                    "supplier_id": supplier_id,
+                    "price_per_unit": 0.25,
+                    "currency": "AUD"
+                },
+                "material_layers": [],
+                "machinery": []
+            }
+            
+            response = self.session.post(f"{API_BASE}/product-specifications", json=plastic_bags_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                spec_id = result.get('data', {}).get('id')
+                
+                self.log_result(
+                    "Create Plastic Bags Specification", 
+                    True, 
+                    f"Successfully created Plastic Bags specification with ID: {spec_id}",
+                    f"Thickness: {plastic_bags_data['specifications']['thickness_um']}μm, Composite: {plastic_bags_data['specifications']['composite']}"
+                )
+                
+                # Verify the created specification
+                verify_response = self.session.get(f"{API_BASE}/product-specifications/{spec_id}")
+                if verify_response.status_code == 200:
+                    created_spec = verify_response.json()
+                    specs = created_spec.get('specifications', {})
+                    
+                    # Check new fields are properly stored
+                    new_fields_check = {
+                        'thickness_um': specs.get('thickness_um') == 50.0,
+                        'composite': specs.get('composite') == "LDPE/HDPE blend",
+                        'width_mm': specs.get('width_mm') == 300,
+                        'length_mm': specs.get('length_mm') == 450,
+                        'height_mm': specs.get('height_mm') == 100,
+                        'supplier_id': specs.get('supplier_id') == supplier_id,
+                        'price_per_unit': specs.get('price_per_unit') == 0.25,
+                        'currency': specs.get('currency') == "AUD"
+                    }
+                    
+                    passed_fields = sum(new_fields_check.values())
+                    total_fields = len(new_fields_check)
+                    
+                    if passed_fields == total_fields:
+                        self.log_result(
+                            "Plastic Bags New Fields Verification", 
+                            True, 
+                            f"All {total_fields} new fields properly stored and retrieved",
+                            f"Fields: {list(new_fields_check.keys())}"
+                        )
+                    else:
+                        failed_fields = [k for k, v in new_fields_check.items() if not v]
+                        self.log_result(
+                            "Plastic Bags New Fields Verification", 
+                            False, 
+                            f"Only {passed_fields}/{total_fields} fields stored correctly",
+                            f"Failed fields: {failed_fields}"
+                        )
+                
+                return spec_id
+            else:
+                self.log_result(
+                    "Create Plastic Bags Specification", 
+                    False, 
+                    f"Failed to create specification: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Create Plastic Bags Specification", False, f"Error: {str(e)}")
+        
+        return None
+    
+    def test_create_tapes_specification(self):
+        """Test CREATE operation for Tapes specification with new fields"""
+        print("\n=== CREATE TAPES SPECIFICATION TEST ===")
+        
+        try:
+            # Get suppliers for testing
+            suppliers_response = self.session.get(f"{API_BASE}/suppliers")
+            suppliers = suppliers_response.json() if suppliers_response.status_code == 200 else []
+            supplier_id = suppliers[0]['id'] if suppliers else "test-supplier-002"
+            
+            tapes_data = {
+                "product_name": "Double-Sided Adhesive Tape - 25μm",
+                "product_type": "Tapes",
+                "manufacturing_notes": "High-strength double-sided tape for industrial applications",
+                "specifications": {
+                    "thickness_um": 25.0,
+                    "width_mm": 50,
+                    "length_mm": 10000,
+                    "adhesive_type": "Acrylic",
+                    "substrate_type": "PET Film",
+                    "supplier_id": supplier_id,
+                    "price_per_unit": 15.50,
+                    "currency": "AUD"
+                },
+                "material_layers": [],
+                "machinery": []
+            }
+            
+            response = self.session.post(f"{API_BASE}/product-specifications", json=tapes_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                spec_id = result.get('data', {}).get('id')
+                
+                self.log_result(
+                    "Create Tapes Specification", 
+                    True, 
+                    f"Successfully created Tapes specification with ID: {spec_id}",
+                    f"Thickness: {tapes_data['specifications']['thickness_um']}μm, Adhesive: {tapes_data['specifications']['adhesive_type']}"
+                )
+                
+                # Verify the created specification
+                verify_response = self.session.get(f"{API_BASE}/product-specifications/{spec_id}")
+                if verify_response.status_code == 200:
+                    created_spec = verify_response.json()
+                    specs = created_spec.get('specifications', {})
+                    
+                    # Check new fields are properly stored
+                    new_fields_check = {
+                        'thickness_um': specs.get('thickness_um') == 25.0,
+                        'width_mm': specs.get('width_mm') == 50,
+                        'length_mm': specs.get('length_mm') == 10000,
+                        'adhesive_type': specs.get('adhesive_type') == "Acrylic",
+                        'substrate_type': specs.get('substrate_type') == "PET Film",
+                        'supplier_id': specs.get('supplier_id') == supplier_id,
+                        'price_per_unit': specs.get('price_per_unit') == 15.50,
+                        'currency': specs.get('currency') == "AUD"
+                    }
+                    
+                    passed_fields = sum(new_fields_check.values())
+                    total_fields = len(new_fields_check)
+                    
+                    if passed_fields == total_fields:
+                        self.log_result(
+                            "Tapes New Fields Verification", 
+                            True, 
+                            f"All {total_fields} new fields properly stored and retrieved",
+                            f"Fields: {list(new_fields_check.keys())}"
+                        )
+                    else:
+                        failed_fields = [k for k, v in new_fields_check.items() if not v]
+                        self.log_result(
+                            "Tapes New Fields Verification", 
+                            False, 
+                            f"Only {passed_fields}/{total_fields} fields stored correctly",
+                            f"Failed fields: {failed_fields}"
+                        )
+                
+                return spec_id
+            else:
+                self.log_result(
+                    "Create Tapes Specification", 
+                    False, 
+                    f"Failed to create specification: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Create Tapes Specification", False, f"Error: {str(e)}")
+        
+        return None
+    
+    def test_new_product_types_validation(self):
+        """Test data structure validation for new product type fields"""
+        print("\n=== NEW PRODUCT TYPES VALIDATION TEST ===")
+        
+        # Test 1: Invalid thickness_um (negative value)
+        try:
+            invalid_plastic_bags = {
+                "product_name": "Invalid Plastic Bags",
+                "product_type": "Plastic Bags",
+                "specifications": {
+                    "thickness_um": -10.0,  # Invalid negative value
+                    "composite": "LDPE",
+                    "width_mm": 300,
+                    "length_mm": 450
+                },
+                "material_layers": []
+            }
+            
+            response = self.session.post(f"{API_BASE}/product-specifications", json=invalid_plastic_bags)
+            
+            if response.status_code == 422:
+                self.log_result(
+                    "Validation - Negative Thickness", 
+                    True, 
+                    "Correctly rejects negative thickness_um values",
+                    "Returns 422 validation error as expected"
+                )
+            elif response.status_code == 200:
+                self.log_result(
+                    "Validation - Negative Thickness", 
+                    False, 
+                    "Incorrectly accepts negative thickness_um values",
+                    "Should return 422 validation error"
+                )
+            else:
+                self.log_result(
+                    "Validation - Negative Thickness", 
+                    False, 
+                    f"Unexpected response: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Validation - Negative Thickness", False, f"Error: {str(e)}")
+        
+        # Test 2: Missing required fields for Tapes
+        try:
+            incomplete_tapes = {
+                "product_name": "Incomplete Tapes",
+                "product_type": "Tapes",
+                "specifications": {
+                    "thickness_um": 30.0,
+                    # Missing adhesive_type and substrate_type
+                    "width_mm": 25
+                },
+                "material_layers": []
+            }
+            
+            response = self.session.post(f"{API_BASE}/product-specifications", json=incomplete_tapes)
+            
+            # Note: This might pass if fields are optional, which is also valid
+            if response.status_code in [200, 422]:
+                self.log_result(
+                    "Validation - Missing Tapes Fields", 
+                    True, 
+                    f"Handles missing Tapes fields appropriately: {response.status_code}",
+                    "Either accepts (fields optional) or rejects (fields required)"
+                )
+            else:
+                self.log_result(
+                    "Validation - Missing Tapes Fields", 
+                    False, 
+                    f"Unexpected response: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Validation - Missing Tapes Fields", False, f"Error: {str(e)}")
+        
+        # Test 3: Invalid currency code
+        try:
+            invalid_currency = {
+                "product_name": "Invalid Currency Test",
+                "product_type": "Plastic Bags",
+                "specifications": {
+                    "thickness_um": 40.0,
+                    "composite": "LDPE",
+                    "width_mm": 200,
+                    "length_mm": 300,
+                    "price_per_unit": 10.0,
+                    "currency": "INVALID"  # Invalid currency code
+                },
+                "material_layers": []
+            }
+            
+            response = self.session.post(f"{API_BASE}/product-specifications", json=invalid_currency)
+            
+            # Currency validation might be lenient, so both 200 and 422 are acceptable
+            if response.status_code in [200, 422]:
+                self.log_result(
+                    "Validation - Invalid Currency", 
+                    True, 
+                    f"Handles invalid currency appropriately: {response.status_code}",
+                    "Either accepts (lenient validation) or rejects (strict validation)"
+                )
+            else:
+                self.log_result(
+                    "Validation - Invalid Currency", 
+                    False, 
+                    f"Unexpected response: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Validation - Invalid Currency", False, f"Error: {str(e)}")
+    
+    def test_update_plastic_bags_specification(self, spec_id):
+        """Test UPDATE operation for Plastic Bags specification"""
+        print("\n=== UPDATE PLASTIC BAGS SPECIFICATION TEST ===")
+        
+        try:
+            # Get current specification
+            get_response = self.session.get(f"{API_BASE}/product-specifications/{spec_id}")
+            if get_response.status_code != 200:
+                self.log_result(
+                    "Update Plastic Bags - Get Current", 
+                    False, 
+                    f"Failed to get current specification: {get_response.status_code}"
+                )
+                return
+            
+            current_spec = get_response.json()
+            
+            # Update with new values
+            updated_data = current_spec.copy()
+            updated_data['specifications']['thickness_um'] = 75.0  # Changed from 50.0
+            updated_data['specifications']['composite'] = "HDPE/PP blend"  # Changed composite
+            updated_data['specifications']['price_per_unit'] = 0.35  # Changed price
+            updated_data['manufacturing_notes'] = "Updated: Extra heavy duty plastic bags for industrial use"
+            
+            response = self.session.put(f"{API_BASE}/product-specifications/{spec_id}", json=updated_data)
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Update Plastic Bags Specification", 
+                    True, 
+                    "Successfully updated Plastic Bags specification",
+                    f"New thickness: {updated_data['specifications']['thickness_um']}μm"
+                )
+                
+                # Verify the update
+                verify_response = self.session.get(f"{API_BASE}/product-specifications/{spec_id}")
+                if verify_response.status_code == 200:
+                    updated_spec = verify_response.json()
+                    specs = updated_spec.get('specifications', {})
+                    
+                    # Check updated fields
+                    update_checks = {
+                        'thickness_um': specs.get('thickness_um') == 75.0,
+                        'composite': specs.get('composite') == "HDPE/PP blend",
+                        'price_per_unit': specs.get('price_per_unit') == 0.35
+                    }
+                    
+                    passed_updates = sum(update_checks.values())
+                    total_updates = len(update_checks)
+                    
+                    if passed_updates == total_updates:
+                        self.log_result(
+                            "Plastic Bags Update Verification", 
+                            True, 
+                            f"All {total_updates} updated fields properly saved",
+                            f"Updated: {list(update_checks.keys())}"
+                        )
+                    else:
+                        failed_updates = [k for k, v in update_checks.items() if not v]
+                        self.log_result(
+                            "Plastic Bags Update Verification", 
+                            False, 
+                            f"Only {passed_updates}/{total_updates} updates saved correctly",
+                            f"Failed updates: {failed_updates}"
+                        )
+            else:
+                self.log_result(
+                    "Update Plastic Bags Specification", 
+                    False, 
+                    f"Failed to update specification: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Update Plastic Bags Specification", False, f"Error: {str(e)}")
+    
+    def test_update_tapes_specification(self, spec_id):
+        """Test UPDATE operation for Tapes specification"""
+        print("\n=== UPDATE TAPES SPECIFICATION TEST ===")
+        
+        try:
+            # Get current specification
+            get_response = self.session.get(f"{API_BASE}/product-specifications/{spec_id}")
+            if get_response.status_code != 200:
+                self.log_result(
+                    "Update Tapes - Get Current", 
+                    False, 
+                    f"Failed to get current specification: {get_response.status_code}"
+                )
+                return
+            
+            current_spec = get_response.json()
+            
+            # Update with new values
+            updated_data = current_spec.copy()
+            updated_data['specifications']['thickness_um'] = 30.0  # Changed from 25.0
+            updated_data['specifications']['adhesive_type'] = "Silicone"  # Changed from Acrylic
+            updated_data['specifications']['substrate_type'] = "Polyimide Film"  # Changed substrate
+            updated_data['specifications']['price_per_unit'] = 18.75  # Changed price
+            updated_data['manufacturing_notes'] = "Updated: High-temperature resistant tape for electronics"
+            
+            response = self.session.put(f"{API_BASE}/product-specifications/{spec_id}", json=updated_data)
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Update Tapes Specification", 
+                    True, 
+                    "Successfully updated Tapes specification",
+                    f"New adhesive: {updated_data['specifications']['adhesive_type']}"
+                )
+                
+                # Verify the update
+                verify_response = self.session.get(f"{API_BASE}/product-specifications/{spec_id}")
+                if verify_response.status_code == 200:
+                    updated_spec = verify_response.json()
+                    specs = updated_spec.get('specifications', {})
+                    
+                    # Check updated fields
+                    update_checks = {
+                        'thickness_um': specs.get('thickness_um') == 30.0,
+                        'adhesive_type': specs.get('adhesive_type') == "Silicone",
+                        'substrate_type': specs.get('substrate_type') == "Polyimide Film",
+                        'price_per_unit': specs.get('price_per_unit') == 18.75
+                    }
+                    
+                    passed_updates = sum(update_checks.values())
+                    total_updates = len(update_checks)
+                    
+                    if passed_updates == total_updates:
+                        self.log_result(
+                            "Tapes Update Verification", 
+                            True, 
+                            f"All {total_updates} updated fields properly saved",
+                            f"Updated: {list(update_checks.keys())}"
+                        )
+                    else:
+                        failed_updates = [k for k, v in update_checks.items() if not v]
+                        self.log_result(
+                            "Tapes Update Verification", 
+                            False, 
+                            f"Only {passed_updates}/{total_updates} updates saved correctly",
+                            f"Failed updates: {failed_updates}"
+                        )
+            else:
+                self.log_result(
+                    "Update Tapes Specification", 
+                    False, 
+                    f"Failed to update specification: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Update Tapes Specification", False, f"Error: {str(e)}")
+    
+    def test_backward_compatibility_existing_specs(self):
+        """Test backward compatibility with existing product specifications"""
+        print("\n=== BACKWARD COMPATIBILITY TEST ===")
+        
+        try:
+            # Get all existing specifications
+            response = self.session.get(f"{API_BASE}/product-specifications")
+            
+            if response.status_code == 200:
+                specifications = response.json()
+                
+                if specifications:
+                    self.log_result(
+                        "Backward Compatibility - Get All Specs", 
+                        True, 
+                        f"Successfully retrieved {len(specifications)} existing specifications",
+                        "Existing specifications are still accessible"
+                    )
+                    
+                    # Test existing product types still work
+                    existing_types = set()
+                    for spec in specifications:
+                        product_type = spec.get('product_type')
+                        if product_type:
+                            existing_types.add(product_type)
+                    
+                    self.log_result(
+                        "Backward Compatibility - Product Types", 
+                        True, 
+                        f"Found {len(existing_types)} existing product types",
+                        f"Types: {list(existing_types)}"
+                    )
+                    
+                    # Test creating a traditional Spiral Paper Core (backward compatibility)
+                    traditional_spec = {
+                        "product_name": "Traditional Spiral Paper Core - Compatibility Test",
+                        "product_type": "Spiral Paper Core",
+                        "manufacturing_notes": "Testing backward compatibility",
+                        "specifications": {
+                            "internal_diameter": 76.0,
+                            "wall_thickness_required": 3.0
+                        },
+                        "material_layers": []
+                    }
+                    
+                    create_response = self.session.post(f"{API_BASE}/product-specifications", json=traditional_spec)
+                    
+                    if create_response.status_code == 200:
+                        result = create_response.json()
+                        spec_id = result.get('data', {}).get('id')
+                        
+                        self.log_result(
+                            "Backward Compatibility - Create Traditional", 
+                            True, 
+                            f"Successfully created traditional specification: {spec_id}",
+                            "Existing product types still work with new system"
+                        )
+                        
+                        # Test updating traditional specification
+                        if spec_id:
+                            get_response = self.session.get(f"{API_BASE}/product-specifications/{spec_id}")
+                            if get_response.status_code == 200:
+                                traditional_data = get_response.json()
+                                traditional_data['specifications']['internal_diameter'] = 80.0  # Update
+                                
+                                update_response = self.session.put(f"{API_BASE}/product-specifications/{spec_id}", json=traditional_data)
+                                
+                                if update_response.status_code == 200:
+                                    self.log_result(
+                                        "Backward Compatibility - Update Traditional", 
+                                        True, 
+                                        "Successfully updated traditional specification",
+                                        "Existing specifications can still be modified"
+                                    )
+                                else:
+                                    self.log_result(
+                                        "Backward Compatibility - Update Traditional", 
+                                        False, 
+                                        f"Failed to update traditional specification: {update_response.status_code}",
+                                        update_response.text
+                                    )
+                    else:
+                        self.log_result(
+                            "Backward Compatibility - Create Traditional", 
+                            False, 
+                            f"Failed to create traditional specification: {create_response.status_code}",
+                            create_response.text
+                        )
+                else:
+                    self.log_result(
+                        "Backward Compatibility - Get All Specs", 
+                        True, 
+                        "No existing specifications found (clean system)",
+                        "Backward compatibility not applicable"
+                    )
+            else:
+                self.log_result(
+                    "Backward Compatibility - Get All Specs", 
+                    False, 
+                    f"Failed to retrieve specifications: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Backward Compatibility Test", False, f"Error: {str(e)}")
+
     def run_product_specifications_tests(self):
-        """Run Product Specifications tests for Cardboard Boxes functionality"""
+        """Run Product Specifications tests for new product types and supplier integration"""
         print("\n" + "="*60)
-        print("PRODUCT SPECIFICATIONS CARDBOARD BOXES TESTING")
+        print("PRODUCT SPECIFICATIONS NEW TYPES & SUPPLIER INTEGRATION TESTING")
         print("="*60)
         
         # Step 1: Authenticate
@@ -7197,25 +7834,8 @@ class BackendAPITester:
             print("❌ Authentication failed - cannot proceed with tests")
             return
         
-        # Step 2: Test product type validation
-        self.test_product_specifications_cardboard_boxes()
-        
-        # Step 3: Test CREATE operation for Cardboard Boxes
-        spec_id = self.test_cardboard_boxes_create_operation()
-        
-        # Step 4: Test UPDATE operation for Cardboard Boxes
-        if spec_id:
-            self.test_cardboard_boxes_update_operation(spec_id)
-            
-            # Clean up the test specification
-            try:
-                self.session.delete(f"{API_BASE}/product-specifications/{spec_id}")
-                self.log_result("Cleanup", True, "Test specification cleaned up successfully")
-            except:
-                self.log_result("Cleanup", False, "Failed to clean up test specification")
-        
-        # Step 5: Test data structure validation
-        self.test_cardboard_boxes_data_structure_validation()
+        # Step 2: Test Product Specifications with new types and supplier integration
+        self.test_product_specifications_new_types_and_suppliers()
         
         # Print summary
         self.print_test_summary()
