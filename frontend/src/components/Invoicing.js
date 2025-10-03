@@ -202,9 +202,41 @@ const Invoicing = () => {
     }
   };
 
-  const exportDraftedInvoicesToCSV = () => {
+  const exportDraftedInvoicesToCSV = async () => {
     try {
-      // Use already loaded accounting transactions data from state
+      // Try server-side CSV export first
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/invoicing/export-drafted-csv`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          
+          const today = new Date();
+          const dateStr = today.toISOString().split('T')[0];
+          link.download = `drafted_invoices_${dateStr}.csv`;
+          
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          toast.success('Drafted invoices exported successfully!');
+          return;
+        }
+      } catch (serverError) {
+        console.log('Server-side export failed, falling back to client-side:', serverError);
+      }
+      
+      // Fallback to client-side generation
       if (accountingTransactions.length === 0) {
         toast.info('No drafted invoices to export. Switch to "Accounting Transactions" tab first to load data.');
         return;
