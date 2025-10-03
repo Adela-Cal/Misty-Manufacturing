@@ -810,7 +810,7 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                     <th>Price (ex GST)</th>
                     <th>Min Qty</th>
                     <th>Consignment</th>
-                    <th>Actions</th>
+                    <th>Shared</th>
                   </tr>
                 </thead>
                 <tbody>
