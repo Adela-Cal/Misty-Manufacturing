@@ -176,6 +176,8 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
   const [copyProductId, setCopyProductId] = useState(null);
   const [targetClientId, setTargetClientId] = useState('');
   const [showConsumablesModal, setShowConsumablesModal] = useState(false);
+  const [selectedProductForEdit, setSelectedProductForEdit] = useState(null);
+  const [isInlineEditing, setIsInlineEditing] = useState(false);
   
   const [formData, setFormData] = useState({
     product_type: 'finished_goods',
