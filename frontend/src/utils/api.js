@@ -145,15 +145,6 @@ export const apiHelpers = {
   // Accounting Transactions
   getAccountingTransactions: () => api.get('/invoicing/accounting-transactions'),
   completeAccountingTransaction: (jobId) => api.post(`/invoicing/complete-transaction/${jobId}`),
-  exportDraftedInvoicesCSV: () => {
-    // Use direct route to bypass /api routing issues
-    return axios.get(`${BACKEND_URL}/export-drafted-csv`, {
-      responseType: 'text',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    });
-  },
   
   // Xero Integration
   checkXeroConnection: () => api.get('/xero/status'),
