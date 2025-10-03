@@ -91,6 +91,16 @@ const ProductSpecifications = () => {
     }
   };
 
+  const loadSuppliers = async () => {
+    try {
+      const response = await apiHelpers.getSuppliers();
+      setSuppliers(response.data);
+    } catch (error) {
+      console.error('Failed to load suppliers:', error);
+      toast.error('Failed to load suppliers');
+    }
+  };
+
   const loadMachineryRates = async () => {
     try {
       const response = await apiHelpers.getMachineryRates();
