@@ -1586,27 +1586,6 @@ const ProductSpecifications = () => {
                         <div className="grid grid-cols-3 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">
-                              Length (mm) *
-                            </label>
-                            <input
-                              type="number"
-                              step="0.1"
-                              min="0"
-                              value={formData.box_dimensions.length}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                box_dimensions: {
-                                  ...prev.box_dimensions,
-                                  length: e.target.value
-                                }
-                              }))}
-                              className="misty-input w-full"
-                              placeholder="300"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">
                               Width (mm) *
                             </label>
                             <input
@@ -1622,9 +1601,32 @@ const ProductSpecifications = () => {
                                 }
                               }))}
                               className="misty-input w-full"
+                              placeholder="300"
+                              required
+                            />
+                            <div className="text-xs text-gray-400 mt-1">mmW</div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Length (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.box_dimensions.length}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                box_dimensions: {
+                                  ...prev.box_dimensions,
+                                  length: e.target.value
+                                }
+                              }))}
+                              className="misty-input w-full"
                               placeholder="200"
                               required
                             />
+                            <div className="text-xs text-gray-400 mt-1">mmL</div>
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -1646,13 +1648,22 @@ const ProductSpecifications = () => {
                               placeholder="100"
                               required
                             />
+                            <div className="text-xs text-gray-400 mt-1">mmH</div>
                           </div>
                         </div>
+                        {/* Dimension Preview */}
+                        {(formData.box_dimensions.width || formData.box_dimensions.length || formData.box_dimensions.height) && (
+                          <div className="mt-4 p-3 bg-gray-700 rounded-md">
+                            <div className="text-sm text-gray-300">
+                              Preview: {formData.box_dimensions.width || '0'}mmW x {formData.box_dimensions.length || '0'}mmL x {formData.box_dimensions.height || '0'}mmH
+                            </div>
+                          </div>
+                        )}
                       </div>
                       
                       {/* Wall Thickness, Flute Type, and Supplier */}
                       <div className="misty-card p-6">
-                        <h4 className="text-md font-medium text-white mb-4">Material & Commercial Details</h4>
+                        <h4 className="text-md font-medium text-white mb-4">Specifications</h4>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -1694,14 +1705,23 @@ const ProductSpecifications = () => {
                             <label className="block text-sm font-medium text-gray-300 mb-1">
                               Supplier *
                             </label>
-                            <input
-                              type="text"
+                            <select
                               value={formData.box_supplier}
                               onChange={(e) => setFormData(prev => ({ ...prev, box_supplier: e.target.value }))}
-                              className="misty-input w-full"
-                              placeholder="Supplier Name"
+                              className="misty-select w-full"
                               required
-                            />
+                            >
+                              <option value="">Select Supplier</option>
+                              {/* Get unique suppliers from products data */}
+                              {[...new Set(products
+                                .filter(product => product.supplier && product.supplier.trim() !== '')
+                                .map(product => product.supplier)
+                              )].map(supplier => (
+                                <option key={supplier} value={supplier}>
+                                  {supplier}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                         </div>
                       </div>
