@@ -2050,6 +2050,10 @@ async def debug_xero_config():
         "scopes": XERO_SCOPES,
         "expected_auth_url_start": "https://login.xero.com/identity/connect/authorize",
         "frontend_url": os.getenv("FRONTEND_URL", "https://app.emergent.sh"),
+        "configuration": {
+            "XERO_SALES_ACCOUNT_CODE": os.getenv("XERO_SALES_ACCOUNT_CODE", "200"),
+            "XERO_SALES_ACCOUNT_NAME": os.getenv("XERO_SALES_ACCOUNT_NAME", "Sales")
+        },
         "environment_check": {
             "client_id_set": bool(XERO_CLIENT_ID),
             "client_secret_set": bool(XERO_CLIENT_SECRET),
