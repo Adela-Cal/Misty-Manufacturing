@@ -168,6 +168,7 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
   const [materials, setMaterials] = useState([]);
   const [clients, setClients] = useState([]);
   const [productSpecifications, setProductSpecifications] = useState([]);
+  const [currentClient, setCurrentClient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
