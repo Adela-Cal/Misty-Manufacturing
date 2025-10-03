@@ -11,6 +11,157 @@ import {
   PrinterIcon
 } from '@heroicons/react/24/outline';
 
+// Helper Components for Inline Editing
+
+// Paper Cores Specifications Component
+const PaperCoresSpecifications = ({ formData, handleInputChange, handleMaterialChange, materials }) => (
+  <div className="bg-purple-900/20 border border-purple-600/30 rounded-lg p-4">
+    <h4 className="text-lg font-semibold text-white mb-4">Paper Cores Specifications</h4>
+    
+    {/* Materials Used */}
+    <div className="mb-6">
+      <label className="block text-sm font-medium text-gray-300 mb-3">
+        Material Used (GSM)
+      </label>
+      <div className="max-h-32 overflow-y-auto border border-gray-600 rounded-lg p-3">
+        {materials.length > 0 ? (
+          <div className="space-y-2">
+            {materials.map((material) => (
+              <label key={material.id} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.material_used.includes(material.id)}
+                  onChange={(e) => handleMaterialChange(material.id, e.target.checked)}
+                  className="form-checkbox h-4 w-4 text-yellow-400 bg-gray-700 border-gray-600 rounded focus:ring-yellow-400"
+                />
+                <span className="text-sm text-gray-300">
+                  {material.supplier} - {material.product_code}
+                  {material.gsm && ` (${material.gsm} GSM)`}
+                </span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400">No materials available. Create materials first.</p>
+        )}
+      </div>
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">
+          Core ID
+        </label>
+        <input
+          type="text"
+          name="core_id"
+          value={formData.core_id}
+          onChange={handleInputChange}
+          className="misty-input w-full"
+          placeholder="Enter core ID"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">
+          Core Width
+        </label>
+        <input
+          type="text"
+          name="core_width"
+          value={formData.core_width}
+          onChange={handleInputChange}
+          className="misty-input w-full"
+          placeholder="Enter core width"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">
+          Core Thickness
+        </label>
+        <input
+          type="text"
+          name="core_thickness"
+          value={formData.core_thickness}
+          onChange={handleInputChange}
+          className="misty-input w-full"
+          placeholder="Enter core thickness"
+        />
+      </div>
+
+      <div className="flex items-center space-y-4">
+        <label className="flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            name="strength_quality_important"
+            checked={formData.strength_quality_important}
+            onChange={handleInputChange}
+            className="form-checkbox h-4 w-4 text-yellow-400 bg-gray-700 border-gray-600 rounded focus:ring-yellow-400"
+          />
+          <span className="text-white font-medium">Is strength and Quality important?</span>
+        </label>
+
+        <label className="flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            name="delivery_included"
+            checked={formData.delivery_included}
+            onChange={handleInputChange}
+            className="form-checkbox h-4 w-4 text-yellow-400 bg-gray-700 border-gray-600 rounded focus:ring-yellow-400"
+          />
+          <span className="text-white font-medium">Delivery Included?</span>
+        </label>
+      </div>
+    </div>
+  </div>
+);
+
+// Consumables Section Component
+const ConsumablesSection = ({ formData, setFormData, handleAddConsumables, removeConsumable }) => (
+  <div className="bg-gray-900/50 border border-gray-600/30 rounded-lg p-4">
+    <div className="flex items-center justify-between mb-4">
+      <h4 className="text-lg font-semibold text-white">Consumables</h4>
+      <button
+        type="button"
+        onClick={handleAddConsumables}
+        className="misty-button misty-button-secondary flex items-center text-sm"
+      >
+        <PlusIcon className="h-4 w-4 mr-2" />
+        Add Consumables
+      </button>
+    </div>
+
+    {formData.consumables.length > 0 ? (
+      <div className="space-y-3">
+        {formData.consumables.map((consumable) => (
+          <div key={consumable.id} className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
+            <div className="flex-1">
+              <div className="font-medium text-white">{consumable.specification_name}</div>
+              <div className="text-sm text-gray-400">
+                Type: {consumable.product_type} | Unit: {consumable.measurement_unit}
+                {consumable.quantity_cores_per_carton && ` | ${consumable.quantity_cores_per_carton} cores per carton`}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => removeConsumable(consumable.id)}
+              className="text-red-400 hover:text-red-300 ml-4"
+            >
+              <TrashIcon className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="text-center py-6 text-gray-400">
+        <p className="text-sm">No consumables added yet.</p>
+        <p className="text-xs">Click "Add Consumables" to add packaging materials like cartons, tapes, and bags.</p>
+      </div>
+    )}
+  </div>
+);
+
 // Consumables Selector Component
 const ConsumablesSelector = ({ productSpecs, productSection, onAddConsumable, onCancel }) => {
   const [selectedSpec, setSelectedSpec] = useState(null);
