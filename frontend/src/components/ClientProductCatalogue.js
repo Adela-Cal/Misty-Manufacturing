@@ -286,6 +286,114 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
     }
   };
 
+  const handleProductDoubleClick = (product) => {
+    setSelectedProductForEdit(product);
+    setSelectedProduct(product);
+    setFormData({
+      product_type: product.product_type,
+      product_code: product.product_code,
+      product_description: product.product_description,
+      price_ex_gst: product.price_ex_gst.toString(),
+      minimum_order_quantity: product.minimum_order_quantity.toString(),
+      consignment: product.consignment,
+      material_used: product.material_used || [],
+      core_id: product.core_id || '',
+      core_width: product.core_width || '',
+      core_thickness: product.core_thickness || '',
+      strength_quality_important: product.strength_quality_important || false,
+      delivery_included: product.delivery_included || false,
+      consumables: product.consumables || [],
+      is_shared_product: product.is_shared_product || false,
+      shared_with_clients: product.shared_with_clients || []
+    });
+    setIsInlineEditing(true);
+    setErrors({});
+  };
+
+  const handleInlineSave = async () => {
+    if (!validateForm()) {
+      toast.error('Please fix the errors below');
+      return;
+    }
+
+    try {
+      const submitData = {
+        product_type: formData.product_type,
+        product_code: formData.product_code,
+        product_description: formData.product_description,
+        price_ex_gst: parseFloat(formData.price_ex_gst),
+        minimum_order_quantity: parseInt(formData.minimum_order_quantity),
+        consignment: formData.consignment,
+        material_used: formData.product_type === 'paper_cores' ? formData.material_used : [],
+        core_id: formData.product_type === 'paper_cores' ? formData.core_id || null : null,
+        core_width: formData.product_type === 'paper_cores' ? formData.core_width || null : null,
+        core_thickness: formData.product_type === 'paper_cores' ? formData.core_thickness || null : null,
+        strength_quality_important: formData.product_type === 'paper_cores' ? formData.strength_quality_important : false,
+        delivery_included: formData.product_type === 'paper_cores' ? formData.delivery_included : false,
+        consumables: formData.consumables,
+        is_shared_product: formData.is_shared_product,
+        shared_with_clients: formData.shared_with_clients
+      };
+
+      await apiHelpers.updateClientProduct(clientId, selectedProductForEdit.id, submitData);
+      toast.success('Product updated successfully');
+      
+      handleInlineCancel();
+      loadData();
+    } catch (error) {
+      console.error('Failed to save product:', error);
+      const message = error.response?.data?.detail || 'Failed to save product';
+      toast.error(message);
+    }
+  };
+
+  const handleInlineCancel = () => {
+    setSelectedProductForEdit(null);
+    setSelectedProduct(null);
+    setIsInlineEditing(false);
+    setFormData({
+      product_type: 'finished_goods',
+      product_code: '',
+      product_description: '',
+      price_ex_gst: '',
+      minimum_order_quantity: '',
+      consignment: false,
+      material_used: [],
+      core_id: '',
+      core_width: '',
+      core_thickness: '',
+      strength_quality_important: false,
+      delivery_included: false,
+      consumables: [],
+      is_shared_product: false,
+      shared_with_clients: []
+    });
+    setErrors({});
+  };
+
+  const handleInlineDelete = async () => {
+    if (!selectedProductForEdit) return;
+
+    if (window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+      try {
+        await apiHelpers.deleteClientProduct(clientId, selectedProductForEdit.id);
+        toast.success('Product deleted successfully');
+        handleInlineCancel();
+        loadData();
+      } catch (error) {
+        console.error('Failed to delete product:', error);
+        toast.error('Failed to delete product');
+      }
+    }
+  };
+
+  const handleInlineDuplicate = () => {
+    if (!selectedProductForEdit) return;
+    setCopyProductId(selectedProductForEdit.id);
+    setTargetClientId('');
+    setShowCopyModal(true);
+  };
+
   const handleCopy = (productId) => {
     setCopyProductId(productId);
     setTargetClientId('');
