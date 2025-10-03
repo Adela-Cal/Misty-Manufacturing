@@ -738,11 +738,11 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                             <DocumentDuplicateIcon className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(product)}
-                            className="text-gray-400 hover:text-red-400 transition-colors"
-                            title="Delete product"
+                            onClick={() => handlePrint(product)}
+                            className="text-gray-400 hover:text-green-400 transition-colors"
+                            title="Print product quote"
                           >
-                            <TrashIcon className="h-4 w-4" />
+                            <PrinterIcon className="h-4 w-4" />
                           </button>
                         </div>
                       </td>
