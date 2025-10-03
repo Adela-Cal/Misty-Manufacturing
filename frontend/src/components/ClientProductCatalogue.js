@@ -865,7 +865,9 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
         core_thickness: formData.product_type === 'paper_cores' ? formData.core_thickness || null : null,
         strength_quality_important: formData.product_type === 'paper_cores' ? formData.strength_quality_important : false,
         delivery_included: formData.product_type === 'paper_cores' ? formData.delivery_included : false,
-        consumables: formData.consumables
+        consumables: formData.consumables,
+        is_shared_product: formData.is_shared_product,
+        shared_with_clients: formData.shared_with_clients
       };
 
       if (selectedProduct) {
