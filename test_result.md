@@ -565,7 +565,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Enhanced Accounting Transactions Workflow with Xero Integration"
+    - "Enhanced Xero Invoice Formatting"
   stuck_tasks: 
     - "Order Creation with Client Product Dropdown Fix"
   test_all: false
