@@ -592,10 +592,11 @@ const ProductSpecifications = () => {
   );
 
   const productTypes = [
-    'Paper Core',
     'Spiral Paper Core',
     'Cardboard Tube',
     'Composite Core',
+    'Pallet',
+    'Cardboard Boxes',
     'Other'
   ];
 
