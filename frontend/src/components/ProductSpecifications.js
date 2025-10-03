@@ -536,6 +536,47 @@ const ProductSpecifications = () => {
     if (!formData.product_type.trim()) {
       newErrors.product_type = 'Product type is required';
     }
+
+    // Validate Pallet specific fields
+    if (formData.product_type === 'Pallet') {
+      if (!formData.pallet_dimensions.length || formData.pallet_dimensions.length <= 0) {
+        newErrors.pallet_length = 'Pallet length is required';
+      }
+      if (!formData.pallet_dimensions.width || formData.pallet_dimensions.width <= 0) {
+        newErrors.pallet_width = 'Pallet width is required';
+      }
+      if (!formData.pallet_dimensions.height || formData.pallet_dimensions.height <= 0) {
+        newErrors.pallet_height = 'Pallet height is required';
+      }
+      if (!formData.pallet_price || formData.pallet_price <= 0) {
+        newErrors.pallet_price = 'Pallet price is required';
+      }
+      if (!formData.pallet_supplier.trim()) {
+        newErrors.pallet_supplier = 'Pallet supplier is required';
+      }
+    }
+
+    // Validate Cardboard Boxes specific fields
+    if (formData.product_type === 'Cardboard Boxes') {
+      if (!formData.box_dimensions.length || formData.box_dimensions.length <= 0) {
+        newErrors.box_length = 'Box length is required';
+      }
+      if (!formData.box_dimensions.width || formData.box_dimensions.width <= 0) {
+        newErrors.box_width = 'Box width is required';
+      }
+      if (!formData.box_dimensions.height || formData.box_dimensions.height <= 0) {
+        newErrors.box_height = 'Box height is required';
+      }
+      if (!formData.box_wall_thickness || formData.box_wall_thickness <= 0) {
+        newErrors.box_wall_thickness = 'Wall thickness is required';
+      }
+      if (!formData.box_flute_type.trim()) {
+        newErrors.box_flute_type = 'Flute type is required';
+      }
+      if (!formData.box_supplier.trim()) {
+        newErrors.box_supplier = 'Supplier is required';
+      }
+    }
     
     // Validate material layers - each layer must have required fields
     formData.material_layers.forEach((layer, index) => {
