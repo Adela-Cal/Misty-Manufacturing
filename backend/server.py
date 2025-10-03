@@ -3566,6 +3566,112 @@ async def xero_oauth_callback_direct(code: str = None, state: str = None, error:
         headers={"Location": f"{os.getenv('FRONTEND_URL')}/"}
     )
 
+# Direct CSV export route (bypasses /api routing issues)
+@app.get("/export-drafted-csv")
+async def export_drafted_invoices_csv_direct():
+    """Export all accounting transactions (drafted invoices) to CSV - Direct route bypassing /api issues"""
+    try:
+        # Get all jobs in accounting transaction stage
+        transactions = await db.orders.find({
+            "current_stage": "accounting_transaction",
+            "status": "accounting_draft"
+        }).to_list(length=None)
+        
+        # Prepare CSV data
+        csv_data = []
+        
+        # CSV Headers based on Xero import format
+        headers = [
+            "ContactName", "EmailAddress", "POAddressLine1", "POAddressLine2", 
+            "POAddressLine3", "POAddressLine4", "POCity", "PORegion", 
+            "POPostalCode", "POCountry", "InvoiceNumber", "Reference", 
+            "InvoiceDate", "DueDate", "InventoryItemCode", "Description", 
+            "Quantity", "UnitAmount", "Discount", "AccountCode", "TaxType", 
+            "TrackingName1", "TrackingOption1", "TrackingName2", "TrackingOption2", 
+            "Currency", "BrandingTheme"
+        ]
+        
+        csv_data.append(headers)
+        
+        # Process each transaction
+        for transaction in transactions:
+            # Get client info
+            client = await db.clients.find_one({"id": transaction["client_id"]})
+            client_name = client["company_name"] if client else transaction.get("client_name", "Unknown Client")
+            client_email = client.get("email", "") if client else ""
+            
+            # Get invoice info
+            invoice = await db.invoices.find_one({"id": transaction.get("invoice_id")})
+            invoice_number = invoice["invoice_number"] if invoice else f"INV-{transaction['order_number']}"
+            invoice_date = invoice["created_at"].strftime("%d/%m/%Y") if invoice and invoice.get("created_at") else datetime.now().strftime("%d/%m/%Y")
+            
+            # Calculate due date (30 days from invoice date)
+            due_date_obj = invoice["created_at"] + timedelta(days=30) if invoice and invoice.get("created_at") else datetime.now() + timedelta(days=30)
+            due_date = due_date_obj.strftime("%d/%m/%Y")
+            
+            # Process each item in the transaction
+            items = transaction.get("items", [])
+            if not items:
+                # Create a single line if no items
+                items = [{"description": f"Services for Order {transaction['order_number']}", "quantity": 1, "unit_price": transaction.get("total_amount", 0)}]
+            
+            for item in items:
+                row = [
+                    client_name,  # ContactName (required)
+                    client_email,  # EmailAddress
+                    "",  # POAddressLine1
+                    "",  # POAddressLine2
+                    "",  # POAddressLine3
+                    "",  # POAddressLine4
+                    "",  # POCity
+                    "",  # PORegion
+                    "",  # POPostalCode
+                    "",  # POCountry
+                    invoice_number,  # InvoiceNumber (required)
+                    transaction["order_number"],  # Reference
+                    invoice_date,  # InvoiceDate (required)
+                    due_date,  # DueDate (required)
+                    item.get("product_code", ""),  # InventoryItemCode
+                    f"{item.get('product_name', item.get('description', 'Product'))} - {item.get('specifications', '')}".strip(" - "),  # Description (required)
+                    str(item.get("quantity", 1)),  # Quantity (required)
+                    str(item.get("unit_price", item.get("price", 0))),  # UnitAmount (required)
+                    str(item.get("discount_percent", "")),  # Discount
+                    os.getenv("XERO_SALES_ACCOUNT_CODE", "200"),  # AccountCode (required)
+                    "OUTPUT",  # TaxType (required) - GST for sales
+                    "",  # TrackingName1
+                    "",  # TrackingOption1
+                    "",  # TrackingName2
+                    "",  # TrackingOption2
+                    "AUD",  # Currency
+                    ""   # BrandingTheme
+                ]
+                csv_data.append(row)
+        
+        # Generate CSV content
+        import io
+        import csv
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerows(csv_data)
+        csv_content = output.getvalue()
+        output.close()
+        
+        # Return CSV as response
+        from fastapi.responses import Response
+        return Response(
+            content=csv_content,
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=drafted_invoices_{datetime.now().strftime('%Y%m%d')}.csv"}
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to export drafted invoices CSV: {str(e)}")
+        return Response(
+            content=f"Error: {str(e)}",
+            media_type="text/plain",
+            status_code=500
+        )
+
 # Direct Xero token exchange route (bypasses /api routing)
 @app.post("/xero-auth-callback")
 async def xero_auth_callback_direct(callback_data: dict):
