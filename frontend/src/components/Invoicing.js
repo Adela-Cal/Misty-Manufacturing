@@ -204,10 +204,20 @@ const Invoicing = () => {
 
   const exportDraftedInvoicesToCSV = async () => {
     try {
-      const response = await apiHelpers.exportDraftedInvoicesCSV();
+      // Get accounting transactions data using existing API call
+      const response = await apiHelpers.getAccountingTransactions();
+      const transactions = response.data.data || [];
+      
+      if (transactions.length === 0) {
+        toast.info('No drafted invoices to export');
+        return;
+      }
+      
+      // Generate CSV content client-side
+      const csvContent = generateCSVContent(transactions);
       
       // Create blob and download
-      const blob = new Blob([response.data], { type: 'text/csv' });
+      const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -222,11 +232,83 @@ const Invoicing = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
-      toast.success('Drafted invoices exported successfully!');
+      toast.success(`Drafted invoices exported successfully! (${transactions.length} transactions)`);
     } catch (error) {
       console.error('Failed to export CSV:', error);
       toast.error('Failed to export drafted invoices');
     }
+  };
+
+  const generateCSVContent = (transactions) => {
+    // CSV Headers based on Xero import format
+    const headers = [
+      "ContactName", "EmailAddress", "POAddressLine1", "POAddressLine2", 
+      "POAddressLine3", "POAddressLine4", "POCity", "PORegion", 
+      "POPostalCode", "POCountry", "InvoiceNumber", "Reference", 
+      "InvoiceDate", "DueDate", "InventoryItemCode", "Description", 
+      "Quantity", "UnitAmount", "Discount", "AccountCode", "TaxType", 
+      "TrackingName1", "TrackingOption1", "TrackingName2", "TrackingOption2", 
+      "Currency", "BrandingTheme"
+    ];
+    
+    const csvRows = [];
+    csvRows.push(headers.join(','));
+    
+    // Process each transaction
+    transactions.forEach(transaction => {
+      const client_name = transaction.client_name || 'Unknown Client';
+      const client_email = transaction.client_email || '';
+      const invoice_number = transaction.invoice_number || `INV-${transaction.order_number}`;
+      
+      // Format dates (DD/MM/YYYY)
+      const invoice_date = transaction.invoice_date 
+        ? new Date(transaction.invoice_date).toLocaleDateString('en-AU')
+        : new Date().toLocaleDateString('en-AU');
+      
+      const due_date_obj = transaction.invoice_date 
+        ? new Date(new Date(transaction.invoice_date).getTime() + 30 * 24 * 60 * 60 * 1000)
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      const due_date = due_date_obj.toLocaleDateString('en-AU');
+      
+      // Process items
+      const items = transaction.items || [];
+      if (items.length === 0) {
+        // Create single line if no items
+        items.push({
+          description: `Services for Order ${transaction.order_number}`,
+          quantity: 1,
+          unit_price: transaction.total_amount || 0
+        });
+      }
+      
+      items.forEach(item => {
+        const description = `${item.product_name || item.description || 'Product'} - ${item.specifications || ''}`.replace(' - ', ' ').trim();
+        
+        const row = [
+          `"${client_name}"`, // ContactName
+          `"${client_email}"`, // EmailAddress
+          '""', '""', '""', '""', '""', '""', '""', '""', // Address fields
+          `"${invoice_number}"`, // InvoiceNumber
+          `"${transaction.order_number}"`, // Reference
+          `"${invoice_date}"`, // InvoiceDate
+          `"${due_date}"`, // DueDate
+          `"${item.product_code || ''}"`, // InventoryItemCode
+          `"${description}"`, // Description
+          `"${item.quantity || 1}"`, // Quantity
+          `"${item.unit_price || item.price || 0}"`, // UnitAmount
+          `"${item.discount_percent || ''}"`, // Discount
+          '"200"', // AccountCode
+          '"OUTPUT"', // TaxType
+          '""', '""', '""', '""', // Tracking fields
+          '"AUD"', // Currency
+          '""' // BrandingTheme
+        ];
+        
+        csvRows.push(row.join(','));
+      });
+    });
+    
+    return csvRows.join('\n');
   };
 
   const downloadInvoice = async (jobId, orderNumber) => {
