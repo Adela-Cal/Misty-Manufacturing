@@ -418,7 +418,9 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
       core_thickness: product.core_thickness || '',
       strength_quality_important: product.strength_quality_important || false,
       delivery_included: product.delivery_included || false,
-      consumables: product.consumables || []
+      consumables: product.consumables || [],
+      is_shared_product: product.is_shared_product || false,
+      shared_with_clients: product.shared_with_clients || []
     });
     setErrors({});
     setShowModal(true);
