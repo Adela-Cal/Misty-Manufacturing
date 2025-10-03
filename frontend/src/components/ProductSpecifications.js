@@ -1337,6 +1337,255 @@ const ProductSpecifications = () => {
                   </div>
                 )}
 
+                {/* Pallet Specifications */}
+                {formData.product_type === 'Pallet' && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4">Pallet Specifications</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Dimensions */}
+                      <div className="misty-card p-6">
+                        <h4 className="text-md font-medium text-white mb-4">Dimensions</h4>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Length (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.pallet_dimensions.length}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                pallet_dimensions: {
+                                  ...prev.pallet_dimensions,
+                                  length: e.target.value
+                                }
+                              }))}
+                              className="misty-input w-full"
+                              placeholder="1200"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Width (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.pallet_dimensions.width}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                pallet_dimensions: {
+                                  ...prev.pallet_dimensions,
+                                  width: e.target.value
+                                }
+                              }))}
+                              className="misty-input w-full"
+                              placeholder="800"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Height (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.pallet_dimensions.height}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                pallet_dimensions: {
+                                  ...prev.pallet_dimensions,
+                                  height: e.target.value
+                                }
+                              }))}
+                              className="misty-input w-full"
+                              placeholder="150"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Price and Supplier */}
+                      <div className="misty-card p-6">
+                        <h4 className="text-md font-medium text-white mb-4">Commercial Details</h4>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Price per Unit ($) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={formData.pallet_price}
+                              onChange={(e) => setFormData(prev => ({ ...prev, pallet_price: e.target.value }))}
+                              className="misty-input w-full"
+                              placeholder="25.00"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Supplier *
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.pallet_supplier}
+                              onChange={(e) => setFormData(prev => ({ ...prev, pallet_supplier: e.target.value }))}
+                              className="misty-input w-full"
+                              placeholder="Supplier Name"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Cardboard Boxes Specifications */}
+                {formData.product_type === 'Cardboard Boxes' && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4">Cardboard Boxes Specifications</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Dimensions */}
+                      <div className="misty-card p-6">
+                        <h4 className="text-md font-medium text-white mb-4">Dimensions</h4>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Length (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.box_dimensions.length}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                box_dimensions: {
+                                  ...prev.box_dimensions,
+                                  length: e.target.value
+                                }
+                              }))}
+                              className="misty-input w-full"
+                              placeholder="300"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Width (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.box_dimensions.width}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                box_dimensions: {
+                                  ...prev.box_dimensions,
+                                  width: e.target.value
+                                }
+                              }))}
+                              className="misty-input w-full"
+                              placeholder="200"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Height (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.box_dimensions.height}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                box_dimensions: {
+                                  ...prev.box_dimensions,
+                                  height: e.target.value
+                                }
+                              }))}
+                              className="misty-input w-full"
+                              placeholder="100"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Wall Thickness, Flute Type, and Supplier */}
+                      <div className="misty-card p-6">
+                        <h4 className="text-md font-medium text-white mb-4">Material & Commercial Details</h4>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Wall Thickness (mm) *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formData.box_wall_thickness}
+                              onChange={(e) => setFormData(prev => ({ ...prev, box_wall_thickness: e.target.value }))}
+                              className="misty-input w-full"
+                              placeholder="3.5"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Flute Type *
+                            </label>
+                            <select
+                              value={formData.box_flute_type}
+                              onChange={(e) => setFormData(prev => ({ ...prev, box_flute_type: e.target.value }))}
+                              className="misty-select w-full"
+                              required
+                            >
+                              <option value="">Select Flute Type</option>
+                              <option value="A">A Flute (4.5-4.8mm)</option>
+                              <option value="B">B Flute (2.5-3.2mm)</option>
+                              <option value="C">C Flute (3.5-4.0mm)</option>
+                              <option value="E">E Flute (1.1-1.9mm)</option>
+                              <option value="F">F Flute (0.5-0.9mm)</option>
+                              <option value="BC">BC Double Wall</option>
+                              <option value="AB">AB Double Wall</option>
+                              <option value="EB">EB Double Wall</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Supplier *
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.box_supplier}
+                              onChange={(e) => setFormData(prev => ({ ...prev, box_supplier: e.target.value }))}
+                              className="misty-input w-full"
+                              placeholder="Supplier Name"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Legacy Materials Composition - Replaced by Enhanced Material Layers Above */}
                 {formData.materials_composition.length > 0 && (
                   <div className="mb-8">
