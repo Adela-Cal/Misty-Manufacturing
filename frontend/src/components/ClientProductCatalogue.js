@@ -887,6 +887,240 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
           )}
         </div>
 
+        {/* Bottom Action Bar - Shows when product is selected for editing */}
+        {isInlineEditing && selectedProductForEdit && (
+          <div className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 p-4 shadow-lg z-50">
+            <div className="max-w-7xl mx-auto flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="text-white font-medium">
+                  Editing: {selectedProductForEdit.product_code} - {selectedProductForEdit.product_description}
+                </div>
+                <div className="text-xs text-gray-400">
+                  Double-click another product to switch, or use the actions below
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={handleInlineSave}
+                  className="misty-button misty-button-primary flex items-center"
+                >
+                  <CheckIcon className="h-4 w-4 mr-2" />
+                  Save
+                </button>
+                <button
+                  onClick={handleInlineCancel}
+                  className="misty-button misty-button-secondary flex items-center"
+                >
+                  <XMarkIcon className="h-4 w-4 mr-2" />
+                  Cancel
+                </button>
+                <button
+                  onClick={handleInlineDelete}
+                  className="misty-button bg-red-600 hover:bg-red-700 text-white flex items-center"
+                >
+                  <TrashIcon className="h-4 w-4 mr-2" />
+                  Delete
+                </button>
+                <button
+                  onClick={handleInlineDuplicate}
+                  className="misty-button bg-blue-600 hover:bg-blue-700 text-white flex items-center"
+                >
+                  <DocumentDuplicateIcon className="h-4 w-4 mr-2" />
+                  Duplicate
+                </button>
+                <button
+                  onClick={() => handlePrint(selectedProductForEdit)}
+                  className="misty-button bg-green-600 hover:bg-green-700 text-white flex items-center"
+                >
+                  <PrinterIcon className="h-4 w-4 mr-2" />
+                  Print
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Inline Edit Form - Shows when product is selected */}
+        {isInlineEditing && selectedProductForEdit && (
+          <div className="mt-8 mb-20 bg-gray-800 rounded-lg p-6 border-2 border-blue-500">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-white mb-2">
+                Edit Product: {selectedProductForEdit.product_code}
+              </h3>
+              <p className="text-gray-400 text-sm">
+                Make your changes below and click Save to update the product.
+              </p>
+            </div>
+
+            <form className="space-y-6">
+              {/* Basic Product Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Product Type
+                  </label>
+                  <select
+                    name="product_type"
+                    value={formData.product_type}
+                    onChange={handleInputChange}
+                    className="misty-select w-full"
+                    required
+                  >
+                    <option value="finished_goods">Finished Goods</option>
+                    <option value="paper_cores">Paper Cores</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Product Code *
+                  </label>
+                  <input
+                    type="text"
+                    name="product_code"
+                    value={formData.product_code}
+                    onChange={handleInputChange}
+                    className={`misty-input w-full ${errors.product_code ? 'border-red-500' : ''}`}
+                    placeholder="Enter product code"
+                    required
+                  />
+                  {errors.product_code && <p className="text-red-400 text-sm mt-1">{errors.product_code}</p>}
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Product Description *
+                  </label>
+                  <textarea
+                    name="product_description"
+                    value={formData.product_description}
+                    onChange={handleInputChange}
+                    className={`misty-input w-full h-20 ${errors.product_description ? 'border-red-500' : ''}`}
+                    placeholder="Enter product description"
+                    required
+                  />
+                  {errors.product_description && <p className="text-red-400 text-sm mt-1">{errors.product_description}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Price ex GST *
+                  </label>
+                  <input
+                    type="number"
+                    name="price_ex_gst"
+                    value={formData.price_ex_gst}
+                    onChange={handleInputChange}
+                    className={`misty-input w-full ${errors.price_ex_gst ? 'border-red-500' : ''}`}
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                  {errors.price_ex_gst && <p className="text-red-400 text-sm mt-1">{errors.price_ex_gst}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Minimum Order Quantity *
+                  </label>
+                  <input
+                    type="number"
+                    name="minimum_order_quantity"
+                    value={formData.minimum_order_quantity}
+                    onChange={handleInputChange}
+                    className={`misty-input w-full ${errors.minimum_order_quantity ? 'border-red-500' : ''}`}
+                    placeholder="1"
+                    min="1"
+                    required
+                  />
+                  {errors.minimum_order_quantity && <p className="text-red-400 text-sm mt-1">{errors.minimum_order_quantity}</p>}
+                </div>
+
+                <div className="flex items-center">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="consignment"
+                      checked={formData.consignment}
+                      onChange={handleInputChange}
+                      className="form-checkbox h-4 w-4 text-yellow-400 bg-gray-700 border-gray-600 rounded focus:ring-yellow-400"
+                    />
+                    <span className="text-white font-medium">Consignment?</span>
+                  </label>
+                </div>
+
+                <div className="flex items-center">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="is_shared_product"
+                      checked={formData.is_shared_product}
+                      onChange={handleInputChange}
+                      className="form-checkbox h-4 w-4 text-yellow-400 bg-gray-700 border-gray-600 rounded focus:ring-yellow-400"
+                    />
+                    <span className="text-white font-medium">Shared Product?</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Shared Product Selection */}
+              {formData.is_shared_product && (
+                <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
+                  <h4 className="text-lg font-semibold text-white mb-3">Share with Other Clients</h4>
+                  <p className="text-sm text-gray-300 mb-4">
+                    Select which clients should have access to this shared product.
+                  </p>
+                  <div className="max-h-32 overflow-y-auto space-y-2">
+                    {clients.map((client) => (
+                      <label key={client.id} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.shared_with_clients.includes(client.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData(prev => ({
+                                ...prev,
+                                shared_with_clients: [...prev.shared_with_clients, client.id]
+                              }));
+                            } else {
+                              setFormData(prev => ({
+                                ...prev,
+                                shared_with_clients: prev.shared_with_clients.filter(id => id !== client.id)
+                              }));
+                            }
+                          }}
+                          className="form-checkbox h-4 w-4 text-yellow-400 bg-gray-700 border-gray-600 rounded focus:ring-yellow-400"
+                        />
+                        <span className="text-sm text-gray-300">{client.company_name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Paper Cores Specifications - Only show if paper_cores type */}
+              {formData.product_type === 'paper_cores' && (
+                <PaperCoresSpecifications 
+                  formData={formData}
+                  handleInputChange={handleInputChange}
+                  handleMaterialChange={handleMaterialChange}
+                  materials={materials}
+                />
+              )}
+
+              {/* Consumables Section */}
+              <ConsumablesSection 
+                formData={formData}
+                setFormData={setFormData}
+                handleAddConsumables={handleAddConsumables}
+                removeConsumable={removeConsumable}
+              />
+            </form>
+          </div>
+        )}
+
         {/* Product Form Modal */}
         {showModal && (
           <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
