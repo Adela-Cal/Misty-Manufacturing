@@ -692,6 +692,7 @@ const ProductSpecifications = () => {
             height: formData.pallet_dimensions.height ? parseFloat(formData.pallet_dimensions.height) : null
           },
           price: formData.pallet_price ? parseFloat(formData.pallet_price) : null,
+          currency: formData.pallet_currency || 'AUD',
           supplier: formData.pallet_supplier || null
         };
       }
