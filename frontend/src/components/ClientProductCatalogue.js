@@ -102,7 +102,8 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
       core_width: product.core_width || '',
       core_thickness: product.core_thickness || '',
       strength_quality_important: product.strength_quality_important || false,
-      delivery_included: product.delivery_included || false
+      delivery_included: product.delivery_included || false,
+      consumables: product.consumables || []
     });
     setErrors({});
     setShowModal(true);
