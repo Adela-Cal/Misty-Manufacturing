@@ -601,6 +601,9 @@ const ProductSpecifications = () => {
       if (!formData.box_supplier.trim()) {
         newErrors.box_supplier = 'Supplier is required';
       }
+      if (!formData.box_price || formData.box_price <= 0) {
+        newErrors.box_price = 'Price per unit is required';
+      }
     }
     
     // Validate material layers - each layer must have required fields
