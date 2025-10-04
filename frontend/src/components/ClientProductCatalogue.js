@@ -1362,6 +1362,13 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                 />
               )}
 
+              {/* Production & Makeready Section */}
+              <ProductionSection 
+                formData={formData}
+                handleInputChange={handleInputChange}
+                setFormData={setFormData}
+              />
+
               {/* Consumables Section */}
               <ConsumablesSection 
                 formData={formData}
