@@ -944,7 +944,16 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
         delivery_included: formData.product_type === 'paper_cores' ? formData.delivery_included : false,
         consumables: formData.consumables,
         is_shared_product: formData.is_shared_product,
-        shared_with_clients: formData.shared_with_clients
+        shared_with_clients: formData.shared_with_clients,
+        makeready_allowance_percent: formData.makeready_allowance_percent,
+        setup_time_minutes: formData.setup_time_minutes,
+        waste_percentage: formData.waste_percentage,
+        qc_tolerances: formData.qc_tolerances,
+        inspection_interval_minutes: formData.inspection_interval_minutes,
+        tubes_per_carton: formData.tubes_per_carton,
+        cartons_per_pallet: formData.cartons_per_pallet,
+        special_tooling_notes: formData.special_tooling_notes,
+        packing_instructions: formData.packing_instructions
       };
 
       if (selectedProduct) {
