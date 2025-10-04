@@ -229,25 +229,18 @@ const ClientManagement = () => {
                     <span className="text-xs text-gray-400 font-medium">Client Actions</span>
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => window.open(`/clients/${client.id}/archived-jobs`, '_blank')}
+                        onClick={() => navigate(`/clients/${client.id}/archived-jobs`)}
                         className="text-gray-400 hover:text-blue-400 transition-colors p-1"
-                        title="View Archived Jobs"
+                        title="View Archived Jobs & Historic Job Cards"
                       >
                         <ArchiveBoxIcon className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => window.open(`/clients/${client.id}/product-catalogue`, '_blank')}
+                        onClick={() => navigate(`/clients/${client.id}/product-catalogue`)}
                         className="text-gray-400 hover:text-green-400 transition-colors p-1"
                         title="View Product Catalogue"
                       >
                         <CubeIcon className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => window.open(`/clients/${client.id}/job-cards`, '_blank')}
-                        className="text-gray-400 hover:text-purple-400 transition-colors p-1"
-                        title="View Historic Job Cards"
-                      >
-                        <ClipboardDocumentListIcon className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
