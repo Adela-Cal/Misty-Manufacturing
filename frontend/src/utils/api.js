@@ -127,6 +127,8 @@ export const apiHelpers = {
   
   // Jobs
   getJob: (jobId) => api.get(`/jobs/${jobId}`),
+  getClientArchivedJobs: (clientId) => api.get(`/clients/${clientId}/archived-jobs`),
+  getClientJobCards: (clientId) => api.get(`/clients/${clientId}/job-cards`),
   
   // Reports
   getOutstandingJobsReport: () => api.get('/reports/outstanding-jobs'),
