@@ -293,6 +293,16 @@ const ProductionBoard = () => {
               )}
             </div>
             
+            {/* Interactive Job Card */}
+            <button
+              onClick={() => handleOpenJobCard(job.id, stageKey, job.id)}
+              className="text-gray-400 hover:text-purple-400 transition-colors"
+              title="View Interactive Job Card"
+              data-testid={`view-job-card-${job.id}`}
+            >
+              <ClipboardDocumentListIcon className="h-5 w-5" />
+            </button>
+
             <button
               onClick={() => handleDownloadJobCard(job.id, job.order_number)}
               className="text-gray-400 hover:text-blue-400 transition-colors"
