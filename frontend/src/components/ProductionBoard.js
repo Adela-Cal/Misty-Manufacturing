@@ -11,7 +11,8 @@ import {
   ChevronLeftIcon,
   ArrowRightIcon,
   ArrowLeftIcon,
-  UserIcon
+  UserIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline';
 
 // Custom Jumping Man Icon Component
