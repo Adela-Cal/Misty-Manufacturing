@@ -3,7 +3,15 @@ import Layout from './Layout';
 import ClientForm from './ClientForm';
 import { apiHelpers } from '../utils/api';
 import { toast } from 'sonner';
-import { PlusIcon, PencilIcon, PhotoIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { 
+  PlusIcon, 
+  PencilIcon, 
+  PhotoIcon, 
+  TrashIcon,
+  ArchiveBoxIcon,
+  CubeIcon,
+  ClipboardDocumentListIcon
+} from '@heroicons/react/24/outline';
 
 const ClientManagement = () => {
   const [clients, setClients] = useState([]);
