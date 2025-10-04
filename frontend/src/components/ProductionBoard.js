@@ -129,6 +129,16 @@ const ProductionBoard = () => {
     }
   };
 
+  const handleOpenJobCard = (jobId, stage, orderId) => {
+    setSelectedJobCard({ jobId, stage, orderId });
+    setShowJobCard(true);
+  };
+
+  const handleCloseJobCard = () => {
+    setShowJobCard(false);
+    setSelectedJobCard({ jobId: null, stage: null, orderId: null });
+  };
+
   const moveJobStage = async (jobId, currentStage, direction) => {
     try {
       await apiHelpers.moveOrderStage(jobId, { direction });
