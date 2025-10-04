@@ -221,6 +221,36 @@ const ClientManagement = () => {
                   )}
                 </div>
 
+                {/* Client Actions */}
+                <div className="mt-4 pt-4 border-t border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400 font-medium">Client Actions</span>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => window.open(`/clients/${client.id}/archived-jobs`, '_blank')}
+                        className="text-gray-400 hover:text-blue-400 transition-colors p-1"
+                        title="View Archived Jobs"
+                      >
+                        <ArchiveBoxIcon className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => window.open(`/clients/${client.id}/product-catalogue`, '_blank')}
+                        className="text-gray-400 hover:text-green-400 transition-colors p-1"
+                        title="View Product Catalogue"
+                      >
+                        <CubeIcon className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => window.open(`/clients/${client.id}/job-cards`, '_blank')}
+                        className="text-gray-400 hover:text-purple-400 transition-colors p-1"
+                        title="View Historic Job Cards"
+                      >
+                        <ClipboardDocumentListIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Bank Details Indicator */}
                 {client.bank_details && client.bank_details.bank_name && (
                   <div className="mt-3 pt-3 border-t border-gray-700">
