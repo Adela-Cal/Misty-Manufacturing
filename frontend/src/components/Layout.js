@@ -36,7 +36,7 @@ const Layout = ({ children }) => {
     { name: 'Invoicing', href: '/invoicing', icon: DocumentCurrencyDollarIcon, permission: 'view_reports' },
     { name: 'Payroll', href: '/payroll', icon: BanknotesIcon, permission: null },
     { name: 'Reports', href: '/reports', icon: ChartBarIcon, permission: 'view_reports' },
-    { name: 'Products & Materials', href: '/products-materials', icon: CubeIcon, permission: 'view_reports' },
+    { name: 'Raw Materials', href: '/products-materials', icon: CubeIcon, permission: 'view_reports' },
     { name: 'Suppliers List', href: '/suppliers', icon: TruckIcon, permission: 'view_reports' },
     { name: 'Product Specifications', href: '/product-specifications', icon: DocumentTextIcon, permission: 'view_reports' },
     { name: 'Machinery Rates', href: '/machinery-rates', icon: Cog8ToothIcon, permission: 'view_reports' },
