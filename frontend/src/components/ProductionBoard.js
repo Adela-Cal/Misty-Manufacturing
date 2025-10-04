@@ -476,6 +476,16 @@ const ProductionBoard = () => {
           ))}
         </div>
       </div>
+
+      {/* Interactive Job Card Modal */}
+      {showJobCard && (
+        <JobCard
+          jobId={selectedJobCard.jobId}
+          stage={selectedJobCard.stage}
+          orderId={selectedJobCard.orderId}
+          onClose={handleCloseJobCard}
+        />
+      )}
     </Layout>
   );
 };
