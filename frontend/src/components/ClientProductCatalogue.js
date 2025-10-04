@@ -497,7 +497,20 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
       delivery_included: product.delivery_included || false,
       consumables: product.consumables || [],
       is_shared_product: product.is_shared_product || false,
-      shared_with_clients: product.shared_with_clients || []
+      shared_with_clients: product.shared_with_clients || [],
+      makeready_allowance_percent: product.makeready_allowance_percent || 10,
+      setup_time_minutes: product.setup_time_minutes || 30,
+      waste_percentage: product.waste_percentage || 5,
+      qc_tolerances: product.qc_tolerances || {
+        id_tolerance: 0.5,
+        od_tolerance: 0.5,
+        wall_tolerance: 0.1
+      },
+      inspection_interval_minutes: product.inspection_interval_minutes || 60,
+      tubes_per_carton: product.tubes_per_carton || 50,
+      cartons_per_pallet: product.cartons_per_pallet || 20,
+      special_tooling_notes: product.special_tooling_notes || '',
+      packing_instructions: product.packing_instructions || ''
     });
     setIsInlineEditing(true);
     setErrors({});
