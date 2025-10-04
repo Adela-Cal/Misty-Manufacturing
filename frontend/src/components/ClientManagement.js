@@ -15,6 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const ClientManagement = () => {
+  const navigate = useNavigate();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
