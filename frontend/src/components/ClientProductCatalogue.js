@@ -348,7 +348,21 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
     consumables: [],
     // Shared Product functionality
     is_shared_product: false,
-    shared_with_clients: []
+    shared_with_clients: [],
+    // Production & Makeready Information
+    makeready_allowance_percent: 10, // Default 10%
+    setup_time_minutes: 30, // Default setup time
+    waste_percentage: 5, // Default waste %
+    qc_tolerances: {
+      id_tolerance: 0.5, // mm
+      od_tolerance: 0.5, // mm  
+      wall_tolerance: 0.1 // mm
+    },
+    inspection_interval_minutes: 60, // Default QC check interval
+    tubes_per_carton: 50, // Default packing
+    cartons_per_pallet: 20, // Default palletization
+    special_tooling_notes: '',
+    packing_instructions: ''
   });
   const [errors, setErrors] = useState({});
 
