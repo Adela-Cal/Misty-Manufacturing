@@ -18,6 +18,7 @@ import PayrollManagement from './components/PayrollManagement';
 import Invoicing from './components/Invoicing';
 import StaffSecurity from './components/StaffSecurity';
 import XeroCallback from './components/XeroCallback';
+import ArchivedJobs from './components/ArchivedJobs';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function AppRoutes() {
