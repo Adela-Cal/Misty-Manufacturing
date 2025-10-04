@@ -125,6 +125,9 @@ export const apiHelpers = {
   updateMaterialsStatus: (orderId, data) => api.put(`/production/materials-status/${orderId}`, data),
   updateOrderItemStatus: (orderId, data) => api.put(`/production/order-item-status/${orderId}`, data),
   
+  // Jobs
+  getJob: (jobId) => api.get(`/jobs/${jobId}`),
+  
   // Reports
   getOutstandingJobsReport: () => api.get('/reports/outstanding-jobs'),
   getLateDeliveriesReport: () => api.get('/reports/late-deliveries'),
