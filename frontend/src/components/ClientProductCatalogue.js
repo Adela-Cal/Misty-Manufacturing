@@ -117,6 +117,211 @@ const PaperCoresSpecifications = ({ formData, handleInputChange, handleMaterialC
   </div>
 );
 
+// Production Section Component  
+const ProductionSection = ({ formData, handleInputChange, setFormData }) => (
+  <div className="bg-emerald-900/20 border border-emerald-600/30 rounded-lg p-4">
+    <h4 className="text-lg font-semibold text-white mb-4">Production & Makeready Parameters</h4>
+    
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Makeready & Setup */}
+      <div className="space-y-4">
+        <h5 className="text-md font-medium text-emerald-300 mb-3">Setup & Makeready</h5>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Makeready Allowance (%)
+          </label>
+          <input
+            type="number"
+            name="makeready_allowance_percent"
+            value={formData.makeready_allowance_percent}
+            onChange={handleInputChange}
+            className="misty-input w-full"
+            placeholder="10"
+            min="0"
+            step="0.1"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Setup Time (minutes)
+          </label>
+          <input
+            type="number"
+            name="setup_time_minutes"
+            value={formData.setup_time_minutes}
+            onChange={handleInputChange}
+            className="misty-input w-full"
+            placeholder="30"
+            min="0"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Waste Percentage (%)
+          </label>
+          <input
+            type="number"
+            name="waste_percentage"
+            value={formData.waste_percentage}
+            onChange={handleInputChange}
+            className="misty-input w-full"
+            placeholder="5"
+            min="0"
+            step="0.1"
+          />
+        </div>
+      </div>
+
+      {/* QC Tolerances */}
+      <div className="space-y-4">
+        <h5 className="text-md font-medium text-emerald-300 mb-3">QC Tolerances</h5>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            ID Tolerance (±mm)
+          </label>
+          <input
+            type="number"
+            value={formData.qc_tolerances.id_tolerance}
+            onChange={(e) => setFormData(prev => ({
+              ...prev,
+              qc_tolerances: {
+                ...prev.qc_tolerances,
+                id_tolerance: parseFloat(e.target.value) || 0
+              }
+            }))}
+            className="misty-input w-full"
+            placeholder="0.5"
+            min="0"
+            step="0.1"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            OD Tolerance (±mm)
+          </label>
+          <input
+            type="number"
+            value={formData.qc_tolerances.od_tolerance}
+            onChange={(e) => setFormData(prev => ({
+              ...prev,
+              qc_tolerances: {
+                ...prev.qc_tolerances,
+                od_tolerance: parseFloat(e.target.value) || 0
+              }
+            }))}
+            className="misty-input w-full"
+            placeholder="0.5"
+            min="0"
+            step="0.1"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Wall Tolerance (±mm)
+          </label>
+          <input
+            type="number"
+            value={formData.qc_tolerances.wall_tolerance}
+            onChange={(e) => setFormData(prev => ({
+              ...prev,
+              qc_tolerances: {
+                ...prev.qc_tolerances,
+                wall_tolerance: parseFloat(e.target.value) || 0
+              }
+            }))}
+            className="misty-input w-full"
+            placeholder="0.1"
+            min="0"
+            step="0.01"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Inspection Interval (min)
+          </label>
+          <input
+            type="number"
+            name="inspection_interval_minutes"
+            value={formData.inspection_interval_minutes}
+            onChange={handleInputChange}
+            className="misty-input w-full"
+            placeholder="60"
+            min="1"
+          />
+        </div>
+      </div>
+
+      {/* Packing & Notes */}
+      <div className="space-y-4">
+        <h5 className="text-md font-medium text-emerald-300 mb-3">Packing & Instructions</h5>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Tubes per Carton
+          </label>
+          <input
+            type="number"
+            name="tubes_per_carton"
+            value={formData.tubes_per_carton}
+            onChange={handleInputChange}
+            className="misty-input w-full"
+            placeholder="50"
+            min="1"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Cartons per Pallet
+          </label>
+          <input
+            type="number"
+            name="cartons_per_pallet"
+            value={formData.cartons_per_pallet}
+            onChange={handleInputChange}
+            className="misty-input w-full"
+            placeholder="20"
+            min="1"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Special Tooling Notes
+          </label>
+          <textarea
+            name="special_tooling_notes"
+            value={formData.special_tooling_notes}
+            onChange={handleInputChange}
+            className="misty-input w-full h-16 resize-none"
+            placeholder="Mandrel size, special tooling requirements..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Packing Instructions
+          </label>
+          <textarea
+            name="packing_instructions"
+            value={formData.packing_instructions}
+            onChange={handleInputChange}
+            className="misty-input w-full h-16 resize-none"
+            placeholder="Special handling, customer requirements..."
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 // Consumables Section Component
 const ConsumablesSection = ({ formData, setFormData, handleAddConsumables, removeConsumable }) => (
   <div className="bg-gray-900/50 border border-gray-600/30 rounded-lg p-4">
