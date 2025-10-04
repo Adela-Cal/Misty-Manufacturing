@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from './Layout';
+import JobCard from './JobCard';
 import { apiHelpers, stageDisplayNames, stageColors, formatCurrency, formatDate } from '../utils/api';
 import { toast } from 'sonner';
 import { 
