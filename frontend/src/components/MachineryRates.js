@@ -95,6 +95,21 @@ const MachineryRates = () => {
     'Delivery Time'
   ];
 
+  // Helper function to get core winding specifications based on core diameter
+  const getCoreWindingSpec = (coreDiameter) => {
+    const diameter = parseFloat(coreDiameter);
+    
+    if (diameter >= 15 && diameter <= 20) return coreWindingSpecs[0];
+    if (diameter >= 21 && diameter <= 30) return coreWindingSpecs[1];
+    if (diameter >= 31 && diameter <= 50) return coreWindingSpecs[2];
+    if (diameter >= 51 && diameter <= 70) return coreWindingSpecs[3];
+    if (diameter >= 71 && diameter <= 120) return coreWindingSpecs[4];
+    if (diameter >= 121 && diameter <= 200) return coreWindingSpecs[5];
+    if (diameter > 200) return coreWindingSpecs[6];
+    
+    return null; // Invalid diameter
+  };
+
   useEffect(() => {
     loadRates();
   }, []);
