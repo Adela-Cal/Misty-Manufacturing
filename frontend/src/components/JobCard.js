@@ -832,7 +832,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                             title={actualRunTime > 0 ? "Double-click to edit actual run time" : "Start job to track actual time"}
                           >
                             {isJobRunning 
-                              ? `${Math.floor((Date.now() - new Date(jobStartTime).getTime()) / (1000 * 60))} min (Live)`
+                              ? `${Math.floor((currentTime - new Date(jobStartTime).getTime()) / (1000 * 60))} min (Live)`
                               : actualRunTime > 0 
                                 ? `${Math.floor(actualRunTime / 60)}h ${actualRunTime % 60}m`
                                 : '—'
