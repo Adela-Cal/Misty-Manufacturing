@@ -186,7 +186,7 @@ const ArchivedJobs = () => {
   const getProcessDisplayName = (stage) => {
     const names = {
       paper_slitting: 'Paper Slitting',
-      winding: 'Winding',
+      winding: 'Core Winder',
       finishing: 'Cutting/Indexing',
       delivery: 'Packing/Delivery'
     };
