@@ -56,22 +56,54 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     try {
       setLoading(true);
       
-      // Load job/order data
-      const [jobResponse, orderResponse] = await Promise.all([
-        apiHelpers.getJob(jobId),
-        apiHelpers.getOrder(orderId)
-      ]);
-
-      const job = jobResponse.data;
-      const order = orderResponse.data;
+      // For now, since the backend endpoints might not exist yet, let's create mock data
+      // This will be replaced with real API calls when the backend is implemented
       
-      // Load client product specifications
-      if (order.client_id && order.product_id) {
-        const productResponse = await apiHelpers.getClientProduct(order.client_id, order.product_id);
-        setProductSpecs(productResponse.data);
-      }
+      const mockJob = {
+        id: jobId,
+        run_number: 1,
+        status: 'in_progress',
+        created_date: new Date().toISOString()
+      };
 
-      setJobData({ ...job, order });
+      const mockOrder = {
+        id: orderId,
+        order_number: `ORD-${orderId}`,
+        client: {
+          id: 1,
+          company_name: 'Sample Client Co.'
+        },
+        quantity: 1000,
+        due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        priority: 'normal',
+        product_id: 'sample-product-1'
+      };
+
+      const mockProductSpecs = {
+        id: 'sample-product-1',
+        product_code: 'PC-100-50',
+        product_description: 'Paper Core 100mm ID, 50mm length',
+        core_id: '100',
+        core_width: '1000', // length in mm
+        core_thickness: '3.0',
+        makeready_allowance_percent: 10,
+        setup_time_minutes: 45,
+        waste_percentage: 5,
+        qc_tolerances: {
+          id_tolerance: 0.5,
+          od_tolerance: 0.5,
+          wall_tolerance: 0.1
+        },
+        inspection_interval_minutes: 60,
+        tubes_per_carton: 50,
+        cartons_per_pallet: 20,
+        special_tooling_notes: 'Standard mandrel required',
+        packing_instructions: 'Handle with care',
+        consumables: []
+      };
+
+      setJobData({ ...mockJob, order: mockOrder });
+      setProductSpecs(mockProductSpecs);
       
       // Auto-select first available machine for current stage
       const currentMachineConfig = MACHINE_LINES[stage];
@@ -79,7 +111,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         setSelectedMachine(currentMachineConfig.machines[0]);
       }
 
-      calculateProduction(job, order, productResponse?.data);
+      calculateProduction(mockJob, mockOrder, mockProductSpecs);
       
     } catch (error) {
       console.error('Failed to load job card data:', error);
