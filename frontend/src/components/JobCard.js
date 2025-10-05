@@ -606,8 +606,19 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           }
         }
       `}</style>
-    </div>
-  );
+      </div>
+    );
+  } catch (error) {
+    console.error('JobCard render error:', error);
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-gray-800 rounded-lg p-8">
+          <p className="text-white">Error loading job card: {error.message}</p>
+          <button onClick={onClose} className="misty-button misty-button-secondary mt-4">Close</button>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default JobCard;
