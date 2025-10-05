@@ -130,6 +130,13 @@ const ProductionBoard = () => {
   };
 
   const handleOpenJobCard = (jobId, stage, orderId) => {
+    console.log('Opening job card:', { jobId, stage, orderId });
+    
+    if (!jobId || !stage || !orderId) {
+      toast.error('Missing job information for job card');
+      return;
+    }
+    
     setSelectedJobCard({ jobId, stage, orderId });
     setShowJobCard(true);
   };
