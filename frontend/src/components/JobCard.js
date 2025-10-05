@@ -49,7 +49,12 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const [setupNotes, setSetupNotes] = useState('');
 
   useEffect(() => {
-    loadJobCardData();
+    if (jobId && stage) {
+      loadJobCardData();
+    } else {
+      console.error('JobCard: Missing required props', { jobId, stage, orderId });
+      setLoading(false);
+    }
   }, [jobId, stage]);
 
   const loadJobCardData = async () => {
