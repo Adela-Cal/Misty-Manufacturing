@@ -122,10 +122,29 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   };
 
   const calculateProduction = (job, order, product) => {
-    if (!product || !order) return;
+    if (!product || !order || !order.quantity) {
+      // Set default calculations if data is missing
+      setCalculations({
+        goodMaterialLength: 0,
+        makereadyLength: 0,
+        wasteLength: 0,
+        totalLengthRequired: 0,
+        setupTime: 30,
+        runTime: 0,
+        totalProductionTime: 30,
+        tubesPerCarton: 50,
+        cartonsRequired: 0,
+        cartonsPerPallet: 20,
+        palletsRequired: 0,
+        tapeRollsRequired: 0,
+        wastePercentage: '5.0',
+        makereadyPercentage: '10.0'
+      });
+      return;
+    }
 
-    const orderQty = order.quantity || 0;
-    const tubeLength = product.core_width ? parseFloat(product.core_width) : 1000; // mm -> meters
+    const orderQty = parseInt(order.quantity) || 0;
+    const tubeLength = product.core_width ? parseFloat(product.core_width) : 1000; // mm
     const tubeLengthMeters = tubeLength / 1000;
 
     // Calculate material requirements
