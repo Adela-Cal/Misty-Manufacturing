@@ -461,6 +461,35 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     setEditedFinishedQuantity(finishedQuantity);
   };
 
+  // Additional slitting widths handlers
+  const handleAddSlittingWidth = () => {
+    if (newSlittingWidth.width && newSlittingWidth.meters) {
+      const updatedWidths = [...additionalProduction.slittingWidths, {
+        id: Date.now(),
+        width: parseFloat(newSlittingWidth.width),
+        meters: parseFloat(newSlittingWidth.meters),
+        timestamp: new Date().toLocaleString()
+      }];
+      
+      setAdditionalProduction(prev => ({
+        ...prev,
+        slittingWidths: updatedWidths
+      }));
+      
+      setNewSlittingWidth({ width: '', meters: '' });
+      toast.success(`Added ${newSlittingWidth.width}mm width, ${newSlittingWidth.meters}m`);
+    }
+  };
+
+  const handleRemoveSlittingWidth = (id) => {
+    const updatedWidths = additionalProduction.slittingWidths.filter(width => width.id !== id);
+    setAdditionalProduction(prev => ({
+      ...prev,
+      slittingWidths: updatedWidths
+    }));
+    toast.success('Slitting width removed');
+  };
+
   const getCurrentStageTitle = () => {
     const stageNames = {
       paper_slitting: 'Paper Slitting Job Card',
