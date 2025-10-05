@@ -679,7 +679,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
               </h3>
               <div className="space-y-2 text-sm">
                 <div className="text-gray-300"><strong className="text-white">Order ID:</strong> {order?.order_number || `ORD-${orderId || jobId}` || 'N/A'}</div>
-                <div className="text-gray-300"><strong className="text-white">Customer:</strong> {orderData?.client_name || jobData?.order?.client_name || 'Unknown Client'}</div>
+                <div className="text-gray-300"><strong className="text-white">Customer:</strong> {jobData?.order?.client_name || 'Unknown Client'}</div>
                 <div className="text-gray-300"><strong className="text-white">Quantity:</strong> {(order?.quantity || 1000)?.toLocaleString()} units</div>
                 <div className="text-gray-300"><strong className="text-white">Due Date:</strong> {order?.due_date ? new Date(order.due_date).toLocaleDateString() : 'Not set'}</div>
                 <div className="text-gray-300"><strong className="text-white">Priority:</strong> 
