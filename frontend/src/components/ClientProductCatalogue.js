@@ -14,7 +14,7 @@ import {
 // Helper Components for Inline Editing
 
 // Paper Cores Specifications Component
-const PaperCoresSpecifications = ({ formData, handleInputChange, handleMaterialChange, materials }) => (
+const PaperCoresSpecifications = ({ formData, handleInputChange, handleSpecificationSelection, productSpecifications }) => (
   <div className="bg-purple-900/20 border border-purple-600/30 rounded-lg p-4">
     <h4 className="text-lg font-semibold text-white mb-4">Paper Cores Specifications</h4>
     
