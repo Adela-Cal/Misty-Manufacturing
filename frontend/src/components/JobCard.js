@@ -505,28 +505,28 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
 
           {/* Packing & Delivery */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3 border-b border-gray-300 pb-2 flex items-center">
+            <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
               <TruckIcon className="h-5 w-5 mr-2" />
               Packing & Delivery
             </h3>
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold text-gray-800 mb-2">Packing Requirements</h4>
-                <table className="w-full text-sm border border-gray-300">
+                <h4 className="font-semibold text-white mb-2">Packing Requirements</h4>
+                <table className="w-full text-sm border border-gray-600">
                   <tbody>
-                    <tr className="border-b">
-                      <td className="p-2 bg-gray-50">Tubes per Carton</td>
-                      <td className="p-2 text-right font-medium">{calculations.tubesPerCarton}</td>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Tubes per Carton</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.tubesPerCarton}</td>
                     </tr>
-                    <tr className="border-b">
-                      <td className="p-2 bg-gray-50">Cartons Required</td>
-                      <td className="p-2 text-right font-medium">{calculations.cartonsRequired}</td>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Cartons Required</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.cartonsRequired}</td>
                     </tr>
-                    <tr className="border-b">
-                      <td className="p-2 bg-gray-50">Cartons per Pallet</td>
-                      <td className="p-2 text-right font-medium">{calculations.cartonsPerPallet}</td>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Cartons per Pallet</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.cartonsPerPallet}</td>
                     </tr>
-                    <tr className="bg-blue-100 font-bold">
+                    <tr className="bg-blue-600 font-bold text-white">
                       <td className="p-2">PALLETS REQUIRED</td>
                       <td className="p-2 text-right">{calculations.palletsRequired}</td>
                     </tr>
@@ -534,22 +534,22 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                 </table>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-800 mb-2">Consumables Usage</h4>
-                <table className="w-full text-sm border border-gray-300">
+                <h4 className="font-semibold text-white mb-2">Consumables Usage</h4>
+                <table className="w-full text-sm border border-gray-600">
                   <tbody>
-                    <tr className="border-b">
-                      <td className="p-2 bg-gray-50">Cartons Required</td>
-                      <td className="p-2 text-right font-medium">{calculations.cartonsRequired}</td>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Cartons Required</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.cartonsRequired}</td>
                     </tr>
-                    <tr className="border-b">
-                      <td className="p-2 bg-gray-50">Tape Rolls Required</td>
-                      <td className="p-2 text-right font-medium">{calculations.tapeRollsRequired}</td>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Tape Rolls Required</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.tapeRollsRequired}</td>
                     </tr>
                     {productSpecs?.consumables && productSpecs.consumables.length > 0 && (
                       productSpecs.consumables.map((consumable, index) => (
-                        <tr key={index} className="border-b">
-                          <td className="p-2 bg-gray-50">{consumable.specification_name}</td>
-                          <td className="p-2 text-right font-medium">{consumable.measurement_unit}</td>
+                        <tr key={index} className="border-b border-gray-600">
+                          <td className="p-2 bg-gray-700 text-gray-300">{consumable.specification_name}</td>
+                          <td className="p-2 text-right font-medium text-white">{consumable.measurement_unit}</td>
                         </tr>
                       ))
                     )}
