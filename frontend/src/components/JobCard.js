@@ -563,7 +563,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const getCurrentStageTitle = () => {
     const stageNames = {
       paper_slitting: 'Paper Slitting Job Card',
-      winding: 'Winding Job Card', 
+      winding: 'Core Winding Job Card', 
       finishing: 'Cutting/Indexing Job Card',
       delivery: 'Packing/Delivery Job Card'
     };
