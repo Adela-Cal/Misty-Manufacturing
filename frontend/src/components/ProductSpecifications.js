@@ -439,7 +439,7 @@ const ProductSpecifications = () => {
       ...prev,
       layer_specifications: [
         ...prev.layer_specifications,
-        { layer_type: 'Outer Most Layer', width: '', width_range: '' }
+        { layer_type: 'Outer Most Layer', width: '' }
       ]
     }));
   };
