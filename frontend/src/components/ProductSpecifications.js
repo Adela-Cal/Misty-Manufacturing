@@ -575,45 +575,63 @@ const ProductSpecifications = () => {
 
   const handleMaterialLayerChange = (index, field, value) => {
     setFormData(prev => {
-      const updatedLayers = prev.material_layers.map((layer, i) => {
-        if (i === index) {
-          const updatedLayer = { ...layer, [field]: value };
+      const updatedLayers = [...prev.material_layers]; // Create a new array
+      const currentLayer = { ...updatedLayers[index] }; // Create a new layer object
+      
+      // Update the field that was changed
+      currentLayer[field] = value;
+      
+      // If material_id changes, update material_name, thickness, and GSM
+      if (field === 'material_id' && value) {
+        // Check both materials and products for the item
+        const allItems = [...materials, ...products];
+        const item = allItems.find(m => m.id === value);
+        
+        if (item) {
+          // Force update all related fields with new values
+          currentLayer.material_name = item.material_description || item.product_name || item.material_name || 'Unknown Material';
+          currentLayer.thickness = item.thickness_mm || item.thickness || 0;
           
-          // If material_id changes, update material_name, thickness, and GSM
-          if (field === 'material_id') {
-            // Check both materials and products for the item
-            const allItems = [...materials, ...products];
-            const item = allItems.find(m => m.id === value);
-            
-            if (item) {
-              // Use material_description for Raw Materials or product_name for products
-              updatedLayer.material_name = item.material_description || item.product_name || item.material_name || 'Unknown Material';
-              // Use thickness_mm as the actual thickness value
-              updatedLayer.thickness = item.thickness_mm || item.thickness || 0;
-              // Add GSM information if available (convert to number if it's a string)
-              const gsmValue = item.gsm;
-              
-              if (gsmValue) {
-                updatedLayer.gsm = typeof gsmValue === 'string' ? parseFloat(gsmValue) : gsmValue;
-              } else {
-                updatedLayer.gsm = null;
-              }
-              
-              // Store product name separately for Job Card display
-              updatedLayer.product_name = item.material_description || item.product_name || item.material_name || 'Unknown Product';
-            }
+          // Handle GSM - ensure it's properly set
+          const gsmValue = item.gsm;
+          if (gsmValue !== null && gsmValue !== undefined && gsmValue !== '') {
+            currentLayer.gsm = typeof gsmValue === 'string' ? parseFloat(gsmValue) : Number(gsmValue);
+          } else {
+            currentLayer.gsm = null;
           }
           
-          return updatedLayer;
+          // Store product name separately for Job Card display
+          currentLayer.product_name = item.material_description || item.product_name || item.material_name || 'Unknown Product';
+          
+          console.log('Material selection update:', {
+            materialId: value,
+            itemFound: !!item,
+            gsmRaw: gsmValue,
+            gsmProcessed: currentLayer.gsm,
+            layerUpdated: currentLayer
+          });
+        } else {
+          // Clear dependent fields if material not found
+          currentLayer.material_name = 'Unknown Material';
+          currentLayer.thickness = 0;
+          currentLayer.gsm = null;
+          currentLayer.product_name = 'Unknown Product';
         }
-        return layer;
-      });
+      }
       
-      return { ...prev, material_layers: updatedLayers };
+      // Update the layer in the array
+      updatedLayers[index] = currentLayer;
+      
+      return {
+        ...prev,
+        material_layers: updatedLayers
+      };
     });
     
     // Recalculate thickness after any change
-    setTimeout(() => calculateTotalThickness(), 100);
+    setTimeout(() => {
+      calculateTotalThickness();
+    }, 0);
   };
 
   const calculateTotalThickness = () => {
