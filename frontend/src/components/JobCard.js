@@ -77,6 +77,22 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     }
   }, [isJobRunning, jobStartTime, actualRunTime, selectedMachine, setupNotes, jobId, stage]);
 
+  // Update live timer when job is running
+  useEffect(() => {
+    let interval;
+    if (isJobRunning && jobStartTime) {
+      interval = setInterval(() => {
+        // This will trigger a re-render to update the live timer display
+        setJobStartTime(prev => prev); // Force re-render without changing the actual start time
+      }, 60000); // Update every minute
+    }
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isJobRunning, jobStartTime]);
+
   const loadJobCardData = async () => {
     try {
       setLoading(true);
