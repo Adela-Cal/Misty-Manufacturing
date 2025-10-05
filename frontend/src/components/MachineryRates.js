@@ -354,6 +354,73 @@ const MachineryRates = () => {
           </div>
         </div>
 
+        {/* Core Winding Specifications Table */}
+        <div className="bg-gray-800 rounded-lg overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-700">
+            <h2 className="text-xl font-semibold text-white">
+              Core Winding Specifications
+            </h2>
+            <p className="text-gray-400 text-sm mt-1">
+              Manufacturing parameters for different core diameters
+            </p>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-700">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Core Ø
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Paper Width
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Belt Size
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Recommended Angle
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Workable Range
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Length Factor
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {coreWindingSpecs.map((spec, index) => (
+                  <tr key={index} className="hover:bg-gray-700 transition-colors">
+                    <td className="px-4 py-3 text-sm font-medium text-white">
+                      {spec.coreRange}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-300">
+                      {spec.paperWidth}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-300">
+                      {spec.beltSize}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-300">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {spec.recommendedAngle}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-300">
+                      {spec.workableRange}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-300">
+                      <span className="font-mono">
+                        {spec.lengthFactor}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {/* Create/Edit Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
