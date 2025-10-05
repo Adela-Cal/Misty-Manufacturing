@@ -196,8 +196,33 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                 console.log('Fetched Product Specification:', specificationData);
                 
                 if (specificationData && specificationData.material_layers) {
-                  materialLayers = specificationData.material_layers;
-                  console.log('Found material layers:', materialLayers);
+                  // Fetch actual material data to get proper names and GSM
+                  const materialPromises = specificationData.material_layers.map(async (layer) => {
+                    try {
+                      const materialResponse = await apiHelpers.getMaterial(layer.material_id);
+                      const materialData = materialResponse.data?.data || materialResponse.data;
+                      
+                      return {
+                        ...layer,
+                        material_name: materialData?.material_description || layer.material_name || 'Unknown Material',
+                        product_name: materialData?.material_description || 'Unknown Product',
+                        gsm: materialData?.gsm || layer.gsm || 0,
+                        supplier: materialData?.supplier || 'Unknown Supplier'
+                      };
+                    } catch (error) {
+                      console.warn(`Could not fetch material data for ${layer.material_id}:`, error);
+                      return {
+                        ...layer,
+                        material_name: layer.material_name || 'Unknown Material',
+                        product_name: layer.material_name || 'Unknown Product',
+                        gsm: layer.gsm || 0,
+                        supplier: 'Unknown Supplier'
+                      };
+                    }
+                  });
+                  
+                  materialLayers = await Promise.all(materialPromises);
+                  console.log('Enhanced material layers with names and GSM:', materialLayers);
                 }
               } catch (error) {
                 console.warn(`Could not fetch Product Specification ${clientProduct.material_used[0]}:`, error);
