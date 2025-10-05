@@ -678,17 +678,17 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                 Order Information
               </h3>
               <div className="space-y-2 text-sm">
-                <div className="text-gray-300"><strong className="text-white">Order ID:</strong> {order?.order_number || `ORD-${orderId || jobId}` || 'N/A'}</div>
+                <div className="text-gray-300"><strong className="text-white">Order ID:</strong> {jobData?.order?.order_number || `ORD-${orderId || jobId}` || 'N/A'}</div>
                 <div className="text-gray-300"><strong className="text-white">Customer:</strong> {jobData?.order?.client_name || 'Unknown Client'}</div>
-                <div className="text-gray-300"><strong className="text-white">Quantity:</strong> {(order?.quantity || 1000)?.toLocaleString()} units</div>
-                <div className="text-gray-300"><strong className="text-white">Due Date:</strong> {order?.due_date ? new Date(order.due_date).toLocaleDateString() : 'Not set'}</div>
+                <div className="text-gray-300"><strong className="text-white">Quantity:</strong> {(jobData?.order?.quantity || 1000)?.toLocaleString()} units</div>
+                <div className="text-gray-300"><strong className="text-white">Due Date:</strong> {jobData?.order?.due_date ? new Date(jobData.order.due_date).toLocaleDateString() : 'Not set'}</div>
                 <div className="text-gray-300"><strong className="text-white">Priority:</strong> 
                   <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                    order?.priority === 'ASAP' ? 'bg-red-600 text-white' : 
-                    order?.priority === 'Must Delivery On Date' ? 'bg-orange-600 text-white' : 
+                    jobData?.order?.priority === 'ASAP' ? 'bg-red-600 text-white' : 
+                    jobData?.order?.priority === 'Must Delivery On Date' ? 'bg-orange-600 text-white' : 
                     'bg-green-600 text-white'
                   }`}>
-                    {order?.priority || 'Normal/Low'}
+                    {jobData?.order?.priority || 'Normal/Low'}
                   </span>
                 </div>
                 <div className="text-gray-300"><strong className="text-white">Run Number:</strong> {jobData?.run_number || '1'}</div>
