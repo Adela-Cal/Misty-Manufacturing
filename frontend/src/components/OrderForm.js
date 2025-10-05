@@ -400,6 +400,23 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                   <p className="text-red-400 text-sm mt-1">{errors.due_date}</p>
                 )}
               </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Priority *
+                </label>
+                <select
+                  name="priority"
+                  value={formData.priority}
+                  onChange={handleInputChange}
+                  className="misty-select w-full"
+                  required
+                >
+                  <option value="ASAP">ASAP</option>
+                  <option value="Must Delivery On Date">Must Delivery On Date</option>
+                  <option value="Normal/Low">Normal/Low</option>
+                </select>
+              </div>
             </div>
           </div>
 
