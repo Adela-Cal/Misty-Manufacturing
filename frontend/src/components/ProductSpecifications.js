@@ -249,6 +249,7 @@ const ProductSpecifications = () => {
       selected_material_id: '',
       layers_required: 0,
       layer_specifications: [],
+      core_winding_spec_id: '',  // Selected core winding specification
       // Pallet specific fields
       pallet_dimensions: {
         length: '',
