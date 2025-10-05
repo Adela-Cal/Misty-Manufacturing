@@ -471,7 +471,6 @@ const ProductSpecifications = () => {
           material_name: '',
           layer_type: 'Outer Most Layer',
           width: null,
-          width_range: null,
           thickness: null,  // Don't default to 0 to avoid false calculations
           gsm: null,  // Don't default to 0 to avoid false calculations
           quantity: 1,  // Default quantity to 1
