@@ -471,6 +471,19 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
 
   const getMachineConfig = () => MACHINE_LINES[stage] || {};
 
+  const getFinishedQuantityTitle = () => {
+    switch (stage) {
+      case 'winding':
+        return 'Master Core Lengths';
+      case 'finishing':
+        return 'Total Finished Cores';
+      case 'paper_slitting':
+        return 'Additional Widths & Meters';
+      default:
+        return 'Finished Production Quantity';
+    }
+  };
+
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
