@@ -37,6 +37,11 @@ class OrderStatus(str, Enum):
     ACCOUNTING_DRAFT = "accounting_draft"  # New status for accounting transactions
     ARCHIVED = "archived"
 
+class OrderPriority(str, Enum):
+    ASAP = "ASAP"
+    MUST_DELIVERY_ON_DATE = "Must Delivery On Date"
+    NORMAL_LOW = "Normal/Low"
+
 # User Models
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
