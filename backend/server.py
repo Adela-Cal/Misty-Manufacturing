@@ -1281,6 +1281,7 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(req
         gst=gst,
         total_amount=total_amount,
         due_date=order_data.due_date,
+        priority=order_data.priority,
         delivery_address=order_data.delivery_address,
         delivery_instructions=order_data.delivery_instructions,
         runtime_estimate=order_data.runtime_estimate,
