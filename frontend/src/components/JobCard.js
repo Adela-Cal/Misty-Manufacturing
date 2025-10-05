@@ -287,7 +287,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   try {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg max-w-6xl max-h-[95vh] overflow-y-auto w-full">
+        <div className="bg-gray-800 rounded-lg max-w-6xl max-h-[95vh] overflow-y-auto w-full border border-gray-700">
         {/* Header - No Print */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 no-print">
           <h2 className="text-xl font-bold text-gray-900">{getCurrentStageTitle()}</h2>
