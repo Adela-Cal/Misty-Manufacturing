@@ -84,7 +84,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     }
   }, [jobId, stage]);
 
-  // Save job timing data when it changes
+  // Save job timing data when it changes (reduced dependencies to prevent excessive re-renders)
   useEffect(() => {
     if (jobId && stage) {
       const timingKey = `job_timing_${jobId}_${stage}`;
