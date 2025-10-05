@@ -466,34 +466,34 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           {/* Quality Control & Safety */}
           {productSpecs?.qc_tolerances && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3 border-b border-gray-300 pb-2 flex items-center">
+              <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
                 <ShieldCheckIcon className="h-5 w-5 mr-2" />
                 Quality Control & Safety
               </h3>
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">QC Tolerances</h4>
-                  <table className="w-full text-sm border border-gray-300">
+                  <h4 className="font-semibold text-white mb-2">QC Tolerances</h4>
+                  <table className="w-full text-sm border border-gray-600">
                     <tbody>
-                      <tr className="border-b">
-                        <td className="p-2 bg-gray-50">ID Tolerance</td>
-                        <td className="p-2 text-right">±{productSpecs.qc_tolerances.id_tolerance} mm</td>
+                      <tr className="border-b border-gray-600">
+                        <td className="p-2 bg-gray-700 text-gray-300">ID Tolerance</td>
+                        <td className="p-2 text-right text-white">±{productSpecs.qc_tolerances.id_tolerance} mm</td>
                       </tr>
-                      <tr className="border-b">
-                        <td className="p-2 bg-gray-50">OD Tolerance</td>
-                        <td className="p-2 text-right">±{productSpecs.qc_tolerances.od_tolerance} mm</td>
+                      <tr className="border-b border-gray-600">
+                        <td className="p-2 bg-gray-700 text-gray-300">OD Tolerance</td>
+                        <td className="p-2 text-right text-white">±{productSpecs.qc_tolerances.od_tolerance} mm</td>
                       </tr>
-                      <tr className="border-b">
-                        <td className="p-2 bg-gray-50">Wall Tolerance</td>
-                        <td className="p-2 text-right">±{productSpecs.qc_tolerances.wall_tolerance} mm</td>
+                      <tr className="border-b border-gray-600">
+                        <td className="p-2 bg-gray-700 text-gray-300">Wall Tolerance</td>
+                        <td className="p-2 text-right text-white">±{productSpecs.qc_tolerances.wall_tolerance} mm</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Inspection Schedule</h4>
-                  <div className="bg-yellow-50 p-3 rounded border">
-                    <div className="text-sm">
+                  <h4 className="font-semibold text-white mb-2">Inspection Schedule</h4>
+                  <div className="bg-yellow-600 p-3 rounded border border-gray-600">
+                    <div className="text-sm text-white">
                       <div><strong>Check Interval:</strong> Every {productSpecs.inspection_interval_minutes} minutes</div>
                       <div className="mt-2"><strong>Next Check Due:</strong> {new Date(Date.now() + productSpecs.inspection_interval_minutes * 60000).toLocaleTimeString()}</div>
                     </div>
