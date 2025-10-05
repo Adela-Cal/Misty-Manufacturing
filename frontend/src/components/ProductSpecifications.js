@@ -1337,6 +1337,20 @@ const ProductSpecifications = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          {/* Product Name (Auto-populated, Read-only) */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Product Name
+                            </label>
+                            <input
+                              type="text"
+                              value={layer.product_name || layer.material_name || 'Not selected'}
+                              className="misty-input w-full bg-gray-600"
+                              placeholder="Auto-populated"
+                              readOnly
+                            />
+                          </div>
+
                           {/* Auto-populated Thickness (Read-only) */}
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -1346,6 +1360,20 @@ const ProductSpecifications = () => {
                               type="number"
                               step="0.001"
                               value={layer.thickness || 0}
+                              className="misty-input w-full bg-gray-600"
+                              placeholder="Auto-populated"
+                              readOnly
+                            />
+                          </div>
+
+                          {/* GSM (Auto-populated, Read-only) */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              GSM
+                            </label>
+                            <input
+                              type="number"
+                              value={layer.gsm || 0}
                               className="misty-input w-full bg-gray-600"
                               placeholder="Auto-populated"
                               readOnly
