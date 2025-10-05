@@ -18,31 +18,36 @@ const PaperCoresSpecifications = ({ formData, handleInputChange, handleSpecifica
   <div className="bg-purple-900/20 border border-purple-600/30 rounded-lg p-4">
     <h4 className="text-lg font-semibold text-white mb-4">Paper Cores Specifications</h4>
     
-    {/* Materials Used */}
+    {/* Core Specifications Selection */}
     <div className="mb-6">
       <label className="block text-sm font-medium text-gray-300 mb-3">
-        Material Used (GSM)
+        Core Specifications (From Product Specifications)
       </label>
       <div className="max-h-32 overflow-y-auto border border-gray-600 rounded-lg p-3">
-        {materials.length > 0 ? (
+        {productSpecifications && productSpecifications.filter(spec => 
+          spec.product_type === 'Spiral Paper Core' || spec.product_type === 'Composite Core'
+        ).length > 0 ? (
           <div className="space-y-2">
-            {materials.map((material) => (
-              <label key={material.id} className="flex items-center space-x-2 cursor-pointer">
+            {productSpecifications
+              .filter(spec => spec.product_type === 'Spiral Paper Core' || spec.product_type === 'Composite Core')
+              .map((specification) => (
+              <label key={specification.id} className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={formData.material_used.includes(material.id)}
-                  onChange={(e) => handleMaterialChange(material.id, e.target.checked)}
+                  checked={formData.material_used.includes(specification.id)}
+                  onChange={(e) => handleSpecificationSelection(specification.id, e.target.checked)}
                   className="form-checkbox h-4 w-4 text-yellow-400 bg-gray-700 border-gray-600 rounded focus:ring-yellow-400"
                 />
                 <span className="text-sm text-gray-300">
-                  {material.supplier} - {material.product_code}
-                  {material.gsm && ` (${material.gsm} GSM)`}
+                  {specification.product_name} ({specification.product_type})
+                  {specification.specifications?.id_mm && ` - ID: ${specification.specifications.id_mm}mm`}
+                  {specification.specifications?.wall_thickness && ` - Wall: ${specification.specifications.wall_thickness}mm`}
                 </span>
               </label>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-400">No materials available. Create materials first.</p>
+          <p className="text-sm text-gray-400">No core specifications available. Create Spiral Paper Core or Composite Core specifications first.</p>
         )}
       </div>
     </div>
