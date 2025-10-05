@@ -425,6 +425,18 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           <div className="text-center mb-6 border-b-2 border-gray-600 pb-4">
             <h1 className="text-2xl font-bold text-white">{getCurrentStageTitle()}</h1>
             <p className="text-gray-400">Generated: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</p>
+            {isJobRunning && jobStartTime && (
+              <div className="mt-2 inline-flex items-center px-3 py-1 bg-green-600 text-white text-sm rounded-full animate-pulse">
+                <ClockIcon className="h-4 w-4 mr-1" />
+                Job Running Since: {new Date(jobStartTime).toLocaleTimeString()}
+              </div>
+            )}
+            {!isJobRunning && actualRunTime > 0 && (
+              <div className="mt-2 inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm rounded-full">
+                <ClockIcon className="h-4 w-4 mr-1" />
+                Completed - Runtime: {Math.floor(actualRunTime / 60)}h {actualRunTime % 60}m
+              </div>
+            )}
           </div>
 
           {/* Order Information */}
