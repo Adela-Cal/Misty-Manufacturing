@@ -7840,6 +7840,517 @@ class BackendAPITester:
         # Print summary
         self.print_test_summary()
 
+    def test_order_priority_field_implementation(self):
+        """Test the new Order Priority field implementation"""
+        print("\n=== ORDER PRIORITY FIELD IMPLEMENTATION TESTING ===")
+        
+        try:
+            # Test 1: GET /api/orders to verify existing orders show priority field
+            response = self.session.get(f"{API_BASE}/orders")
+            
+            if response.status_code == 200:
+                orders = response.json()
+                
+                if orders:
+                    # Check existing orders have priority field
+                    existing_orders_with_priority = 0
+                    normal_low_count = 0
+                    
+                    for order in orders:
+                        if 'priority' in order:
+                            existing_orders_with_priority += 1
+                            if order['priority'] == 'Normal/Low':
+                                normal_low_count += 1
+                    
+                    self.log_result(
+                        "GET Orders - Priority Field Present", 
+                        existing_orders_with_priority > 0, 
+                        f"Found {existing_orders_with_priority}/{len(orders)} orders with priority field",
+                        f"Orders with Normal/Low priority: {normal_low_count}"
+                    )
+                    
+                    # Check specific existing orders mentioned in review
+                    target_orders = ['ADM-2025-0002', 'ADM-2025-0005']
+                    found_target_orders = []
+                    
+                    for order in orders:
+                        if order.get('order_number') in target_orders:
+                            found_target_orders.append({
+                                'order_number': order['order_number'],
+                                'priority': order.get('priority', 'MISSING'),
+                                'id': order.get('id')
+                            })
+                    
+                    if found_target_orders:
+                        self.log_result(
+                            "GET Orders - Target Orders Priority", 
+                            True, 
+                            f"Found target orders: {[o['order_number'] for o in found_target_orders]}",
+                            f"Priorities: {[(o['order_number'], o['priority']) for o in found_target_orders]}"
+                        )
+                    else:
+                        self.log_result(
+                            "GET Orders - Target Orders Priority", 
+                            False, 
+                            f"Target orders {target_orders} not found in system",
+                            f"Available orders: {[o.get('order_number') for o in orders[:5]]}"
+                        )
+                else:
+                    self.log_result(
+                        "GET Orders - No Orders", 
+                        False, 
+                        "No orders found in system for priority testing"
+                    )
+            else:
+                self.log_result(
+                    "GET Orders - API Access", 
+                    False, 
+                    f"Failed to access orders API: {response.status_code}",
+                    response.text
+                )
+            
+            # Test 2: Create orders with different priority levels
+            self.test_create_orders_with_priority()
+            
+            # Test 3: Test OrderPriority enum validation
+            self.test_order_priority_validation()
+            
+            # Test 4: Test specific order retrieval with priority
+            if orders:
+                sample_order_id = orders[0].get('id')
+                if sample_order_id:
+                    self.test_get_order_with_priority(sample_order_id)
+                    
+        except Exception as e:
+            self.log_result("Order Priority Field Implementation", False, f"Error: {str(e)}")
+    
+    def test_create_orders_with_priority(self):
+        """Test POST /api/orders with different priority levels"""
+        print("\n=== CREATE ORDERS WITH PRIORITY TESTING ===")
+        
+        # First get a client to use for orders
+        try:
+            clients_response = self.session.get(f"{API_BASE}/clients")
+            if clients_response.status_code != 200 or not clients_response.json():
+                self.log_result(
+                    "Create Orders - Client Required", 
+                    False, 
+                    "No clients available for order creation testing"
+                )
+                return
+            
+            client = clients_response.json()[0]
+            client_id = client['id']
+            
+            # Test different priority levels
+            priority_tests = [
+                ("ASAP", "ASAP"),
+                ("Must Delivery On Date", "Must Delivery On Date"),
+                ("Normal/Low", "Normal/Low")
+            ]
+            
+            for priority_value, expected_priority in priority_tests:
+                try:
+                    order_data = {
+                        "client_id": client_id,
+                        "purchase_order_number": f"TEST-PO-{priority_value.replace('/', '-').replace(' ', '-')}",
+                        "items": [
+                            {
+                                "product_name": f"Test Product for {priority_value} Priority",
+                                "product_type": "finished_goods",
+                                "quantity": 100,
+                                "unit_price": 10.50,
+                                "total_price": 1050.00,
+                                "specifications": {
+                                    "width": 100,
+                                    "length": 200,
+                                    "material": "Test Material"
+                                }
+                            }
+                        ],
+                        "due_date": "2025-02-15T10:00:00Z",
+                        "priority": priority_value,
+                        "delivery_address": "123 Test Street, Test City",
+                        "delivery_instructions": f"Test delivery for {priority_value} priority order",
+                        "runtime_estimate": "2-3 days",
+                        "notes": f"Test order created for {priority_value} priority testing"
+                    }
+                    
+                    response = self.session.post(f"{API_BASE}/orders", json=order_data)
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        order_id = result.get('data', {}).get('id')
+                        order_number = result.get('data', {}).get('order_number')
+                        
+                        self.log_result(
+                            f"Create Order - {priority_value} Priority", 
+                            True, 
+                            f"Successfully created order with {priority_value} priority",
+                            f"Order: {order_number}, ID: {order_id}"
+                        )
+                        
+                        # Verify the created order has correct priority
+                        if order_id:
+                            verify_response = self.session.get(f"{API_BASE}/orders/{order_id}")
+                            if verify_response.status_code == 200:
+                                created_order = verify_response.json()
+                                actual_priority = created_order.get('priority')
+                                
+                                if actual_priority == expected_priority:
+                                    self.log_result(
+                                        f"Verify Order Priority - {priority_value}", 
+                                        True, 
+                                        f"Order correctly stored with {actual_priority} priority"
+                                    )
+                                else:
+                                    self.log_result(
+                                        f"Verify Order Priority - {priority_value}", 
+                                        False, 
+                                        f"Priority mismatch: expected {expected_priority}, got {actual_priority}"
+                                    )
+                    else:
+                        self.log_result(
+                            f"Create Order - {priority_value} Priority", 
+                            False, 
+                            f"Failed to create order: {response.status_code}",
+                            response.text
+                        )
+                        
+                except Exception as e:
+                    self.log_result(f"Create Order - {priority_value} Priority", False, f"Error: {str(e)}")
+            
+            # Test 5: Test default priority behavior (no priority field provided)
+            self.test_default_priority_behavior(client_id)
+            
+        except Exception as e:
+            self.log_result("Create Orders with Priority", False, f"Error: {str(e)}")
+    
+    def test_default_priority_behavior(self, client_id):
+        """Test that priority defaults to Normal/Low when not provided"""
+        print("\n=== DEFAULT PRIORITY BEHAVIOR TESTING ===")
+        
+        try:
+            order_data = {
+                "client_id": client_id,
+                "purchase_order_number": "TEST-PO-DEFAULT-PRIORITY",
+                "items": [
+                    {
+                        "product_name": "Test Product for Default Priority",
+                        "product_type": "finished_goods",
+                        "quantity": 50,
+                        "unit_price": 15.00,
+                        "total_price": 750.00,
+                        "specifications": {
+                            "width": 150,
+                            "length": 300,
+                            "material": "Default Test Material"
+                        }
+                    }
+                ],
+                "due_date": "2025-02-20T10:00:00Z",
+                "delivery_address": "456 Default Street, Default City",
+                "runtime_estimate": "1-2 days",
+                "notes": "Test order for default priority behavior"
+                # Note: priority field intentionally omitted
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=order_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                order_id = result.get('data', {}).get('id')
+                order_number = result.get('data', {}).get('order_number')
+                
+                # Verify the created order has default priority
+                if order_id:
+                    verify_response = self.session.get(f"{API_BASE}/orders/{order_id}")
+                    if verify_response.status_code == 200:
+                        created_order = verify_response.json()
+                        actual_priority = created_order.get('priority')
+                        
+                        if actual_priority == 'Normal/Low':
+                            self.log_result(
+                                "Default Priority Behavior", 
+                                True, 
+                                f"Order correctly defaults to 'Normal/Low' priority when not specified",
+                                f"Order: {order_number}, Priority: {actual_priority}"
+                            )
+                        else:
+                            self.log_result(
+                                "Default Priority Behavior", 
+                                False, 
+                                f"Default priority incorrect: expected 'Normal/Low', got '{actual_priority}'",
+                                f"Order: {order_number}"
+                            )
+                    else:
+                        self.log_result(
+                            "Default Priority Behavior - Verification", 
+                            False, 
+                            f"Failed to verify created order: {verify_response.status_code}"
+                        )
+                else:
+                    self.log_result(
+                        "Default Priority Behavior - Order ID", 
+                        False, 
+                        "No order ID returned from creation"
+                    )
+            else:
+                self.log_result(
+                    "Default Priority Behavior", 
+                    False, 
+                    f"Failed to create order without priority: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Default Priority Behavior", False, f"Error: {str(e)}")
+    
+    def test_order_priority_validation(self):
+        """Test OrderPriority enum validation"""
+        print("\n=== ORDER PRIORITY VALIDATION TESTING ===")
+        
+        # Get a client for testing
+        try:
+            clients_response = self.session.get(f"{API_BASE}/clients")
+            if clients_response.status_code != 200 or not clients_response.json():
+                self.log_result(
+                    "Priority Validation - Client Required", 
+                    False, 
+                    "No clients available for validation testing"
+                )
+                return
+            
+            client_id = clients_response.json()[0]['id']
+            
+            # Test valid priority values
+            valid_priorities = ["ASAP", "Must Delivery On Date", "Normal/Low"]
+            
+            for priority in valid_priorities:
+                try:
+                    order_data = {
+                        "client_id": client_id,
+                        "purchase_order_number": f"TEST-VALID-{priority.replace('/', '-').replace(' ', '-')}",
+                        "items": [
+                            {
+                                "product_name": f"Validation Test - {priority}",
+                                "product_type": "finished_goods",
+                                "quantity": 10,
+                                "unit_price": 5.00,
+                                "total_price": 50.00,
+                                "specifications": {"test": "validation"}
+                            }
+                        ],
+                        "due_date": "2025-02-25T10:00:00Z",
+                        "priority": priority
+                    }
+                    
+                    response = self.session.post(f"{API_BASE}/orders", json=order_data)
+                    
+                    if response.status_code == 200:
+                        self.log_result(
+                            f"Valid Priority - {priority}", 
+                            True, 
+                            f"Successfully accepted valid priority: {priority}"
+                        )
+                    else:
+                        self.log_result(
+                            f"Valid Priority - {priority}", 
+                            False, 
+                            f"Rejected valid priority {priority}: {response.status_code}",
+                            response.text
+                        )
+                        
+                except Exception as e:
+                    self.log_result(f"Valid Priority - {priority}", False, f"Error: {str(e)}")
+            
+            # Test invalid priority values
+            invalid_priorities = ["High", "Low", "Medium", "Urgent", "Standard", "Invalid Priority"]
+            
+            for priority in invalid_priorities:
+                try:
+                    order_data = {
+                        "client_id": client_id,
+                        "purchase_order_number": f"TEST-INVALID-{priority.replace(' ', '-')}",
+                        "items": [
+                            {
+                                "product_name": f"Invalid Validation Test - {priority}",
+                                "product_type": "finished_goods",
+                                "quantity": 10,
+                                "unit_price": 5.00,
+                                "total_price": 50.00,
+                                "specifications": {"test": "invalid_validation"}
+                            }
+                        ],
+                        "due_date": "2025-02-25T10:00:00Z",
+                        "priority": priority
+                    }
+                    
+                    response = self.session.post(f"{API_BASE}/orders", json=order_data)
+                    
+                    if response.status_code == 422:  # Validation error expected
+                        self.log_result(
+                            f"Invalid Priority - {priority}", 
+                            True, 
+                            f"Correctly rejected invalid priority: {priority}",
+                            "Returned 422 validation error as expected"
+                        )
+                    elif response.status_code == 200:
+                        self.log_result(
+                            f"Invalid Priority - {priority}", 
+                            False, 
+                            f"Incorrectly accepted invalid priority: {priority}",
+                            "Should have returned 422 validation error"
+                        )
+                    else:
+                        self.log_result(
+                            f"Invalid Priority - {priority}", 
+                            False, 
+                            f"Unexpected response for invalid priority {priority}: {response.status_code}",
+                            response.text
+                        )
+                        
+                except Exception as e:
+                    self.log_result(f"Invalid Priority - {priority}", False, f"Error: {str(e)}")
+                    
+        except Exception as e:
+            self.log_result("Order Priority Validation", False, f"Error: {str(e)}")
+    
+    def test_get_order_with_priority(self, order_id):
+        """Test GET /api/orders/{order_id} includes priority field"""
+        print("\n=== GET ORDER WITH PRIORITY TESTING ===")
+        
+        try:
+            response = self.session.get(f"{API_BASE}/orders/{order_id}")
+            
+            if response.status_code == 200:
+                order = response.json()
+                
+                if 'priority' in order:
+                    priority_value = order['priority']
+                    valid_priorities = ["ASAP", "Must Delivery On Date", "Normal/Low"]
+                    
+                    if priority_value in valid_priorities:
+                        self.log_result(
+                            "GET Order - Priority Field", 
+                            True, 
+                            f"Order {order.get('order_number')} has valid priority: {priority_value}",
+                            f"Order ID: {order_id}"
+                        )
+                    else:
+                        self.log_result(
+                            "GET Order - Priority Field", 
+                            False, 
+                            f"Order has invalid priority value: {priority_value}",
+                            f"Valid values: {valid_priorities}"
+                        )
+                else:
+                    self.log_result(
+                        "GET Order - Priority Field", 
+                        False, 
+                        "Order missing priority field",
+                        f"Order: {order.get('order_number')}, Fields: {list(order.keys())}"
+                    )
+            else:
+                self.log_result(
+                    "GET Order - API Access", 
+                    False, 
+                    f"Failed to retrieve order: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("GET Order with Priority", False, f"Error: {str(e)}")
+    
+    def test_jobcard_priority_integration(self):
+        """Test that JobCard data includes priority information"""
+        print("\n=== JOBCARD PRIORITY INTEGRATION TESTING ===")
+        
+        try:
+            # Get production board to find orders in production
+            response = self.session.get(f"{API_BASE}/production/board")
+            
+            if response.status_code == 200:
+                board_data = response.json()
+                production_orders = []
+                
+                # Collect orders from all production stages
+                if board_data.get('success') and board_data.get('data'):
+                    for stage, orders in board_data['data'].items():
+                        production_orders.extend(orders)
+                
+                if production_orders:
+                    # Test first few orders for priority data
+                    for order in production_orders[:3]:
+                        order_id = order.get('id')
+                        order_number = order.get('order_number')
+                        
+                        if order_id:
+                            # Get full order details
+                            order_response = self.session.get(f"{API_BASE}/orders/{order_id}")
+                            
+                            if order_response.status_code == 200:
+                                full_order = order_response.json()
+                                priority = full_order.get('priority')
+                                
+                                if priority:
+                                    self.log_result(
+                                        f"JobCard Priority - {order_number}", 
+                                        True, 
+                                        f"Production order includes priority: {priority}",
+                                        f"Order ID: {order_id}"
+                                    )
+                                else:
+                                    self.log_result(
+                                        f"JobCard Priority - {order_number}", 
+                                        False, 
+                                        "Production order missing priority field",
+                                        f"Order ID: {order_id}"
+                                    )
+                            else:
+                                self.log_result(
+                                    f"JobCard Priority - {order_number}", 
+                                    False, 
+                                    f"Failed to retrieve order details: {order_response.status_code}"
+                                )
+                else:
+                    self.log_result(
+                        "JobCard Priority Integration", 
+                        False, 
+                        "No orders found in production board for priority testing"
+                    )
+            else:
+                self.log_result(
+                    "JobCard Priority Integration - Board Access", 
+                    False, 
+                    f"Failed to access production board: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("JobCard Priority Integration", False, f"Error: {str(e)}")
+
+    def run_order_priority_tests(self):
+        """Run comprehensive Order Priority field implementation tests"""
+        print("\n" + "="*60)
+        print("ORDER PRIORITY FIELD IMPLEMENTATION TESTING")
+        print("Testing new Order Priority field with ASAP, Must Delivery On Date, Normal/Low values")
+        print("="*60)
+        
+        # Step 1: Authenticate
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with tests")
+            return
+        
+        # Step 2: Test Order Priority Field Implementation
+        self.test_order_priority_field_implementation()
+        
+        # Step 3: Test JobCard Priority Integration
+        self.test_jobcard_priority_integration()
+        
+        # Print summary
+        self.print_test_summary()
+
 def main():
     """Main test execution"""
     print("Starting Enhanced Xero Invoice Formatting Testing...")
