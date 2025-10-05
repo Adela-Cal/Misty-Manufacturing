@@ -584,15 +584,29 @@ const ProductSpecifications = () => {
             // Check both materials and products for the item
             const allItems = [...materials, ...products];
             const item = allItems.find(m => m.id === value);
+            console.log('Material selection debug:', { value, item, allItems: allItems.length });
+            
             if (item) {
               // Use material_description for Raw Materials or product_name for products
               updatedLayer.material_name = item.material_description || item.product_name || item.material_name || 'Unknown Material';
               // Use thickness_mm as the actual thickness value
               updatedLayer.thickness = item.thickness_mm || item.thickness || 0;
               // Add GSM information if available (convert to number if it's a string)
-              updatedLayer.gsm = item.gsm ? (typeof item.gsm === 'string' ? parseFloat(item.gsm) : item.gsm) : null;
+              const gsmValue = item.gsm;
+              console.log('GSM processing:', { materialId: item.id, gsmRaw: gsmValue, gsmType: typeof gsmValue });
+              
+              if (gsmValue) {
+                updatedLayer.gsm = typeof gsmValue === 'string' ? parseFloat(gsmValue) : gsmValue;
+              } else {
+                updatedLayer.gsm = null;
+              }
+              
+              console.log('Updated layer GSM:', updatedLayer.gsm);
+              
               // Store product name separately for Job Card display
               updatedLayer.product_name = item.material_description || item.product_name || item.material_name || 'Unknown Product';
+            } else {
+              console.warn('Material not found:', value);
             }
           }
           
