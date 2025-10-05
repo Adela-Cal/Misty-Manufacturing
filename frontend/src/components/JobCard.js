@@ -407,28 +407,28 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
 
           {/* Production Calculations */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3 border-b border-gray-300 pb-2 flex items-center">
+            <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
               <CalculatorIcon className="h-5 w-5 mr-2" />
               Production Calculations
             </h3>
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold text-gray-800 mb-2">Material Requirements (metres)</h4>
-                <table className="w-full text-sm border border-gray-300">
+                <h4 className="font-semibold text-white mb-2">Material Requirements (metres)</h4>
+                <table className="w-full text-sm border border-gray-600">
                   <tbody>
-                    <tr className="border-b">
-                      <td className="p-2 bg-gray-50">Good Material Length</td>
-                      <td className="p-2 text-right font-medium">{calculations.goodMaterialLength?.toLocaleString()}</td>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Good Material Length</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.goodMaterialLength?.toLocaleString()}</td>
                     </tr>
-                    <tr className="border-b">
-                      <td className="p-2 bg-gray-50">Makeready Allowance ({calculations.makereadyPercentage}%)</td>
-                      <td className="p-2 text-right font-medium">{calculations.makereadyLength?.toLocaleString()}</td>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Makeready Allowance ({calculations.makereadyPercentage}%)</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.makereadyLength?.toLocaleString()}</td>
                     </tr>
-                    <tr className="border-b">
-                      <td className="p-2 bg-gray-50">Waste Allowance ({calculations.wastePercentage}%)</td>
-                      <td className="p-2 text-right font-medium">{calculations.wasteLength?.toLocaleString()}</td>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Waste Allowance ({calculations.wastePercentage}%)</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.wasteLength?.toLocaleString()}</td>
                     </tr>
-                    <tr className="bg-yellow-100 font-bold">
+                    <tr className="bg-yellow-600 font-bold text-white">
                       <td className="p-2">TOTAL LENGTH REQUIRED</td>
                       <td className="p-2 text-right">{calculations.totalLengthRequired?.toLocaleString()}</td>
                     </tr>
@@ -437,23 +437,23 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-800 mb-2">Production Times (minutes)</h4>
-                <table className="w-full text-sm border border-gray-300">
+                <h4 className="font-semibold text-white mb-2">Production Times (minutes)</h4>
+                <table className="w-full text-sm border border-gray-600">
                   <tbody>
-                    <tr className="border-b">
-                      <td className="p-2 bg-gray-50">Setup Time</td>
-                      <td className="p-2 text-right font-medium">{calculations.setupTime}</td>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Setup Time</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.setupTime}</td>
                     </tr>
-                    <tr className="border-b">
-                      <td className="p-2 bg-gray-50">Run Time</td>
-                      <td className="p-2 text-right font-medium">{calculations.runTime}</td>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Run Time</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.runTime}</td>
                     </tr>
-                    <tr className="bg-green-100 font-bold">
+                    <tr className="bg-green-600 font-bold text-white">
                       <td className="p-2">TOTAL PRODUCTION TIME</td>
                       <td className="p-2 text-right">{calculations.totalProductionTime}</td>
                     </tr>
                     <tr>
-                      <td className="p-2 text-gray-600 text-xs" colSpan="2">
+                      <td className="p-2 text-gray-400 text-xs" colSpan="2">
                         Estimated finish: {new Date(Date.now() + calculations.totalProductionTime * 60000).toLocaleTimeString()}
                       </td>
                     </tr>
