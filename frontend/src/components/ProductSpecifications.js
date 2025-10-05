@@ -590,7 +590,7 @@ const ProductSpecifications = () => {
               // Use thickness_mm as the actual thickness value
               updatedLayer.thickness = item.thickness_mm || item.thickness || 0;
               // Add GSM information if available (convert to number if it's a string)
-              updatedLayer.gsm = parseInt(item.gsm) || 0;
+              updatedLayer.gsm = item.gsm ? (typeof item.gsm === 'string' ? parseFloat(item.gsm) : item.gsm) : null;
               // Store product name separately for Job Card display
               updatedLayer.product_name = item.material_description || item.product_name || item.material_name || 'Unknown Product';
             }
