@@ -84,7 +84,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
       };
       localStorage.setItem(timingKey, JSON.stringify(timingData));
     }
-  }, [isJobRunning, jobStartTime, actualRunTime, selectedMachine, setupNotes, jobId, stage]);
+  }, [isJobRunning, jobStartTime, actualRunTime, selectedMachine, setupNotes, signOffs, jobId, stage]);
 
   // Update live timer when job is running
   useEffect(() => {
