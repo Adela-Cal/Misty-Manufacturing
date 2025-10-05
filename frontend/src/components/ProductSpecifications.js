@@ -1516,10 +1516,10 @@ const ProductSpecifications = () => {
                               GSM
                             </label>
                             <input
-                              type="number"
-                              value={layer.gsm || 0}
+                              type="text"
+                              value={layer.gsm ? layer.gsm : 'Not available'}
                               className="misty-input w-full bg-gray-600"
-                              placeholder="Auto-populated"
+                              placeholder="Auto-populated from selected material"
                               readOnly
                             />
                           </div>
