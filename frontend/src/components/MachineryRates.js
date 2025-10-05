@@ -181,8 +181,8 @@ const MachineryRates = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-white">Machinery Rates</h1>
-            <p className="text-gray-400 mt-1">Manage default rates for machinery functions</p>
+            <h1 className="text-3xl font-bold text-white">Machinery Specifications</h1>
+            <p className="text-gray-400 mt-1">Manage machinery specifications and core winding parameters</p>
           </div>
           <button 
             onClick={handleCreate}
