@@ -1322,6 +1322,64 @@ const ProductSpecifications = () => {
                         />
                       </div>
                     </div>
+
+                    {/* Core Winding Specification Selection */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Core Winding Specification
+                      </label>
+                      <select
+                        value={formData.core_winding_spec_id}
+                        onChange={(e) => setFormData(prev => ({ 
+                          ...prev, 
+                          core_winding_spec_id: e.target.value
+                        }))}
+                        className="misty-select w-full"
+                      >
+                        <option value="">Select Core Winding Specification (Optional)</option>
+                        {coreWindingSpecs.map(spec => (
+                          <option key={spec.id} value={spec.id}>
+                            {spec.displayName}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Select the appropriate core winding parameters based on the core diameter range
+                      </p>
+
+                      {/* Display selected specification details */}
+                      {formData.core_winding_spec_id && (
+                        <div className="mt-3 p-3 bg-gray-700 rounded border border-gray-600">
+                          {(() => {
+                            const selectedSpec = getCoreWindingSpecById(formData.core_winding_spec_id);
+                            return selectedSpec ? (
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                                <div>
+                                  <span className="text-gray-300">Paper Width:</span>
+                                  <span className="text-white ml-2 font-medium">{selectedSpec.paperWidth}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-300">Belt Size:</span>
+                                  <span className="text-white ml-2 font-medium">{selectedSpec.beltSize}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-300">Recommended Angle:</span>
+                                  <span className="text-blue-400 ml-2 font-medium">{selectedSpec.recommendedAngle}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-300">Workable Range:</span>
+                                  <span className="text-white ml-2 font-medium">{selectedSpec.workableRange}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-300">Length Factor:</span>
+                                  <span className="text-white ml-2 font-mono">{selectedSpec.lengthFactor}</span>
+                                </div>
+                              </div>
+                            ) : null;
+                          })()}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
