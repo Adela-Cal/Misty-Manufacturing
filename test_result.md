@@ -823,11 +823,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Updated Product Specifications with New Product Types"
+    - "Product Specifications Integration Fix for Job Card Material Layers"
   stuck_tasks: 
-    - "Order Creation with Client Product Dropdown Fix"
+    - "Product Specifications Integration Fix for Job Card Material Layers"
   test_all: false
-  test_priority: "high_first"
+  test_priority: "stuck_first"
 
 agent_communication:
   - agent: "main"
