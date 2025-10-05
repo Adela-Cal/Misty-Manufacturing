@@ -265,16 +265,16 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                 Order Information
               </h3>
               <div className="space-y-2 text-sm">
-                <div><strong>Order ID:</strong> {order.order_number || orderId}</div>
-                <div><strong>Customer:</strong> {order.client?.company_name || 'N/A'}</div>
-                <div><strong>Quantity:</strong> {order.quantity?.toLocaleString()} units</div>
-                <div><strong>Due Date:</strong> {order.due_date ? new Date(order.due_date).toLocaleDateString() : 'N/A'}</div>
+                <div><strong>Order ID:</strong> {order?.order_number || orderId || 'N/A'}</div>
+                <div><strong>Customer:</strong> {order?.client?.company_name || 'N/A'}</div>
+                <div><strong>Quantity:</strong> {order?.quantity?.toLocaleString() || '0'} units</div>
+                <div><strong>Due Date:</strong> {order?.due_date ? new Date(order.due_date).toLocaleDateString() : 'N/A'}</div>
                 <div><strong>Priority:</strong> 
-                  <span className={`ml-2 px-2 py-1 rounded text-xs ${order.priority === 'urgent' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                    {order.priority || 'Normal'}
+                  <span className={`ml-2 px-2 py-1 rounded text-xs ${order?.priority === 'urgent' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                    {order?.priority || 'Normal'}
                   </span>
                 </div>
-                <div><strong>Run Number:</strong> {jobData.run_number || '1'}</div>
+                <div><strong>Run Number:</strong> {jobData?.run_number || '1'}</div>
               </div>
             </div>
 
