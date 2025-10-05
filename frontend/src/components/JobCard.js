@@ -54,6 +54,14 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const [actualRunTime, setActualRunTime] = useState(0); // in minutes
   const [isEditingRunTime, setIsEditingRunTime] = useState(false);
   const [editedRunTime, setEditedRunTime] = useState(0);
+  
+  // Operator sign-off states
+  const [signOffs, setSignOffs] = useState({
+    setup: { name: '', date: '', isEditing: false },
+    production: { name: '', date: '', isEditing: false },
+    qc: { name: '', date: '', isEditing: false }
+  });
+  const [editingSignOff, setEditingSignOff] = useState({ type: '', tempName: '' });
 
   useEffect(() => {
     if (jobId && stage && orderId) {
