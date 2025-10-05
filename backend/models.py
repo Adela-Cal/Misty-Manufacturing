@@ -212,6 +212,7 @@ class OrderCreate(BaseModel):
     discount_percentage: Optional[float] = None  # Discount percentage (0-100)
     discount_notes: Optional[str] = None  # Reason for discount
     due_date: datetime
+    priority: OrderPriority = OrderPriority.NORMAL_LOW
     delivery_address: Optional[str] = None
     delivery_instructions: Optional[str] = None
     runtime_estimate: Optional[str] = None
