@@ -305,6 +305,54 @@ backend:
         agent: "testing"
         comment: "🎉 JOB CARD TIMING FUNCTIONALITY FULLY OPERATIONAL WITH 100% SUCCESS RATE: Comprehensive testing of the new job timing functionality completed successfully with all requested features working correctly. CRITICAL VERIFICATION CONFIRMED: ✅ Login with demo credentials (Callum/Peach7510) working perfectly, ✅ Production Board navigation successful, ✅ Interactive job card modal opens correctly via ClipboardDocumentListIcon buttons. START JOB BUTTON TESTING: ✅ Green 'Start Job' button appears in top right corner of header with correct bg-green-600 styling, ✅ Button click successfully starts job timing, ✅ Button changes to red 'Complete Run' button with bg-red-600 styling, ✅ Toast notification shows job started with timestamp, ✅ Status indicator appears below header showing 'Job Running Since: [time]' with green animated badge, ✅ 'RUNNING' badge appears next to 'Actual Run Time' in production calculations table, ✅ Live timer shows current elapsed time in format '0 min (Live)' and updates dynamically. COMPLETE RUN BUTTON TESTING: ✅ Red 'Complete Run' button click successfully completes job timing, ✅ Button changes back to green 'Start Job' button, ✅ Toast notification shows completion with actual run time, ✅ Status indicator changes to show completion status, ✅ Actual run time is populated in production calculations table with proper formatting (Xh Ym), ✅ 'RUNNING' badge disappears after completion. EDITABLE RUN TIME TESTING: ✅ Double-click on actual run time value successfully enters edit mode, ✅ Input field appears with current value and proper number type, ✅ Save (✓) and Cancel (✕) buttons appear with correct functionality, ✅ Test editing value to 120 minutes and clicking save works correctly, ✅ Value updates to '2h 0m' format as expected, ✅ Cancel functionality works correctly - discards changes and maintains original value, ✅ Tooltip functionality implemented for user guidance. PRODUCTION CALCULATIONS TABLE: ✅ New 'Actual Run Time' row appears in correct position between 'Run Time (Estimated)' and 'TOTAL PRODUCTION TIME', ✅ Proper formatting and color coding maintained throughout table, ✅ Live updates when job is running with animated 'RUNNING' badge, ✅ Proper visual feedback with different colors for different states (green for running, blue for completed). DATA PERSISTENCE TESTING: ✅ Job timing state preserved when closing and reopening modal, ✅ localStorage implementation working correctly with key format 'job_timing_{jobId}_{stage}', ✅ State includes isJobRunning, jobStartTime, actualRunTime, selectedMachine, and setupNotes, ✅ Independent timing for different jobs and stages verified - each job maintains separate timing state, ✅ Data persistence works across browser sessions and modal interactions. VISUAL FEEDBACK & UX: ✅ Proper visual feedback throughout workflow with color-coded buttons and status indicators, ✅ Animated elements (pulse effect) for running status, ✅ Professional dark theme implementation consistent with application design, ✅ All timing functionality integrates seamlessly with existing job card layout and functionality. CONCLUSION: The job timing functionality is production-ready and fully functional. All requested features from the review are working correctly: Start/Complete buttons, live timing, editable run time, production calculations integration, and proper data persistence. The implementation provides excellent user experience with clear visual feedback and reliable state management."
 
+  - task: "Job Card Order Priority Field Implementation"
+    implemented: true
+    working: false
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added OrderPriority enum with values ASAP, Must Delivery On Date, Normal/Low. Updated Order and OrderCreate models to include priority field with default value Normal/Low. Updated server.py order creation to handle priority field."
+
+  - task: "Job Card Real Data Loading"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/JobCard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated JobCard component to load real order data instead of mock data. Modified loadJobCardData function to fetch actual order using apiHelpers.getOrder() and extract product specifications from order items. Updated priority display to show correct color coding for ASAP (red), Must Delivery On Date (orange), and Normal/Low (green)."
+
+  - task: "Machine-Specific Finished Production Quantity Sections"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/JobCard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added machine-specific finished production quantity sections with different titles: Core winding -> 'Master Core Lengths', Cutting/Indexing -> 'Total Finished Cores', Slitting -> 'Additional Widths & Meters'. Implemented double-click editing functionality with localStorage persistence. Added excess calculation for stocktake when finished quantity exceeds required quantity."
+
+  - task: "Order Form Priority Dropdown"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/OrderForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added priority field to OrderForm component with dropdown options: ASAP, Must Delivery On Date, Normal/Low. Updated form data structure, form validation, and layout to include priority selection. Updated grid layout to accommodate new field."
+
 frontend:
   - task: "Client Product Catalogue Redesign with Double-Click Editing and Bottom Action Bar"
     implemented: true
