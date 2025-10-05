@@ -236,11 +236,10 @@ class OrderInvestigationTester:
                         "total_price": 2500.00,
                         "specifications": {
                             "material_type": "Spiral Paper Core",  # REQUIRED: This was missing
-                            "dimensions": {  # REQUIRED: This was missing
-                                "internal_diameter": 40,
-                                "wall_thickness": 1.8,
-                                "length": 1000
-                            },
+                            "dimensions": "40mm ID x 1.8mm Wall x 1000mm Length",  # REQUIRED: This should be a string
+                            "internal_diameter": 40,
+                            "wall_thickness": 1.8,
+                            "length": 1000,
                             "core_id": 40,
                             "wall_thickness_required": 1.8,
                             "material_layers": [
