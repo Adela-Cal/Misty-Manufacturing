@@ -1600,8 +1600,8 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                 <PaperCoresSpecifications 
                   formData={formData}
                   handleInputChange={handleInputChange}
-                  handleMaterialChange={handleMaterialChange}
-                  materials={materials}
+                  handleSpecificationSelection={handleSpecificationSelection}
+                  productSpecifications={productSpecifications}
                 />
               )}
 
