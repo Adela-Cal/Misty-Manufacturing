@@ -1033,26 +1033,24 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                 <ShieldCheckIcon className="h-5 w-5 mr-2" />
                 Quality Control & Safety
               </h3>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-white mb-2">QC Tolerances</h4>
-                  <table className="w-full text-sm border border-gray-600">
-                    <tbody>
-                      <tr className="border-b border-gray-600">
-                        <td className="p-2 bg-gray-700 text-gray-300">ID Tolerance</td>
-                        <td className="p-2 text-right text-white">±{productSpecs.qc_tolerances.id_tolerance} mm</td>
-                      </tr>
-                      <tr className="border-b border-gray-600">
-                        <td className="p-2 bg-gray-700 text-gray-300">OD Tolerance</td>
-                        <td className="p-2 text-right text-white">±{productSpecs.qc_tolerances.od_tolerance} mm</td>
-                      </tr>
-                      <tr className="border-b border-gray-600">
-                        <td className="p-2 bg-gray-700 text-gray-300">Wall Tolerance</td>
-                        <td className="p-2 text-right text-white">±{productSpecs.qc_tolerances.wall_tolerance} mm</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+              <div>
+                <h4 className="font-semibold text-white mb-2">QC Tolerances</h4>
+                <table className="w-full text-sm border border-gray-600 max-w-md">
+                  <tbody>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">ID Tolerance</td>
+                      <td className="p-2 text-right text-white">±{productSpecs.qc_tolerances.id_tolerance} mm</td>
+                    </tr>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">OD Tolerance</td>
+                      <td className="p-2 text-right text-white">±{productSpecs.qc_tolerances.od_tolerance} mm</td>
+                    </tr>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Wall Tolerance</td>
+                      <td className="p-2 text-right text-white">±{productSpecs.qc_tolerances.wall_tolerance} mm</td>
+                    </tr>
+                  </tbody>
+                </table>
                 {/* Inspection Schedule removed as requested - was causing screen glitching due to Date.now() re-renders */}
               </div>
             </div>
