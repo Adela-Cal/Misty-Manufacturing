@@ -115,56 +115,95 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         return;
       }
       
-      // Create safe mock data with all required properties
-      const safeJobId = jobId || 'default-job-id';
-      const safeOrderId = orderId || jobId || 'default-order-id';
+      // Use orderId or jobId to fetch the actual order data
+      const orderIdToFetch = orderId || jobId;
       
-      const mockJob = {
-        id: safeJobId,
-        run_number: 1,
+      // Fetch real order data
+      const orderResponse = await apiHelpers.getOrder(orderIdToFetch);
+      const orderData = orderResponse.data?.data || orderResponse.data;
+      
+      console.log('Fetched order data:', orderData);
+      
+      if (!orderData) {
+        throw new Error('Order data not found');
+      }
+      
+      // Create job data structure
+      const jobData = {
+        id: jobId,
+        run_number: 1, // This could be calculated based on production logs
         status: 'in_progress',
-        created_date: new Date().toISOString()
+        created_date: new Date().toISOString(),
+        order: {
+          id: orderData.id,
+          order_number: orderData.order_number,
+          client_name: orderData.client_name,
+          quantity: orderData.items && orderData.items.length > 0 ? orderData.items[0].quantity : 0,
+          due_date: orderData.due_date,
+          priority: orderData.priority || 'Normal/Low',
+          items: orderData.items || [],
+          other_products: orderData.items ? orderData.items.slice(1) : [] // All items except first as "other products"
+        }
       };
+      
+      // Try to get product specifications for the first item
+      let productSpecs = null;
+      if (orderData.items && orderData.items.length > 0) {
+        const firstItem = orderData.items[0];
+        
+        // If the item has specifications attached, use those
+        if (firstItem.specifications) {
+          productSpecs = {
+            id: firstItem.product_id,
+            product_code: firstItem.specifications.product_code || firstItem.product_name,
+            product_description: firstItem.product_name,
+            core_id: firstItem.specifications.specifications?.id_mm || firstItem.specifications.specifications?.internal_diameter || 'N/A',
+            core_width: firstItem.specifications.specifications?.tube_length || '1000',
+            core_thickness: firstItem.specifications.specifications?.wall_thickness || firstItem.specifications.specifications?.wall_thickness_required || 'N/A',
+            makeready_allowance_percent: 10,
+            setup_time_minutes: 45,
+            waste_percentage: 5,
+            qc_tolerances: {
+              id_tolerance: 0.5,
+              od_tolerance: 0.5,
+              wall_tolerance: 0.1
+            },
+            inspection_interval_minutes: 60,
+            tubes_per_carton: 50,
+            cartons_per_pallet: 20,
+            special_tooling_notes: firstItem.specifications.manufacturing_notes || 'Standard processing',
+            packing_instructions: 'Handle with care',
+            consumables: firstItem.specifications.consumables || []
+          };
+        } else {
+          // Create basic product specs from order item data
+          productSpecs = {
+            id: firstItem.product_id,
+            product_code: firstItem.product_name,
+            product_description: firstItem.product_name,
+            core_id: 'N/A',
+            core_width: '1000',
+            core_thickness: 'N/A',
+            makeready_allowance_percent: 10,
+            setup_time_minutes: 45,
+            waste_percentage: 5,
+            qc_tolerances: {
+              id_tolerance: 0.5,
+              od_tolerance: 0.5,
+              wall_tolerance: 0.1
+            },
+            inspection_interval_minutes: 60,
+            tubes_per_carton: 50,
+            cartons_per_pallet: 20,
+            special_tooling_notes: 'Standard processing',
+            packing_instructions: 'Handle with care',
+            consumables: []
+          };
+        }
+      }
 
-      const mockOrder = {
-        id: safeOrderId,
-        order_number: `ORD-${safeOrderId}`,
-        client: {
-          id: 1,
-          company_name: 'Sample Client Co.'
-        },
-        quantity: 1000,
-        due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        priority: 'normal',
-        product_id: 'sample-product-1',
-        other_products: []
-      };
-
-      const mockProductSpecs = {
-        id: 'sample-product-1',
-        product_code: 'PC-100-50',
-        product_description: 'Paper Core 100mm ID, 50mm length',
-        core_id: '100',
-        core_width: '1000', // length in mm
-        core_thickness: '3.0',
-        makeready_allowance_percent: 10,
-        setup_time_minutes: 45,
-        waste_percentage: 5,
-        qc_tolerances: {
-          id_tolerance: 0.5,
-          od_tolerance: 0.5,
-          wall_tolerance: 0.1
-        },
-        inspection_interval_minutes: 60,
-        tubes_per_carton: 50,
-        cartons_per_pallet: 20,
-        special_tooling_notes: 'Standard mandrel required',
-        packing_instructions: 'Handle with care',
-        consumables: []
-      };
-
-      setJobData({ ...mockJob, order: mockOrder });
-      setProductSpecs(mockProductSpecs);
+      setJobData(jobData);
+      setProductSpecs(productSpecs);
       
       // Auto-select first available machine for current stage
       const currentMachineConfig = MACHINE_LINES[stage];
@@ -172,11 +211,11 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         setSelectedMachine(currentMachineConfig.machines[0]);
       }
 
-      calculateProduction(mockJob, mockOrder, mockProductSpecs);
+      calculateProduction(jobData, jobData.order, productSpecs);
       
     } catch (error) {
       console.error('Failed to load job card data:', error);
-      toast.error('Failed to load job card data');
+      toast.error(`Failed to load job card data: ${error.message}`);
     } finally {
       setLoading(false);
     }
