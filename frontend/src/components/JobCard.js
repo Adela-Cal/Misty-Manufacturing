@@ -84,23 +84,27 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     }
   }, [jobId, stage]);
 
-  // Save job timing data when it changes (reduced dependencies to prevent excessive re-renders)
+  // Save job timing data when it changes (debounced to prevent excessive re-renders)
   useEffect(() => {
     if (jobId && stage) {
-      const timingKey = `job_timing_${jobId}_${stage}`;
-      const timingData = {
-        isJobRunning,
-        jobStartTime,
-        actualRunTime,
-        selectedMachine,
-        setupNotes,
-        signOffs,
-        finishedQuantity,
-        additionalProduction
-      };
-      localStorage.setItem(timingKey, JSON.stringify(timingData));
+      const timeoutId = setTimeout(() => {
+        const timingKey = `job_timing_${jobId}_${stage}`;
+        const timingData = {
+          isJobRunning,
+          jobStartTime,
+          actualRunTime,
+          selectedMachine,
+          setupNotes,
+          signOffs,
+          finishedQuantity,
+          additionalProduction
+        };
+        localStorage.setItem(timingKey, JSON.stringify(timingData));
+      }, 500); // Debounce by 500ms
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [isJobRunning, jobStartTime, actualRunTime, selectedMachine, setupNotes, signOffs, jobId, stage]);
+  }, [isJobRunning, jobStartTime, actualRunTime, selectedMachine, setupNotes, signOffs, finishedQuantity, additionalProduction, jobId, stage]);
 
   // Update live timer when job is running (without causing form clearing)
   useEffect(() => {
