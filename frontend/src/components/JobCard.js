@@ -527,7 +527,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
               </h3>
               <div className="bg-gray-50 p-3 rounded">
                 <ul className="text-sm space-y-1">
-                  {order.other_products.map((product, index) => (
+                  {order?.other_products?.map((product, index) => (
                     <li key={index} className="flex justify-between">
                       <span>{product.code} - {product.description}</span>
                       <span>Qty: {product.quantity}</span>
