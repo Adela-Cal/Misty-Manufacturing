@@ -1062,6 +1062,33 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
     }));
   };
 
+  const handleSpecificationSelection = (specificationId, checked) => {
+    if (checked) {
+      // Find the selected specification
+      const selectedSpec = productSpecifications.find(spec => spec.id === specificationId);
+      if (selectedSpec) {
+        // Auto-populate Core ID and Core Thickness from the specification
+        setFormData(prev => ({
+          ...prev,
+          material_used: [...prev.material_used, specificationId],
+          core_id: selectedSpec.specifications?.id_mm || selectedSpec.core_id || prev.core_id,
+          core_thickness: selectedSpec.specifications?.wall_thickness || selectedSpec.core_thickness || prev.core_thickness
+        }));
+      } else {
+        // Just add to material_used if specification not found
+        setFormData(prev => ({
+          ...prev,
+          material_used: [...prev.material_used, specificationId]
+        }));
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        material_used: prev.material_used.filter(id => id !== specificationId)
+      }));
+    }
+  };
+
   // Consumables handlers
   const handleAddConsumables = () => {
     setShowConsumablesModal(true);
