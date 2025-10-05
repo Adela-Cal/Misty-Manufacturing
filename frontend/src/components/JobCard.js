@@ -168,7 +168,6 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
       
       // Try to get product specifications for the first item from client catalogue
       let productSpecs = null;
-      let materialLayers = [];
       
       if (orderData.items && orderData.items.length > 0) {
         const firstItem = orderData.items[0];
@@ -181,47 +180,39 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           console.log('Fetched client product:', clientProduct);
           
           if (clientProduct) {
-            // Extract material layers from the client product's materials
+            // The material_used array contains Product Specification IDs, not material IDs
+            let materialLayers = [];
+            let specificationData = null;
+            
             if (clientProduct.material_used && clientProduct.material_used.length > 0) {
+              // Fetch the Product Specification which contains the material layers
               try {
-                const materialPromises = clientProduct.material_used.map(materialId => 
-                  apiHelpers.getMaterial(materialId).catch(err => {
-                    console.warn(`Could not fetch material ${materialId}:`, err);
-                    return null;
-                  })
-                );
+                const productSpecId = clientProduct.material_used[0]; // First material_used is the product specification ID
+                console.log('Fetching Product Specification:', productSpecId);
                 
-                const materialResults = await Promise.all(materialPromises);
-                materialLayers = materialResults
-                  .filter(result => result && result.data)
-                  .map((result, index) => {
-                    const material = result.data?.data || result.data;
-                    return {
-                      material_id: material.id,
-                      material_name: material.material_description || material.product_code,
-                      layer_type: index === 0 ? 'Outer Most Layer' : index === materialResults.length - 1 ? 'Inner Most Layer' : 'Central Layer',
-                      thickness: material.thickness_mm || 0,
-                      gsm: material.gsm || 0,
-                      width: material.master_deckle_width_mm || 0,
-                      quantity: 1
-                    };
-                  });
-                  
-                console.log('Fetched material layers:', materialLayers);
+                const specResponse = await apiHelpers.getProductSpecification(productSpecId);
+                specificationData = specResponse.data?.data || specResponse.data;
+                
+                console.log('Fetched Product Specification:', specificationData);
+                
+                if (specificationData && specificationData.material_layers) {
+                  materialLayers = specificationData.material_layers;
+                  console.log('Found material layers:', materialLayers);
+                }
               } catch (error) {
-                console.warn('Error fetching materials:', error);
+                console.warn(`Could not fetch Product Specification ${clientProduct.material_used[0]}:`, error);
               }
             }
             
-            // Build product specs from client catalogue data
+            // Build product specs from client catalogue data and Product Specification
             productSpecs = {
               id: clientProduct.id,
               product_code: clientProduct.product_code,
               product_description: clientProduct.product_description,
               product_type: clientProduct.product_type,
-              core_id: clientProduct.core_id || 'N/A',
+              core_id: specificationData?.specifications?.internal_diameter || clientProduct.core_id || 'N/A',
               core_width: clientProduct.core_width || 'N/A',
-              core_thickness: clientProduct.core_thickness || 'N/A',
+              core_thickness: specificationData?.specifications?.wall_thickness_required || clientProduct.core_thickness || 'N/A',
               material_layers: materialLayers,
               makeready_allowance_percent: 10,
               setup_time_minutes: 45,
@@ -234,7 +225,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
               inspection_interval_minutes: 60,
               tubes_per_carton: 50,
               cartons_per_pallet: 20,
-              special_tooling_notes: 'Standard processing',
+              special_tooling_notes: specificationData?.manufacturing_notes || 'Standard processing',
               packing_instructions: 'Handle with care',
               consumables: []
             };
