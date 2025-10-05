@@ -877,7 +877,8 @@ const ProductSpecifications = () => {
         material_layers: cleanMaterialLayers,
         machinery: formData.machinery || [],  // Include machinery data
         manufacturing_notes: formData.manufacturing_notes || '',
-        selected_thickness: formData.selected_thickness || calculatedThickness
+        selected_thickness: formData.selected_thickness || calculatedThickness,
+        core_winding_spec_id: formData.core_winding_spec_id
       };
 
       // For Spiral Paper Cores, add specific fields to specifications
