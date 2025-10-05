@@ -154,6 +154,12 @@ const ProductionBoard = () => {
   const handleCloseJobCard = () => {
     setShowJobCard(false);
     setSelectedJobCard({ jobId: null, stage: null, orderId: null });
+    
+    // Refresh production board when job card is closed to catch up on any updates
+    setTimeout(() => {
+      console.log('Refreshing production board after job card closed');
+      loadProductionBoard();
+    }, 500);
   };
 
   const moveJobStage = async (jobId, currentStage, direction) => {
