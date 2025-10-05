@@ -302,7 +302,7 @@ const ProductionBoard = () => {
             
             {/* Interactive Job Card */}
             <button
-              onClick={() => handleOpenJobCard(job.id, stageKey, job.id)}
+              onClick={() => handleOpenJobCard(job.id, stageKey, job.order_id || job.id)}
               className="text-gray-400 hover:text-purple-400 transition-colors"
               title="View Interactive Job Card"
               data-testid={`view-job-card-${job.id}`}
