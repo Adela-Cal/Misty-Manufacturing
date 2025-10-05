@@ -162,85 +162,63 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         }
       };
       
-      // Try to get product specifications for the first item
+      // Try to get product specifications for the first item from client catalogue
       let productSpecs = null;
+      let materialLayers = [];
+      
       if (orderData.items && orderData.items.length > 0) {
         const firstItem = orderData.items[0];
         
-        // Try to fetch complete product specification from API if we have product_id
-        if (firstItem.product_id) {
-          try {
-            const specResponse = await apiHelpers.getProductSpecification(firstItem.product_id);
-            const fullSpec = specResponse.data?.data || specResponse.data;
-            
-            if (fullSpec) {
-              console.log('Fetched product specification:', fullSpec);
-              productSpecs = {
-                ...fullSpec,
-                // Ensure core fields are properly mapped
-                core_id: fullSpec.specifications?.id_mm || fullSpec.specifications?.internal_diameter || 'N/A',
-                core_width: fullSpec.specifications?.tube_length || '1000',
-                core_thickness: fullSpec.specifications?.wall_thickness || fullSpec.specifications?.wall_thickness_required || 'N/A',
-                material_layers: fullSpec.material_layers || [],
-                makeready_allowance_percent: 10,
-                setup_time_minutes: 45,
-                waste_percentage: 5,
-                qc_tolerances: {
-                  id_tolerance: 0.5,
-                  od_tolerance: 0.5,
-                  wall_tolerance: 0.1
-                },
-                inspection_interval_minutes: 60,
-                tubes_per_carton: 50,
-                cartons_per_pallet: 20,
-                special_tooling_notes: fullSpec.manufacturing_notes || 'Standard processing',
-                packing_instructions: 'Handle with care',
-                consumables: fullSpec.consumables || []
-              };
+        // First, try to get the product from the client's catalogue
+        try {
+          const catalogueResponse = await apiHelpers.getClientProduct(orderData.client_id, firstItem.product_id);
+          const clientProduct = catalogueResponse.data?.data || catalogueResponse.data;
+          
+          console.log('Fetched client product:', clientProduct);
+          
+          if (clientProduct) {
+            // Extract material layers from the client product's materials
+            if (clientProduct.material_used && clientProduct.material_used.length > 0) {
+              try {
+                const materialPromises = clientProduct.material_used.map(materialId => 
+                  apiHelpers.getMaterial(materialId).catch(err => {
+                    console.warn(`Could not fetch material ${materialId}:`, err);
+                    return null;
+                  })
+                );
+                
+                const materialResults = await Promise.all(materialPromises);
+                materialLayers = materialResults
+                  .filter(result => result && result.data)
+                  .map((result, index) => {
+                    const material = result.data?.data || result.data;
+                    return {
+                      material_id: material.id,
+                      material_name: material.material_description || material.product_code,
+                      layer_type: index === 0 ? 'Outer Most Layer' : index === materialResults.length - 1 ? 'Inner Most Layer' : 'Central Layer',
+                      thickness: material.thickness_mm || 0,
+                      gsm: material.gsm || 0,
+                      width: material.master_deckle_width_mm || 0,
+                      quantity: 1
+                    };
+                  });
+                  
+                console.log('Fetched material layers:', materialLayers);
+              } catch (error) {
+                console.warn('Error fetching materials:', error);
+              }
             }
-          } catch (error) {
-            console.warn('Could not fetch product specification:', error);
-          }
-        }
-        
-        // Fallback: If we couldn't fetch from API, use embedded specifications or defaults
-        if (!productSpecs) {
-          if (firstItem.specifications) {
+            
+            // Build product specs from client catalogue data
             productSpecs = {
-              id: firstItem.product_id,
-              product_code: firstItem.specifications.product_code || firstItem.product_name,
-              product_description: firstItem.product_name,
-              product_type: firstItem.specifications.product_type || 'Unknown',
-              core_id: firstItem.specifications.specifications?.id_mm || firstItem.specifications.specifications?.internal_diameter || 'N/A',
-              core_width: firstItem.specifications.specifications?.tube_length || '1000',
-              core_thickness: firstItem.specifications.specifications?.wall_thickness || firstItem.specifications.specifications?.wall_thickness_required || 'N/A',
-              material_layers: firstItem.specifications.material_layers || [],
-              makeready_allowance_percent: 10,
-              setup_time_minutes: 45,
-              waste_percentage: 5,
-              qc_tolerances: {
-                id_tolerance: 0.5,
-                od_tolerance: 0.5,
-                wall_tolerance: 0.1
-              },
-              inspection_interval_minutes: 60,
-              tubes_per_carton: 50,
-              cartons_per_pallet: 20,
-              special_tooling_notes: firstItem.specifications.manufacturing_notes || 'Standard processing',
-              packing_instructions: 'Handle with care',
-              consumables: firstItem.specifications.consumables || []
-            };
-          } else {
-            // Create basic product specs from order item data
-            productSpecs = {
-              id: firstItem.product_id,
-              product_code: firstItem.product_name,
-              product_description: firstItem.product_name,
-              product_type: 'Unknown',
-              core_id: 'N/A',
-              core_width: '1000',
-              core_thickness: 'N/A',
-              material_layers: [],
+              id: clientProduct.id,
+              product_code: clientProduct.product_code,
+              product_description: clientProduct.product_description,
+              product_type: clientProduct.product_type,
+              core_id: clientProduct.core_id || 'N/A',
+              core_width: clientProduct.core_width || 'N/A',
+              core_thickness: clientProduct.core_thickness || 'N/A',
+              material_layers: materialLayers,
               makeready_allowance_percent: 10,
               setup_time_minutes: 45,
               waste_percentage: 5,
@@ -257,6 +235,36 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
               consumables: []
             };
           }
+        } catch (error) {
+          console.warn('Could not fetch client product:', error);
+        }
+        
+        // Fallback: Create basic product specs from order item data if client catalogue fetch failed
+        if (!productSpecs) {
+          productSpecs = {
+            id: firstItem.product_id,
+            product_code: firstItem.product_name,
+            product_description: firstItem.product_name,
+            product_type: 'Unknown',
+            core_id: 'N/A',
+            core_width: 'N/A',
+            core_thickness: 'N/A',
+            material_layers: [],
+            makeready_allowance_percent: 10,
+            setup_time_minutes: 45,
+            waste_percentage: 5,
+            qc_tolerances: {
+              id_tolerance: 0.5,
+              od_tolerance: 0.5,
+              wall_tolerance: 0.1
+            },
+            inspection_interval_minutes: 60,
+            tubes_per_carton: 50,
+            cartons_per_pallet: 20,
+            special_tooling_notes: 'Standard processing',
+            packing_instructions: 'Handle with care',
+            consumables: []
+          };
         }
       }
 
