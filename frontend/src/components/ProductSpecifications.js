@@ -1525,7 +1525,7 @@ const ProductSpecifications = () => {
                             </label>
                             <input
                               type="text"
-                              value={layer.gsm ? layer.gsm : 'Not available'}
+                              value={layer.gsm !== null && layer.gsm !== undefined ? layer.gsm : 'Not available'}
                               className="misty-input w-full bg-gray-600"
                               placeholder="Auto-populated from selected material"
                               readOnly
