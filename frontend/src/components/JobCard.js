@@ -810,19 +810,189 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
 
           {/* Operator Sign-off */}
           <div className="border-t-2 border-gray-600 pt-4 mt-8">
-            <h3 className="text-lg font-semibold text-white mb-4">Operator Sign-off</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">
+              Operator Sign-off
+              <span className="text-sm text-gray-400 ml-3 font-normal">Double-click to sign</span>
+            </h3>
             <div className="grid grid-cols-3 gap-6">
+              {/* Setup Sign-off */}
               <div className="text-center">
-                <div className="border-b-2 border-gray-500 mb-2 h-8"></div>
+                {editingSignOff.type === 'setup' ? (
+                  <div className="mb-2 h-8 flex items-center justify-center">
+                    <input
+                      type="text"
+                      value={editingSignOff.tempName}
+                      onChange={(e) => setEditingSignOff(prev => ({ ...prev, tempName: e.target.value }))}
+                      className="w-full px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white text-center"
+                      placeholder="Enter your name"
+                      autoFocus
+                      onKeyPress={(e) => e.key === 'Enter' && handleSignOffSave()}
+                    />
+                  </div>
+                ) : (
+                  <div 
+                    className={`mb-2 h-8 border-b-2 border-gray-500 cursor-pointer hover:bg-gray-700 transition-colors flex items-center justify-center ${
+                      signOffs.setup.name ? 'bg-green-900' : ''
+                    }`}
+                    onDoubleClick={() => handleSignOffDoubleClick('setup')}
+                    title="Double-click to sign"
+                  >
+                    {signOffs.setup.name && (
+                      <div className="text-sm text-white font-medium">
+                        {signOffs.setup.name}
+                        {signOffs.setup.date && (
+                          <div className="text-xs text-gray-300">{signOffs.setup.date}</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="text-sm text-gray-400">Setup By / Date</div>
+                {editingSignOff.type === 'setup' && (
+                  <div className="flex justify-center space-x-1 mt-2">
+                    <button
+                      onClick={handleSignOffSave}
+                      className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                      disabled={!editingSignOff.tempName.trim()}
+                    >
+                      ✓ Sign
+                    </button>
+                    <button
+                      onClick={handleSignOffCancel}
+                      className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                    >
+                      ✕ Cancel
+                    </button>
+                  </div>
+                )}
+                {signOffs.setup.name && editingSignOff.type !== 'setup' && (
+                  <button
+                    onClick={() => clearSignOff('setup')}
+                    className="mt-1 text-xs text-red-400 hover:text-red-300"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
+
+              {/* Production Sign-off */}
               <div className="text-center">
-                <div className="border-b-2 border-gray-500 mb-2 h-8"></div>
+                {editingSignOff.type === 'production' ? (
+                  <div className="mb-2 h-8 flex items-center justify-center">
+                    <input
+                      type="text"
+                      value={editingSignOff.tempName}
+                      onChange={(e) => setEditingSignOff(prev => ({ ...prev, tempName: e.target.value }))}
+                      className="w-full px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white text-center"
+                      placeholder="Enter your name"
+                      autoFocus
+                      onKeyPress={(e) => e.key === 'Enter' && handleSignOffSave()}
+                    />
+                  </div>
+                ) : (
+                  <div 
+                    className={`mb-2 h-8 border-b-2 border-gray-500 cursor-pointer hover:bg-gray-700 transition-colors flex items-center justify-center ${
+                      signOffs.production.name ? 'bg-green-900' : ''
+                    }`}
+                    onDoubleClick={() => handleSignOffDoubleClick('production')}
+                    title="Double-click to sign"
+                  >
+                    {signOffs.production.name && (
+                      <div className="text-sm text-white font-medium">
+                        {signOffs.production.name}
+                        {signOffs.production.date && (
+                          <div className="text-xs text-gray-300">{signOffs.production.date}</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="text-sm text-gray-400">Production By / Date</div>
+                {editingSignOff.type === 'production' && (
+                  <div className="flex justify-center space-x-1 mt-2">
+                    <button
+                      onClick={handleSignOffSave}
+                      className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                      disabled={!editingSignOff.tempName.trim()}
+                    >
+                      ✓ Sign
+                    </button>
+                    <button
+                      onClick={handleSignOffCancel}
+                      className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                    >
+                      ✕ Cancel
+                    </button>
+                  </div>
+                )}
+                {signOffs.production.name && editingSignOff.type !== 'production' && (
+                  <button
+                    onClick={() => clearSignOff('production')}
+                    className="mt-1 text-xs text-red-400 hover:text-red-300"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
+
+              {/* QC Sign-off */}
               <div className="text-center">
-                <div className="border-b-2 border-gray-500 mb-2 h-8"></div>
+                {editingSignOff.type === 'qc' ? (
+                  <div className="mb-2 h-8 flex items-center justify-center">
+                    <input
+                      type="text"
+                      value={editingSignOff.tempName}
+                      onChange={(e) => setEditingSignOff(prev => ({ ...prev, tempName: e.target.value }))}
+                      className="w-full px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white text-center"
+                      placeholder="Enter your name"
+                      autoFocus
+                      onKeyPress={(e) => e.key === 'Enter' && handleSignOffSave()}
+                    />
+                  </div>
+                ) : (
+                  <div 
+                    className={`mb-2 h-8 border-b-2 border-gray-500 cursor-pointer hover:bg-gray-700 transition-colors flex items-center justify-center ${
+                      signOffs.qc.name ? 'bg-green-900' : ''
+                    }`}
+                    onDoubleClick={() => handleSignOffDoubleClick('qc')}
+                    title="Double-click to sign"
+                  >
+                    {signOffs.qc.name && (
+                      <div className="text-sm text-white font-medium">
+                        {signOffs.qc.name}
+                        {signOffs.qc.date && (
+                          <div className="text-xs text-gray-300">{signOffs.qc.date}</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="text-sm text-gray-400">QC Check By / Date</div>
+                {editingSignOff.type === 'qc' && (
+                  <div className="flex justify-center space-x-1 mt-2">
+                    <button
+                      onClick={handleSignOffSave}
+                      className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                      disabled={!editingSignOff.tempName.trim()}
+                    >
+                      ✓ Sign
+                    </button>
+                    <button
+                      onClick={handleSignOffCancel}
+                      className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                    >
+                      ✕ Cancel
+                    </button>
+                  </div>
+                )}
+                {signOffs.qc.name && editingSignOff.type !== 'qc' && (
+                  <button
+                    onClick={() => clearSignOff('qc')}
+                    className="mt-1 text-xs text-red-400 hover:text-red-300"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
             </div>
           </div>
