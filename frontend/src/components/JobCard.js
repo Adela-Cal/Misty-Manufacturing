@@ -56,19 +56,26 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     try {
       setLoading(true);
       
+      console.log('Loading job card data with params:', { jobId, stage, orderId });
+      
+      // Validate required parameters
+      if (!jobId || !stage) {
+        throw new Error('Missing required parameters: jobId or stage');
+      }
+      
       // For now, since the backend endpoints might not exist yet, let's create mock data
       // This will be replaced with real API calls when the backend is implemented
       
       const mockJob = {
-        id: jobId,
+        id: jobId || 'default-job-id',
         run_number: 1,
         status: 'in_progress',
         created_date: new Date().toISOString()
       };
 
       const mockOrder = {
-        id: orderId || jobId,
-        order_number: `ORD-${orderId || jobId}`,
+        id: orderId || jobId || 'default-order-id',
+        order_number: `ORD-${orderId || jobId || 'default'}`,
         client: {
           id: 1,
           company_name: 'Sample Client Co.'
