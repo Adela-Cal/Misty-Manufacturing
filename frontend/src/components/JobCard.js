@@ -325,16 +325,16 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                 Order Information
               </h3>
               <div className="space-y-2 text-sm">
-                <div><strong>Order ID:</strong> {order?.order_number || `ORD-${orderId || jobId}` || 'N/A'}</div>
-                <div><strong>Customer:</strong> {order?.client?.company_name || 'Sample Client Co.'}</div>
-                <div><strong>Quantity:</strong> {(order?.quantity || 1000)?.toLocaleString()} units</div>
-                <div><strong>Due Date:</strong> {order?.due_date ? new Date(order.due_date).toLocaleDateString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</div>
-                <div><strong>Priority:</strong> 
-                  <span className={`ml-2 px-2 py-1 rounded text-xs ${order?.priority === 'urgent' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                <div className="text-gray-300"><strong className="text-white">Order ID:</strong> {order?.order_number || `ORD-${orderId || jobId}` || 'N/A'}</div>
+                <div className="text-gray-300"><strong className="text-white">Customer:</strong> {order?.client?.company_name || 'Sample Client Co.'}</div>
+                <div className="text-gray-300"><strong className="text-white">Quantity:</strong> {(order?.quantity || 1000)?.toLocaleString()} units</div>
+                <div className="text-gray-300"><strong className="text-white">Due Date:</strong> {order?.due_date ? new Date(order.due_date).toLocaleDateString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</div>
+                <div className="text-gray-300"><strong className="text-white">Priority:</strong> 
+                  <span className={`ml-2 px-2 py-1 rounded text-xs ${order?.priority === 'urgent' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
                     {order?.priority || 'Normal'}
                   </span>
                 </div>
-                <div><strong>Run Number:</strong> {jobData?.run_number || '1'}</div>
+                <div className="text-gray-300"><strong className="text-white">Run Number:</strong> {jobData?.run_number || '1'}</div>
               </div>
             </div>
 
