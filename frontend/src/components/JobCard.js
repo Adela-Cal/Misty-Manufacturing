@@ -234,11 +234,11 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const machineConfig = getMachineConfig();
 
   // Safety checks for required data
-  if (!order || !order.id) {
+  if (!order || (!order.id && !orderId && !jobId)) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-gray-800 rounded-lg p-8">
-          <p className="text-white">Invalid job card data</p>
+          <p className="text-white">Invalid job card data - missing order ID</p>
           <button onClick={onClose} className="misty-button misty-button-secondary mt-4">Close</button>
         </div>
       </div>
