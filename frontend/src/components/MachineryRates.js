@@ -209,7 +209,7 @@ const MachineryRates = () => {
         <div className="bg-gray-800 rounded-lg overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-700">
             <h2 className="text-xl font-semibold text-white">
-              Machinery Rates ({filteredRates.length})
+              Machinery Specifications ({filteredRates.length})
             </h2>
           </div>
           
