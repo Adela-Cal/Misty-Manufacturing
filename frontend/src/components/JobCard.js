@@ -21,8 +21,8 @@ const MACHINE_LINES = {
     ratePerMinute: 250 // meters per minute
   },
   winding: {
-    name: 'Winding Line', 
-    machines: ['Winder X1', 'Winder Y2', 'Winder Z3'],
+    name: 'Core Winder Line', 
+    machines: ['Core Winder X1', 'Core Winder Y2', 'Core Winder Z3'],
     standardSetupTime: 30,
     ratePerMinute: 180
   },
