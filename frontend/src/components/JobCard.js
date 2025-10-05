@@ -67,8 +67,8 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
       };
 
       const mockOrder = {
-        id: orderId,
-        order_number: `ORD-${orderId}`,
+        id: orderId || jobId,
+        order_number: `ORD-${orderId || jobId}`,
         client: {
           id: 1,
           company_name: 'Sample Client Co.'
@@ -76,7 +76,8 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         quantity: 1000,
         due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         priority: 'normal',
-        product_id: 'sample-product-1'
+        product_id: 'sample-product-1',
+        other_products: []
       };
 
       const mockProductSpecs = {
