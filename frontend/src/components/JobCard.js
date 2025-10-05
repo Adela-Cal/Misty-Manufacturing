@@ -294,14 +294,14 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           <div className="flex items-center space-x-2">
             <button
               onClick={handlePrint}
-              className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="misty-button misty-button-primary flex items-center"
             >
               <PrinterIcon className="h-4 w-4 mr-2" />
               Print
             </button>
             <button
               onClick={onClose}
-              className="flex items-center px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              className="misty-button misty-button-secondary flex items-center"
             >
               <XMarkIcon className="h-4 w-4 mr-2" />
               Close
