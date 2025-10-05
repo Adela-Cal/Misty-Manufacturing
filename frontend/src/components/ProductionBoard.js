@@ -425,7 +425,7 @@ const ProductionBoard = () => {
           {jobs.length > 0 ? (
             <div className="space-y-0">
               {jobs.map((job) => (
-                <JobCard key={job.id} job={job} stageKey={stageKey} />
+                <JobTile key={job.id} job={job} stageKey={stageKey} />
               ))}
             </div>
           ) : (
