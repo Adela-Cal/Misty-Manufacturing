@@ -346,11 +346,11 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
               </h3>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Selected Machine:</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Selected Machine:</label>
                   <select 
                     value={selectedMachine}
                     onChange={(e) => setSelectedMachine(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md"
+                    className="misty-select w-full"
                   >
                     {machineConfig.machines?.map(machine => (
                       <option key={machine} value={machine}>{machine}</option>
@@ -358,11 +358,11 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Setup Notes:</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Setup Notes:</label>
                   <textarea
                     value={setupNotes}
                     onChange={(e) => setSetupNotes(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md h-16 resize-none"
+                    className="misty-input w-full h-16 resize-none"
                     placeholder="Special tooling, mandrel requirements..."
                   />
                 </div>
