@@ -1816,20 +1816,23 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-1">
                           Core ID
+                          <span className="text-xs text-blue-400 ml-2">(Auto-populated from specification)</span>
                         </label>
                         <input
                           type="text"
                           name="core_id"
                           value={formData.core_id}
                           onChange={handleInputChange}
-                          className="misty-input w-full"
-                          placeholder="Enter core ID"
+                          className="misty-input w-full bg-gray-600"
+                          placeholder="Select a core specification above"
+                          readOnly={formData.material_used.length > 0}
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-1">
-                          Core Width
+                          Core Width (mm)
+                          <span className="text-xs text-yellow-400 ml-2">*Manual Entry Required</span>
                         </label>
                         <input
                           type="text"
@@ -1837,21 +1840,24 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                           value={formData.core_width}
                           onChange={handleInputChange}
                           className="misty-input w-full"
-                          placeholder="Enter core width"
+                          placeholder="Enter core width (e.g., 1000)"
+                          required
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-1">
-                          Core Thickness
+                          Core Thickness (mm)
+                          <span className="text-xs text-blue-400 ml-2">(Auto-populated from specification)</span>
                         </label>
                         <input
                           type="text"
                           name="core_thickness"
                           value={formData.core_thickness}
                           onChange={handleInputChange}
-                          className="misty-input w-full"
-                          placeholder="Enter core thickness"
+                          className="misty-input w-full bg-gray-600"
+                          placeholder="Select a core specification above"
+                          readOnly={formData.material_used.length > 0}
                         />
                       </div>
 
