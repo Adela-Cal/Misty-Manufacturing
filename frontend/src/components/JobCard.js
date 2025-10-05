@@ -678,6 +678,29 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             </div>
           )}
 
+          {/* Materials Required Section for Slitting */}
+          {stage === 'paper_slitting' && productSpecs?.material_layers && productSpecs.material_layers.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2">
+                Materials Required (From Product Specifications)
+              </h3>
+              <div className="bg-gray-700 p-4 rounded border border-gray-600">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {productSpecs.material_layers.map((layer, index) => (
+                    <div key={index} className="bg-gray-800 p-3 rounded border border-gray-500">
+                      <div className="text-sm text-gray-300 mb-1">Layer {index + 1}</div>
+                      <div className="text-white font-medium">{layer.material_name || 'Material'}</div>
+                      <div className="text-sm text-gray-400">Width: {layer.width || 'N/A'}mm</div>
+                      <div className="text-sm text-gray-400">Thickness: {layer.thickness || 'N/A'}mm</div>
+                      <div className="text-sm text-gray-400">GSM: {layer.gsm || 'N/A'}</div>
+                      <div className="text-sm text-gray-400">Quantity: {layer.quantity || 1}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Production Calculations */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
