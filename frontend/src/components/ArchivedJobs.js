@@ -277,7 +277,7 @@ const ArchivedJobs = () => {
             >
               <option value="all">All Processes</option>
               <option value="paper_slitting">Paper Slitting</option>
-              <option value="winding">Winding</option>
+              <option value="winding">Core Winder</option>
               <option value="finishing">Cutting/Indexing</option>
               <option value="delivery">Packing/Delivery</option>
             </select>
