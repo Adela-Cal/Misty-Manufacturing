@@ -822,8 +822,59 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                     )}
                     
                     {stage === 'paper_slitting' && (
-                      <div className="mt-2 text-xs text-green-200">
-                        Note: Enter additional widths of paper slit and total meters for the run
+                      <div className="mt-3">
+                        <div className="text-sm text-green-200 font-medium mb-2">Additional Widths Produced:</div>
+                        
+                        {/* Add new width form */}
+                        <div className="flex items-center space-x-2 mb-3">
+                          <input
+                            type="number"
+                            placeholder="Width (mm)"
+                            value={newSlittingWidth.width}
+                            onChange={(e) => setNewSlittingWidth(prev => ({ ...prev, width: e.target.value }))}
+                            className="w-24 px-2 py-1 text-xs bg-gray-600 border border-gray-500 rounded text-white"
+                          />
+                          <input
+                            type="number"
+                            placeholder="Meters"
+                            value={newSlittingWidth.meters}
+                            onChange={(e) => setNewSlittingWidth(prev => ({ ...prev, meters: e.target.value }))}
+                            className="w-20 px-2 py-1 text-xs bg-gray-600 border border-gray-500 rounded text-white"
+                          />
+                          <button
+                            onClick={handleAddSlittingWidth}
+                            className="px-3 py-1 bg-green-700 text-white text-xs rounded hover:bg-green-800"
+                            disabled={!newSlittingWidth.width || !newSlittingWidth.meters}
+                          >
+                            + Add
+                          </button>
+                        </div>
+                        
+                        {/* Display added widths */}
+                        {additionalProduction.slittingWidths.length > 0 && (
+                          <div className="space-y-1 max-h-32 overflow-y-auto">
+                            {additionalProduction.slittingWidths.map((width) => (
+                              <div key={width.id} className="flex items-center justify-between bg-gray-800 px-2 py-1 rounded text-xs">
+                                <span className="text-green-200">
+                                  {width.width}mm × {width.meters}m
+                                </span>
+                                <button
+                                  onClick={() => handleRemoveSlittingWidth(width.id)}
+                                  className="text-red-400 hover:text-red-300 ml-2"
+                                  title="Remove width"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {additionalProduction.slittingWidths.length === 0 && (
+                          <div className="text-xs text-green-300 italic">
+                            No additional widths recorded yet
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
