@@ -373,33 +373,33 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           {/* Product Specifications */}
           {productSpecs && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3 border-b border-gray-300 pb-2">
+              <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2">
                 Product Specifications
               </h3>
               <div className="grid grid-cols-3 gap-4">
-                <div className="bg-gray-50 p-3 rounded">
-                  <div className="text-sm text-gray-600">Product Code</div>
-                  <div className="font-medium">{productSpecs.product_code}</div>
+                <div className="bg-gray-700 p-3 rounded border border-gray-600">
+                  <div className="text-sm text-gray-400">Product Code</div>
+                  <div className="font-medium text-white">{productSpecs.product_code}</div>
                 </div>
-                <div className="bg-gray-50 p-3 rounded">
-                  <div className="text-sm text-gray-600">Core ID (mm)</div>
-                  <div className="font-medium">{productSpecs.core_id || 'N/A'}</div>
+                <div className="bg-gray-700 p-3 rounded border border-gray-600">
+                  <div className="text-sm text-gray-400">Core ID (mm)</div>
+                  <div className="font-medium text-white">{productSpecs.core_id || 'N/A'}</div>
                 </div>
-                <div className="bg-gray-50 p-3 rounded">
-                  <div className="text-sm text-gray-600">Tube Length (mm)</div>
-                  <div className="font-medium">{productSpecs.core_width || 'N/A'}</div>
+                <div className="bg-gray-700 p-3 rounded border border-gray-600">
+                  <div className="text-sm text-gray-400">Tube Length (mm)</div>
+                  <div className="font-medium text-white">{productSpecs.core_width || 'N/A'}</div>
                 </div>
-                <div className="bg-gray-50 p-3 rounded">
-                  <div className="text-sm text-gray-600">Wall Thickness (mm)</div>
-                  <div className="font-medium">{productSpecs.core_thickness || 'N/A'}</div>
+                <div className="bg-gray-700 p-3 rounded border border-gray-600">
+                  <div className="text-sm text-gray-400">Wall Thickness (mm)</div>
+                  <div className="font-medium text-white">{productSpecs.core_thickness || 'N/A'}</div>
                 </div>
-                <div className="bg-gray-50 p-3 rounded">
-                  <div className="text-sm text-gray-600">Special Tooling</div>
-                  <div className="font-medium text-xs">{productSpecs.special_tooling_notes || 'None'}</div>
+                <div className="bg-gray-700 p-3 rounded border border-gray-600">
+                  <div className="text-sm text-gray-400">Special Tooling</div>
+                  <div className="font-medium text-white text-xs">{productSpecs.special_tooling_notes || 'None'}</div>
                 </div>
-                <div className="bg-gray-50 p-3 rounded">
-                  <div className="text-sm text-gray-600">Packing Notes</div>
-                  <div className="font-medium text-xs">{productSpecs.packing_instructions || 'Standard'}</div>
+                <div className="bg-gray-700 p-3 rounded border border-gray-600">
+                  <div className="text-sm text-gray-400">Packing Notes</div>
+                  <div className="font-medium text-white text-xs">{productSpecs.packing_instructions || 'Standard'}</div>
                 </div>
               </div>
             </div>
