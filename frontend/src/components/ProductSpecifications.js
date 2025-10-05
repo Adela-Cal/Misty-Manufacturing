@@ -1286,7 +1286,7 @@ const ProductSpecifications = () => {
                                 <optgroup label="Materials">
                                   {materials.map(material => (
                                     <option key={material.id} value={material.id}>
-                                      {material.material_name} ({material.thickness_mm || 0}mm thick)
+                                      {material.material_description || material.material_name} ({material.thickness_mm || 0}mm thick, GSM: {material.gsm || 'N/A'})
                                     </option>
                                   ))}
                                 </optgroup>
