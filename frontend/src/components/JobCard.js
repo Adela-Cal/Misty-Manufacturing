@@ -101,13 +101,13 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     }
   }, [isJobRunning, jobStartTime, actualRunTime, selectedMachine, setupNotes, signOffs, jobId, stage]);
 
-  // Update live timer when job is running
+  // Update live timer when job is running (without causing form clearing)
   useEffect(() => {
     let interval;
     if (isJobRunning && jobStartTime) {
       interval = setInterval(() => {
-        // This will trigger a re-render to update the live timer display
-        setJobStartTime(prev => prev); // Force re-render without changing the actual start time
+        // Only update time display, not form data
+        setCurrentTime(Date.now());
       }, 60000); // Update every minute
     }
     return () => {
