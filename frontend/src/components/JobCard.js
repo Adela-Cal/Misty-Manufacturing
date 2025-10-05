@@ -92,7 +92,9 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         actualRunTime,
         selectedMachine,
         setupNotes,
-        signOffs
+        signOffs,
+        finishedQuantity,
+        additionalProduction
       };
       localStorage.setItem(timingKey, JSON.stringify(timingData));
     }
