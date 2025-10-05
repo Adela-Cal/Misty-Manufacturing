@@ -539,8 +539,60 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                       <td className="p-2 text-right font-medium text-white">{calculations.setupTime}</td>
                     </tr>
                     <tr className="border-b border-gray-600">
-                      <td className="p-2 bg-gray-700 text-gray-300">Run Time</td>
+                      <td className="p-2 bg-gray-700 text-gray-300">Run Time (Estimated)</td>
                       <td className="p-2 text-right font-medium text-white">{calculations.runTime}</td>
+                    </tr>
+                    {/* Actual Run Time Row */}
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">
+                        Actual Run Time
+                        {isJobRunning && (
+                          <span className="ml-2 px-2 py-1 bg-green-600 text-white text-xs rounded-full animate-pulse">
+                            RUNNING
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-2 text-right font-medium text-white">
+                        {isEditingRunTime ? (
+                          <div className="flex items-center justify-end space-x-2">
+                            <input
+                              type="number"
+                              value={editedRunTime}
+                              onChange={(e) => setEditedRunTime(e.target.value)}
+                              className="w-20 px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white text-center"
+                              min="0"
+                              autoFocus
+                            />
+                            <button
+                              onClick={handleSaveRunTime}
+                              className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                            >
+                              ✓
+                            </button>
+                            <button
+                              onClick={handleCancelEditRunTime}
+                              className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <span
+                            onDoubleClick={actualRunTime > 0 ? handleEditRunTime : undefined}
+                            className={`${actualRunTime > 0 ? 'cursor-pointer hover:bg-gray-600 px-2 py-1 rounded' : ''} ${
+                              isJobRunning ? 'text-green-400' : actualRunTime > 0 ? 'text-blue-400' : 'text-gray-500'
+                            }`}
+                            title={actualRunTime > 0 ? "Double-click to edit actual run time" : "Start job to track actual time"}
+                          >
+                            {isJobRunning 
+                              ? `${Math.floor((Date.now() - new Date(jobStartTime).getTime()) / (1000 * 60))} min (Live)`
+                              : actualRunTime > 0 
+                                ? `${Math.floor(actualRunTime / 60)}h ${actualRunTime % 60}m`
+                                : '—'
+                            }
+                          </span>
+                        )}
+                      </td>
                     </tr>
                     <tr className="bg-green-600 font-bold text-white">
                       <td className="p-2">TOTAL PRODUCTION TIME</td>
