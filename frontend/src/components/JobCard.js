@@ -312,9 +312,9 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         {/* Printable Content */}
         <div className="p-6 print-content">
           {/* Job Card Header */}
-          <div className="text-center mb-6 border-b-2 border-gray-800 pb-4">
-            <h1 className="text-2xl font-bold text-gray-900">{getCurrentStageTitle()}</h1>
-            <p className="text-gray-600">Generated: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</p>
+          <div className="text-center mb-6 border-b-2 border-gray-600 pb-4">
+            <h1 className="text-2xl font-bold text-white">{getCurrentStageTitle()}</h1>
+            <p className="text-gray-400">Generated: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</p>
           </div>
 
           {/* Order Information */}
