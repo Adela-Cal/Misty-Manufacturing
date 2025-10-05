@@ -1571,7 +1571,7 @@ const ProductSpecifications = () => {
                                     className="misty-select w-full text-sm"
                                   >
                                     <option value="Slitting">Slitting</option>
-                                    <option value="winding">Winding</option>
+                                    <option value="winding">Core Winder</option>
                                     <option value="Cutting/Indexing">Cutting/Indexing</option>
                                     <option value="splitting">Splitting</option>
                                     <option value="Packing">Packing</option>
