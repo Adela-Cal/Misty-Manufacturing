@@ -367,6 +367,25 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         <div className="flex items-center justify-between p-4 border-b border-gray-700 no-print">
           <h2 className="text-xl font-bold text-white">{getCurrentStageTitle()}</h2>
           <div className="flex items-center space-x-2">
+            {/* Job Timing Button */}
+            {!isJobRunning ? (
+              <button
+                onClick={handleStartJob}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                <ClockIcon className="h-4 w-4 mr-2" />
+                Start Job
+              </button>
+            ) : (
+              <button
+                onClick={handleCompleteRun}
+                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+              >
+                <ClockIcon className="h-4 w-4 mr-2" />
+                Complete Run
+              </button>
+            )}
+            
             <button
               onClick={handlePrint}
               className="misty-button misty-button-primary flex items-center"
