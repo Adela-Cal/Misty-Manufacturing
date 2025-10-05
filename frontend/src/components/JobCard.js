@@ -123,8 +123,32 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   };
 
   const calculateProduction = (job, order, product) => {
-    if (!product || !order || !order.quantity) {
+    // Add safety checks for all parameters
+    if (!job || !order || !product) {
+      console.log('Missing data for calculation:', { job: !!job, order: !!order, product: !!product });
       // Set default calculations if data is missing
+      setCalculations({
+        goodMaterialLength: 0,
+        makereadyLength: 0,
+        wasteLength: 0,
+        totalLengthRequired: 0,
+        setupTime: 30,
+        runTime: 0,
+        totalProductionTime: 30,
+        tubesPerCarton: 50,
+        cartonsRequired: 0,
+        cartonsPerPallet: 20,
+        palletsRequired: 0,
+        tapeRollsRequired: 0,
+        wastePercentage: '5.0',
+        makereadyPercentage: '10.0'
+      });
+      return;
+    }
+    
+    if (!order.quantity) {
+      console.log('Missing order quantity, using default');
+      // Set default calculations if quantity is missing
       setCalculations({
         goodMaterialLength: 0,
         makereadyLength: 0,
