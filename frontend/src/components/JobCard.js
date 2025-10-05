@@ -54,6 +54,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const [actualRunTime, setActualRunTime] = useState(0); // in minutes
   const [isEditingRunTime, setIsEditingRunTime] = useState(false);
   const [editedRunTime, setEditedRunTime] = useState(0);
+  const [currentTime, setCurrentTime] = useState(Date.now()); // For live timer display only
   
   // Operator sign-off states
   const [signOffs, setSignOffs] = useState({
