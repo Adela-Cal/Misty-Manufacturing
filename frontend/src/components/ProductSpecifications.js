@@ -869,7 +869,7 @@ const ProductSpecifications = () => {
         product_name: layer.product_name || layer.material_name || 'Unknown Product',
         layer_type: layer.layer_type || 'Outer Most Layer',
         thickness: parseFloat(layer.thickness) || 0,
-        gsm: parseInt(layer.gsm) || 0,
+        gsm: layer.gsm ? (typeof layer.gsm === 'string' ? parseFloat(layer.gsm) : layer.gsm) : null,
         quantity: parseFloat(layer.quantity) || 1,
         width: layer.width ? parseFloat(layer.width) : null,
         notes: layer.notes || ''
