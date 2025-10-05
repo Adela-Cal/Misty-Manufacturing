@@ -25,6 +25,66 @@ const MachineryRates = () => {
   });
   const [errors, setErrors] = useState({});
 
+  // Core Winding Specifications - Static data based on manufacturing requirements
+  const coreWindingSpecs = [
+    {
+      coreRange: '15–20 mm',
+      paperWidth: '29–31 mm', 
+      beltSize: '30 mm',
+      recommendedAngle: '72°',
+      workableRange: '70–74°',
+      lengthFactor: '3.236'
+    },
+    {
+      coreRange: '21–30 mm',
+      paperWidth: '37–41 mm',
+      beltSize: '40 mm', 
+      recommendedAngle: '70°',
+      workableRange: '68–73°',
+      lengthFactor: '2.924'
+    },
+    {
+      coreRange: '31–50 mm',
+      paperWidth: '57–61 mm',
+      beltSize: '60 mm',
+      recommendedAngle: '68°', 
+      workableRange: '66–72°',
+      lengthFactor: '2.670'
+    },
+    {
+      coreRange: '51–70 mm',
+      paperWidth: '76–81 mm',
+      beltSize: '80 mm',
+      recommendedAngle: '66°',
+      workableRange: '64–70°', 
+      lengthFactor: '2.459'
+    },
+    {
+      coreRange: '71–120 mm',
+      paperWidth: '103–106 mm',
+      beltSize: '105 mm',
+      recommendedAngle: '65°',
+      workableRange: '62–68°',
+      lengthFactor: '2.366'
+    },
+    {
+      coreRange: '121–200 mm',
+      paperWidth: '118–122 mm', 
+      beltSize: '120 mm',
+      recommendedAngle: '64°',
+      workableRange: '60–66°',
+      lengthFactor: '2.281'
+    },
+    {
+      coreRange: '> 201 mm',
+      paperWidth: '148–152 mm',
+      beltSize: '150 mm', 
+      recommendedAngle: '62°',
+      workableRange: '58–65°',
+      lengthFactor: '2.130'
+    }
+  ];
+
   // Available function types
   const functionOptions = [
     'Slitting',
