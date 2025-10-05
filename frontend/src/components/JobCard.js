@@ -629,6 +629,11 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                     <tr>
                       <td className="p-2 text-gray-400 text-xs" colSpan="2">
                         Estimated finish: {new Date(Date.now() + calculations.totalProductionTime * 60000).toLocaleTimeString()}
+                        {actualRunTime > 0 && (
+                          <div className="mt-1">
+                            Tip: Double-click actual run time to adjust for stoppages
+                          </div>
+                        )}
                       </td>
                     </tr>
                   </tbody>
