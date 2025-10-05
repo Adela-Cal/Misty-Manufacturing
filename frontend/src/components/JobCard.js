@@ -185,15 +185,18 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const loadJobTiming = () => {
     if (jobId && stage) {
       const timingKey = `job_timing_${jobId}_${stage}`;
-      const savedTiming = localStorage.getItem(timingKey);
-      if (savedTiming) {
+      const savedData = localStorage.getItem(timingKey);
+      
+      if (savedData) {
         try {
-          const timingData = JSON.parse(savedTiming);
-          setIsJobRunning(timingData.isJobRunning || false);
-          setJobStartTime(timingData.jobStartTime || null);
-          setActualRunTime(timingData.actualRunTime || 0);
-          setSelectedMachine(timingData.selectedMachine || '');
-          setSetupNotes(timingData.setupNotes || '');
+          const timingData = JSON.parse(savedData);
+          
+          if (timingData.isJobRunning !== undefined) setIsJobRunning(timingData.isJobRunning);
+          if (timingData.jobStartTime) setJobStartTime(timingData.jobStartTime);
+          if (timingData.actualRunTime !== undefined) setActualRunTime(timingData.actualRunTime);
+          if (timingData.selectedMachine) setSelectedMachine(timingData.selectedMachine);
+          if (timingData.setupNotes) setSetupNotes(timingData.setupNotes);
+          if (timingData.signOffs) setSignOffs(timingData.signOffs);
         } catch (error) {
           console.error('Error loading job timing data:', error);
         }
