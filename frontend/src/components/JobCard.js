@@ -791,12 +791,20 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {productSpecs.material_layers.map((layer, index) => (
                       <div key={index} className="bg-gray-800 p-3 rounded border border-gray-500">
-                        <div className="text-sm text-gray-300 mb-1">Layer {index + 1}</div>
-                        <div className="text-white font-medium">{layer.material_name || 'Material'}</div>
-                        <div className="text-sm text-gray-400">Width: {layer.width || 'N/A'}mm</div>
-                        <div className="text-sm text-gray-400">Thickness: {layer.thickness || 'N/A'}mm</div>
-                        <div className="text-sm text-gray-400">GSM: {layer.gsm || 'N/A'}</div>
-                        <div className="text-sm text-gray-400">Quantity: {layer.quantity || 1}</div>
+                        <div className="text-sm text-gray-300 mb-1">{layer.layer_type}</div>
+                        <div className="text-white font-medium text-sm mb-1">{layer.product_name || layer.material_name || 'Unknown Product'}</div>
+                        <div className="text-xs text-gray-400 space-y-1">
+                          <div>Width: {layer.width || 'N/A'}mm</div>
+                          <div>Thickness: {layer.thickness || 'N/A'}mm</div>
+                          <div>GSM: {layer.gsm || 'N/A'}</div>
+                          <div>Quantity: {layer.quantity || 1}</div>
+                          {layer.notes && (
+                            <div className="text-blue-400 italic">Notes: {layer.notes}</div>
+                          )}
+                          {layer.supplier && (
+                            <div className="text-green-400">Supplier: {layer.supplier}</div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
