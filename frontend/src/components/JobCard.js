@@ -585,6 +585,69 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     }
   };
 
+  // Calculate material requirements based on spiral core manufacturing formula
+  const calculateMaterialRequirements = (productSpecs, jobData, coreWindingSpec) => {
+    if (!productSpecs?.material_layers || productSpecs.material_layers.length === 0) {
+      return [];
+    }
+
+    // Get core specifications
+    const coreLength = parseFloat(productSpecs.core_width) / 1000 || 1.2; // Convert mm to meters, default 1.2m
+    const orderQuantity = jobData?.order?.quantity || 1;
+    
+    // Get winding angle from core winding specification
+    let windingAngle = 65; // Default angle in degrees
+    if (coreWindingSpec && coreWindingSpec.recommendedAngle) {
+      const angleMatch = coreWindingSpec.recommendedAngle.match(/(\d+)/);
+      if (angleMatch) {
+        windingAngle = parseInt(angleMatch[1]);
+      }
+    }
+
+    // Calculate length factor: 1/cos(angle in radians)
+    const angleInRadians = (windingAngle * Math.PI) / 180;
+    const lengthFactor = 1 / Math.cos(angleInRadians);
+
+    const materialRequirements = productSpecs.material_layers.map((layer, index) => {
+      // Calculate laps per layer (using quantity as laps, default to 1)
+      const lapsPerCore = layer.quantity || 1;
+      
+      // Material length per core = (core length × length factor) × laps
+      const metersPerCore = (coreLength * lengthFactor) * lapsPerCore;
+      
+      // Total material needed for entire order
+      const totalMeters = metersPerCore * orderQuantity;
+
+      return {
+        ...layer,
+        metersPerCore: metersPerCore,
+        totalMeters: totalMeters,
+        lapsPerCore: lapsPerCore,
+        lengthFactor: lengthFactor.toFixed(3)
+      };
+    });
+
+    return materialRequirements;
+  };
+
+  // Get core winding specification for calculations
+  const getCoreWindingSpecForCalculation = () => {
+    if (!productSpecs?.core_winding_spec_id) return null;
+    
+    // This should match the core winding specs from Machinery Specifications
+    const coreWindingSpecs = [
+      { id: 'cw_15_20', recommendedAngle: '72°', lengthFactor: '3.236' },
+      { id: 'cw_21_30', recommendedAngle: '70°', lengthFactor: '2.924' },
+      { id: 'cw_31_50', recommendedAngle: '68°', lengthFactor: '2.670' },
+      { id: 'cw_51_70', recommendedAngle: '66°', lengthFactor: '2.459' },
+      { id: 'cw_71_120', recommendedAngle: '65°', lengthFactor: '2.366' },
+      { id: 'cw_121_200', recommendedAngle: '64°', lengthFactor: '2.281' },
+      { id: 'cw_201_plus', recommendedAngle: '62°', lengthFactor: '2.130' }
+    ];
+    
+    return coreWindingSpecs.find(spec => spec.id === productSpecs.core_winding_spec_id);
+  };
+
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
