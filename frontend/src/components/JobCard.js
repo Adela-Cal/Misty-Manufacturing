@@ -274,6 +274,42 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     window.print();
   };
 
+  const handleStartJob = () => {
+    const startTime = new Date();
+    setJobStartTime(startTime);
+    setIsJobRunning(true);
+    toast.success(`Job started at ${startTime.toLocaleTimeString()}`);
+  };
+
+  const handleCompleteRun = () => {
+    if (jobStartTime) {
+      const endTime = new Date();
+      const durationMs = endTime.getTime() - new Date(jobStartTime).getTime();
+      const durationMinutes = Math.round(durationMs / (1000 * 60));
+      
+      setActualRunTime(durationMinutes);
+      setIsJobRunning(false);
+      toast.success(`Job completed! Actual run time: ${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60}m`);
+    }
+  };
+
+  const handleEditRunTime = () => {
+    setEditedRunTime(actualRunTime);
+    setIsEditingRunTime(true);
+  };
+
+  const handleSaveRunTime = () => {
+    const newRunTime = parseInt(editedRunTime) || 0;
+    setActualRunTime(newRunTime);
+    setIsEditingRunTime(false);
+    toast.success(`Run time updated to ${Math.floor(newRunTime / 60)}h ${newRunTime % 60}m`);
+  };
+
+  const handleCancelEditRunTime = () => {
+    setIsEditingRunTime(false);
+    setEditedRunTime(actualRunTime);
+  };
+
   const getCurrentStageTitle = () => {
     const stageNames = {
       paper_slitting: 'Paper Slitting Job Card',
