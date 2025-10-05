@@ -91,6 +91,12 @@ const ProductSpecifications = () => {
       displayName: '> 201mm Core (62° angle, 148-152mm paper)'
     }
   ];
+
+  // Helper function to get core winding specification details
+  const getCoreWindingSpecById = (specId) => {
+    return coreWindingSpecs.find(spec => spec.id === specId) || null;
+  };
+
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
