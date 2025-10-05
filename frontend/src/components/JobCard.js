@@ -1053,15 +1053,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                     </tbody>
                   </table>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-white mb-2">Inspection Schedule</h4>
-                  <div className="bg-yellow-600 p-3 rounded border border-gray-600">
-                    <div className="text-sm text-white">
-                      <div><strong>Check Interval:</strong> Every {productSpecs.inspection_interval_minutes} minutes</div>
-                      <div className="mt-2"><strong>Next Check Due:</strong> {new Date(Date.now() + productSpecs.inspection_interval_minutes * 60000).toLocaleTimeString()}</div>
-                    </div>
-                  </div>
-                </div>
+                {/* Inspection Schedule removed as requested - was causing screen glitching due to Date.now() re-renders */}
               </div>
             </div>
           )}
