@@ -501,11 +501,14 @@ const ProductSpecifications = () => {
             const allItems = [...materials, ...products];
             const item = allItems.find(m => m.id === value);
             if (item) {
-              updatedLayer.material_name = item.material_name || item.product_name;
+              // Use material_description for Raw Materials or product_name for products
+              updatedLayer.material_name = item.material_description || item.product_name || item.material_name || 'Unknown Material';
               // Use thickness_mm as the actual thickness value
-              updatedLayer.thickness = item.thickness_mm || 0;
-              // Add GSM information if available
-              updatedLayer.gsm = item.gsm || 0;
+              updatedLayer.thickness = item.thickness_mm || item.thickness || 0;
+              // Add GSM information if available (convert to number if it's a string)
+              updatedLayer.gsm = parseInt(item.gsm) || 0;
+              // Store product name separately for Job Card display
+              updatedLayer.product_name = item.material_description || item.product_name || item.material_name || 'Unknown Product';
             }
           }
           
