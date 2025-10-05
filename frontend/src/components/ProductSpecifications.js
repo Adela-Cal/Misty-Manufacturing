@@ -1363,36 +1363,21 @@ const ProductSpecifications = () => {
                             />
                           </div>
 
-                          {/* Width Configuration */}
-                          {layer.layer_type === 'Central Layer' ? (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Width Range (mm)
-                              </label>
-                              <input
-                                type="text"
-                                value={layer.width_range || ''}
-                                onChange={(e) => handleMaterialLayerChange(index, 'width_range', e.target.value)}
-                                className="misty-input w-full"
-                                placeholder="e.g., 61-68"
-                              />
-                            </div>
-                          ) : (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Width (mm)
-                              </label>
-                              <input
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                value={layer.width || ''}
-                                onChange={(e) => handleMaterialLayerChange(index, 'width', e.target.value)}
-                                className="misty-input w-full"
-                                placeholder="Width in mm"
-                              />
-                            </div>
-                          )}
+                          {/* Width Configuration - Same for all layer types */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Width (mm)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={layer.width || ''}
+                              onChange={(e) => handleMaterialLayerChange(index, 'width', e.target.value)}
+                              className="misty-input w-full"
+                              placeholder="Width in mm"
+                            />
+                          </div>
 
                           {/* Notes */}
                           <div>
