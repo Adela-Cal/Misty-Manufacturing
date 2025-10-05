@@ -58,6 +58,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
         client_id: order.client_id || '',
         purchase_order_number: order.purchase_order_number || '',
         due_date: order.due_date ? new Date(order.due_date).toISOString().split('T')[0] : '',
+        priority: order.priority || 'Normal/Low',
         delivery_address: order.delivery_address || '',
         delivery_instructions: order.delivery_instructions || '',
         notes: order.notes || '',
