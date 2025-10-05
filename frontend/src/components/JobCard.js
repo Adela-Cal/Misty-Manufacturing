@@ -167,54 +167,96 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
       if (orderData.items && orderData.items.length > 0) {
         const firstItem = orderData.items[0];
         
-        // If the item has specifications attached, use those
-        if (firstItem.specifications) {
-          productSpecs = {
-            id: firstItem.product_id,
-            product_code: firstItem.specifications.product_code || firstItem.product_name,
-            product_description: firstItem.product_name,
-            core_id: firstItem.specifications.specifications?.id_mm || firstItem.specifications.specifications?.internal_diameter || 'N/A',
-            core_width: firstItem.specifications.specifications?.tube_length || '1000',
-            core_thickness: firstItem.specifications.specifications?.wall_thickness || firstItem.specifications.specifications?.wall_thickness_required || 'N/A',
-            makeready_allowance_percent: 10,
-            setup_time_minutes: 45,
-            waste_percentage: 5,
-            qc_tolerances: {
-              id_tolerance: 0.5,
-              od_tolerance: 0.5,
-              wall_tolerance: 0.1
-            },
-            inspection_interval_minutes: 60,
-            tubes_per_carton: 50,
-            cartons_per_pallet: 20,
-            special_tooling_notes: firstItem.specifications.manufacturing_notes || 'Standard processing',
-            packing_instructions: 'Handle with care',
-            consumables: firstItem.specifications.consumables || []
-          };
-        } else {
-          // Create basic product specs from order item data
-          productSpecs = {
-            id: firstItem.product_id,
-            product_code: firstItem.product_name,
-            product_description: firstItem.product_name,
-            core_id: 'N/A',
-            core_width: '1000',
-            core_thickness: 'N/A',
-            makeready_allowance_percent: 10,
-            setup_time_minutes: 45,
-            waste_percentage: 5,
-            qc_tolerances: {
-              id_tolerance: 0.5,
-              od_tolerance: 0.5,
-              wall_tolerance: 0.1
-            },
-            inspection_interval_minutes: 60,
-            tubes_per_carton: 50,
-            cartons_per_pallet: 20,
-            special_tooling_notes: 'Standard processing',
-            packing_instructions: 'Handle with care',
-            consumables: []
-          };
+        // Try to fetch complete product specification from API if we have product_id
+        if (firstItem.product_id) {
+          try {
+            const specResponse = await apiHelpers.getProductSpecification(firstItem.product_id);
+            const fullSpec = specResponse.data?.data || specResponse.data;
+            
+            if (fullSpec) {
+              console.log('Fetched product specification:', fullSpec);
+              productSpecs = {
+                ...fullSpec,
+                // Ensure core fields are properly mapped
+                core_id: fullSpec.specifications?.id_mm || fullSpec.specifications?.internal_diameter || 'N/A',
+                core_width: fullSpec.specifications?.tube_length || '1000',
+                core_thickness: fullSpec.specifications?.wall_thickness || fullSpec.specifications?.wall_thickness_required || 'N/A',
+                material_layers: fullSpec.material_layers || [],
+                makeready_allowance_percent: 10,
+                setup_time_minutes: 45,
+                waste_percentage: 5,
+                qc_tolerances: {
+                  id_tolerance: 0.5,
+                  od_tolerance: 0.5,
+                  wall_tolerance: 0.1
+                },
+                inspection_interval_minutes: 60,
+                tubes_per_carton: 50,
+                cartons_per_pallet: 20,
+                special_tooling_notes: fullSpec.manufacturing_notes || 'Standard processing',
+                packing_instructions: 'Handle with care',
+                consumables: fullSpec.consumables || []
+              };
+            }
+          } catch (error) {
+            console.warn('Could not fetch product specification:', error);
+          }
+        }
+        
+        // Fallback: If we couldn't fetch from API, use embedded specifications or defaults
+        if (!productSpecs) {
+          if (firstItem.specifications) {
+            productSpecs = {
+              id: firstItem.product_id,
+              product_code: firstItem.specifications.product_code || firstItem.product_name,
+              product_description: firstItem.product_name,
+              product_type: firstItem.specifications.product_type || 'Unknown',
+              core_id: firstItem.specifications.specifications?.id_mm || firstItem.specifications.specifications?.internal_diameter || 'N/A',
+              core_width: firstItem.specifications.specifications?.tube_length || '1000',
+              core_thickness: firstItem.specifications.specifications?.wall_thickness || firstItem.specifications.specifications?.wall_thickness_required || 'N/A',
+              material_layers: firstItem.specifications.material_layers || [],
+              makeready_allowance_percent: 10,
+              setup_time_minutes: 45,
+              waste_percentage: 5,
+              qc_tolerances: {
+                id_tolerance: 0.5,
+                od_tolerance: 0.5,
+                wall_tolerance: 0.1
+              },
+              inspection_interval_minutes: 60,
+              tubes_per_carton: 50,
+              cartons_per_pallet: 20,
+              special_tooling_notes: firstItem.specifications.manufacturing_notes || 'Standard processing',
+              packing_instructions: 'Handle with care',
+              consumables: firstItem.specifications.consumables || []
+            };
+          } else {
+            // Create basic product specs from order item data
+            productSpecs = {
+              id: firstItem.product_id,
+              product_code: firstItem.product_name,
+              product_description: firstItem.product_name,
+              product_type: 'Unknown',
+              core_id: 'N/A',
+              core_width: '1000',
+              core_thickness: 'N/A',
+              material_layers: [],
+              makeready_allowance_percent: 10,
+              setup_time_minutes: 45,
+              waste_percentage: 5,
+              qc_tolerances: {
+                id_tolerance: 0.5,
+                od_tolerance: 0.5,
+                wall_tolerance: 0.1
+              },
+              inspection_interval_minutes: 60,
+              tubes_per_carton: 50,
+              cartons_per_pallet: 20,
+              special_tooling_notes: 'Standard processing',
+              packing_instructions: 'Handle with care',
+              consumables: []
+            };
+          }
         }
       }
 
