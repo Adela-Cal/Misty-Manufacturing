@@ -56,13 +56,26 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const [editedRunTime, setEditedRunTime] = useState(0);
 
   useEffect(() => {
-    if (jobId && stage) {
+    if (jobId && stage && orderId) {
       loadJobCardData();
-    } else {
-      console.error('JobCard: Missing required props', { jobId, stage, orderId });
-      setLoading(false);
+      loadJobTiming();
     }
   }, [jobId, stage]);
+
+  // Save job timing data when it changes
+  useEffect(() => {
+    if (jobId && stage) {
+      const timingKey = `job_timing_${jobId}_${stage}`;
+      const timingData = {
+        isJobRunning,
+        jobStartTime,
+        actualRunTime,
+        selectedMachine,
+        setupNotes
+      };
+      localStorage.setItem(timingKey, JSON.stringify(timingData));
+    }
+  }, [isJobRunning, jobStartTime, actualRunTime, selectedMachine, setupNotes, jobId, stage]);
 
   const loadJobCardData = async () => {
     try {
