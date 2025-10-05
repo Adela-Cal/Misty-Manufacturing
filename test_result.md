@@ -377,6 +377,18 @@ backend:
         agent: "testing"
         comment: "🎉 ORDER FORM PRIORITY DROPDOWN FULLY FUNCTIONAL: Comprehensive testing completed with 100% success rate. CRITICAL VERIFICATION CONFIRMED: ✅ Login with demo credentials (Callum/Peach7510) working perfectly, ✅ Navigation to Order Management successful, ✅ 'New Order' button opens order creation modal correctly, ✅ Priority dropdown found in order form with proper positioning in Order Details section, ✅ All three priority options available and working: 'ASAP', 'Must Delivery On Date', 'Normal/Low', ✅ Successfully tested selecting each priority level - ASAP, Must Delivery On Date, and Normal/Low, ✅ Dropdown functionality smooth with proper visual feedback, ✅ Form layout accommodates priority field correctly in 4-column grid (Client, Purchase Order Number, Due Date, Priority), ✅ Priority field marked as required (*) and properly integrated with form validation, ✅ Default value 'Normal/Low' working correctly. INTEGRATION VERIFIED: Priority dropdown integrates seamlessly with existing order form structure, maintains proper styling with misty-select classes, and works alongside other form fields without conflicts. All requested functionality from the review is working correctly: dropdown options, selection functionality, and proper form integration."
 
+  - task: "Product Specifications Integration Fix for Job Card Material Layers"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/JobCard.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "🚨 CRITICAL BLOCKING ISSUE: Job Card modal cannot be opened from Production Board, preventing testing of Product Specifications integration fix. TESTING ATTEMPTED: ✅ Successfully logged in with Callum/Peach7510, ✅ Successfully navigated to Production Board, ✅ Successfully located order ADM-2025-0001 in Paper Slitting stage, ❌ CRITICAL FAILURE: Job Card modal cannot be opened despite extensive attempts using multiple approaches (SVG icon clicking, coordinate-based clicking, various selectors). The clipboard/job card icons appear to be non-responsive or missing proper event handlers. IMPACT: Cannot verify Core ID (76), Core Width (100), Core Thickness (3), Material Layers from Product Specification ID 18721720-e665-4f1b-9a69-b2e998df907b, or console logs for API calls. This is a critical blocking issue that prevents validation of the Product Specifications integration fix. URGENT ACTION REQUIRED: Main agent must investigate and fix the job card modal opening functionality before this integration can be tested."
+
 frontend:
   - task: "Client Product Catalogue Redesign with Double-Click Editing and Bottom Action Bar"
     implemented: true
