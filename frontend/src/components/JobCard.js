@@ -250,6 +250,8 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           if (timingData.selectedMachine) setSelectedMachine(timingData.selectedMachine);
           if (timingData.setupNotes) setSetupNotes(timingData.setupNotes);
           if (timingData.signOffs) setSignOffs(timingData.signOffs);
+          if (timingData.finishedQuantity !== undefined) setFinishedQuantity(timingData.finishedQuantity);
+          if (timingData.additionalProduction) setAdditionalProduction(timingData.additionalProduction);
         } catch (error) {
           console.error('Error loading job timing data:', error);
         }
