@@ -520,7 +520,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           </div>
 
           {/* Other Products in Order */}
-          {order.other_products && order.other_products.length > 0 && (
+          {order?.other_products && order.other_products.length > 0 && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3 border-b border-gray-300 pb-2">
                 Other Products in this Order
