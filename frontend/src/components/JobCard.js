@@ -843,100 +843,53 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             </div>
           )}
 
-          {/* Materials Required Section for All Stages */}
+          {/* Materials Required Section - Condensed */}
           {(stage === 'paper_slitting' || stage === 'winding') && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2">
-                Materials Required (Calculated Quantities)
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-white mb-2 border-b border-gray-600 pb-1">
+                Materials Required
               </h3>
-              <div className="bg-gray-700 p-4 rounded border border-gray-600">
+              <div className="bg-gray-700 p-3 rounded border border-gray-600">
                 {productSpecs?.material_layers && productSpecs.material_layers.length > 0 ? (
                   (() => {
                     const coreWindingSpec = getCoreWindingSpecForCalculation();
                     const materialRequirements = calculateMaterialRequirements(productSpecs, jobData, coreWindingSpec);
                     
                     return (
-                      <div className="space-y-4">
-                        {/* Calculation Summary */}
-                        <div className="bg-blue-900/30 p-3 rounded border border-blue-600">
-                          <h4 className="text-blue-300 font-medium mb-2">Calculation Parameters</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
-                            <div className="text-gray-300">
-                              Core Length: <span className="text-white">{(parseFloat(productSpecs.core_width) / 1000 || 1.2).toFixed(2)}m</span>
+                      <div className="space-y-2">
+                        {/* Condensed Material List */}
+                        {materialRequirements.map((layer, index) => (
+                          <div key={index} className="flex items-center justify-between bg-gray-800 p-2 rounded border border-gray-500">
+                            <div className="flex-1">
+                              <div className="text-sm text-white font-medium">
+                                {layer.product_name || layer.material_name || 'Unknown Product'}
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {layer.layer_type} • {layer.width || 'N/A'}mm × {layer.thickness || 'N/A'}mm • GSM: {layer.gsm || 'N/A'} • {layer.lapsPerCore} laps
+                              </div>
                             </div>
-                            <div className="text-gray-300">
-                              Winding Angle: <span className="text-white">{coreWindingSpec?.recommendedAngle || '65°'}</span>
-                            </div>
-                            <div className="text-gray-300">
-                              Length Factor: <span className="text-white">{materialRequirements[0]?.lengthFactor || '2.366'}</span>
-                            </div>
-                            <div className="text-gray-300">
-                              Order Quantity: <span className="text-white">{jobData?.order?.quantity || 1} cores</span>
+                            <div className="text-right ml-3">
+                              <div className="text-sm font-bold text-green-400">
+                                {layer.totalMeters.toFixed(1)}m
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {layer.metersPerCore.toFixed(1)}m/core
+                              </div>
                             </div>
                           </div>
-                        </div>
-
-                        {/* Material Requirements */}
-                        <div className="grid grid-cols-1 gap-4">
-                          {materialRequirements.map((layer, index) => (
-                            <div key={index} className="bg-gray-800 p-4 rounded border border-gray-500">
-                              <div className="flex justify-between items-start mb-3">
-                                <div>
-                                  <div className="text-sm text-gray-300">{layer.layer_type}</div>
-                                  <div className="text-white font-medium">{layer.product_name || layer.material_name || 'Unknown Product'}</div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="text-lg font-bold text-green-400">
-                                    {layer.totalMeters.toFixed(1)}m
-                                  </div>
-                                  <div className="text-xs text-gray-400">Total Required</div>
-                                </div>
-                              </div>
-                              
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-400 mb-3">
-                                <div>Width: <span className="text-white">{layer.width || 'N/A'}mm</span></div>
-                                <div>Thickness: <span className="text-white">{layer.thickness || 'N/A'}mm</span></div>
-                                <div>GSM: <span className="text-white">{layer.gsm || 'N/A'}</span></div>
-                                <div>Laps/Core: <span className="text-white">{layer.lapsPerCore}</span></div>
-                              </div>
-
-                              <div className="bg-gray-700 p-2 rounded text-xs">
-                                <div className="flex justify-between">
-                                  <span className="text-gray-400">Per Core:</span>
-                                  <span className="text-white">{layer.metersPerCore.toFixed(2)}m</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-400">Formula:</span>
-                                  <span className="text-gray-300 font-mono">
-                                    ({(parseFloat(productSpecs.core_width) / 1000 || 1.2).toFixed(2)}m × {layer.lengthFactor}) × {layer.lapsPerCore} laps
-                                  </span>
-                                </div>
-                              </div>
-
-                              {layer.notes && (
-                                <div className="text-blue-400 italic text-xs mt-2">Notes: {layer.notes}</div>
-                              )}
-                            </div>
-                          ))}
+                        ))}
+                        
+                        {/* Compact calculation summary at bottom */}
+                        <div className="text-xs text-gray-400 mt-2 pt-2 border-t border-gray-600">
+                          Formula: Core Length {(parseFloat(productSpecs.core_width) / 1000 || 1.2).toFixed(2)}m × Angle Factor {materialRequirements[0]?.lengthFactor || '2.366'} × Laps × {jobData?.order?.quantity || 1} cores
                         </div>
                       </div>
                     );
                   })()
                 ) : (
-                  <div className="bg-yellow-600 p-4 rounded">
-                    <div className="flex items-center">
-                      <div className="text-white">
-                        <div className="font-medium">No Material Layers Found</div>
-                        <div className="text-sm mt-1">
-                          This job's product specifications don't include material layers information.
-                          <br />
-                          Please ensure the product specification includes material layer details for material calculations.
-                        </div>
-                        <div className="text-xs mt-2 font-medium">
-                          Product: {productSpecs?.product_code || 'Unknown'} | 
-                          Type: {productSpecs?.product_type || 'Unknown'}
-                        </div>
-                      </div>
+                  <div className="bg-yellow-600/20 p-2 rounded border border-yellow-600">
+                    <div className="text-yellow-200 text-sm">
+                      No material layers found in product specifications
                     </div>
                   </div>
                 )}
