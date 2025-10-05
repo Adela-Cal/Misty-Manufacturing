@@ -427,7 +427,7 @@ const MachineryRates = () => {
             <div className="bg-gray-800 rounded-lg max-w-md w-full mx-4">
               <div className="flex justify-between items-center p-6 border-b border-gray-700">
                 <h3 className="text-lg font-medium text-white">
-                  {selectedRate ? 'Edit Machinery Rate' : 'Add Machinery Rate'}
+                  {selectedRate ? 'Edit Machinery Specification' : 'Add Machinery Specification'}
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
