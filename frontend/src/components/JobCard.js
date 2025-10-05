@@ -199,7 +199,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     );
   }
 
-  if (!jobData) {
+  if (!jobData || !jobData.order) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-gray-800 rounded-lg p-8">
@@ -212,6 +212,18 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
 
   const { order } = jobData;
   const machineConfig = getMachineConfig();
+
+  // Safety checks for required data
+  if (!order || !order.id) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-gray-800 rounded-lg p-8">
+          <p className="text-white">Invalid job card data</p>
+          <button onClick={onClose} className="misty-button misty-button-secondary mt-4">Close</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
