@@ -562,13 +562,13 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           {/* Other Products in Order */}
           {order?.other_products && order.other_products.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3 border-b border-gray-300 pb-2">
+              <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2">
                 Other Products in this Order
               </h3>
-              <div className="bg-gray-50 p-3 rounded">
+              <div className="bg-gray-700 p-3 rounded border border-gray-600">
                 <ul className="text-sm space-y-1">
                   {order?.other_products?.map((product, index) => (
-                    <li key={index} className="flex justify-between">
+                    <li key={index} className="flex justify-between text-gray-300">
                       <span>{product.code} - {product.description}</span>
                       <span>Qty: {product.quantity}</span>
                     </li>
