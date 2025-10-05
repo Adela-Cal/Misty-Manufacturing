@@ -8372,7 +8372,6 @@ def main_accounting_transactions_review():
     """Main function to run accounting transactions review tests"""
     tester = BackendAPITester()
     tester.run_accounting_transactions_review_tests()
-        """Test the new Order Priority field implementation"""
         print("\n=== ORDER PRIORITY FIELD IMPLEMENTATION TESTING ===")
         
         try:
