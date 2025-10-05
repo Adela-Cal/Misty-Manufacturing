@@ -706,6 +706,74 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                     </tr>
                   </tbody>
                 </table>
+
+                {/* Finished Production Quantity Section */}
+                <div className="mt-4">
+                  <h4 className="font-semibold text-white mb-2">{getFinishedQuantityTitle()}</h4>
+                  <div className="bg-green-600 p-3 rounded border border-green-500">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white font-medium">
+                        {stage === 'paper_slitting' ? 'Additional Production:' : 'Finished Quantity:'}
+                      </span>
+                      <div className="flex items-center">
+                        {isEditingFinishedQuantity ? (
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="number"
+                              value={editedFinishedQuantity}
+                              onChange={(e) => setEditedFinishedQuantity(e.target.value)}
+                              className="w-24 px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white text-center"
+                              min="0"
+                              autoFocus
+                            />
+                            <button
+                              onClick={handleSaveFinishedQuantity}
+                              className="px-2 py-1 bg-green-700 text-white text-xs rounded hover:bg-green-800"
+                            >
+                              ✓
+                            </button>
+                            <button
+                              onClick={handleCancelEditFinishedQuantity}
+                              className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <span
+                            onDoubleClick={handleEditFinishedQuantity}
+                            className="cursor-pointer hover:bg-green-700 px-2 py-1 rounded text-white font-bold"
+                            title="Double-click to edit finished quantity"
+                          >
+                            {finishedQuantity.toLocaleString()} {stage === 'winding' ? 'cores' : stage === 'finishing' ? 'cores' : 'units'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Show excess calculation if quantity is higher than required */}
+                    {finishedQuantity > 0 && jobData?.order?.quantity && (
+                      <div className="mt-2 text-sm">
+                        <div className="flex justify-between text-green-100">
+                          <span>Required Quantity:</span>
+                          <span>{jobData.order.quantity.toLocaleString()}</span>
+                        </div>
+                        {finishedQuantity > jobData.order.quantity && (
+                          <div className="flex justify-between text-yellow-200 font-medium">
+                            <span>Excess for Stocktake:</span>
+                            <span>{(finishedQuantity - jobData.order.quantity).toLocaleString()}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {stage === 'paper_slitting' && (
+                      <div className="mt-2 text-xs text-green-200">
+                        Note: Enter additional widths of paper slit and total meters for the run
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div>
