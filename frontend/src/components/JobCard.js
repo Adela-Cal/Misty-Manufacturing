@@ -339,8 +339,8 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             </div>
 
             {/* Machine Line Selection */}
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+            <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
+              <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
                 <CogIcon className="h-5 w-5 mr-2" />
                 Machine Line: {machineConfig.name}
               </h3>
