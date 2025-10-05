@@ -48,9 +48,14 @@ const ProductionBoard = () => {
 
   useEffect(() => {
     loadProductionBoard();
-    const interval = setInterval(loadProductionBoard, 30000); // Refresh every 30 seconds
+    const interval = setInterval(() => {
+      // Only refresh if no job card is currently open
+      if (!showJobCard) {
+        loadProductionBoard();
+      }
+    }, 30000); // Check every 30 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [showJobCard]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
