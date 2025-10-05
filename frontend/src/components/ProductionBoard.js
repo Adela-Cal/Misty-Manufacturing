@@ -211,7 +211,7 @@ const ProductionBoard = () => {
 
   // Removed AustraliaMap component as requested
 
-  const JobCard = ({ job, stageKey }) => {
+  const JobTile = ({ job, stageKey }) => {
     const isExpanded = expandedJobs[job.id];
     const isOverdue = job.is_overdue;
     const materialsStatus = getMaterialsStatus(job);
