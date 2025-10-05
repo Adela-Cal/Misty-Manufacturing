@@ -28,7 +28,7 @@ const MachineryRates = () => {
   // Available function types
   const functionOptions = [
     'Slitting',
-    'winding', 
+    'core_winder', 
     'Cutting/Indexing',
     'splitting',
     'Packing',
