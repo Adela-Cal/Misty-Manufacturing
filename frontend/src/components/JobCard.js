@@ -542,8 +542,12 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                 <div className="text-gray-300"><strong className="text-white">Quantity:</strong> {(order?.quantity || 1000)?.toLocaleString()} units</div>
                 <div className="text-gray-300"><strong className="text-white">Due Date:</strong> {order?.due_date ? new Date(order.due_date).toLocaleDateString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</div>
                 <div className="text-gray-300"><strong className="text-white">Priority:</strong> 
-                  <span className={`ml-2 px-2 py-1 rounded text-xs ${order?.priority === 'urgent' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
-                    {order?.priority || 'Normal'}
+                  <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                    order?.priority === 'ASAP' ? 'bg-red-600 text-white' : 
+                    order?.priority === 'Must Delivery On Date' ? 'bg-orange-600 text-white' : 
+                    'bg-green-600 text-white'
+                  }`}>
+                    {order?.priority || 'Normal/Low'}
                   </span>
                 </div>
                 <div className="text-gray-300"><strong className="text-white">Run Number:</strong> {jobData?.run_number || '1'}</div>
