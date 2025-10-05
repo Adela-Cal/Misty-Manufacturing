@@ -338,6 +338,45 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     setEditedRunTime(actualRunTime);
   };
 
+  // Sign-off handlers
+  const handleSignOffDoubleClick = (type) => {
+    setEditingSignOff({ 
+      type, 
+      tempName: signOffs[type].name 
+    });
+  };
+
+  const handleSignOffSave = () => {
+    const { type, tempName } = editingSignOff;
+    const currentDate = new Date().toLocaleDateString();
+    
+    setSignOffs(prev => ({
+      ...prev,
+      [type]: {
+        name: tempName.trim(),
+        date: currentDate,
+        isEditing: false
+      }
+    }));
+    
+    setEditingSignOff({ type: '', tempName: '' });
+    toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} sign-off saved`);
+  };
+
+  const handleSignOffCancel = () => {
+    setEditingSignOff({ type: '', tempName: '' });
+  };
+
+  const clearSignOff = (type) => {
+    if (window.confirm(`Clear ${type} sign-off?`)) {
+      setSignOffs(prev => ({
+        ...prev,
+        [type]: { name: '', date: '', isEditing: false }
+      }));
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} sign-off cleared`);
+    }
+  };
+
   const getCurrentStageTitle = () => {
     const stageNames = {
       paper_slitting: 'Paper Slitting Job Card',
