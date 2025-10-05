@@ -432,6 +432,33 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     }
   };
 
+  // Finished quantity handlers
+  const handleEditFinishedQuantity = () => {
+    setEditedFinishedQuantity(finishedQuantity);
+    setIsEditingFinishedQuantity(true);
+  };
+
+  const handleSaveFinishedQuantity = () => {
+    const newQuantity = parseInt(editedFinishedQuantity) || 0;
+    setFinishedQuantity(newQuantity);
+    setIsEditingFinishedQuantity(false);
+    
+    // Calculate excess for stocktake
+    const requiredQuantity = jobData?.order?.quantity || 0;
+    const excess = Math.max(0, newQuantity - requiredQuantity);
+    
+    if (excess > 0) {
+      toast.success(`Finished quantity updated: ${newQuantity.toLocaleString()}. Excess: ${excess.toLocaleString()} units for stocktake`);
+    } else {
+      toast.success(`Finished quantity updated: ${newQuantity.toLocaleString()}`);
+    }
+  };
+
+  const handleCancelEditFinishedQuantity = () => {
+    setIsEditingFinishedQuantity(false);
+    setEditedFinishedQuantity(finishedQuantity);
+  };
+
   const getCurrentStageTitle = () => {
     const stageNames = {
       paper_slitting: 'Paper Slitting Job Card',
