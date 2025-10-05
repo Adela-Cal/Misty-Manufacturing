@@ -192,6 +192,7 @@ class Order(BaseModel):
     gst: float
     total_amount: float
     due_date: datetime
+    priority: OrderPriority = OrderPriority.NORMAL_LOW
     delivery_address: Optional[str] = None
     delivery_instructions: Optional[str] = None
     status: OrderStatus = OrderStatus.ACTIVE
