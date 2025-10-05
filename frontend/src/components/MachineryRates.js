@@ -189,7 +189,7 @@ const MachineryRates = () => {
             className="misty-button misty-button-primary flex items-center"
           >
             <PlusIcon className="h-5 w-5 mr-2" />
-            Add Rate
+            Add Specification
           </button>
         </div>
 
