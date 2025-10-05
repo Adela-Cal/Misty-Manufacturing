@@ -8,6 +8,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     client_id: '',
     purchase_order_number: '',
     due_date: '',
+    priority: 'Normal/Low', // Priority level for the order
     delivery_address: '',
     delivery_instructions: '',
     notes: '',
