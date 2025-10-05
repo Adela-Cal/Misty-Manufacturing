@@ -17,6 +17,80 @@ const ProductSpecifications = () => {
   const [products, setProducts] = useState([]);   // Products from Products & Materials
   const [suppliers, setSuppliers] = useState([]);  // Suppliers from Suppliers list
   const [machineryRates, setMachineryRates] = useState([]);  // Default machinery rates
+
+  // Core Winding Specifications - Same data as in Machinery Specifications
+  const coreWindingSpecs = [
+    {
+      id: 'cw_15_20',
+      coreRange: '15–20 mm',
+      paperWidth: '29–31 mm', 
+      beltSize: '30 mm',
+      recommendedAngle: '72°',
+      workableRange: '70–74°',
+      lengthFactor: '3.236',
+      displayName: '15-20mm Core (72° angle, 29-31mm paper)'
+    },
+    {
+      id: 'cw_21_30',
+      coreRange: '21–30 mm',
+      paperWidth: '37–41 mm',
+      beltSize: '40 mm', 
+      recommendedAngle: '70°',
+      workableRange: '68–73°',
+      lengthFactor: '2.924',
+      displayName: '21-30mm Core (70° angle, 37-41mm paper)'
+    },
+    {
+      id: 'cw_31_50',
+      coreRange: '31–50 mm',
+      paperWidth: '57–61 mm',
+      beltSize: '60 mm',
+      recommendedAngle: '68°', 
+      workableRange: '66–72°',
+      lengthFactor: '2.670',
+      displayName: '31-50mm Core (68° angle, 57-61mm paper)'
+    },
+    {
+      id: 'cw_51_70',
+      coreRange: '51–70 mm',
+      paperWidth: '76–81 mm',
+      beltSize: '80 mm',
+      recommendedAngle: '66°',
+      workableRange: '64–70°', 
+      lengthFactor: '2.459',
+      displayName: '51-70mm Core (66° angle, 76-81mm paper)'
+    },
+    {
+      id: 'cw_71_120',
+      coreRange: '71–120 mm',
+      paperWidth: '103–106 mm',
+      beltSize: '105 mm',
+      recommendedAngle: '65°',
+      workableRange: '62–68°',
+      lengthFactor: '2.366',
+      displayName: '71-120mm Core (65° angle, 103-106mm paper)'
+    },
+    {
+      id: 'cw_121_200',
+      coreRange: '121–200 mm',
+      paperWidth: '118–122 mm', 
+      beltSize: '120 mm',
+      recommendedAngle: '64°',
+      workableRange: '60–66°',
+      lengthFactor: '2.281',
+      displayName: '121-200mm Core (64° angle, 118-122mm paper)'
+    },
+    {
+      id: 'cw_201_plus',
+      coreRange: '> 201 mm',
+      paperWidth: '148–152 mm',
+      beltSize: '150 mm', 
+      recommendedAngle: '62°',
+      workableRange: '58–65°',
+      lengthFactor: '2.130',
+      displayName: '> 201mm Core (62° angle, 148-152mm paper)'
+    }
+  ];
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
