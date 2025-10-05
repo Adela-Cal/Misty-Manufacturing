@@ -1524,20 +1524,6 @@ const ProductSpecifications = () => {
                             />
                           </div>
 
-                          {/* Auto-populated GSM (Read-only) */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">
-                              GSM
-                            </label>
-                            <input
-                              type="number"
-                              value={layer.gsm || 0}
-                              className="misty-input w-full bg-gray-600"
-                              placeholder="Auto-populated"
-                              readOnly
-                            />
-                          </div>
-
                           {/* Width Configuration - Same for all layer types */}
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">
