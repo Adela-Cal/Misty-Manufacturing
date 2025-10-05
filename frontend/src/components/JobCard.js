@@ -47,6 +47,13 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [selectedMachine, setSelectedMachine] = useState('');
   const [setupNotes, setSetupNotes] = useState('');
+  
+  // Job timing states
+  const [isJobRunning, setIsJobRunning] = useState(false);
+  const [jobStartTime, setJobStartTime] = useState(null);
+  const [actualRunTime, setActualRunTime] = useState(0); // in minutes
+  const [isEditingRunTime, setIsEditingRunTime] = useState(false);
+  const [editedRunTime, setEditedRunTime] = useState(0);
 
   useEffect(() => {
     if (jobId && stage) {
