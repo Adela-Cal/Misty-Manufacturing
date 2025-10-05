@@ -579,20 +579,20 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           )}
 
           {/* Operator Sign-off */}
-          <div className="border-t-2 border-gray-800 pt-4 mt-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Operator Sign-off</h3>
+          <div className="border-t-2 border-gray-600 pt-4 mt-8">
+            <h3 className="text-lg font-semibold text-white mb-4">Operator Sign-off</h3>
             <div className="grid grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="border-b-2 border-gray-400 mb-2 h-8"></div>
-                <div className="text-sm text-gray-600">Setup By / Date</div>
+                <div className="border-b-2 border-gray-500 mb-2 h-8"></div>
+                <div className="text-sm text-gray-400">Setup By / Date</div>
               </div>
               <div className="text-center">
-                <div className="border-b-2 border-gray-400 mb-2 h-8"></div>
-                <div className="text-sm text-gray-600">Production By / Date</div>
+                <div className="border-b-2 border-gray-500 mb-2 h-8"></div>
+                <div className="text-sm text-gray-400">Production By / Date</div>
               </div>
               <div className="text-center">
-                <div className="border-b-2 border-gray-400 mb-2 h-8"></div>
-                <div className="text-sm text-gray-600">QC Check By / Date</div>
+                <div className="border-b-2 border-gray-500 mb-2 h-8"></div>
+                <div className="text-sm text-gray-400">QC Check By / Date</div>
               </div>
             </div>
           </div>
