@@ -783,8 +783,10 @@ const ProductSpecifications = () => {
       const cleanMaterialLayers = formData.material_layers.map(layer => ({
         material_id: layer.material_id || 'unknown',
         material_name: layer.material_name || 'Unknown Material',
+        product_name: layer.product_name || layer.material_name || 'Unknown Product',
         layer_type: layer.layer_type || 'Outer Most Layer',
         thickness: parseFloat(layer.thickness) || 0,
+        gsm: parseInt(layer.gsm) || 0,
         quantity: parseFloat(layer.quantity) || 1,
         width: layer.width ? parseFloat(layer.width) : null,
         notes: layer.notes || ''
