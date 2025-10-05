@@ -48,12 +48,17 @@ const ProductionBoard = () => {
 
   useEffect(() => {
     loadProductionBoard();
+    
     const interval = setInterval(() => {
       // Only refresh if no job card is currently open
       if (!showJobCard) {
+        console.log('Auto-refreshing production board (no job card open)');
         loadProductionBoard();
+      } else {
+        console.log('Skipping auto-refresh (job card is open)');
       }
     }, 30000); // Check every 30 seconds
+    
     return () => clearInterval(interval);
   }, [showJobCard]);
 
