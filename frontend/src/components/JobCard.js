@@ -698,18 +698,20 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                 Machine Line: {machineConfig.name}
               </h3>
               <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Selected Machine:</label>
-                  <select 
-                    value={selectedMachine}
-                    onChange={(e) => setSelectedMachine(e.target.value)}
-                    className="misty-select w-full"
-                  >
-                    {machineConfig.machines?.map(machine => (
-                      <option key={machine} value={machine}>{machine}</option>
-                    ))}
-                  </select>
-                </div>
+                {stage === 'paper_slitting' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Selected Machine:</label>
+                    <select 
+                      value={selectedMachine}
+                      onChange={(e) => setSelectedMachine(e.target.value)}
+                      className="misty-select w-full"
+                    >
+                      {machineConfig.machines?.map(machine => (
+                        <option key={machine} value={machine}>{machine}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Setup Notes:</label>
                   <textarea
