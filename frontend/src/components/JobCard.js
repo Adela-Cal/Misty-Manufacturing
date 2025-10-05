@@ -63,6 +63,18 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   });
   const [editingSignOff, setEditingSignOff] = useState({ type: '', tempName: '' });
 
+  // Finished production quantity states
+  const [finishedQuantity, setFinishedQuantity] = useState(0);
+  const [isEditingFinishedQuantity, setIsEditingFinishedQuantity] = useState(false);
+  const [editedFinishedQuantity, setEditedFinishedQuantity] = useState(0);
+  
+  // Machine-specific additional production states
+  const [additionalProduction, setAdditionalProduction] = useState({
+    slittingWidths: [], // For slitting machine: additional widths and meters
+    extraMaterial: 0    // General excess material
+  });
+  const [isEditingAdditionalProduction, setIsEditingAdditionalProduction] = useState(false);
+
   useEffect(() => {
     if (jobId && stage && orderId) {
       loadJobCardData();
