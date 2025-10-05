@@ -144,6 +144,25 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     }
   };
 
+  const loadJobTiming = () => {
+    if (jobId && stage) {
+      const timingKey = `job_timing_${jobId}_${stage}`;
+      const savedTiming = localStorage.getItem(timingKey);
+      if (savedTiming) {
+        try {
+          const timingData = JSON.parse(savedTiming);
+          setIsJobRunning(timingData.isJobRunning || false);
+          setJobStartTime(timingData.jobStartTime || null);
+          setActualRunTime(timingData.actualRunTime || 0);
+          setSelectedMachine(timingData.selectedMachine || '');
+          setSetupNotes(timingData.setupNotes || '');
+        } catch (error) {
+          console.error('Error loading job timing data:', error);
+        }
+      }
+    }
+  };
+
   const calculateProduction = (job, order, product) => {
     // Add safety checks for all parameters
     if (!job || !order || !product) {
