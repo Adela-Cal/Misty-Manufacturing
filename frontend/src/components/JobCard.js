@@ -75,6 +75,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     extraMaterial: 0    // General excess material
   });
   const [isEditingAdditionalProduction, setIsEditingAdditionalProduction] = useState(false);
+  const [newSlittingWidth, setNewSlittingWidth] = useState({ width: '', meters: '' });
 
   useEffect(() => {
     if (jobId && stage && orderId) {
