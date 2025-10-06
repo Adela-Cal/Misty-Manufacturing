@@ -783,12 +783,31 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
         
         console.log('Product updated successfully');
         toast.success('Product updated successfully');
+        
+        // Before reloading, let's verify what was actually saved
+        console.log('Verifying saved data by fetching updated product...');
+        try {
+          const verifyResponse = await apiHelpers.getClientProduct(clientId, selectedProductForEdit.id);
+          const updatedProduct = verifyResponse.data?.data || verifyResponse.data;
+          console.log('Product after save verification:', {
+            tubes_per_carton: updatedProduct.tubes_per_carton,
+            makeready_allowance_percent: updatedProduct.makeready_allowance_percent,
+            setup_time_minutes: updatedProduct.setup_time_minutes,
+            waste_percentage: updatedProduct.waste_percentage,
+            special_tooling_notes: updatedProduct.special_tooling_notes
+          });
+        } catch (verifyError) {
+          console.error('Failed to verify saved product:', verifyError);
+        }
+        
         setIsInlineEditing(false);
         setSelectedProductForEdit(null);
         
         // Reload products to refresh the list
         console.log('Reloading products...');
         await loadData();
+        
+        console.log('Data reload completed');
       } else {
         console.log('Not in inline editing mode or no product selected');
       }
