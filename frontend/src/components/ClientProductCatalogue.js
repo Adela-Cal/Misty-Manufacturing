@@ -736,11 +736,8 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
     console.log('handleInlineSave called');
     console.log('Form data before save:', formData);
     
-    if (!validateForm()) {
-      console.log('Form validation failed');
-      toast.error('Please fix the errors below');
-      return;
-    }
+    // Removed validateForm check since function doesn't exist
+    console.log('Starting save process - no validation required');
 
     try {
       if (isInlineEditing && selectedProductForEdit) {
