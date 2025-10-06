@@ -1027,6 +1027,18 @@ agent_communication:
     message: "🎉 PRODUCT SPECIFICATIONS NEW PRODUCT TYPES TESTING COMPLETED SUCCESSFULLY: Comprehensive testing of the updated Product Specifications functionality with new product types (Plastic Bags, Tapes) and supplier integration completed with 95% success rate. All new product types are working correctly with proper field structures, supplier dropdowns are populated from suppliers list across all product types, and Material Layers/Machinery sections are properly hidden for new types. Only minor issue: Machinery section visibility for new product types needs final adjustment. All review requirements have been successfully implemented and tested."
 
 frontend:
+  - task: "Client Product Catalogue Production & Makeready Parameters Retention Bug"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/ClientProductCatalogue.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "🚨 CRITICAL BUG CONFIRMED: Production & Makeready Parameters not being retained in Client Product Catalogue. COMPREHENSIVE TESTING COMPLETED: ✅ Successfully accessed Client Product Catalogue via Clients → Label Makers → Add Products, ✅ Found 6 existing products in catalogue, ✅ Double-clicked on first product (Blade.ABG01) to edit, ✅ Located Production & Makeready Parameters section with all 5 parameter fields visible and accessible. PARAMETER MODIFICATION TESTING: ✅ Successfully modified all parameters: Makeready Allowance % (10→15), Setup Time (30→45 minutes), Waste Percentage (5→8), Tubes per Carton (50→60), Special Tooling Notes (added test content), ✅ All fields accepted the new values during editing session. CRITICAL ISSUE IDENTIFIED: ❌ ZERO parameters retained after save operation (0/5 retention rate), ❌ All parameters immediately revert to original values after save, ❌ No success message appears after clicking save button, ❌ Same issue persists after page refresh - complete data loss. ROOT CAUSE ANALYSIS: 🔍 Issue Type: Frontend state management - parameters not saving correctly, 🔍 Save button click detected but no API call appears to be made, 🔍 Form data not being properly submitted to backend, 🔍 All parameter fields revert to default values immediately after save attempt. IMPACT: Users cannot modify or save Production & Makeready Parameters in Client Product Catalogue, making this feature completely non-functional. URGENT FIX REQUIRED: Frontend form submission logic needs debugging to ensure parameter data is properly sent to backend API."
+
   - task: "Updated Product Specifications with New Product Types"
     implemented: true
     working: true
