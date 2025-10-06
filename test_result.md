@@ -1139,12 +1139,15 @@ agent_communication:
 frontend:
   - task: "Production & Makeready Parameters Save Issue Debug"
     implemented: true
-    working: true
+    working: false
     file: "/app/frontend/src/components/ClientProductCatalogue.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "testing"
         comment: "🎉 PRODUCTION & MAKEREADY PARAMETERS SAVE FUNCTIONALITY FULLY WORKING: Comprehensive debugging test completed with 100% success rate. CRITICAL SUCCESS FINDINGS: ✅ Login with Callum/Peach7510 working perfectly, ✅ Navigation to Clients → Label Makers → View Products successful, ✅ Product Catalogue modal opens correctly, ✅ Double-click product edit mode working, ✅ Tubes per Carton field found and accessible under Packing Instructions. SAVE FUNCTIONALITY VERIFIED: ✅ handleInlineSave called - Save button properly connected, ✅ Form data before save captured correctly, ✅ Preparing submitData working, ✅ Submit data with Production & Makeready parameters shows tubes_per_carton: 75 (correct new value, not 0 or NaN), ✅ Making API call to update product executed, ✅ Product updated successfully confirmed, ✅ Network monitoring shows PUT request with 200 status code. CONSOLE LOG ANALYSIS CONFIRMED: All required debug messages present in correct sequence: 'handleInlineSave called' → 'Form data before save' → 'Preparing submitData...' → 'Submit data with Production & Makeready parameters: {tubes_per_carton: 75}' → 'Making API call to update product...' → 'Product updated successfully'. API INTEGRATION SUCCESS: PUT /api/clients/{client_id}/catalog/{product_id} returned 200 status, confirming successful backend update. CONCLUSION: The Tubes per Carton save issue is NOT a system bug - the functionality is working correctly. Any user reports of save failures are likely due to: 1) User not clicking Save button properly, 2) Network connectivity issues, 3) Form validation errors preventing save, 4) Browser-specific issues, or 5) User expectations about data persistence. The enhanced logging confirms all save operations are functioning as designed."
+      - working: false
+        agent: "testing"
+        comment: "🚨 CRITICAL ROOT CAUSE IDENTIFIED: Production & Makeready Parameters Persistence Issue - Backend Model Missing tubes_per_carton Field. COMPREHENSIVE API TESTING COMPLETED: ✅ Successfully authenticated with Callum/Peach7510 credentials, ✅ Retrieved Label Makers client products via GET /api/clients/{client_id}/catalog, ✅ Attempted to update product with tubes_per_carton: 99 via PUT request, ✅ Backend returned 200 OK status with 'Client product updated successfully' message, ❌ CRITICAL FINDING: Verification GET request shows tubes_per_carton field completely missing from response. ROOT CAUSE CONFIRMED: The backend ClientProduct model in /app/backend/models.py does not include tubes_per_carton field in the schema. Frontend is sending the field, backend accepts the request but silently ignores unknown fields, resulting in data loss. IMPACT: All Production & Makeready Parameters (makeready_allowance_percent, setup_time_minutes, waste_percentage, tubes_per_carton, special_tooling_notes) are likely affected by this same issue. URGENT ACTION REQUIRED: Main agent must add missing fields to ClientProduct and ClientProductCreate models in backend/models.py and update the database schema to support these parameters."
