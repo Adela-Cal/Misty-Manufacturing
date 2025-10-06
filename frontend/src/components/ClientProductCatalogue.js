@@ -779,7 +779,14 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
         });
         
         console.log('Making API call to update product...');
-        await apiHelpers.updateClientProduct(clientId, selectedProductForEdit.id, submitData);
+        console.log('API Request details:', {
+          clientId,
+          productId: selectedProductForEdit.id,
+          submitData: submitData
+        });
+        
+        const apiResponse = await apiHelpers.updateClientProduct(clientId, selectedProductForEdit.id, submitData);
+        console.log('API Response:', apiResponse.data);
         
         console.log('Product updated successfully');
         toast.success('Product updated successfully');
