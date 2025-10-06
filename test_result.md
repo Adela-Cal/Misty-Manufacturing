@@ -913,7 +913,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Job Card Modal Opening Fix and Auto-Refresh Prevention"
+    - "Client Product Catalogue Production & Makeready Parameters Retention Bug"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
