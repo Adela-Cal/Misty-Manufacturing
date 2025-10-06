@@ -733,48 +733,72 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
   };
 
   const handleInlineSave = async () => {
+    console.log('handleInlineSave called');
+    console.log('Form data before save:', formData);
+    
     if (!validateForm()) {
+      console.log('Form validation failed');
       toast.error('Please fix the errors below');
       return;
     }
 
     try {
-      const submitData = {
-        product_type: formData.product_type,
-        product_code: formData.product_code,
-        product_description: formData.product_description,
-        price_ex_gst: parseFloat(formData.price_ex_gst),
-        minimum_order_quantity: parseInt(formData.minimum_order_quantity),
-        consignment: formData.consignment,
-        material_used: formData.product_type === 'paper_cores' ? formData.material_used : [],
-        core_id: formData.product_type === 'paper_cores' ? formData.core_id || null : null,
-        core_width: formData.product_type === 'paper_cores' ? formData.core_width || null : null,
-        core_thickness: formData.product_type === 'paper_cores' ? formData.core_thickness || null : null,
-        strength_quality_important: formData.product_type === 'paper_cores' ? formData.strength_quality_important : false,
-        delivery_included: formData.product_type === 'paper_cores' ? formData.delivery_included : false,
-        consumables: formData.consumables,
-        is_shared_product: formData.is_shared_product,
-        shared_with_clients: formData.shared_with_clients,
-        makeready_allowance_percent: formData.makeready_allowance_percent,
-        setup_time_minutes: formData.setup_time_minutes,
-        waste_percentage: formData.waste_percentage,
-        qc_tolerances: formData.qc_tolerances,
-        inspection_interval_minutes: formData.inspection_interval_minutes,
-        tubes_per_carton: formData.tubes_per_carton,
-        cartons_per_pallet: formData.cartons_per_pallet,
-        special_tooling_notes: formData.special_tooling_notes,
-        packing_instructions: formData.packing_instructions
-      };
+      if (isInlineEditing && selectedProductForEdit) {
+        console.log('Preparing submitData...');
+        
+        const submitData = {
+          product_type: formData.product_type,
+          product_code: formData.product_code,
+          product_description: formData.product_description,
+          price_ex_gst: parseFloat(formData.price_ex_gst) || 0,
+          minimum_order_quantity: parseInt(formData.minimum_order_quantity) || 1,
+          consignment: formData.consignment,
+          material_used: formData.product_type === 'paper_cores' ? formData.material_used : [],
+          core_id: formData.product_type === 'paper_cores' ? formData.core_id || null : null,
+          core_width: formData.product_type === 'paper_cores' ? formData.core_width || null : null,
+          core_thickness: formData.product_type === 'paper_cores' ? formData.core_thickness || null : null,
+          strength_quality_important: formData.product_type === 'paper_cores' ? formData.strength_quality_important : false,
+          delivery_included: formData.product_type === 'paper_cores' ? formData.delivery_included : false,
+          consumables: formData.consumables || [],
+          makeready_allowance_percent: parseFloat(formData.makeready_allowance_percent) || 0,
+          setup_time_minutes: parseInt(formData.setup_time_minutes) || 0,
+          waste_percentage: parseFloat(formData.waste_percentage) || 0,
+          qc_tolerances: formData.qc_tolerances || { id_tolerance: 0, od_tolerance: 0, wall_tolerance: 0 },
+          inspection_interval_minutes: parseInt(formData.inspection_interval_minutes) || 0,
+          tubes_per_carton: parseInt(formData.tubes_per_carton) || 0,
+          cartons_per_pallet: parseInt(formData.cartons_per_pallet) || 0,
+          special_tooling_notes: formData.special_tooling_notes || '',
+          packing_instructions: formData.packing_instructions || '',
+          is_shared_product: formData.is_shared_product || false,
+          shared_with_clients: formData.shared_with_clients || [],
+        };
 
-      await apiHelpers.updateClientProduct(clientId, selectedProductForEdit.id, submitData);
-      toast.success('Product updated successfully');
-      
-      handleInlineCancel();
-      loadData();
+        console.log('Submit data with Production & Makeready parameters:', {
+          makeready_allowance_percent: submitData.makeready_allowance_percent,
+          setup_time_minutes: submitData.setup_time_minutes,
+          waste_percentage: submitData.waste_percentage,
+          tubes_per_carton: submitData.tubes_per_carton,
+          special_tooling_notes: submitData.special_tooling_notes
+        });
+        
+        console.log('Making API call to update product...');
+        await apiHelpers.updateClientProduct(clientId, selectedProductForEdit.id, submitData);
+        
+        console.log('Product updated successfully');
+        toast.success('Product updated successfully');
+        setIsInlineEditing(false);
+        setSelectedProductForEdit(null);
+        
+        // Reload products to refresh the list
+        console.log('Reloading products...');
+        await loadData();
+      } else {
+        console.log('Not in inline editing mode or no product selected');
+      }
     } catch (error) {
-      console.error('Failed to save product:', error);
-      const message = error.response?.data?.detail || 'Failed to save product';
-      toast.error(message);
+      console.error('Error saving product:', error);
+      console.error('Error details:', error.response?.data);
+      toast.error('Failed to save product: ' + (error.response?.data?.detail || error.message));
     }
   };
 
