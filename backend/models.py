@@ -681,6 +681,22 @@ class ClientProductCreate(BaseModel):
     core_thickness: Optional[str] = None
     strength_quality_important: Optional[bool] = False
     delivery_included: Optional[bool] = False
+    
+    # Production & Makeready Parameters
+    makeready_allowance_percent: Optional[float] = 0.0
+    setup_time_minutes: Optional[int] = 0
+    waste_percentage: Optional[float] = 0.0
+    qc_tolerances: Optional[dict] = Field(default_factory=lambda: {"id_tolerance": 0.0, "od_tolerance": 0.0, "wall_tolerance": 0.0})
+    inspection_interval_minutes: Optional[int] = 0
+    tubes_per_carton: Optional[int] = 0
+    cartons_per_pallet: Optional[int] = 0
+    special_tooling_notes: Optional[str] = ""
+    packing_instructions: Optional[str] = ""
+    
+    # Consumables and sharing
+    consumables: Optional[List[dict]] = Field(default_factory=list)
+    is_shared_product: Optional[bool] = False
+    shared_with_clients: Optional[List[str]] = Field(default_factory=list)
 
 # Response Models
 class StandardResponse(BaseModel):
