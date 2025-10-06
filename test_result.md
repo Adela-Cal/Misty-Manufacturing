@@ -913,11 +913,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Product Specifications Integration Fix for Job Card Material Layers"
-  stuck_tasks: 
-    - "Product Specifications Integration Fix for Job Card Material Layers"
+    - "Job Card Modal Opening Fix and Auto-Refresh Prevention"
+  stuck_tasks: []
   test_all: false
-  test_priority: "stuck_first"
+  test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
