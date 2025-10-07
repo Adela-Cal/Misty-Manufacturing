@@ -180,6 +180,96 @@ const Stocktake = () => {
     }
   };
 
+  const loadClients = async () => {
+    try {
+      const response = await apiHelpers.getClients();
+      setClients(response.data || []);
+    } catch (error) {
+      console.error('Failed to load clients:', error);
+    }
+  };
+
+  const loadStockAlerts = async () => {
+    try {
+      const response = await apiHelpers.get('/stock/alerts');
+      setStockAlerts(response.data || []);
+      setShowStockAlert((response.data || []).length > 0);
+    } catch (error) {
+      console.error('Failed to load stock alerts:', error);
+    }
+  };
+
+  const loadRawSubstrates = async () => {
+    try {
+      const response = await apiHelpers.get(`/stock/raw-substrates${selectedClient !== 'all' ? `?client_id=${selectedClient}` : ''}`);
+      setRawSubstrates(response.data || []);
+    } catch (error) {
+      console.error('Failed to load raw substrates:', error);
+      toast.error('Failed to load raw substrates');
+    }
+  };
+
+  const loadRawMaterialsStock = async () => {
+    try {
+      const response = await apiHelpers.get('/stock/raw-materials');
+      setRawMaterialsStock(response.data || []);
+    } catch (error) {
+      console.error('Failed to load raw materials stock:', error);
+      toast.error('Failed to load raw materials stock');
+    }
+  };
+
+  const handleDoubleClick = (itemId, field) => {
+    setEditingItem(itemId);
+    setEditingField(field);
+  };
+
+  const handleFieldSave = async (itemId, field, value, itemType) => {
+    try {
+      const endpoint = itemType === 'substrate' ? `/stock/raw-substrates/${itemId}` : `/stock/raw-materials/${itemId}`;
+      await apiHelpers.put(endpoint, { [field]: parseFloat(value) });
+      
+      setEditingItem(null);
+      setEditingField(null);
+      
+      if (itemType === 'substrate') {
+        loadRawSubstrates();
+      } else {
+        loadRawMaterialsStock();
+      }
+      
+      toast.success(`${field} updated successfully`);
+    } catch (error) {
+      console.error(`Failed to update ${field}:`, error);
+      toast.error(`Failed to update ${field}`);
+    }
+  };
+
+  const acknowledgeAlert = async (alertId, snoozeHours = null) => {
+    try {
+      await apiHelpers.post(`/stock/alerts/${alertId}/acknowledge`, {
+        snooze_hours: snoozeHours
+      });
+      
+      loadStockAlerts();
+      toast.success(snoozeHours ? `Alert snoozed for ${snoozeHours} hours` : 'Alert acknowledged');
+    } catch (error) {
+      console.error('Failed to acknowledge alert:', error);
+      toast.error('Failed to acknowledge alert');
+    }
+  };
+
+  const checkLowStock = async () => {
+    try {
+      const response = await apiHelpers.post('/stock/check-low-stock');
+      loadStockAlerts();
+      toast.success(response.message || 'Stock check completed');
+    } catch (error) {
+      console.error('Failed to check low stock:', error);
+      toast.error('Failed to check low stock');
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
