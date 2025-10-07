@@ -799,7 +799,7 @@ const Stocktake = () => {
               </button>
             </div>
             <div className="space-y-2 mb-3">
-              {stockAlerts.slice(0, 3).map((alert) => (
+              {(stockAlerts || []).slice(0, 3).map((alert) => (
                 <div key={alert.id} className="text-sm text-red-200">
                   {alert.message}
                 </div>
