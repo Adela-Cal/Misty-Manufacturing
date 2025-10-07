@@ -3509,6 +3509,488 @@ async def serve_uploaded_file(file_path: str):
     
     return FileResponse(full_path)
 
+# ============= STOCK MANAGEMENT SYSTEM ENDPOINTS =============
+
+@api_router.get("/stock/raw-substrates", response_model=StandardResponse)
+async def get_raw_substrates_stock(
+    client_id: Optional[str] = None,
+    current_user: dict = Depends(require_any_role)
+):
+    """Get all raw substrates on hand, optionally filtered by client"""
+    try:
+        query = {}
+        if client_id and client_id != "all":
+            query["client_id"] = client_id
+            
+        substrates = await db.raw_substrate_stock.find(query).to_list(length=None)
+        
+        # Remove MongoDB ObjectIds
+        for substrate in substrates:
+            if "_id" in substrate:
+                del substrate["_id"]
+        
+        return StandardResponse(
+            success=True,
+            message="Raw substrates retrieved successfully",
+            data=substrates
+        )
+    except Exception as e:
+        logger.error(f"Failed to get raw substrates: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve raw substrates")
+
+@api_router.post("/stock/raw-substrates", response_model=StandardResponse)
+async def create_raw_substrate_stock(
+    substrate_data: Dict[str, Any],
+    current_user: dict = Depends(require_manager_or_admin)
+):
+    """Create new raw substrate stock entry"""
+    try:
+        # Create new substrate stock record
+        substrate = RawSubstrateStock(
+            client_id=substrate_data["client_id"],
+            client_name=substrate_data["client_name"],
+            product_id=substrate_data["product_id"],
+            product_code=substrate_data["product_code"],
+            product_description=substrate_data["product_description"],
+            quantity_on_hand=substrate_data["quantity_on_hand"],
+            unit_of_measure=substrate_data.get("unit_of_measure", "units"),
+            source_order_id=substrate_data["source_order_id"],
+            source_job_id=substrate_data.get("source_job_id"),
+            is_shared_product=substrate_data.get("is_shared_product", False),
+            shared_with_clients=substrate_data.get("shared_with_clients", []),
+            created_from_excess=substrate_data.get("created_from_excess", True),
+            material_specifications=substrate_data.get("material_specifications", {}),
+            material_value_m2=substrate_data.get("material_value_m2", 0.0),
+            minimum_stock_level=substrate_data.get("minimum_stock_level", 0.0),
+            created_by=current_user["user_id"]
+        )
+        
+        substrate_dict = substrate.dict()
+        substrate_dict["created_at"] = datetime.now(timezone.utc)
+        
+        result = await db.raw_substrate_stock.insert_one(substrate_dict)
+        
+        # Create stock movement record
+        movement = StockMovement(
+            stock_type="raw_substrate",
+            stock_id=substrate.id,
+            movement_type="addition",
+            quantity_change=substrate_data["quantity_on_hand"],
+            previous_quantity=0.0,
+            new_quantity=substrate_data["quantity_on_hand"],
+            reference_id=substrate_data["source_order_id"],
+            reference_type="order",
+            notes=f"Initial stock creation from excess production",
+            created_by=current_user["user_id"]
+        )
+        
+        movement_dict = movement.dict()
+        movement_dict["created_at"] = datetime.now(timezone.utc)
+        await db.stock_movements.insert_one(movement_dict)
+        
+        return StandardResponse(
+            success=True,
+            message="Raw substrate stock created successfully",
+            data={"id": substrate.id}
+        )
+    except Exception as e:
+        logger.error(f"Failed to create raw substrate stock: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create raw substrate stock")
+
+@api_router.put("/stock/raw-substrates/{substrate_id}", response_model=StandardResponse)
+async def update_raw_substrate_stock(
+    substrate_id: str,
+    update_data: Dict[str, Any],
+    current_user: dict = Depends(require_manager_or_admin)
+):
+    """Update raw substrate stock quantity or details"""
+    try:
+        # Get existing substrate
+        existing = await db.raw_substrate_stock.find_one({"id": substrate_id})
+        if not existing:
+            raise HTTPException(status_code=404, detail="Raw substrate stock not found")
+        
+        previous_quantity = existing["quantity_on_hand"]
+        new_quantity = update_data.get("quantity_on_hand", previous_quantity)
+        
+        # Update substrate record
+        update_fields = {
+            "updated_at": datetime.now(timezone.utc),
+            "updated_by": current_user["user_id"]
+        }
+        
+        # Add any fields that are being updated
+        for field in ["quantity_on_hand", "minimum_stock_level", "is_shared_product", "shared_with_clients", "material_specifications"]:
+            if field in update_data:
+                update_fields[field] = update_data[field]
+        
+        await db.raw_substrate_stock.update_one(
+            {"id": substrate_id},
+            {"$set": update_fields}
+        )
+        
+        # Create stock movement record if quantity changed
+        if new_quantity != previous_quantity:
+            movement_type = "addition" if new_quantity > previous_quantity else "consumption"
+            quantity_change = new_quantity - previous_quantity
+            
+            movement = StockMovement(
+                stock_type="raw_substrate",
+                stock_id=substrate_id,
+                movement_type=movement_type,
+                quantity_change=quantity_change,
+                previous_quantity=previous_quantity,
+                new_quantity=new_quantity,
+                reference_type="manual",
+                notes=update_data.get("notes", "Manual adjustment"),
+                created_by=current_user["user_id"]
+            )
+            
+            movement_dict = movement.dict()
+            movement_dict["created_at"] = datetime.now(timezone.utc)
+            await db.stock_movements.insert_one(movement_dict)
+        
+        return StandardResponse(
+            success=True,
+            message="Raw substrate stock updated successfully"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to update raw substrate stock: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to update raw substrate stock")
+
+@api_router.get("/stock/raw-materials", response_model=StandardResponse)
+async def get_raw_materials_stock(current_user: dict = Depends(require_any_role)):
+    """Get all raw materials stock"""
+    try:
+        materials = await db.raw_material_stock.find({}).to_list(length=None)
+        
+        # Remove MongoDB ObjectIds
+        for material in materials:
+            if "_id" in material:
+                del material["_id"]
+        
+        return StandardResponse(
+            success=True,
+            message="Raw materials stock retrieved successfully",
+            data=materials
+        )
+    except Exception as e:
+        logger.error(f"Failed to get raw materials stock: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve raw materials stock")
+
+@api_router.post("/stock/raw-materials", response_model=StandardResponse)
+async def create_raw_material_stock(
+    material_data: Dict[str, Any],
+    current_user: dict = Depends(require_manager_or_admin)
+):
+    """Create new raw material stock entry"""
+    try:
+        # Create new material stock record
+        material = RawMaterialStock(
+            material_id=material_data["material_id"],
+            material_name=material_data["material_name"],
+            quantity_on_hand=material_data["quantity_on_hand"],
+            unit_of_measure=material_data.get("unit_of_measure", "kg"),
+            minimum_stock_level=material_data.get("minimum_stock_level", 0.0),
+            alert_threshold_days=material_data.get("alert_threshold_days", 7),
+            supplier_id=material_data.get("supplier_id"),
+            usage_rate_per_month=material_data.get("usage_rate_per_month", 0.0)
+        )
+        
+        material_dict = material.dict()
+        material_dict["created_at"] = datetime.now(timezone.utc)
+        
+        result = await db.raw_material_stock.insert_one(material_dict)
+        
+        # Create stock movement record
+        movement = StockMovement(
+            stock_type="raw_material",
+            stock_id=material.id,
+            movement_type="addition",
+            quantity_change=material_data["quantity_on_hand"],
+            previous_quantity=0.0,
+            new_quantity=material_data["quantity_on_hand"],
+            reference_type="manual",
+            notes="Initial stock creation",
+            created_by=current_user["user_id"]
+        )
+        
+        movement_dict = movement.dict()
+        movement_dict["created_at"] = datetime.now(timezone.utc)
+        await db.stock_movements.insert_one(movement_dict)
+        
+        return StandardResponse(
+            success=True,
+            message="Raw material stock created successfully",
+            data={"id": material.id}
+        )
+    except Exception as e:
+        logger.error(f"Failed to create raw material stock: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create raw material stock")
+
+@api_router.put("/stock/raw-materials/{material_id}", response_model=StandardResponse)
+async def update_raw_material_stock(
+    material_id: str,
+    update_data: Dict[str, Any],
+    current_user: dict = Depends(require_manager_or_admin)
+):
+    """Update raw material stock quantity or details"""
+    try:
+        # Get existing material
+        existing = await db.raw_material_stock.find_one({"id": material_id})
+        if not existing:
+            raise HTTPException(status_code=404, detail="Raw material stock not found")
+        
+        previous_quantity = existing["quantity_on_hand"]
+        new_quantity = update_data.get("quantity_on_hand", previous_quantity)
+        
+        # Update material record
+        update_fields = {
+            "updated_at": datetime.now(timezone.utc)
+        }
+        
+        # Add any fields that are being updated
+        for field in ["quantity_on_hand", "minimum_stock_level", "alert_threshold_days", "usage_rate_per_month", "last_order_date", "last_order_quantity"]:
+            if field in update_data:
+                update_fields[field] = update_data[field]
+        
+        await db.raw_material_stock.update_one(
+            {"id": material_id},
+            {"$set": update_fields}
+        )
+        
+        # Create stock movement record if quantity changed
+        if new_quantity != previous_quantity:
+            movement_type = "addition" if new_quantity > previous_quantity else "consumption"
+            quantity_change = new_quantity - previous_quantity
+            
+            movement = StockMovement(
+                stock_type="raw_material",
+                stock_id=material_id,
+                movement_type=movement_type,
+                quantity_change=quantity_change,
+                previous_quantity=previous_quantity,
+                new_quantity=new_quantity,
+                reference_type="manual",
+                notes=update_data.get("notes", "Manual adjustment"),
+                created_by=current_user["user_id"]
+            )
+            
+            movement_dict = movement.dict()
+            movement_dict["created_at"] = datetime.now(timezone.utc)
+            await db.stock_movements.insert_one(movement_dict)
+        
+        return StandardResponse(
+            success=True,
+            message="Raw material stock updated successfully"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to update raw material stock: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to update raw material stock")
+
+@api_router.get("/stock/movements/{stock_id}", response_model=StandardResponse)
+async def get_stock_movements(
+    stock_id: str,
+    current_user: dict = Depends(require_any_role)
+):
+    """Get stock movement history for a specific stock item"""
+    try:
+        movements = await db.stock_movements.find({"stock_id": stock_id}).sort("created_at", -1).to_list(length=None)
+        
+        # Remove MongoDB ObjectIds
+        for movement in movements:
+            if "_id" in movement:
+                del movement["_id"]
+        
+        return StandardResponse(
+            success=True,
+            message="Stock movements retrieved successfully",
+            data=movements
+        )
+    except Exception as e:
+        logger.error(f"Failed to get stock movements: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve stock movements")
+
+@api_router.get("/stock/alerts", response_model=StandardResponse)
+async def get_stock_alerts(current_user: dict = Depends(require_any_role)):
+    """Get all active stock alerts"""
+    try:
+        alerts = await db.stock_alerts.find({"is_active": True}).to_list(length=None)
+        
+        # Remove MongoDB ObjectIds
+        for alert in alerts:
+            if "_id" in alert:
+                del alert["_id"]
+        
+        return StandardResponse(
+            success=True,
+            message="Stock alerts retrieved successfully",
+            data=alerts
+        )
+    except Exception as e:
+        logger.error(f"Failed to get stock alerts: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve stock alerts")
+
+@api_router.post("/stock/alerts/{alert_id}/acknowledge", response_model=StandardResponse)
+async def acknowledge_stock_alert(
+    alert_id: str,
+    acknowledge_data: Dict[str, Any],
+    current_user: dict = Depends(require_any_role)
+):
+    """Acknowledge a stock alert"""
+    try:
+        update_fields = {
+            "acknowledged_by": current_user["user_id"],
+            "acknowledged_at": datetime.now(timezone.utc)
+        }
+        
+        # Handle snooze functionality
+        if acknowledge_data.get("snooze_hours"):
+            snooze_hours = acknowledge_data["snooze_hours"]
+            update_fields["snooze_until"] = datetime.now(timezone.utc) + timedelta(hours=snooze_hours)
+        else:
+            # If not snoozed, deactivate the alert
+            update_fields["is_active"] = False
+        
+        result = await db.stock_alerts.update_one(
+            {"id": alert_id},
+            {"$set": update_fields}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Stock alert not found")
+        
+        return StandardResponse(
+            success=True,
+            message="Stock alert acknowledged successfully"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to acknowledge stock alert: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to acknowledge stock alert")
+
+@api_router.post("/stock/check-low-stock", response_model=StandardResponse)
+async def check_low_stock_alerts(current_user: dict = Depends(require_any_role)):
+    """Check for low stock and create alerts"""
+    try:
+        alerts_created = 0
+        
+        # Check raw materials stock
+        materials = await db.raw_material_stock.find({}).to_list(length=None)
+        for material in materials:
+            if material["quantity_on_hand"] <= material.get("minimum_stock_level", 0):
+                # Check if alert already exists for this material
+                existing_alert = await db.stock_alerts.find_one({
+                    "stock_id": material["id"],
+                    "stock_type": "raw_material",
+                    "alert_type": "low_stock",
+                    "is_active": True
+                })
+                
+                if not existing_alert:
+                    alert = StockAlert(
+                        stock_type="raw_material",
+                        stock_id=material["id"],
+                        alert_type="low_stock",
+                        message=f"Low stock alert: {material['material_name']} has {material['quantity_on_hand']} {material['unit_of_measure']} remaining (minimum: {material.get('minimum_stock_level', 0)})"
+                    )
+                    
+                    alert_dict = alert.dict()
+                    alert_dict["created_at"] = datetime.now(timezone.utc)
+                    await db.stock_alerts.insert_one(alert_dict)
+                    alerts_created += 1
+        
+        # Check raw substrates stock
+        substrates = await db.raw_substrate_stock.find({}).to_list(length=None)
+        for substrate in substrates:
+            if substrate["quantity_on_hand"] <= substrate.get("minimum_stock_level", 0):
+                # Check if alert already exists for this substrate
+                existing_alert = await db.stock_alerts.find_one({
+                    "stock_id": substrate["id"],
+                    "stock_type": "raw_substrate", 
+                    "alert_type": "low_stock",
+                    "is_active": True
+                })
+                
+                if not existing_alert:
+                    alert = StockAlert(
+                        stock_type="raw_substrate",
+                        stock_id=substrate["id"],
+                        alert_type="low_stock",
+                        message=f"Low stock alert: {substrate['product_description']} ({substrate['product_code']}) has {substrate['quantity_on_hand']} {substrate['unit_of_measure']} remaining (minimum: {substrate.get('minimum_stock_level', 0)})"
+                    )
+                    
+                    alert_dict = alert.dict()
+                    alert_dict["created_at"] = datetime.now(timezone.utc)
+                    await db.stock_alerts.insert_one(alert_dict)
+                    alerts_created += 1
+        
+        return StandardResponse(
+            success=True,
+            message=f"Stock check completed. {alerts_created} new alerts created.",
+            data={"alerts_created": alerts_created}
+        )
+    except Exception as e:
+        logger.error(f"Failed to check low stock: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to check low stock")
+
+@api_router.delete("/stock/raw-substrates/{substrate_id}", response_model=StandardResponse)
+async def delete_raw_substrate_stock(
+    substrate_id: str,
+    current_user: dict = Depends(require_manager_or_admin)
+):
+    """Delete raw substrate stock entry"""
+    try:
+        result = await db.raw_substrate_stock.delete_one({"id": substrate_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Raw substrate stock not found")
+        
+        # Also delete related stock movements and alerts
+        await db.stock_movements.delete_many({"stock_id": substrate_id})
+        await db.stock_alerts.delete_many({"stock_id": substrate_id})
+        
+        return StandardResponse(
+            success=True,
+            message="Raw substrate stock deleted successfully"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete raw substrate stock: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to delete raw substrate stock")
+
+@api_router.delete("/stock/raw-materials/{material_id}", response_model=StandardResponse)
+async def delete_raw_material_stock(
+    material_id: str,
+    current_user: dict = Depends(require_manager_or_admin)
+):
+    """Delete raw material stock entry"""
+    try:
+        result = await db.raw_material_stock.delete_one({"id": material_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Raw material stock not found")
+        
+        # Also delete related stock movements and alerts
+        await db.stock_movements.delete_many({"stock_id": material_id})
+        await db.stock_alerts.delete_many({"stock_id": material_id})
+        
+        return StandardResponse(
+            success=True,
+            message="Raw material stock deleted successfully"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete raw material stock: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to delete raw material stock")
+
 # ============= SYSTEM ENDPOINTS =============
 
 @api_router.get("/")
