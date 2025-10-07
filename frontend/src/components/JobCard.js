@@ -1665,6 +1665,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
               </div>
             </div>
           </div>
+
           <style dangerouslySetInnerHTML={{
             __html: `
             @media print {
@@ -1709,6 +1710,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             `
           }} />
         </div>
+      </div>
       </>
     );
   } catch (error) {
