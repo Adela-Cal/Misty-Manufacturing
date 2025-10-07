@@ -1,0 +1,120 @@
+<analysis>
+The trajectory details the AI engineer's work on an existing MVP, focusing on significant feature additions and bug fixes. Initial tasks involved enhancing product specifications (machinery rates, new product types), improving payroll/invoicing (Xero integration, timesheets), and building a comprehensive Job Card system. Key updates included dynamic supplier dropdowns, flexible measurement units, UI/UX overhauls for editing and action bars, and the introduction of Job Card timers and operator sign-offs.
+
+Subsequent user requests led to fixing Job Card order information, implementing priority levels for orders, displaying correct product specifications, adding machine-specific finished quantity sections, and overhauling the Production Board UI. The AI engineer resolved critical bugs related to screen glitching, data persistence in the Client Product Catalogue, and incorrect data flow from Raw Materials to Product Specifications and Job Cards, including GSM and material layer information. The Machinery Rates section was renamed to Machinery Specifications and extended with core winding angle details. The final major focus of the trajectory was the commencement of the Stock Management System, which is currently in its foundational phase, adding new tabs to the Stocktake component.
+</analysis>
+
+<product_requirements>
+The application's core objective is to manage manufacturing processes, from product definition to production and invoicing. The user aimed to:
+
+1.  **Enhance Product Specifications**: Implement machinery rate management (CRUD), expand product types (Pallet, Cardboard Boxes, Plastic Bags, Tapes) with conditional fields, allow supplier selection from a dropdown, and update time input to hours.
+2.  **Improve Timesheets & Invoicing**: Resolve backend  to  conversion issues, implement a Submit Timesheet button, fix Failed to load managers errors. Integrate with Xero for invoicing, fix OAuth issues, add Accounting Transactions tab, auto-create Xero draft invoices, and enable client-side CSV export.
+3.  **Refine Client Product Catalogue**: Add Add Consumables with dropdown selection, implement unit-based logic for quantities, redesign UI for double-click editing, introduce a bottom action bar (Save, Cancel, Delete, Duplicate, Print), and a Shared Product feature.
+4.  **Develop Job Card System**: Generate comprehensive job cards from the Production Board for each step (displaying specs, materials, times, order info, tasks, calculations, quality/safety, packing/delivery, consumables). Implement interactive Start Job/Completed Run timers, editable run times, double-clickable operator sign-off areas, and a dark theme.
+5.  **Address New Requirements (from trajectory)**:
+    *   Correct Job Card Order Information (number, client, date) and Product Specifications.
+    *   Add Priority dropdown to order entry (ASAP, Must Delivery On Date, Normal/Low).
+    *   Implement machine-specific Finished Production Quantity sections on Job Cards (Master Core Lengths for Core winding, Total Finished Cores for Cutting/Indexing, Additional Widths for Slitting), with double-click entry. These quantities should feed into a new Stocktake section: Raw Substrates On-Hand, tracking order details, shared products, and supporting manual adjustments, and displaying product specs/material value.
+    *   Redesign Production Board UI: narrower tiles (1/5 width), horizontal layout, drag-and-drop job reordering.
+    *   Introduce Raw Materials On Hand section in Stocktake: select from Raw Materials, track quantities, auto-deduct, trigger low stock alerts (at login, with UI icon, silence/reminder options).
+    *   Rename Machinery Rates to Machinery Specifications and winding machine to Core Winder.
+    *   Add detailed Core Winding Angle Specifications table to Machinery Specifications and integrate it as a dropdown selection in Edit Product Specification.
+    *   Ensure GSM and Product Name (from Raw Materials) correctly populate through Product Specifications to Job Cards.
+    *   Implement validation in order entry: quantity for paper core product must be divisible by tubes per carton (from Client Product Catalogue), with a red box and suggested rounded-up quantity.
+    *   Condense Materials Required section on Job Card.
+    *   Fix screen refreshing/glitching: only job cards not open should refresh, open ones remain static.
+</product_requirements>
+
+<key_technical_concepts>
+-   **Frameworks**: React (Frontend), FastAPI (Backend).
+-   **Database**: MongoDB with UUIDs and ISO string serialization for  objects.
+-   **Data Modeling**: Pydantic for backend data validation.
+-   **APIs**: RESTful CRUD endpoints, Xero OAuth 2.0.
+-   **Frontend**: React components, state management (, ), conditional rendering, Axios for API.
+-   **UI/UX**: Tailwind CSS, double-click editing, sticky action bars, modal management.
+-   **State Management**:  for client-side persistence (timers, sign-offs).
+</key_technical_concepts>
+
+<code_architecture>
+The application employs a monorepo structure with distinct  and  directories.
+
+
+
+-   ****
+    -   **Importance**: Defines core Pydantic models for the entire application, including clients, products, orders, and now stock-related entities.
+    -   **Changes**: Added  enum for orders. Added  field to  and  models. Crucially, , , , and  were added to  and  models to ensure persistence of these parameters.
+-   ****
+    -   **Importance**: Main FastAPI application file, defines all API routes.
+    -   **Changes**: Updated order creation endpoint to handle the new  field.
+-   ****
+    -   **Importance**: Handles main application routing.
+    -   **Changes**: No recent changes in the trajectory.
+-   ****
+    -   **Importance**: Defines the application's overall layout and navigation.
+    -   **Changes**: Renamed navigation link for Machinery Rates to Machinery Specifications.
+-   ****
+    -   **Importance**: Manages machinery definitions and rates. Now renamed Machinery Specifications.
+    -   **Changes**: Renamed Machinery Rates to Machinery Specifications (component name and UI titles). Changed winding machine to Core Winder. Added new state for . Implemented a UI table and modal updates for Core Winding Angle Specifications, including core diameter, paper width, belt size, recommended angle, and length factor. Added a helper function .
+-   ****
+    -   **Importance**: Component for managing detailed product definitions.
+    -   **Changes**: Removed Width Range field for Central Layer in material layers; now uses a single Width field. Removed  from material layer initialization. Modified  to correctly populate  (as ) and  from raw materials, ensuring display accuracy. Added  and  to material layer data structure. Updated display fields for  and  in the material layers form. Added  field to , , ,  for selecting core winding specifications. Implemented a dropdown in the Spiral Paper Core section to select . Fixed  display logic (showing 0 instead of Not available). Added a  for  to resolve a GSM auto-population re-rendering issue.
+-   ****
+    -   **Importance**: Core component for timesheet entry and submission.
+    -   **Changes**: No recent changes in the trajectory.
+-   ****
+    -   **Importance**: Manages invoicing and Xero integration UI.
+    -   **Changes**: No recent changes in the trajectory.
+-   ****
+    -   **Importance**: Handles the Xero OAuth callback process on the frontend.
+    -   **Changes**: No recent changes in the trajectory.
+-   ****
+    -   **Importance**: Manages client-specific product catalog.
+    -   **Changes**: Fixed a critical bug where Production & Makeready Parameters were not persisting due to a missing  function (a placeholder  was added, returning ). Added debug logs to . Added a new API helper .
+-   ****
+    -   **Importance**: Displays and manages production jobs.
+    -   **Changes**: Implemented logic to prevent auto-refresh when a Job Card modal is open, and trigger one refresh upon its closure, using  state and . Adjusted  validation to be more lenient (). Updated machine name references from winding to Core Winder.
+-   ****
+    -   **Importance**: Comprehensive display and tracking of job information.
+    -   **Changes**: Fixed screen glitching by optimizing  dependencies, using  state for live timer, removing the problematic inspection schedule section (which used ), and debouncing  saves. Fixed customer name display and product specification loading to accurately reflect order and client catalogue data. Removed Selected Machine dropdown, except for . Implemented machine-specific Finished Production Quantity sections ( state, , ), with  persistence. Renamed internal machine ID winding to core_winding and updated display to Core Winder. Implemented material calculation for Materials Required using the provided formula (Core length, Winding angle, laps, length factor), and condensed the display.
+-   ****
+    -   **Importance**: Component for viewing client's archived job cards.
+    -   **Changes**: No recent changes in the trajectory.
+-   ****
+    -   **Importance**: Lists and manages clients.
+    -   **Changes**: No recent changes in the trajectory.
+-   ****
+    -   **Importance**: Component for creating and editing orders.
+    -   **Changes**: Added  field and dropdown for ASAP, Must Delivery On Date, Normal/Low. Implemented packaging validation: if order quantity for paper cores is not divisible by tubes per carton, the quantity input turns red and suggests a rounded-up quantity. Added  state and  helper.
+-   **** (Existing file, enhanced)
+    -   **Importance**: Component for managing stock information.
+    -   **Changes**: Modified to include tabs for a new Raw Substrates On-Hand section and a Raw Materials On Hand section, laying the groundwork for the Stock Management System.
+-   ****
+    -   **Importance**: Centralized API communication helper.
+    -   **Changes**: Added  helper.
+</code_architecture>
+
+<pending_tasks>
+-   **Stock Management System**:
+    -   Backend models for stock management.
+    -   Storing excess production quantities (Raw Substrates On-Hand).
+    -   Tracking order and shared product status for stock.
+    -   Order entry prompt Do you want to use your Stock On-Hand?.
+    -   Manual increase/decrease stock, double-click for specs/value.
+    -   Raw Materials On Hand section: dropdown selection, auto-deduction, low stock alerts (login, UI icon, silence/reminder).
+    -   Reporting section for material usage and projection.
+    -   Printable PDF description for stock units.
+-   **Production Board UI Overhaul**:
+    -   Narrower job tiles (1/5 width).
+    -   Horizontal layout for new orders.
+    -   Drag & drop functionality for job ordering.
+</pending_tasks>
+
+<current_work>
+The most recent work involves initiating the Stock Management System as requested by the user. The AI engineer has just completed the foundational frontend changes by modifying . This update introduces new tabs within the existing Stocktake component, specifically for Raw Substrates On-Hand and Raw Materials On Hand. This sets up the UI structure for the upcoming stock management features.
+
+The next immediate step planned is to create the necessary backend models for the Stock Management System to support the data structures for Raw Substrates On-Hand and Raw Materials On Hand, which will involve modifying or creating models in  or new dedicated payroll models. This is critical for persisting any stock-related data that will be managed through the new frontend sections.
+</current_work>
+
+<optional_next_step>
+Create backend models for the Raw Substrates On-Hand and Raw Materials On Hand sections.
+</optional_next_step>
