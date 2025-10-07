@@ -286,6 +286,70 @@ const Stocktake = () => {
     }
   };
 
+  const handleViewItem = (item, itemType) => {
+    setSelectedItem(item);
+    setSelectedItemType(itemType);
+    setShowViewModal(true);
+  };
+
+  const handleEditItem = (item, itemType) => {
+    setSelectedItem(item);
+    setSelectedItemType(itemType);
+    setShowEditModal(true);
+  };
+
+  const handleDeleteItem = (item, itemType) => {
+    setSelectedItem(item);
+    setSelectedItemType(itemType);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      const endpoint = selectedItemType === 'substrate' 
+        ? `/stock/raw-substrates/${selectedItem.id}` 
+        : `/stock/raw-materials/${selectedItem.id}`;
+      
+      await apiHelpers.delete(endpoint);
+      
+      if (selectedItemType === 'substrate') {
+        loadRawSubstrates();
+      } else {
+        loadRawMaterialsStock();
+      }
+      
+      setShowDeleteConfirm(false);
+      setSelectedItem(null);
+      toast.success(`${selectedItemType === 'substrate' ? 'Substrate' : 'Material'} deleted successfully`);
+    } catch (error) {
+      console.error('Failed to delete item:', error);
+      toast.error('Failed to delete item');
+    }
+  };
+
+  const handleEditSave = async (updatedData) => {
+    try {
+      const endpoint = selectedItemType === 'substrate' 
+        ? `/stock/raw-substrates/${selectedItem.id}` 
+        : `/stock/raw-materials/${selectedItem.id}`;
+      
+      await apiHelpers.put(endpoint, updatedData);
+      
+      if (selectedItemType === 'substrate') {
+        loadRawSubstrates();
+      } else {
+        loadRawMaterialsStock();
+      }
+      
+      setShowEditModal(false);
+      setSelectedItem(null);
+      toast.success(`${selectedItemType === 'substrate' ? 'Substrate' : 'Material'} updated successfully`);
+    } catch (error) {
+      console.error('Failed to update item:', error);
+      toast.error('Failed to update item');
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
