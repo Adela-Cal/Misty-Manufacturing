@@ -3682,7 +3682,7 @@ async def get_raw_materials_stock(current_user: dict = Depends(require_any_role)
 
 @api_router.post("/stock/raw-materials", response_model=StandardResponse)
 async def create_raw_material_stock(
-    material_data: Dict[str, Any],
+    material_data: RawMaterialStockCreate,
     current_user: dict = Depends(require_manager_or_admin)
 ):
     """Create new raw material stock entry"""
