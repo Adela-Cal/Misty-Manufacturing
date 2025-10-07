@@ -928,7 +928,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Tubes Per Carton Packaging Validation in Order Creation"
+    - "Stock Management System API Implementation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
