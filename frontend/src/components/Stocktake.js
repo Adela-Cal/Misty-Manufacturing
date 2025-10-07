@@ -35,6 +35,38 @@ const Stocktake = () => {
   const [stockAlerts, setStockAlerts] = useState([]);
   const [showStockAlert, setShowStockAlert] = useState(false);
 
+  // Modal states
+  const [showSubstrateModal, setShowSubstrateModal] = useState(false);
+  const [showMaterialModal, setShowMaterialModal] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [editingField, setEditingField] = useState(null);
+
+  // Form states for new entries
+  const [substrateForm, setSubstrateForm] = useState({
+    client_id: '',
+    client_name: '',
+    product_id: '',
+    product_code: '',
+    product_description: '',
+    quantity_on_hand: 0,
+    unit_of_measure: 'units',
+    source_order_id: '',
+    is_shared_product: false,
+    shared_with_clients: [],
+    minimum_stock_level: 0
+  });
+
+  const [materialForm, setMaterialForm] = useState({
+    material_id: '',
+    material_name: '',
+    quantity_on_hand: 0,
+    unit_of_measure: 'kg',
+    minimum_stock_level: 0,
+    alert_threshold_days: 7,
+    supplier_id: '',
+    usage_rate_per_month: 0
+  });
+
   useEffect(() => {
     loadStocktakeStatus();
   }, []);
