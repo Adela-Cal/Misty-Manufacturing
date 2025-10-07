@@ -10,12 +10,22 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Stocktake = () => {
+  // Monthly Stocktake states
   const [currentStocktake, setCurrentStocktake] = useState(null);
   const [stocktakeRequired, setStocktakeRequired] = useState(false);
   const [materials, setMaterials] = useState([]);
   const [entries, setEntries] = useState({});
   const [loading, setLoading] = useState(true);
   const [completing, setCompleting] = useState(false);
+
+  // Stock Management System states
+  const [activeTab, setActiveTab] = useState('monthly'); // monthly, raw_substrates, raw_materials
+  const [rawSubstrates, setRawSubstrates] = useState([]);
+  const [rawMaterialsStock, setRawMaterialsStock] = useState([]);
+  const [selectedClient, setSelectedClient] = useState('all'); // for filtering substrates
+  const [clients, setClients] = useState([]);
+  const [stockAlerts, setStockAlerts] = useState([]);
+  const [showStockAlert, setShowStockAlert] = useState(false);
 
   useEffect(() => {
     loadStocktakeStatus();
