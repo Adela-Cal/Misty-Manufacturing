@@ -330,6 +330,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           if (timingData.signOffs) setSignOffs(timingData.signOffs);
           if (timingData.finishedQuantity !== undefined) setFinishedQuantity(timingData.finishedQuantity);
           if (timingData.additionalProduction) setAdditionalProduction(timingData.additionalProduction);
+          if (timingData.masterCores) setMasterCores(timingData.masterCores);
         } catch (error) {
           console.error('Error loading job timing data:', error);
         }
