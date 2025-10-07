@@ -635,10 +635,40 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                           step="1"
                           value={item.quantity || 1}
                           onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                          className={`misty-input w-full ${errors[`item_${index}_quantity`] ? 'border-red-500' : ''}`}
+                          className={`misty-input w-full ${
+                            errors[`item_${index}_quantity`] ? 'border-red-500' :
+                            packagingValidation[index] && !packagingValidation[index].isValid ? 'border-red-500 bg-red-900/20' : ''
+                          }`}
                         />
                         {errors[`item_${index}_quantity`] && (
                           <p className="text-red-400 text-sm mt-1">{errors[`item_${index}_quantity`]}</p>
+                        )}
+                        
+                        {/* Packaging validation messages */}
+                        {packagingValidation[index] && (
+                          <div className="mt-1">
+                            {packagingValidation[index].isValid ? (
+                              <p className="text-green-400 text-sm">
+                                ✓ Perfect! {packagingValidation[index].cartons} full carton{packagingValidation[index].cartons !== 1 ? 's' : ''} 
+                                ({packagingValidation[index].tubesPerCarton} tubes per carton)
+                              </p>
+                            ) : (
+                              <div className="text-red-400 text-sm">
+                                <p>⚠ Quantity not divisible by {packagingValidation[index].tubesPerCarton} tubes per carton</p>
+                                <p className="text-yellow-400 mt-1">
+                                  💡 Suggested: <span className="font-semibold">{packagingValidation[index].suggestedQuantity} units</span> 
+                                  ({packagingValidation[index].cartons} full carton{packagingValidation[index].cartons !== 1 ? 's' : ''})
+                                  <button
+                                    type="button"
+                                    onClick={() => handleItemChange(index, 'quantity', packagingValidation[index].suggestedQuantity)}
+                                    className="ml-2 px-2 py-0.5 bg-yellow-600 hover:bg-yellow-700 text-black text-xs rounded font-medium transition-colors"
+                                  >
+                                    Use This
+                                  </button>
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                       
