@@ -1009,7 +1009,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
               <CalculatorIcon className="h-5 w-5 mr-2" />
               Production Calculations
             </h3>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
                 <h4 className="font-semibold text-white mb-2">Material Requirements (metres)</h4>
                 <table className="w-full text-sm border border-gray-600">
