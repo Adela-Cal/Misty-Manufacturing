@@ -3689,14 +3689,14 @@ async def create_raw_material_stock(
     try:
         # Create new material stock record
         material = RawMaterialStock(
-            material_id=material_data["material_id"],
-            material_name=material_data["material_name"],
-            quantity_on_hand=material_data["quantity_on_hand"],
-            unit_of_measure=material_data.get("unit_of_measure", "kg"),
-            minimum_stock_level=material_data.get("minimum_stock_level", 0.0),
-            alert_threshold_days=material_data.get("alert_threshold_days", 7),
-            supplier_id=material_data.get("supplier_id"),
-            usage_rate_per_month=material_data.get("usage_rate_per_month", 0.0)
+            material_id=material_data.material_id,
+            material_name=material_data.material_name,
+            quantity_on_hand=material_data.quantity_on_hand,
+            unit_of_measure=material_data.unit_of_measure,
+            minimum_stock_level=material_data.minimum_stock_level,
+            alert_threshold_days=material_data.alert_threshold_days,
+            supplier_id=material_data.supplier_id,
+            usage_rate_per_month=material_data.usage_rate_per_month
         )
         
         material_dict = material.dict()
