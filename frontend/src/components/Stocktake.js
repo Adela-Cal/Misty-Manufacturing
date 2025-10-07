@@ -202,20 +202,26 @@ const Stocktake = () => {
   const loadRawSubstrates = async () => {
     try {
       const response = await apiHelpers.get(`/stock/raw-substrates${selectedClient !== 'all' ? `?client_id=${selectedClient}` : ''}`);
-      setRawSubstrates(response.data || []);
+      // Handle StandardResponse format: response.data.data contains the actual array
+      const data = response.data?.data || response.data || [];
+      setRawSubstrates(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to load raw substrates:', error);
       toast.error('Failed to load raw substrates');
+      setRawSubstrates([]); // Ensure it's always an array
     }
   };
 
   const loadRawMaterialsStock = async () => {
     try {
       const response = await apiHelpers.get('/stock/raw-materials');
-      setRawMaterialsStock(response.data || []);
+      // Handle StandardResponse format: response.data.data contains the actual array
+      const data = response.data?.data || response.data || [];
+      setRawMaterialsStock(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to load raw materials stock:', error);
       toast.error('Failed to load raw materials stock');
+      setRawMaterialsStock([]); // Ensure it's always an array
     }
   };
 
