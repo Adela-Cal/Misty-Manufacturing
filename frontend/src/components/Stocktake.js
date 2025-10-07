@@ -559,7 +559,7 @@ const Stocktake = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-700">
-                    {rawSubstrates.map((substrate) => (
+                    {(rawSubstrates || []).map((substrate) => (
                       <tr key={substrate.id} className="hover:bg-gray-700">
                         <td className="px-4 py-3 text-sm text-white">{substrate.client_name}</td>
                         <td className="px-4 py-3">
