@@ -338,147 +338,481 @@ const Stocktake = () => {
           </nav>
         </div>
 
-        {/* Stocktake Status */}
-        {!currentStocktake && stocktakeRequired ? (
-          // No stocktake - show prompt to start
-          <div className="bg-gray-800 rounded-lg p-8 text-center">
-            <ClipboardDocumentListIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-white mb-2">Monthly Stocktake Required</h2>
-            <p className="text-gray-300 mb-6">
-              It's time to conduct the monthly inventory count. This will generate a list of all materials 
-              in your inventory for manual counting.
-            </p>
-            <div className="bg-yellow-900/20 border border-yellow-500 rounded p-4 mb-6">
-              <p className="text-yellow-300 text-sm">
-                <strong>Note:</strong> Once started, you'll need to count all {materials.length} materials 
-                in your inventory. This process can be completed over multiple sessions.
-              </p>
-            </div>
-            <button
-              onClick={startStocktake}
-              className="misty-button misty-button-primary"
-            >
-              <CalendarIcon className="h-5 w-5 mr-2" />
-              Start Monthly Stocktake
-            </button>
-          </div>
-        ) : currentStocktake && currentStocktake.status === 'completed' ? (
-          // Completed stocktake
-          <div className="bg-gray-800 rounded-lg p-8 text-center">
-            <CheckCircleIcon className="h-16 w-16 text-green-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-white mb-2">Stocktake Completed</h2>
-            <p className="text-gray-300 mb-4">
-              Monthly stocktake for {new Date(currentStocktake.stocktake_date).toLocaleDateString()} has been completed.
-            </p>
-            <div className="text-sm text-gray-400">
-              Completed on: {new Date(currentStocktake.completed_at || currentStocktake.stocktake_date).toLocaleDateString()}
-            </div>
-          </div>
-        ) : currentStocktake ? (
-          // In progress stocktake
+        {/* Tab Content */}
+        {activeTab === 'monthly' && (
           <div className="space-y-6">
-            {/* Progress Header */}
-            <div className="bg-gray-800 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-semibold text-white">Stocktake in Progress</h2>
-                <span className="text-sm text-gray-400">
-                  Started: {new Date(currentStocktake.stocktake_date).toLocaleDateString()}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-300">
-                  Progress: {Object.keys(entries).length} / {materials.length} materials counted
+            {!currentStocktake && stocktakeRequired ? (
+              // No stocktake - show prompt to start
+              <div className="bg-gray-800 rounded-lg p-8 text-center">
+                <ClipboardDocumentListIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold text-white mb-2">Monthly Stocktake Required</h2>
+                <p className="text-gray-300 mb-6">
+                  It's time to conduct the monthly inventory count. This will generate a list of all materials 
+                  in your inventory for manual counting.
+                </p>
+                <div className="bg-yellow-900/20 border border-yellow-500 rounded p-4 mb-6">
+                  <p className="text-yellow-300 text-sm">
+                    <strong>Note:</strong> Once started, you'll need to count all {materials.length} materials 
+                    in your inventory. This process can be completed over multiple sessions.
+                  </p>
                 </div>
                 <button
-                  onClick={completeStocktake}
-                  disabled={completing || Object.keys(entries).length < materials.length}
-                  className="misty-button misty-button-primary disabled:opacity-50"
+                  onClick={startStocktake}
+                  className="misty-button misty-button-primary"
                 >
-                  {completing ? 'Completing...' : 'Complete Stocktake'}
+                  <CalendarIcon className="h-5 w-5 mr-2" />
+                  Start Monthly Stocktake
                 </button>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-2 mt-3">
-                <div 
-                  className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(Object.keys(entries).length / materials.length) * 100}%` }}
-                ></div>
+            ) : currentStocktake && currentStocktake.status === 'completed' ? (
+              // Completed stocktake
+              <div className="bg-gray-800 rounded-lg p-8 text-center">
+                <CheckCircleIcon className="h-16 w-16 text-green-400 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold text-white mb-2">Stocktake Completed</h2>
+                <p className="text-gray-300 mb-4">
+                  Monthly stocktake for {new Date(currentStocktake.stocktake_date).toLocaleDateString()} has been completed.
+                </p>
+                <div className="text-sm text-gray-400">
+                  Completed on: {new Date(currentStocktake.completed_at || currentStocktake.stocktake_date).toLocaleDateString()}
+                </div>
               </div>
-            </div>
-
-            {/* Materials List */}
-            <div className="bg-gray-800 rounded-lg">
-              <div className="p-4 border-b border-gray-700">
-                <h3 className="text-lg font-semibold text-white">Material Count</h3>
-                <p className="text-sm text-gray-400">Enter the current quantity on hand for each material (up to 2 decimal places)</p>
-              </div>
-              
-              <div className="divide-y divide-gray-700">
-                {materials.map((material) => (
-                  <div key={material.id} className="p-4 flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="font-medium text-white">{material.name || `${material.supplier} - ${material.product_code}`}</div>
-                      <div className="text-sm text-gray-400">Unit: {material.unit}</div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <div className="w-32">
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="0.00"
-                          value={entries[material.id] || ''}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setEntries(prev => ({ ...prev, [material.id]: value }));
-                          }}
-                          onBlur={(e) => {
-                            const value = e.target.value;
-                            if (value !== '') {
-                              updateEntry(material.id, value);
-                            }
-                          }}
-                          className="misty-input w-full text-right"
-                        />
-                      </div>
-                      
-                      <div className="w-6 flex justify-center">
-                        {entries[material.id] !== undefined && entries[material.id] !== '' ? (
-                          <CheckCircleIcon className="h-5 w-5 text-green-400" />
-                        ) : (
-                          <div className="h-2 w-2 bg-gray-500 rounded-full"></div>
-                        )}
-                      </div>
-                    </div>
+            ) : currentStocktake ? (
+              // In progress stocktake
+              <div className="space-y-6">
+                {/* Progress Header */}
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-lg font-semibold text-white">Stocktake in Progress</h2>
+                    <span className="text-sm text-gray-400">
+                      Started: {new Date(currentStocktake.stocktake_date).toLocaleDateString()}
+                    </span>
                   </div>
-                ))}
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-300">
+                      Progress: {Object.keys(entries).length} / {materials.length} materials counted
+                    </div>
+                    <button
+                      onClick={completeStocktake}
+                      disabled={completing || Object.keys(entries).length < materials.length}
+                      className="misty-button misty-button-primary disabled:opacity-50"
+                    >
+                      {completing ? 'Completing...' : 'Complete Stocktake'}
+                    </button>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-2 mt-3">
+                    <div 
+                      className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(Object.keys(entries).length / materials.length) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Materials List */}
+                <div className="bg-gray-800 rounded-lg">
+                  <div className="p-4 border-b border-gray-700">
+                    <h3 className="text-lg font-semibold text-white">Material Count</h3>
+                    <p className="text-sm text-gray-400">Enter the current quantity on hand for each material (up to 2 decimal places)</p>
+                  </div>
+                  
+                  <div className="divide-y divide-gray-700">
+                    {materials.map((material) => (
+                      <div key={material.id} className="p-4 flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-white">{material.name || `${material.supplier} - ${material.product_code}`}</div>
+                          <div className="text-sm text-gray-400">Unit: {material.unit}</div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3">
+                          <div className="w-32">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              placeholder="0.00"
+                              value={entries[material.id] || ''}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                setEntries(prev => ({ ...prev, [material.id]: value }));
+                              }}
+                              onBlur={(e) => {
+                                const value = e.target.value;
+                                if (value !== '') {
+                                  updateEntry(material.id, value);
+                                }
+                              }}
+                              className="misty-input w-full text-right"
+                            />
+                          </div>
+                          
+                          <div className="w-6 flex justify-center">
+                            {entries[material.id] !== undefined && entries[material.id] !== '' ? (
+                              <CheckCircleIcon className="h-5 w-5 text-green-400" />
+                            ) : (
+                              <div className="h-2 w-2 bg-gray-500 rounded-full"></div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Instructions */}
+                <div className="bg-blue-900/20 border border-blue-500 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-300 mb-2">Instructions:</h4>
+                  <ul className="text-sm text-blue-200 space-y-1">
+                    <li>• Count each material carefully and enter the exact quantity on hand</li>
+                    <li>• You can enter up to 2 decimal places (e.g., 15.75)</li>
+                    <li>• Entries are automatically saved when you move to the next field</li>
+                    <li>• All materials must be counted before completing the stocktake</li>
+                    <li>• The stocktake can be completed over multiple sessions</li>
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              // No stocktake required
+              <div className="bg-gray-800 rounded-lg p-8 text-center">
+                <ClipboardDocumentListIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold text-white mb-2">No Stocktake Required</h2>
+                <p className="text-gray-300 mb-4">
+                  The monthly stocktake for {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} 
+                  has already been completed or is not yet required.
+                </p>
+                <p className="text-sm text-gray-400">
+                  Stocktakes are automatically prompted on the first business day of each month.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Raw Substrates Tab */}
+        {activeTab === 'raw_substrates' && (
+          <div className="space-y-6">
+            {/* Header with filter and actions */}
+            <div className="bg-gray-800 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">Raw Substrates On-Hand</h2>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={checkLowStock}
+                    className="misty-button misty-button-secondary"
+                  >
+                    <BellIcon className="h-4 w-4 mr-2" />
+                    Check Low Stock
+                  </button>
+                  <button
+                    onClick={() => setShowSubstrateModal(true)}
+                    className="misty-button misty-button-primary"
+                  >
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Add Stock Entry
+                  </button>
+                </div>
+              </div>
+
+              {/* Client Filter */}
+              <div className="flex items-center space-x-4">
+                <label className="text-sm text-gray-300">Filter by Client:</label>
+                <select
+                  value={selectedClient}
+                  onChange={(e) => setSelectedClient(e.target.value)}
+                  className="misty-select w-48"
+                >
+                  <option value="all">All Clients</option>
+                  {clients.map(client => (
+                    <option key={client.id} value={client.id}>{client.company_name}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            {/* Instructions */}
-            <div className="bg-blue-900/20 border border-blue-500 rounded-lg p-4">
-              <h4 className="font-medium text-blue-300 mb-2">Instructions:</h4>
-              <ul className="text-sm text-blue-200 space-y-1">
-                <li>• Count each material carefully and enter the exact quantity on hand</li>
-                <li>• You can enter up to 2 decimal places (e.g., 15.75)</li>
-                <li>• Entries are automatically saved when you move to the next field</li>
-                <li>• All materials must be counted before completing the stocktake</li>
-                <li>• The stocktake can be completed over multiple sessions</li>
-              </ul>
+            {/* Stock Table */}
+            <div className="bg-gray-800 rounded-lg overflow-hidden">
+              <div className="p-4 border-b border-gray-700">
+                <h3 className="text-lg font-semibold text-white">Stock Items ({rawSubstrates.length})</h3>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-700">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Client</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Product</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Code</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-300">Quantity</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Unit</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-300">Min Level</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Source Order</th>
+                      <th className="px-4 py-3 text-center text-sm font-medium text-gray-300">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-700">
+                    {rawSubstrates.map((substrate) => (
+                      <tr key={substrate.id} className="hover:bg-gray-700">
+                        <td className="px-4 py-3 text-sm text-white">{substrate.client_name}</td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm text-white">{substrate.product_description}</div>
+                          {substrate.is_shared_product && (
+                            <div className="text-xs text-blue-400">Shared Product</div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-300">{substrate.product_code}</td>
+                        <td className="px-4 py-3 text-right">
+                          {editingItem === substrate.id && editingField === 'quantity_on_hand' ? (
+                            <input
+                              type="number"
+                              defaultValue={substrate.quantity_on_hand}
+                              onBlur={(e) => handleFieldSave(substrate.id, 'quantity_on_hand', e.target.value, 'substrate')}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleFieldSave(substrate.id, 'quantity_on_hand', e.target.value, 'substrate');
+                                }
+                              }}
+                              className="misty-input w-20 text-right text-sm"
+                              autoFocus
+                            />
+                          ) : (
+                            <span
+                              className={`text-sm cursor-pointer hover:bg-gray-600 px-2 py-1 rounded ${
+                                substrate.quantity_on_hand <= substrate.minimum_stock_level ? 'text-red-400' : 'text-white'
+                              }`}
+                              onDoubleClick={() => handleDoubleClick(substrate.id, 'quantity_on_hand')}
+                            >
+                              {substrate.quantity_on_hand}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-300">{substrate.unit_of_measure}</td>
+                        <td className="px-4 py-3 text-right">
+                          {editingItem === substrate.id && editingField === 'minimum_stock_level' ? (
+                            <input
+                              type="number"
+                              defaultValue={substrate.minimum_stock_level}
+                              onBlur={(e) => handleFieldSave(substrate.id, 'minimum_stock_level', e.target.value, 'substrate')}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleFieldSave(substrate.id, 'minimum_stock_level', e.target.value, 'substrate');
+                                }
+                              }}
+                              className="misty-input w-20 text-right text-sm"
+                              autoFocus
+                            />
+                          ) : (
+                            <span
+                              className="text-sm text-gray-300 cursor-pointer hover:bg-gray-600 px-2 py-1 rounded"
+                              onDoubleClick={() => handleDoubleClick(substrate.id, 'minimum_stock_level')}
+                            >
+                              {substrate.minimum_stock_level || 0}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-300">{substrate.source_order_id}</td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex items-center justify-center space-x-2">
+                            <button className="text-blue-400 hover:text-blue-300">
+                              <EyeIcon className="h-4 w-4" />
+                            </button>
+                            <button className="text-yellow-400 hover:text-yellow-300">
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+                            <button className="text-red-400 hover:text-red-300">
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+                {rawSubstrates.length === 0 && (
+                  <div className="p-8 text-center text-gray-400">
+                    <ClipboardDocumentListIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No raw substrates found</p>
+                    <p className="text-sm">Add stock entries from Job Card excess production or manually</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        ) : (
-          // No stocktake required
-          <div className="bg-gray-800 rounded-lg p-8 text-center">
-            <ClipboardDocumentListIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-white mb-2">No Stocktake Required</h2>
-            <p className="text-gray-300 mb-4">
-              The monthly stocktake for {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} 
-              has already been completed or is not yet required.
-            </p>
-            <p className="text-sm text-gray-400">
-              Stocktakes are automatically prompted on the first business day of each month.
-            </p>
+        )}
+
+        {/* Raw Materials Tab */}
+        {activeTab === 'raw_materials' && (
+          <div className="space-y-6">
+            {/* Header with actions */}
+            <div className="bg-gray-800 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-white">Raw Materials On Hand</h2>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={checkLowStock}
+                    className="misty-button misty-button-secondary"
+                  >
+                    <BellIcon className="h-4 w-4 mr-2" />
+                    Check Low Stock
+                  </button>
+                  <button
+                    onClick={() => setShowMaterialModal(true)}
+                    className="misty-button misty-button-primary"
+                  >
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Add Material Stock
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Materials Stock Table */}
+            <div className="bg-gray-800 rounded-lg overflow-hidden">
+              <div className="p-4 border-b border-gray-700">
+                <h3 className="text-lg font-semibold text-white">Materials ({rawMaterialsStock.length})</h3>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-700">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Material</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-300">Quantity</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Unit</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-300">Min Level</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-300">Usage/Month</th>
+                      <th className="px-4 py-3 text-center text-sm font-medium text-gray-300">Alert Days</th>
+                      <th className="px-4 py-3 text-center text-sm font-medium text-gray-300">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-700">
+                    {rawMaterialsStock.map((material) => (
+                      <tr key={material.id} className="hover:bg-gray-700">
+                        <td className="px-4 py-3 text-sm text-white">{material.material_name}</td>
+                        <td className="px-4 py-3 text-right">
+                          {editingItem === material.id && editingField === 'quantity_on_hand' ? (
+                            <input
+                              type="number"
+                              defaultValue={material.quantity_on_hand}
+                              onBlur={(e) => handleFieldSave(material.id, 'quantity_on_hand', e.target.value, 'material')}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleFieldSave(material.id, 'quantity_on_hand', e.target.value, 'material');
+                                }
+                              }}
+                              className="misty-input w-20 text-right text-sm"
+                              autoFocus
+                            />
+                          ) : (
+                            <span
+                              className={`text-sm cursor-pointer hover:bg-gray-600 px-2 py-1 rounded ${
+                                material.quantity_on_hand <= material.minimum_stock_level ? 'text-red-400' : 'text-white'
+                              }`}
+                              onDoubleClick={() => handleDoubleClick(material.id, 'quantity_on_hand')}
+                            >
+                              {material.quantity_on_hand}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-300">{material.unit_of_measure}</td>
+                        <td className="px-4 py-3 text-right">
+                          {editingItem === material.id && editingField === 'minimum_stock_level' ? (
+                            <input
+                              type="number"
+                              defaultValue={material.minimum_stock_level}
+                              onBlur={(e) => handleFieldSave(material.id, 'minimum_stock_level', e.target.value, 'material')}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleFieldSave(material.id, 'minimum_stock_level', e.target.value, 'material');
+                                }
+                              }}
+                              className="misty-input w-20 text-right text-sm"
+                              autoFocus
+                            />
+                          ) : (
+                            <span
+                              className="text-sm text-gray-300 cursor-pointer hover:bg-gray-600 px-2 py-1 rounded"
+                              onDoubleClick={() => handleDoubleClick(material.id, 'minimum_stock_level')}
+                            >
+                              {material.minimum_stock_level || 0}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm text-gray-300">
+                          {material.usage_rate_per_month || 0}
+                        </td>
+                        <td className="px-4 py-3 text-center text-sm text-gray-300">
+                          {material.alert_threshold_days || 7}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex items-center justify-center space-x-2">
+                            <button className="text-blue-400 hover:text-blue-300">
+                              <EyeIcon className="h-4 w-4" />
+                            </button>
+                            <button className="text-yellow-400 hover:text-yellow-300">
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+                            <button className="text-red-400 hover:text-red-300">
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+                {rawMaterialsStock.length === 0 && (
+                  <div className="p-8 text-center text-gray-400">
+                    <CheckCircleIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No raw materials found</p>
+                    <p className="text-sm">Select from your materials database to track stock levels</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Stock Alerts Panel */}
+        {stockAlerts.length > 0 && showStockAlert && (
+          <div className="fixed bottom-4 right-4 bg-red-900 border border-red-500 rounded-lg p-4 max-w-sm shadow-lg z-50">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <BellIcon className="h-5 w-5 text-red-400 mr-2" />
+                <h4 className="font-medium text-white">Stock Alerts</h4>
+              </div>
+              <button
+                onClick={() => setShowStockAlert(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-2 mb-3">
+              {stockAlerts.slice(0, 3).map((alert) => (
+                <div key={alert.id} className="text-sm text-red-200">
+                  {alert.message}
+                </div>
+              ))}
+              {stockAlerts.length > 3 && (
+                <div className="text-xs text-gray-400">
+                  +{stockAlerts.length - 3} more alerts
+                </div>
+              )}
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => acknowledgeAlert(stockAlerts[0]?.id)}
+                className="text-xs bg-red-700 hover:bg-red-600 text-white px-2 py-1 rounded"
+              >
+                Acknowledge
+              </button>
+              <button
+                onClick={() => acknowledgeAlert(stockAlerts[0]?.id, 24)}
+                className="text-xs bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded"
+              >
+                Snooze 24h
+              </button>
+            </div>
           </div>
         )}
       </div>
