@@ -1668,7 +1668,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         </div>
 
         <style dangerouslySetInnerHTML={{
-        __html: `
+          __html: `
           @media print {
             .no-print { display: none !important; }
             .print-content { 
