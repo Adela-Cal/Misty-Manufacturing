@@ -185,6 +185,33 @@ export const apiHelpers = {
   getMachineryRate: (id) => api.get(`/machinery-rates/${id}`),
   updateMachineryRate: (id, data) => api.put(`/machinery-rates/${id}`, data),
   deleteMachineryRate: (id) => api.delete(`/machinery-rates/${id}`),
+
+  // Stock Management System
+  // Raw Substrates
+  getRawSubstrates: (clientId = null) => api.get(`/stock/raw-substrates${clientId ? `?client_id=${clientId}` : ''}`),
+  createRawSubstrate: (data) => api.post('/stock/raw-substrates', data),
+  updateRawSubstrate: (id, data) => api.put(`/stock/raw-substrates/${id}`, data),
+  deleteRawSubstrate: (id) => api.delete(`/stock/raw-substrates/${id}`),
+
+  // Raw Materials Stock
+  getRawMaterialsStock: () => api.get('/stock/raw-materials'),
+  createRawMaterialStock: (data) => api.post('/stock/raw-materials', data),
+  updateRawMaterialStock: (id, data) => api.put(`/stock/raw-materials/${id}`, data),
+  deleteRawMaterialStock: (id) => api.delete(`/stock/raw-materials/${id}`),
+
+  // Stock Movements
+  getStockMovements: (stockId) => api.get(`/stock/movements/${stockId}`),
+
+  // Stock Alerts
+  getStockAlerts: () => api.get('/stock/alerts'),
+  acknowledgeStockAlert: (id, data) => api.post(`/stock/alerts/${id}/acknowledge`, data),
+  checkLowStock: () => api.post('/stock/check-low-stock'),
+
+  // Generic GET/POST/PUT methods for flexibility
+  get: (url) => api.get(url),
+  post: (url, data) => api.post(url, data),
+  put: (url, data) => api.put(url, data),
+  delete: (url) => api.delete(url),
 };
 
 // File download helper
