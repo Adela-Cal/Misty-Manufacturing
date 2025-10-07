@@ -541,7 +541,7 @@ const Stocktake = () => {
             {/* Stock Table */}
             <div className="bg-gray-800 rounded-lg overflow-hidden">
               <div className="p-4 border-b border-gray-700">
-                <h3 className="text-lg font-semibold text-white">Stock Items ({rawSubstrates.length})</h3>
+                <h3 className="text-lg font-semibold text-white">Stock Items ({(rawSubstrates || []).length})</h3>
               </div>
 
               <div className="overflow-x-auto">
