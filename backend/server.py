@@ -3865,8 +3865,8 @@ async def acknowledge_stock_alert(
         }
         
         # Handle snooze functionality
-        if acknowledge_data.get("snooze_hours"):
-            snooze_hours = acknowledge_data["snooze_hours"]
+        if acknowledge_data.snooze_hours:
+            snooze_hours = acknowledge_data.snooze_hours
             update_fields["snooze_until"] = datetime.now(timezone.utc) + timedelta(hours=snooze_hours)
         else:
             # If not snoozed, deactivate the alert
