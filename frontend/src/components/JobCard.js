@@ -542,30 +542,127 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   // Additional slitting widths handlers
   const handleAddSlittingWidth = () => {
     if (newSlittingWidth.width && newSlittingWidth.meters) {
-      const updatedWidths = [...additionalProduction.slittingWidths, {
-        id: Date.now(),
-        width: parseFloat(newSlittingWidth.width),
-        meters: parseFloat(newSlittingWidth.meters),
-        timestamp: new Date().toLocaleString()
-      }];
-      
       setAdditionalProduction(prev => ({
         ...prev,
-        slittingWidths: updatedWidths
+        slittingWidths: [...prev.slittingWidths, { 
+          width: parseFloat(newSlittingWidth.width),
+          meters: parseFloat(newSlittingWidth.meters),
+          id: Date.now() // Simple ID for removal
+        }]
       }));
-      
       setNewSlittingWidth({ width: '', meters: '' });
-      toast.success(`Added ${newSlittingWidth.width}mm width, ${newSlittingWidth.meters}m`);
     }
   };
 
   const handleRemoveSlittingWidth = (id) => {
-    const updatedWidths = additionalProduction.slittingWidths.filter(width => width.id !== id);
     setAdditionalProduction(prev => ({
       ...prev,
-      slittingWidths: updatedWidths
+      slittingWidths: prev.slittingWidths.filter(width => width.id !== id)
     }));
-    toast.success('Slitting width removed');
+  };
+
+  // Master Core management functions
+  const handleAddMasterCore = () => {
+    if (newMasterCore.length && newMasterCore.quantity) {
+      const coreEntry = {
+        id: Date.now(),
+        length: parseFloat(newMasterCore.length),
+        quantity: parseInt(newMasterCore.quantity),
+        addToStock: newMasterCore.addToStock,
+        addedToStock: false // Track if already added to stock
+      };
+      
+      setMasterCores(prev => [...prev, coreEntry]);
+      setNewMasterCore({ length: '', quantity: '', addToStock: false });
+      
+      // If addToStock is true, automatically add excess to stock
+      if (coreEntry.addToStock) {
+        handleAddToStock(coreEntry);
+      }
+    }
+  };
+
+  const handleRemoveMasterCore = (id) => {
+    setMasterCores(prev => prev.filter(core => core.id !== id));
+  };
+
+  const handleToggleAddToStock = async (coreId) => {
+    const coreEntry = masterCores.find(core => core.id === coreId);
+    if (!coreEntry) return;
+
+    if (!coreEntry.addToStock && !coreEntry.addedToStock) {
+      // Adding to stock
+      const success = await handleAddToStock(coreEntry);
+      if (success) {
+        setMasterCores(prev => prev.map(core => 
+          core.id === coreId 
+            ? { ...core, addToStock: true, addedToStock: true }
+            : core
+        ));
+      }
+    } else {
+      // Just toggle the checkbox (removing from stock would require separate API call)
+      setMasterCores(prev => prev.map(core => 
+        core.id === coreId 
+          ? { ...core, addToStock: !core.addToStock }
+          : core
+      ));
+    }
+  };
+
+  const handleAddToStock = async (coreEntry) => {
+    if (!jobData?.order || !productSpecs) {
+      toast.error('Missing job or product data for stock entry');
+      return false;
+    }
+
+    try {
+      // Calculate total cores produced
+      const totalCores = coreEntry.quantity;
+      const requiredCores = jobData.order.quantity || 0;
+      const excessCores = Math.max(0, totalCores - requiredCores);
+
+      if (excessCores <= 0) {
+        toast.info('No excess cores to add to stock');
+        return false;
+      }
+
+      // Create stock entry data
+      const stockData = {
+        client_id: jobData.order.client_id,
+        client_name: jobData.order.client_name || 'Unknown Client',
+        product_id: productSpecs.id,
+        product_code: productSpecs.product_code,
+        product_description: `${productSpecs.product_code} - Master Cores (${coreEntry.length}m length)`,
+        quantity_on_hand: excessCores,
+        unit_of_measure: 'cores',
+        source_order_id: jobData.order.id,
+        source_job_id: jobId,
+        is_shared_product: false,
+        shared_with_clients: [],
+        created_from_excess: true,
+        material_specifications: {
+          core_length: coreEntry.length,
+          core_diameter: productSpecs.core_diameter,
+          material_layers: productSpecs.material_layers
+        },
+        minimum_stock_level: 0
+      };
+
+      // Add to stock via API
+      const response = await apiHelpers.post('/stock/raw-substrates', stockData);
+      
+      if (response.success) {
+        toast.success(`${excessCores} excess cores added to Raw Substrates stock`);
+        return true;
+      } else {
+        throw new Error(response.message || 'Failed to add to stock');
+      }
+    } catch (error) {
+      console.error('Failed to add cores to stock:', error);
+      toast.error('Failed to add cores to stock');
+      return false;
+    }
   };
 
   const getCurrentStageTitle = () => {
