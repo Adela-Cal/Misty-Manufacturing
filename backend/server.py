@@ -3751,7 +3751,7 @@ async def update_raw_material_stock(
             raise HTTPException(status_code=404, detail="Raw material stock not found")
         
         previous_quantity = existing["quantity_on_hand"]
-        new_quantity = update_data.get("quantity_on_hand", previous_quantity)
+        new_quantity = update_data.quantity_on_hand if update_data.quantity_on_hand is not None else previous_quantity
         
         # Update material record
         update_fields = {
@@ -3759,9 +3759,18 @@ async def update_raw_material_stock(
         }
         
         # Add any fields that are being updated
-        for field in ["quantity_on_hand", "minimum_stock_level", "alert_threshold_days", "usage_rate_per_month", "last_order_date", "last_order_quantity"]:
-            if field in update_data:
-                update_fields[field] = update_data[field]
+        if update_data.quantity_on_hand is not None:
+            update_fields["quantity_on_hand"] = update_data.quantity_on_hand
+        if update_data.minimum_stock_level is not None:
+            update_fields["minimum_stock_level"] = update_data.minimum_stock_level
+        if update_data.alert_threshold_days is not None:
+            update_fields["alert_threshold_days"] = update_data.alert_threshold_days
+        if update_data.usage_rate_per_month is not None:
+            update_fields["usage_rate_per_month"] = update_data.usage_rate_per_month
+        if update_data.last_order_date is not None:
+            update_fields["last_order_date"] = update_data.last_order_date
+        if update_data.last_order_quantity is not None:
+            update_fields["last_order_quantity"] = update_data.last_order_quantity
         
         await db.raw_material_stock.update_one(
             {"id": material_id},
