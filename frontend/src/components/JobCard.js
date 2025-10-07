@@ -1168,7 +1168,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                       )}
                     </div>
                   ) : (
-                    /* Standard Finished Quantity Section for other stages */
+                    // Standard Finished Quantity Section for other stages
                     <div className="bg-green-600 p-3 rounded border border-green-500">
                       <div className="flex items-center justify-between">
                         <span className="text-white font-medium">
