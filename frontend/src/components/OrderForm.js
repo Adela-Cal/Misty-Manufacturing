@@ -213,7 +213,19 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     const unitPrice = Number(newItems[index].unit_price) || 0;
     newItems[index].total_price = quantity * unitPrice;
     
+    // Update form data
     setFormData(prev => ({ ...prev, items: newItems }));
+    
+    // Validate packaging for paper core products when quantity or product changes
+    if (field === 'quantity' || field === 'product_id') {
+      const productId = field === 'product_id' ? value : newItems[index].product_id;
+      const qty = field === 'quantity' ? quantity : newItems[index].quantity;
+      
+      // Use setTimeout to ensure state is updated before validation
+      setTimeout(() => {
+        validatePackaging(index, qty, productId);
+      }, 0);
+    }
   };
 
   const addItem = () => {
