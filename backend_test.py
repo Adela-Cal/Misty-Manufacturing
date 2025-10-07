@@ -8351,6 +8351,511 @@ class BackendAPITester:
         # Print summary
         self.print_test_summary()
 
+    def test_stock_management_system(self):
+        """Test the Stock Management System API endpoints"""
+        print("\n=== STOCK MANAGEMENT SYSTEM TESTING ===")
+        
+        # Test 1: GET /api/stock/raw-substrates (should return empty array initially)
+        try:
+            response = self.session.get(f"{API_BASE}/stock/raw-substrates")
+            
+            if response.status_code == 200:
+                data = response.json()
+                substrates = data.get('data', [])
+                self.log_result(
+                    "GET Raw Substrates Stock", 
+                    True, 
+                    f"Successfully retrieved raw substrates stock - found {len(substrates)} entries",
+                    f"Response structure: {list(data.keys())}"
+                )
+            else:
+                self.log_result(
+                    "GET Raw Substrates Stock", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("GET Raw Substrates Stock", False, f"Error: {str(e)}")
+        
+        # Test 2: GET /api/stock/raw-materials (should return empty array initially)
+        try:
+            response = self.session.get(f"{API_BASE}/stock/raw-materials")
+            
+            if response.status_code == 200:
+                data = response.json()
+                materials = data.get('data', [])
+                self.log_result(
+                    "GET Raw Materials Stock", 
+                    True, 
+                    f"Successfully retrieved raw materials stock - found {len(materials)} entries",
+                    f"Response structure: {list(data.keys())}"
+                )
+            else:
+                self.log_result(
+                    "GET Raw Materials Stock", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("GET Raw Materials Stock", False, f"Error: {str(e)}")
+        
+        # Test 3: GET /api/stock/alerts (should return empty array initially)
+        try:
+            response = self.session.get(f"{API_BASE}/stock/alerts")
+            
+            if response.status_code == 200:
+                data = response.json()
+                alerts = data.get('data', [])
+                self.log_result(
+                    "GET Stock Alerts", 
+                    True, 
+                    f"Successfully retrieved stock alerts - found {len(alerts)} active alerts",
+                    f"Response structure: {list(data.keys())}"
+                )
+            else:
+                self.log_result(
+                    "GET Stock Alerts", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("GET Stock Alerts", False, f"Error: {str(e)}")
+        
+        # Test 4: POST /api/stock/check-low-stock
+        try:
+            response = self.session.post(f"{API_BASE}/stock/check-low-stock")
+            
+            if response.status_code == 200:
+                data = response.json()
+                alerts_created = data.get('data', {}).get('alerts_created', 0)
+                self.log_result(
+                    "POST Check Low Stock", 
+                    True, 
+                    f"Successfully checked low stock - {alerts_created} new alerts created",
+                    f"Message: {data.get('message', '')}"
+                )
+            else:
+                self.log_result(
+                    "POST Check Low Stock", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("POST Check Low Stock", False, f"Error: {str(e)}")
+    
+    def test_stock_crud_operations(self):
+        """Test CRUD operations for stock management"""
+        print("\n=== STOCK CRUD OPERATIONS TESTING ===")
+        
+        # Test creating a raw material stock entry
+        material_data = {
+            "material_id": "test-material-001",
+            "material_name": "Test Paper Material",
+            "quantity_on_hand": 100.0,
+            "unit_of_measure": "kg",
+            "minimum_stock_level": 20.0,
+            "alert_threshold_days": 7,
+            "supplier_id": "test-supplier-001",
+            "usage_rate_per_month": 50.0
+        }
+        
+        created_material_id = None
+        
+        try:
+            response = self.session.post(f"{API_BASE}/stock/raw-materials", json=material_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                created_material_id = data.get('data', {}).get('id')
+                self.log_result(
+                    "POST Create Raw Material Stock", 
+                    True, 
+                    f"Successfully created raw material stock entry with ID: {created_material_id}",
+                    f"Material: {material_data['material_name']}, Quantity: {material_data['quantity_on_hand']} {material_data['unit_of_measure']}"
+                )
+            else:
+                self.log_result(
+                    "POST Create Raw Material Stock", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("POST Create Raw Material Stock", False, f"Error: {str(e)}")
+        
+        # Test updating the created material stock entry
+        if created_material_id:
+            update_data = {
+                "quantity_on_hand": 150.0,
+                "minimum_stock_level": 25.0,
+                "notes": "Updated quantity after new delivery"
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/stock/raw-materials/{created_material_id}", json=update_data)
+                
+                if response.status_code == 200:
+                    self.log_result(
+                        "PUT Update Raw Material Stock", 
+                        True, 
+                        f"Successfully updated raw material stock - quantity changed to {update_data['quantity_on_hand']} kg",
+                        f"Minimum stock level updated to {update_data['minimum_stock_level']} kg"
+                    )
+                else:
+                    self.log_result(
+                        "PUT Update Raw Material Stock", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("PUT Update Raw Material Stock", False, f"Error: {str(e)}")
+        
+        # Test creating a raw substrate stock entry
+        substrate_data = {
+            "client_id": "test-client-001",
+            "client_name": "Test Client Manufacturing",
+            "product_id": "test-product-001",
+            "product_code": "TST-CORE-001",
+            "product_description": "Test Paper Core - 50mm ID x 2mmT",
+            "quantity_on_hand": 500.0,
+            "unit_of_measure": "units",
+            "source_order_id": "test-order-001",
+            "source_job_id": "test-job-001",
+            "is_shared_product": False,
+            "shared_with_clients": [],
+            "created_from_excess": True,
+            "material_specifications": {
+                "internal_diameter": 50,
+                "wall_thickness": 2.0,
+                "length": 1000
+            },
+            "material_value_m2": 15.50,
+            "minimum_stock_level": 100.0
+        }
+        
+        created_substrate_id = None
+        
+        try:
+            response = self.session.post(f"{API_BASE}/stock/raw-substrates", json=substrate_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                created_substrate_id = data.get('data', {}).get('id')
+                self.log_result(
+                    "POST Create Raw Substrate Stock", 
+                    True, 
+                    f"Successfully created raw substrate stock entry with ID: {created_substrate_id}",
+                    f"Product: {substrate_data['product_description']}, Quantity: {substrate_data['quantity_on_hand']} {substrate_data['unit_of_measure']}"
+                )
+            else:
+                self.log_result(
+                    "POST Create Raw Substrate Stock", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("POST Create Raw Substrate Stock", False, f"Error: {str(e)}")
+        
+        # Test updating the created substrate stock entry
+        if created_substrate_id:
+            update_data = {
+                "quantity_on_hand": 450.0,
+                "minimum_stock_level": 80.0,
+                "is_shared_product": True,
+                "shared_with_clients": ["client-002", "client-003"],
+                "notes": "Updated after consumption and shared with other clients"
+            }
+            
+            try:
+                response = self.session.put(f"{API_BASE}/stock/raw-substrates/{created_substrate_id}", json=update_data)
+                
+                if response.status_code == 200:
+                    self.log_result(
+                        "PUT Update Raw Substrate Stock", 
+                        True, 
+                        f"Successfully updated raw substrate stock - quantity changed to {update_data['quantity_on_hand']} units",
+                        f"Now shared with {len(update_data['shared_with_clients'])} other clients"
+                    )
+                else:
+                    self.log_result(
+                        "PUT Update Raw Substrate Stock", 
+                        False, 
+                        f"Failed with status {response.status_code}",
+                        response.text
+                    )
+            except Exception as e:
+                self.log_result("PUT Update Raw Substrate Stock", False, f"Error: {str(e)}")
+        
+        return created_material_id, created_substrate_id
+    
+    def test_stock_alert_system(self, material_id=None, substrate_id=None):
+        """Test stock alert system functionality"""
+        print("\n=== STOCK ALERT SYSTEM TESTING ===")
+        
+        # Test low stock check after creating entries with low stock levels
+        try:
+            response = self.session.post(f"{API_BASE}/stock/check-low-stock")
+            
+            if response.status_code == 200:
+                data = response.json()
+                alerts_created = data.get('data', {}).get('alerts_created', 0)
+                self.log_result(
+                    "Low Stock Check After CRUD", 
+                    True, 
+                    f"Low stock check completed - {alerts_created} new alerts created",
+                    f"Message: {data.get('message', '')}"
+                )
+            else:
+                self.log_result(
+                    "Low Stock Check After CRUD", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Low Stock Check After CRUD", False, f"Error: {str(e)}")
+        
+        # Test getting alerts after low stock check
+        try:
+            response = self.session.get(f"{API_BASE}/stock/alerts")
+            
+            if response.status_code == 200:
+                data = response.json()
+                alerts = data.get('data', [])
+                self.log_result(
+                    "GET Alerts After Low Stock Check", 
+                    True, 
+                    f"Retrieved {len(alerts)} active stock alerts",
+                    f"Alert types: {[alert.get('alert_type') for alert in alerts]}"
+                )
+                
+                # Test alert acknowledgment if alerts exist
+                if alerts:
+                    alert_id = alerts[0].get('id')
+                    if alert_id:
+                        self.test_alert_acknowledgment(alert_id)
+                
+            else:
+                self.log_result(
+                    "GET Alerts After Low Stock Check", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("GET Alerts After Low Stock Check", False, f"Error: {str(e)}")
+    
+    def test_alert_acknowledgment(self, alert_id):
+        """Test alert acknowledgment functionality"""
+        print("\n=== ALERT ACKNOWLEDGMENT TESTING ===")
+        
+        # Test acknowledging an alert
+        acknowledge_data = {
+            "snooze_hours": 24  # Snooze for 24 hours
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/stock/alerts/{alert_id}/acknowledge", json=acknowledge_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_result(
+                    "POST Acknowledge Alert (Snooze)", 
+                    True, 
+                    f"Successfully acknowledged and snoozed alert for 24 hours",
+                    f"Message: {data.get('message', '')}"
+                )
+            else:
+                self.log_result(
+                    "POST Acknowledge Alert (Snooze)", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("POST Acknowledge Alert (Snooze)", False, f"Error: {str(e)}")
+        
+        # Test acknowledging without snooze (deactivate)
+        acknowledge_data_deactivate = {}
+        
+        try:
+            response = self.session.post(f"{API_BASE}/stock/alerts/{alert_id}/acknowledge", json=acknowledge_data_deactivate)
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_result(
+                    "POST Acknowledge Alert (Deactivate)", 
+                    True, 
+                    f"Successfully acknowledged and deactivated alert",
+                    f"Message: {data.get('message', '')}"
+                )
+            else:
+                self.log_result(
+                    "POST Acknowledge Alert (Deactivate)", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("POST Acknowledge Alert (Deactivate)", False, f"Error: {str(e)}")
+    
+    def test_data_validation(self):
+        """Test data validation for stock management endpoints"""
+        print("\n=== DATA VALIDATION TESTING ===")
+        
+        # Test creating raw material with missing required fields
+        invalid_material_data = {
+            "material_name": "Invalid Material",
+            # Missing material_id and quantity_on_hand
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/stock/raw-materials", json=invalid_material_data)
+            
+            if response.status_code == 422:
+                self.log_result(
+                    "Data Validation - Missing Required Fields", 
+                    True, 
+                    "Correctly returned 422 validation error for missing required fields",
+                    f"Response: {response.text[:200]}..."
+                )
+            elif response.status_code == 500:
+                self.log_result(
+                    "Data Validation - Missing Required Fields", 
+                    False, 
+                    "Returned 500 error instead of 422 validation error",
+                    response.text
+                )
+            else:
+                self.log_result(
+                    "Data Validation - Missing Required Fields", 
+                    False, 
+                    f"Unexpected status code: {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Data Validation - Missing Required Fields", False, f"Error: {str(e)}")
+        
+        # Test creating raw substrate with invalid data types
+        invalid_substrate_data = {
+            "client_id": "test-client",
+            "client_name": "Test Client",
+            "product_id": "test-product",
+            "product_code": "TEST-001",
+            "product_description": "Test Product",
+            "quantity_on_hand": "invalid_number",  # Should be float
+            "unit_of_measure": "units",
+            "source_order_id": "test-order"
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/stock/raw-substrates", json=invalid_substrate_data)
+            
+            if response.status_code == 422:
+                self.log_result(
+                    "Data Validation - Invalid Data Types", 
+                    True, 
+                    "Correctly returned 422 validation error for invalid data types",
+                    f"Response: {response.text[:200]}..."
+                )
+            elif response.status_code == 500:
+                self.log_result(
+                    "Data Validation - Invalid Data Types", 
+                    False, 
+                    "Returned 500 error instead of 422 validation error",
+                    response.text
+                )
+            else:
+                self.log_result(
+                    "Data Validation - Invalid Data Types", 
+                    False, 
+                    f"Unexpected status code: {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Data Validation - Invalid Data Types", False, f"Error: {str(e)}")
+    
+    def test_error_handling(self):
+        """Test error handling for stock management endpoints"""
+        print("\n=== ERROR HANDLING TESTING ===")
+        
+        # Test accessing non-existent stock item
+        try:
+            response = self.session.put(f"{API_BASE}/stock/raw-materials/non-existent-id", json={"quantity_on_hand": 100})
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Error Handling - Non-existent Material", 
+                    True, 
+                    "Correctly returned 404 for non-existent material ID",
+                    "Proper error handling implemented"
+                )
+            else:
+                self.log_result(
+                    "Error Handling - Non-existent Material", 
+                    False, 
+                    f"Expected 404 but got {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Error Handling - Non-existent Material", False, f"Error: {str(e)}")
+        
+        # Test acknowledging non-existent alert
+        try:
+            response = self.session.post(f"{API_BASE}/stock/alerts/non-existent-alert/acknowledge", json={})
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Error Handling - Non-existent Alert", 
+                    True, 
+                    "Correctly returned 404 for non-existent alert ID",
+                    "Proper error handling implemented"
+                )
+            else:
+                self.log_result(
+                    "Error Handling - Non-existent Alert", 
+                    False, 
+                    f"Expected 404 but got {response.status_code}",
+                    response.text
+                )
+        except Exception as e:
+            self.log_result("Error Handling - Non-existent Alert", False, f"Error: {str(e)}")
+    
+    def run_stock_management_tests(self):
+        """Run comprehensive stock management system tests"""
+        print("\n" + "="*60)
+        print("STOCK MANAGEMENT SYSTEM COMPREHENSIVE TESTING")
+        print("="*60)
+        
+        # Step 1: Authenticate
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with tests")
+            return
+        
+        # Step 2: Test basic stock management endpoints
+        self.test_stock_management_system()
+        
+        # Step 3: Test CRUD operations
+        material_id, substrate_id = self.test_stock_crud_operations()
+        
+        # Step 4: Test stock alert system
+        self.test_stock_alert_system(material_id, substrate_id)
+        
+        # Step 5: Test data validation
+        self.test_data_validation()
+        
+        # Step 6: Test error handling
+        self.test_error_handling()
+        
+        # Print summary
+        self.print_test_summary()
+
 def main():
     """Main test execution"""
     print("Starting Enhanced Xero Invoice Formatting Testing...")
