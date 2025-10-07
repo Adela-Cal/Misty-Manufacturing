@@ -695,7 +695,7 @@ const Stocktake = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-700">
-                    {rawMaterialsStock.map((material) => (
+                    {(rawMaterialsStock || []).map((material) => (
                       <tr key={material.id} className="hover:bg-gray-700">
                         <td className="px-4 py-3 text-sm text-white">{material.material_name}</td>
                         <td className="px-4 py-3 text-right">
