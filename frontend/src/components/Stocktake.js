@@ -690,13 +690,25 @@ const Stocktake = () => {
                         <td className="px-4 py-3 text-sm text-gray-300">{substrate.source_order_id}</td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center space-x-2">
-                            <button className="text-blue-400 hover:text-blue-300">
+                            <button 
+                              className="text-blue-400 hover:text-blue-300"
+                              onClick={() => handleViewItem(substrate, 'substrate')}
+                              title="View Details"
+                            >
                               <EyeIcon className="h-4 w-4" />
                             </button>
-                            <button className="text-yellow-400 hover:text-yellow-300">
+                            <button 
+                              className="text-yellow-400 hover:text-yellow-300"
+                              onClick={() => handleEditItem(substrate, 'substrate')}
+                              title="Edit"
+                            >
                               <PencilIcon className="h-4 w-4" />
                             </button>
-                            <button className="text-red-400 hover:text-red-300">
+                            <button 
+                              className="text-red-400 hover:text-red-300"
+                              onClick={() => handleDeleteItem(substrate, 'substrate')}
+                              title="Delete"
+                            >
                               <TrashIcon className="h-4 w-4" />
                             </button>
                           </div>
@@ -824,13 +836,25 @@ const Stocktake = () => {
                         </td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center space-x-2">
-                            <button className="text-blue-400 hover:text-blue-300">
+                            <button 
+                              className="text-blue-400 hover:text-blue-300"
+                              onClick={() => handleViewItem(substrate, 'substrate')}
+                              title="View Details"
+                            >
                               <EyeIcon className="h-4 w-4" />
                             </button>
-                            <button className="text-yellow-400 hover:text-yellow-300">
+                            <button 
+                              className="text-yellow-400 hover:text-yellow-300"
+                              onClick={() => handleEditItem(substrate, 'substrate')}
+                              title="Edit"
+                            >
                               <PencilIcon className="h-4 w-4" />
                             </button>
-                            <button className="text-red-400 hover:text-red-300">
+                            <button 
+                              className="text-red-400 hover:text-red-300"
+                              onClick={() => handleDeleteItem(substrate, 'substrate')}
+                              title="Delete"
+                            >
                               <TrashIcon className="h-4 w-4" />
                             </button>
                           </div>
