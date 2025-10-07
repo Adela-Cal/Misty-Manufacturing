@@ -123,6 +123,70 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     });
   };
 
+  // Validate quantity against tubes per carton for paper core products
+  const validatePackaging = (itemIndex, quantity, productId) => {
+    if (!productId || !quantity) {
+      setPackagingValidation(prev => ({
+        ...prev,
+        [itemIndex]: null
+      }));
+      return;
+    }
+
+    const selectedProduct = clientProducts.find(p => p.id === productId);
+    if (!selectedProduct) {
+      setPackagingValidation(prev => ({
+        ...prev,
+        [itemIndex]: null
+      }));
+      return;
+    }
+
+    // Only validate for paper core products
+    if (selectedProduct.product_type !== 'paper_cores') {
+      setPackagingValidation(prev => ({
+        ...prev,
+        [itemIndex]: null
+      }));
+      return;
+    }
+
+    const tubesPerCarton = selectedProduct.tubes_per_carton;
+    if (!tubesPerCarton || tubesPerCarton <= 0) {
+      setPackagingValidation(prev => ({
+        ...prev,
+        [itemIndex]: null
+      }));
+      return;
+    }
+
+    const isValid = quantity % tubesPerCarton === 0;
+    if (isValid) {
+      setPackagingValidation(prev => ({
+        ...prev,
+        [itemIndex]: {
+          isValid: true,
+          tubesPerCarton: tubesPerCarton,
+          cartons: quantity / tubesPerCarton
+        }
+      }));
+    } else {
+      const suggestedQuantity = Math.ceil(quantity / tubesPerCarton) * tubesPerCarton;
+      const cartons = Math.ceil(quantity / tubesPerCarton);
+      
+      setPackagingValidation(prev => ({
+        ...prev,
+        [itemIndex]: {
+          isValid: false,
+          tubesPerCarton: tubesPerCarton,
+          currentQuantity: quantity,
+          suggestedQuantity: suggestedQuantity,
+          cartons: cartons
+        }
+      }));
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
