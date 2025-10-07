@@ -1039,131 +1039,91 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                   
                   {stage === 'winding' ? (
                     <div className="bg-green-600 p-3 rounded border border-green-500">
-                      <div className="mb-3">
-                        <span className="text-white font-medium block mb-2">Master Core Entries:</span>
-                        
-                        {/* Add new core entry form */}
-                        <div className="bg-green-700 p-3 rounded mb-3">
-                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 items-end">
-                            <div>
-                              <label className="text-xs text-green-100 block mb-1">Length (m)</label>
-                              <input
-                                type="number"
-                                step="0.1"
-                                placeholder="1.2"
-                                value={newMasterCore.length}
-                                onChange={(e) => setNewMasterCore(prev => ({ ...prev, length: e.target.value }))}
-                                className="w-full px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-green-100 block mb-1">Quantity</label>
-                              <input
-                                type="number"
-                                placeholder="100"
-                                value={newMasterCore.quantity}
-                                onChange={(e) => setNewMasterCore(prev => ({ ...prev, quantity: e.target.value }))}
-                                className="w-full px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-green-100 block mb-1">Add Excess to Stock</label>
-                              <div className="flex items-center h-7">
-                                <input
-                                  type="checkbox"
-                                  checked={newMasterCore.addToStock}
-                                  onChange={(e) => setNewMasterCore(prev => ({ ...prev, addToStock: e.target.checked }))}
-                                  className="w-4 h-4 text-green-500 bg-gray-600 border-gray-500 rounded focus:ring-green-500"
-                                />
-                              </div>
-                            </div>
-                            <div>
-                              <button
-                                onClick={handleAddMasterCore}
-                                disabled={!newMasterCore.length || !newMasterCore.quantity}
-                                className="w-full px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 disabled:opacity-50"
-                              >
-                                + Add
-                              </button>
-                            </div>
+                      <span className="text-white font-medium block mb-2">Master Core Production:</span>
+                      
+                      {/* Simplified Form */}
+                      <div className="mb-3 space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <input
+                              type="number"
+                              step="0.1"
+                              placeholder="Length (m)"
+                              value={newMasterCore.length}
+                              onChange={(e) => setNewMasterCore(prev => ({ ...prev, length: e.target.value }))}
+                              className="w-full px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white"
+                            />
+                          </div>
+                          <div>
+                            <input
+                              type="number"
+                              placeholder="Quantity"
+                              value={newMasterCore.quantity}
+                              onChange={(e) => setNewMasterCore(prev => ({ ...prev, quantity: e.target.value }))}
+                              className="w-full px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white"
+                            />
                           </div>
                         </div>
                         
-                        {/* Display master core entries */}
-                        {masterCores.length > 0 && (
-                          <div className="space-y-2">
-                            <div className="text-xs text-green-100 grid grid-cols-3 lg:grid-cols-6 gap-1 lg:gap-2 font-semibold border-b border-green-500 pb-1">
-                              <span>Length (m)</span>
-                              <span>Quantity</span>
-                              <span className="hidden lg:block">Total Meters</span>
-                              <span className="hidden lg:block">Excess Cores</span>
-                              <span>Add to Stock</span>
-                              <span>Actions</span>
-                            </div>
-                            {masterCores.map((core) => {
-                              const totalMeters = (core.length * core.quantity).toFixed(1);
-                              const requiredQuantity = jobData?.order?.quantity || 0;
-                              const excessCores = Math.max(0, core.quantity - requiredQuantity);
-                              
-                              return (
-                                <div key={core.id} className="text-sm text-white grid grid-cols-3 lg:grid-cols-6 gap-1 lg:gap-2 items-center bg-green-700 p-2 rounded">
-                                  <span>{core.length}m</span>
-                                  <span>{core.quantity}</span>
-                                  <span className="hidden lg:block text-yellow-200">{totalMeters}m</span>
-                                  <span className={`hidden lg:block ${excessCores > 0 ? 'text-yellow-300 font-medium' : 'text-gray-300'}`}>
-                                    {excessCores > 0 ? `+${excessCores}` : '0'}
-                                  </span>
-                                  <div className="flex items-center">
-                                    <input
-                                      type="checkbox"
-                                      checked={core.addToStock}
-                                      onChange={() => handleToggleAddToStock(core.id)}
-                                      disabled={excessCores <= 0}
-                                      className="w-4 h-4 text-yellow-500 bg-gray-600 border-gray-500 rounded focus:ring-yellow-500 disabled:opacity-50"
-                                    />
-                                    {core.addedToStock && <span className="ml-1 text-xs text-yellow-300">✓</span>}
-                                  </div>
-                                  <button
-                                    onClick={() => handleRemoveMasterCore(core.id)}
-                                    className="text-red-300 hover:text-red-200 text-xs"
-                                  >
-                                    Remove
-                                  </button>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                        
-                        {masterCores.length === 0 && (
-                          <div className="text-center text-green-200 text-sm py-2">
-                            No master cores entered yet
-                          </div>
-                        )}
+                        <div className="flex items-center justify-between">
+                          <label className="flex items-center text-sm text-green-100">
+                            <input
+                              type="checkbox"
+                              checked={newMasterCore.addToStock}
+                              onChange={(e) => setNewMasterCore(prev => ({ ...prev, addToStock: e.target.checked }))}
+                              className="w-4 h-4 text-green-500 bg-gray-600 border-gray-500 rounded mr-2"
+                            />
+                            Add excess to stock
+                          </label>
+                          <button
+                            onClick={handleAddMasterCore}
+                            disabled={!newMasterCore.length || !newMasterCore.quantity}
+                            className="px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 disabled:opacity-50"
+                          >
+                            + Add Entry
+                          </button>
+                        </div>
                       </div>
                       
-                      {/* Summary */}
-                      {masterCores.length > 0 && jobData?.order?.quantity && (
-                        <div className="mt-3 pt-3 border-t border-green-500">
-                          <div className="grid grid-cols-3 gap-4 text-sm">
-                            <div className="text-green-100">
-                              <span className="block">Total Cores:</span>
-                              <span className="font-bold text-white">{masterCores.reduce((sum, core) => sum + core.quantity, 0)}</span>
-                            </div>
-                            <div className="text-green-100">
-                              <span className="block">Required:</span>
-                              <span className="font-bold text-white">{jobData.order.quantity.toLocaleString()}</span>
-                            </div>
-                            <div className="text-green-100">
-                              <span className="block">Total Excess:</span>
-                              <span className="font-bold text-yellow-300">
-                                {masterCores.reduce((sum, core) => {
-                                  const excess = Math.max(0, core.quantity - (jobData.order.quantity || 0));
-                                  return sum + excess;
-                                }, 0)}
-                              </span>
-                            </div>
+                      {/* Core Entries - Simple List */}
+                      {masterCores.length > 0 && (
+                        <div className="space-y-1">
+                          <div className="text-xs text-green-100 font-semibold border-b border-green-500 pb-1">
+                            Core Entries:
                           </div>
+                          {masterCores.map((core) => {
+                            const requiredQuantity = jobData?.order?.quantity || 0;
+                            const excessCores = Math.max(0, core.quantity - requiredQuantity);
+                            
+                            return (
+                              <div key={core.id} className="bg-green-700 p-2 rounded text-sm">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-white">{core.length}m × {core.quantity} cores</span>
+                                  <div className="flex items-center space-x-2">
+                                    {excessCores > 0 && (
+                                      <span className="text-yellow-300 text-xs">+{excessCores} excess</span>
+                                    )}
+                                    {core.addToStock && <span className="text-yellow-300 text-xs">📦</span>}
+                                    <button
+                                      onClick={() => handleRemoveMasterCore(core.id)}
+                                      className="text-red-300 hover:text-red-200 text-xs"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          
+                          {/* Compact Summary */}
+                          {jobData?.order?.quantity && (
+                            <div className="text-xs text-green-100 pt-1 border-t border-green-500">
+                              Total: {masterCores.reduce((sum, core) => sum + core.quantity, 0)} cores | 
+                              Required: {jobData.order.quantity} | 
+                              Excess: {masterCores.reduce((sum, core) => sum + Math.max(0, core.quantity - jobData.order.quantity), 0)}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
