@@ -69,7 +69,17 @@ const Stocktake = () => {
 
   useEffect(() => {
     loadStocktakeStatus();
+    loadClients();
+    loadStockAlerts();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'raw_substrates') {
+      loadRawSubstrates();
+    } else if (activeTab === 'raw_materials') {
+      loadRawMaterialsStock();
+    }
+  }, [activeTab, selectedClient]);
 
   const loadStocktakeStatus = async () => {
     try {
