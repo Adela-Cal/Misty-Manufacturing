@@ -464,10 +464,76 @@ class StocktakeEntry(BaseModel):
     stocktake_id: str
     material_id: str
     material_name: str
-    current_quantity: float  # Up to 2 decimal places
-    unit: str
-    counted_by: str
-    counted_at: datetime = Field(default_factory=datetime.utcnow)
+    actual_quantity: float
+    expected_quantity: Optional[float] = 0
+    variance: Optional[float] = 0
+    notes: Optional[str] = ""
+    recorded_by: str
+    recorded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# Stock Management System Models
+class RawSubstrateStock(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    client_id: str
+    client_name: str
+    product_id: str
+    product_code: str
+    product_description: str
+    quantity_on_hand: float
+    unit_of_measure: str = "units"
+    source_order_id: str  # Which order created this excess stock
+    source_job_id: Optional[str] = None
+    is_shared_product: bool = False
+    shared_with_clients: List[str] = Field(default_factory=list)
+    created_from_excess: bool = True  # True if from Job Card excess, False if manual entry
+    material_specifications: Optional[dict] = Field(default_factory=dict)  # Core specs, materials used, etc.
+    material_value_m2: Optional[float] = 0.0  # Calculated material value in square meters
+    minimum_stock_level: Optional[float] = 0.0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+    created_by: str
+    updated_by: Optional[str] = None
+
+class RawMaterialStock(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    material_id: str
+    material_name: str
+    quantity_on_hand: float
+    unit_of_measure: str = "kg"
+    minimum_stock_level: float = 0.0
+    alert_threshold_days: Optional[int] = 7  # Days to alert before running out
+    supplier_id: Optional[str] = None
+    last_order_date: Optional[datetime] = None
+    last_order_quantity: Optional[float] = 0.0
+    usage_rate_per_month: Optional[float] = 0.0  # Calculated from historical data
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+
+class StockMovement(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    stock_type: str  # "raw_substrate" or "raw_material"
+    stock_id: str  # Reference to RawSubstrateStock or RawMaterialStock ID
+    movement_type: str  # "addition", "consumption", "adjustment", "transfer"
+    quantity_change: float  # Positive for additions, negative for consumption
+    previous_quantity: float
+    new_quantity: float
+    reference_id: Optional[str] = None  # Order ID, Job ID, or Manual Entry ID
+    reference_type: Optional[str] = None  # "order", "job", "manual", "transfer"
+    notes: Optional[str] = ""
+    created_by: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class StockAlert(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    stock_type: str  # "raw_substrate" or "raw_material"
+    stock_id: str
+    alert_type: str  # "low_stock", "out_of_stock", "expiry_warning"
+    message: str
+    is_active: bool = True
+    acknowledged_by: Optional[str] = None
+    acknowledged_at: Optional[datetime] = None
+    snooze_until: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class Stocktake(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
