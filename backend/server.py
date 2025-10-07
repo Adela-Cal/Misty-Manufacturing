@@ -3547,21 +3547,21 @@ async def create_raw_substrate_stock(
     try:
         # Create new substrate stock record
         substrate = RawSubstrateStock(
-            client_id=substrate_data["client_id"],
-            client_name=substrate_data["client_name"],
-            product_id=substrate_data["product_id"],
-            product_code=substrate_data["product_code"],
-            product_description=substrate_data["product_description"],
-            quantity_on_hand=substrate_data["quantity_on_hand"],
-            unit_of_measure=substrate_data.get("unit_of_measure", "units"),
-            source_order_id=substrate_data["source_order_id"],
-            source_job_id=substrate_data.get("source_job_id"),
-            is_shared_product=substrate_data.get("is_shared_product", False),
-            shared_with_clients=substrate_data.get("shared_with_clients", []),
-            created_from_excess=substrate_data.get("created_from_excess", True),
-            material_specifications=substrate_data.get("material_specifications", {}),
-            material_value_m2=substrate_data.get("material_value_m2", 0.0),
-            minimum_stock_level=substrate_data.get("minimum_stock_level", 0.0),
+            client_id=substrate_data.client_id,
+            client_name=substrate_data.client_name,
+            product_id=substrate_data.product_id,
+            product_code=substrate_data.product_code,
+            product_description=substrate_data.product_description,
+            quantity_on_hand=substrate_data.quantity_on_hand,
+            unit_of_measure=substrate_data.unit_of_measure,
+            source_order_id=substrate_data.source_order_id,
+            source_job_id=substrate_data.source_job_id,
+            is_shared_product=substrate_data.is_shared_product,
+            shared_with_clients=substrate_data.shared_with_clients,
+            created_from_excess=substrate_data.created_from_excess,
+            material_specifications=substrate_data.material_specifications,
+            material_value_m2=substrate_data.material_value_m2,
+            minimum_stock_level=substrate_data.minimum_stock_level,
             created_by=current_user["user_id"]
         )
         
