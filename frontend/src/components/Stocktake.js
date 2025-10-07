@@ -804,9 +804,9 @@ const Stocktake = () => {
                   {alert.message}
                 </div>
               ))}
-              {stockAlerts.length > 3 && (
+              {(stockAlerts || []).length > 3 && (
                 <div className="text-xs text-gray-400">
-                  +{stockAlerts.length - 3} more alerts
+                  +{(stockAlerts || []).length - 3} more alerts
                 </div>
               )}
             </div>
