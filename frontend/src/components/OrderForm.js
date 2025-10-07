@@ -37,6 +37,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     gst: 0,
     total: 0
   });
+  const [packagingValidation, setPackagingValidation] = useState({}); // Track tubes per carton validation
 
   useEffect(() => {
     loadClients();
