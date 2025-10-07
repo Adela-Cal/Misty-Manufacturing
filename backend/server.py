@@ -3611,7 +3611,7 @@ async def update_raw_substrate_stock(
             raise HTTPException(status_code=404, detail="Raw substrate stock not found")
         
         previous_quantity = existing["quantity_on_hand"]
-        new_quantity = update_data.get("quantity_on_hand", previous_quantity)
+        new_quantity = update_data.quantity_on_hand if update_data.quantity_on_hand is not None else previous_quantity
         
         # Update substrate record
         update_fields = {
@@ -3620,9 +3620,16 @@ async def update_raw_substrate_stock(
         }
         
         # Add any fields that are being updated
-        for field in ["quantity_on_hand", "minimum_stock_level", "is_shared_product", "shared_with_clients", "material_specifications"]:
-            if field in update_data:
-                update_fields[field] = update_data[field]
+        if update_data.quantity_on_hand is not None:
+            update_fields["quantity_on_hand"] = update_data.quantity_on_hand
+        if update_data.minimum_stock_level is not None:
+            update_fields["minimum_stock_level"] = update_data.minimum_stock_level
+        if update_data.is_shared_product is not None:
+            update_fields["is_shared_product"] = update_data.is_shared_product
+        if update_data.shared_with_clients is not None:
+            update_fields["shared_with_clients"] = update_data.shared_with_clients
+        if update_data.material_specifications is not None:
+            update_fields["material_specifications"] = update_data.material_specifications
         
         await db.raw_substrate_stock.update_one(
             {"id": substrate_id},
