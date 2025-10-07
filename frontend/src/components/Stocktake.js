@@ -637,7 +637,7 @@ const Stocktake = () => {
                   </tbody>
                 </table>
                 
-                {rawSubstrates.length === 0 && (
+                {(!rawSubstrates || rawSubstrates.length === 0) && (
                   <div className="p-8 text-center text-gray-400">
                     <ClipboardDocumentListIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No raw substrates found</p>
