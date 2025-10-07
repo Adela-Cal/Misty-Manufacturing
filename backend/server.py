@@ -3600,7 +3600,7 @@ async def create_raw_substrate_stock(
 @api_router.put("/stock/raw-substrates/{substrate_id}", response_model=StandardResponse)
 async def update_raw_substrate_stock(
     substrate_id: str,
-    update_data: Dict[str, Any],
+    update_data: RawSubstrateStockUpdate,
     current_user: dict = Depends(require_manager_or_admin)
 ):
     """Update raw substrate stock quantity or details"""
