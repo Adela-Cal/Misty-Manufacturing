@@ -102,7 +102,8 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           setupNotes,
           signOffs,
           finishedQuantity,
-          additionalProduction
+          additionalProduction,
+          masterCores
         };
         localStorage.setItem(timingKey, JSON.stringify(timingData));
       }, 500); // Debounce by 500ms
