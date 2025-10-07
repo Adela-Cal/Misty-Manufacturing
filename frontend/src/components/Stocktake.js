@@ -1042,15 +1042,27 @@ const Stocktake = () => {
                 e.preventDefault();
                 const formData = new FormData(e.target);
                 const updatedData = {};
+                
+                // Handle shared_with_clients array
+                const sharedWithClients = [];
+                
                 for (let [key, value] of formData.entries()) {
                   if (key.includes('quantity') || key.includes('minimum') || key.includes('usage') || key.includes('alert')) {
                     updatedData[key] = parseFloat(value) || 0;
                   } else if (key === 'is_shared_product') {
-                    updatedData[key] = value === 'true';
+                    updatedData[key] = formData.get('is_shared_product') === 'on';
+                  } else if (key === 'shared_with_clients') {
+                    sharedWithClients.push(value);
                   } else {
                     updatedData[key] = value;
                   }
                 }
+                
+                // Add shared_with_clients array to updatedData
+                if (selectedItemType === 'substrate') {
+                  updatedData.shared_with_clients = updatedData.is_shared_product ? sharedWithClients : [];
+                }
+                
                 handleEditSave(updatedData);
               }}>
                 <div className="space-y-4">
