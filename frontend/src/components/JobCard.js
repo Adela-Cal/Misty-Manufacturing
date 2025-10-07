@@ -1035,62 +1035,198 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                 {/* Finished Production Quantity Section */}
                 <div className="mt-4">
                   <h4 className="font-semibold text-white mb-2">{getFinishedQuantityTitle()}</h4>
-                  <div className="bg-green-600 p-3 rounded border border-green-500">
-                    <div className="flex items-center justify-between">
-                      <span className="text-white font-medium">
-                        {stage === 'paper_slitting' ? 'Additional Production:' : 'Finished Quantity:'}
-                      </span>
-                      <div className="flex items-center">
-                        {isEditingFinishedQuantity ? (
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="number"
-                              value={editedFinishedQuantity}
-                              onChange={(e) => setEditedFinishedQuantity(e.target.value)}
-                              className="w-24 px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white text-center"
-                              min="0"
-                              autoFocus
-                            />
-                            <button
-                              onClick={handleSaveFinishedQuantity}
-                              className="px-2 py-1 bg-green-700 text-white text-xs rounded hover:bg-green-800"
-                            >
-                              ✓
-                            </button>
-                            <button
-                              onClick={handleCancelEditFinishedQuantity}
-                              className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
-                            >
-                              ✕
-                            </button>
+                  
+                  {stage === 'winding' ? (
+                    /* Master Core Lengths Section for Core Winding */
+                    <div className="bg-green-600 p-3 rounded border border-green-500">
+                      <div className="mb-3">
+                        <span className="text-white font-medium block mb-2">Master Core Entries:</span>
+                        
+                        {/* Add new core entry form */}
+                        <div className="bg-green-700 p-3 rounded mb-3">
+                          <div className="grid grid-cols-4 gap-2 items-end">
+                            <div>
+                              <label className="text-xs text-green-100 block mb-1">Length (m)</label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                placeholder="1.2"
+                                value={newMasterCore.length}
+                                onChange={(e) => setNewMasterCore(prev => ({ ...prev, length: e.target.value }))}
+                                className="w-full px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-green-100 block mb-1">Quantity</label>
+                              <input
+                                type="number"
+                                placeholder="100"
+                                value={newMasterCore.quantity}
+                                onChange={(e) => setNewMasterCore(prev => ({ ...prev, quantity: e.target.value }))}
+                                className="w-full px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-green-100 block mb-1">Add Excess to Stock</label>
+                              <div className="flex items-center h-7">
+                                <input
+                                  type="checkbox"
+                                  checked={newMasterCore.addToStock}
+                                  onChange={(e) => setNewMasterCore(prev => ({ ...prev, addToStock: e.target.checked }))}
+                                  className="w-4 h-4 text-green-500 bg-gray-600 border-gray-500 rounded focus:ring-green-500"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <button
+                                onClick={handleAddMasterCore}
+                                disabled={!newMasterCore.length || !newMasterCore.quantity}
+                                className="w-full px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 disabled:opacity-50"
+                              >
+                                + Add
+                              </button>
+                            </div>
                           </div>
-                        ) : (
-                          <span
-                            onDoubleClick={handleEditFinishedQuantity}
-                            className="cursor-pointer hover:bg-green-700 px-2 py-1 rounded text-white font-bold"
-                            title="Double-click to edit finished quantity"
-                          >
-                            {finishedQuantity.toLocaleString()} {stage === 'winding' ? 'cores' : stage === 'finishing' ? 'cores' : 'units'}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Show excess calculation if quantity is higher than required */}
-                    {finishedQuantity > 0 && jobData?.order?.quantity && (
-                      <div className="mt-2 text-sm">
-                        <div className="flex justify-between text-green-100">
-                          <span>Required Quantity:</span>
-                          <span>{jobData.order.quantity.toLocaleString()}</span>
                         </div>
-                        {finishedQuantity > jobData.order.quantity && (
-                          <div className="flex justify-between text-yellow-200 font-medium">
-                            <span>Excess for Stocktake:</span>
-                            <span>{(finishedQuantity - jobData.order.quantity).toLocaleString()}</span>
+                        
+                        {/* Display master core entries */}
+                        {masterCores.length > 0 && (
+                          <div className="space-y-2">
+                            <div className="text-xs text-green-100 grid grid-cols-6 gap-2 font-semibold border-b border-green-500 pb-1">
+                              <span>Length (m)</span>
+                              <span>Quantity</span>
+                              <span>Total Meters</span>
+                              <span>Excess Cores</span>
+                              <span>Add to Stock</span>
+                              <span>Actions</span>
+                            </div>
+                            {masterCores.map((core) => {
+                              const totalMeters = (core.length * core.quantity).toFixed(1);
+                              const requiredQuantity = jobData?.order?.quantity || 0;
+                              const excessCores = Math.max(0, core.quantity - requiredQuantity);
+                              
+                              return (
+                                <div key={core.id} className="text-sm text-white grid grid-cols-6 gap-2 items-center bg-green-700 p-2 rounded">
+                                  <span>{core.length}m</span>
+                                  <span>{core.quantity}</span>
+                                  <span className="text-yellow-200">{totalMeters}m</span>
+                                  <span className={excessCores > 0 ? 'text-yellow-300 font-medium' : 'text-gray-300'}>
+                                    {excessCores > 0 ? `+${excessCores}` : '0'}
+                                  </span>
+                                  <div className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      checked={core.addToStock}
+                                      onChange={() => handleToggleAddToStock(core.id)}
+                                      disabled={excessCores <= 0}
+                                      className="w-4 h-4 text-yellow-500 bg-gray-600 border-gray-500 rounded focus:ring-yellow-500 disabled:opacity-50"
+                                    />
+                                    {core.addedToStock && <span className="ml-1 text-xs text-yellow-300">✓</span>}
+                                  </div>
+                                  <button
+                                    onClick={() => handleRemoveMasterCore(core.id)}
+                                    className="text-red-300 hover:text-red-200 text-xs"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                        
+                        {masterCores.length === 0 && (
+                          <div className="text-center text-green-200 text-sm py-2">
+                            No master cores entered yet
                           </div>
                         )}
                       </div>
-                    )}
+                      
+                      {/* Summary */}
+                      {masterCores.length > 0 && jobData?.order?.quantity && (
+                        <div className="mt-3 pt-3 border-t border-green-500">
+                          <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div className="text-green-100">
+                              <span className="block">Total Cores:</span>
+                              <span className="font-bold text-white">{masterCores.reduce((sum, core) => sum + core.quantity, 0)}</span>
+                            </div>
+                            <div className="text-green-100">
+                              <span className="block">Required:</span>
+                              <span className="font-bold text-white">{jobData.order.quantity.toLocaleString()}</span>
+                            </div>
+                            <div className="text-green-100">
+                              <span className="block">Total Excess:</span>
+                              <span className="font-bold text-yellow-300">
+                                {masterCores.reduce((sum, core) => {
+                                  const excess = Math.max(0, core.quantity - (jobData.order.quantity || 0));
+                                  return sum + excess;
+                                }, 0)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Standard Finished Quantity Section for other stages */
+                    <div className="bg-green-600 p-3 rounded border border-green-500">
+                      <div className="flex items-center justify-between">
+                        <span className="text-white font-medium">
+                          {stage === 'paper_slitting' ? 'Additional Production:' : 'Finished Quantity:'}
+                        </span>
+                        <div className="flex items-center">
+                          {isEditingFinishedQuantity ? (
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="number"
+                                value={editedFinishedQuantity}
+                                onChange={(e) => setEditedFinishedQuantity(e.target.value)}
+                                className="w-24 px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white text-center"
+                                min="0"
+                                autoFocus
+                              />
+                              <button
+                                onClick={handleSaveFinishedQuantity}
+                                className="px-2 py-1 bg-green-700 text-white text-xs rounded hover:bg-green-800"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                onClick={handleCancelEditFinishedQuantity}
+                                className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <span
+                              onDoubleClick={handleEditFinishedQuantity}
+                              className="cursor-pointer hover:bg-green-700 px-2 py-1 rounded text-white font-bold"
+                              title="Double-click to edit finished quantity"
+                            >
+                              {finishedQuantity.toLocaleString()} {stage === 'finishing' ? 'cores' : 'units'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Show excess calculation if quantity is higher than required */}
+                      {finishedQuantity > 0 && jobData?.order?.quantity && (
+                        <div className="mt-2 text-sm">
+                          <div className="flex justify-between text-green-100">
+                            <span>Required Quantity:</span>
+                            <span>{jobData.order.quantity.toLocaleString()}</span>
+                          </div>
+                          {finishedQuantity > jobData.order.quantity && (
+                            <div className="flex justify-between text-yellow-200 font-medium">
+                              <span>Excess for Stocktake:</span>
+                              <span>{(finishedQuantity - jobData.order.quantity).toLocaleString()}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                     
                     {stage === 'paper_slitting' && (
                       <div className="mt-3">
