@@ -535,6 +535,54 @@ class StockAlert(BaseModel):
     snooze_until: Optional[datetime] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+# Stock Management Request Models
+class RawSubstrateStockCreate(BaseModel):
+    client_id: str
+    client_name: str
+    product_id: str
+    product_code: str
+    product_description: str
+    quantity_on_hand: float
+    unit_of_measure: str = "units"
+    source_order_id: str
+    source_job_id: Optional[str] = None
+    is_shared_product: bool = False
+    shared_with_clients: List[str] = Field(default_factory=list)
+    created_from_excess: bool = True
+    material_specifications: Optional[dict] = Field(default_factory=dict)
+    material_value_m2: Optional[float] = 0.0
+    minimum_stock_level: Optional[float] = 0.0
+
+class RawSubstrateStockUpdate(BaseModel):
+    quantity_on_hand: Optional[float] = None
+    minimum_stock_level: Optional[float] = None
+    is_shared_product: Optional[bool] = None
+    shared_with_clients: Optional[List[str]] = None
+    material_specifications: Optional[dict] = None
+    notes: Optional[str] = None
+
+class RawMaterialStockCreate(BaseModel):
+    material_id: str
+    material_name: str
+    quantity_on_hand: float
+    unit_of_measure: str = "kg"
+    minimum_stock_level: float = 0.0
+    alert_threshold_days: int = 7
+    supplier_id: Optional[str] = None
+    usage_rate_per_month: Optional[float] = 0.0
+
+class RawMaterialStockUpdate(BaseModel):
+    quantity_on_hand: Optional[float] = None
+    minimum_stock_level: Optional[float] = None
+    alert_threshold_days: Optional[int] = None
+    usage_rate_per_month: Optional[float] = None
+    last_order_date: Optional[datetime] = None
+    last_order_quantity: Optional[float] = None
+    notes: Optional[str] = None
+
+class StockAlertAcknowledge(BaseModel):
+    snooze_hours: Optional[int] = None
+
 class Stocktake(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     stocktake_date: date
