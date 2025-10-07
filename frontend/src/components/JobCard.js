@@ -1664,8 +1664,6 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
               </div>
             </div>
           </div>
-
-          {/* Temporarily removed print styles to fix layout */}
         </div>
       </div>
     );
