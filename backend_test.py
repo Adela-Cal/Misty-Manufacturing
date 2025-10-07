@@ -3878,8 +3878,8 @@ class BackendAPITester:
                 frontend_url = debug_data.get('frontend_url')
                 client_id = debug_data.get('client_id')
                 
-                expected_callback = 'https://factoryforge.preview.emergentagent.com/api/xero/callback'
-                expected_frontend = 'https://factoryforge.preview.emergentagent.com'
+                expected_callback = 'https://mfg-workflow.preview.emergentagent.com/api/xero/callback'
+                expected_frontend = 'https://mfg-workflow.preview.emergentagent.com'
                 
                 # Check callback URL configuration
                 if callback_url == expected_callback:
@@ -4286,7 +4286,7 @@ class BackendAPITester:
             if response.status_code == 200:
                 debug_data = response.json()
                 callback_url = debug_data.get('callback_url')
-                expected_callback = 'https://factoryforge.preview.emergentagent.com/api/xero/callback'
+                expected_callback = 'https://mfg-workflow.preview.emergentagent.com/api/xero/callback'
                 
                 # Check if callback URL is correct
                 if callback_url == expected_callback:
@@ -4307,7 +4307,7 @@ class BackendAPITester:
                 # Check other configuration values
                 client_id = debug_data.get('client_id')
                 frontend_url = debug_data.get('frontend_url')
-                expected_frontend = 'https://factoryforge.preview.emergentagent.com'
+                expected_frontend = 'https://mfg-workflow.preview.emergentagent.com'
                 
                 if client_id:
                     self.log_result(
@@ -4391,7 +4391,7 @@ class BackendAPITester:
                     )
                     
                     # Check if callback URL is included in the auth URL
-                    expected_callback = 'https://factoryforge.preview.emergentagent.com/api/xero/callback'
+                    expected_callback = 'https://mfg-workflow.preview.emergentagent.com/api/xero/callback'
                     if expected_callback in auth_url:
                         self.log_result(
                             "Xero Auth URL Generation - Callback URL", 
