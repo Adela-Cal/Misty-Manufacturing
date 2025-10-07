@@ -1078,16 +1078,65 @@ const Stocktake = () => {
                             className="misty-input w-full"
                           />
                         </div>
-                        <div className="col-span-2">
-                          <label className="block text-sm text-gray-300 mb-1">Shared Product</label>
-                          <select
+                      </div>
+                      
+                      {/* Shared Product Section */}
+                      <div className="col-span-2 space-y-4">
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id="is_shared_product"
                             name="is_shared_product"
-                            defaultValue={selectedItem.is_shared_product ? 'true' : 'false'}
-                            className="misty-select w-full"
-                          >
-                            <option value="false">No</option>
-                            <option value="true">Yes</option>
-                          </select>
+                            defaultChecked={selectedItem.is_shared_product}
+                            className="w-4 h-4 text-yellow-500 bg-gray-700 border-gray-600 rounded focus:ring-yellow-500"
+                            onChange={(e) => {
+                              const sharedSection = document.getElementById('shared-clients-section');
+                              if (e.target.checked) {
+                                sharedSection.style.display = 'block';
+                              } else {
+                                sharedSection.style.display = 'none';
+                                // Uncheck all client checkboxes
+                                const clientCheckboxes = sharedSection.querySelectorAll('input[type="checkbox"]');
+                                clientCheckboxes.forEach(cb => cb.checked = false);
+                              }
+                            }}
+                          />
+                          <label htmlFor="is_shared_product" className="ml-2 text-sm text-gray-300">
+                            This is a shared product (available to multiple clients)
+                          </label>
+                        </div>
+                        
+                        <div 
+                          id="shared-clients-section" 
+                          style={{ display: selectedItem.is_shared_product ? 'block' : 'none' }}
+                          className="bg-gray-700 p-4 rounded-lg"
+                        >
+                          <label className="block text-sm text-gray-300 mb-3">
+                            Select clients to share this product with:
+                          </label>
+                          <div className="max-h-40 overflow-y-auto space-y-2">
+                            {(clients || []).filter(client => client.id !== selectedItem.client_id).map((client) => (
+                              <div key={client.id} className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  id={`client_${client.id}`}
+                                  name="shared_with_clients"
+                                  value={client.id}
+                                  defaultChecked={(selectedItem.shared_with_clients || []).includes(client.id)}
+                                  className="w-4 h-4 text-yellow-500 bg-gray-600 border-gray-500 rounded focus:ring-yellow-500"
+                                />
+                                <label htmlFor={`client_${client.id}`} className="ml-2 text-sm text-white">
+                                  {client.company_name}
+                                </label>
+                              </div>
+                            ))}
+                            {(!clients || clients.length <= 1) && (
+                              <p className="text-gray-400 text-sm italic">No other clients available to share with</p>
+                            )}
+                          </div>
+                          <div className="mt-3 p-2 bg-blue-900/20 border border-blue-500 rounded text-xs text-blue-200">
+                            <strong>Note:</strong> Shared products will appear in the selected clients' inventories and can be used for their orders.
+                          </div>
                         </div>
                       </div>
                     </>
