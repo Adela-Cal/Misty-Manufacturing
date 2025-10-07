@@ -1395,6 +1395,95 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             </div>
           )}
 
+          {/* Operator Sign-off section temporarily removed - will be re-added at bottom */}
+
+          {/* === SECTIONS RE-ADDED BELOW FOR PROPER CONTAINMENT === */}
+
+          {/* Quality Control & Safety */}
+          {productSpecs?.qc_tolerances && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
+                <ShieldCheckIcon className="h-5 w-5 mr-2" />
+                Quality Control & Safety
+              </h3>
+              <div>
+                <h4 className="font-semibold text-white mb-2">QC Tolerances</h4>
+                <table className="w-full text-sm border border-gray-600 max-w-md">
+                  <tbody>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">ID Tolerance</td>
+                      <td className="p-2 text-right text-white">±{productSpecs.qc_tolerances.id_tolerance} mm</td>
+                    </tr>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">OD Tolerance</td>
+                      <td className="p-2 text-right text-white">±{productSpecs.qc_tolerances.od_tolerance} mm</td>
+                    </tr>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Wall Tolerance</td>
+                      <td className="p-2 text-right text-white">±{productSpecs.qc_tolerances.wall_tolerance} mm</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Packing & Delivery */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
+              <TruckIcon className="h-5 w-5 mr-2" />
+              Packing & Delivery
+            </h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <h4 className="font-semibold text-white mb-2">Packing Requirements</h4>
+                <table className="w-full text-sm border border-gray-600">
+                  <tbody>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Tubes per Carton</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.tubesPerCarton}</td>
+                    </tr>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Cartons Required</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.cartonsRequired}</td>
+                    </tr>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Cartons per Pallet</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.cartonsPerPallet}</td>
+                    </tr>
+                    <tr className="bg-blue-600 font-bold text-white">
+                      <td className="p-2">PALLETS REQUIRED</td>
+                      <td className="p-2 text-right">{calculations.palletsRequired}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <h4 className="font-semibold text-white mb-2">Consumables Usage</h4>
+                <table className="w-full text-sm border border-gray-600">
+                  <tbody>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Cartons Required</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.cartonsRequired}</td>
+                    </tr>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Tape Rolls Required</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.tapeRollsRequired}</td>
+                    </tr>
+                    {productSpecs?.consumables && productSpecs.consumables.length > 0 && (
+                      productSpecs.consumables.map((consumable, index) => (
+                        <tr key={index} className="border-b border-gray-600">
+                          <td className="p-2 bg-gray-700 text-gray-300">{consumable.specification_name}</td>
+                          <td className="p-2 text-right font-medium text-white">{consumable.measurement_unit}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           {/* Operator Sign-off */}
           <div className="border-t-2 border-gray-600 pt-4 mt-8">
             <h3 className="text-lg font-semibold text-white mb-4">
@@ -1424,13 +1513,15 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                     onDoubleClick={() => handleSignOffDoubleClick('setup')}
                     title="Double-click to sign"
                   >
-                    {signOffs.setup.name && (
-                      <div className="text-sm text-white font-medium">
-                        {signOffs.setup.name}
+                    {signOffs.setup.name ? (
+                      <div className="flex flex-col">
+                        <div className="font-medium text-white">{signOffs.setup.name}</div>
                         {signOffs.setup.date && (
                           <div className="text-xs text-gray-300">{signOffs.setup.date}</div>
                         )}
                       </div>
+                    ) : (
+                      <span className="text-gray-400 text-sm">Click to sign</span>
                     )}
                   </div>
                 )}
@@ -1484,13 +1575,15 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                     onDoubleClick={() => handleSignOffDoubleClick('production')}
                     title="Double-click to sign"
                   >
-                    {signOffs.production.name && (
-                      <div className="text-sm text-white font-medium">
-                        {signOffs.production.name}
+                    {signOffs.production.name ? (
+                      <div className="flex flex-col">
+                        <div className="font-medium text-white">{signOffs.production.name}</div>
                         {signOffs.production.date && (
                           <div className="text-xs text-gray-300">{signOffs.production.date}</div>
                         )}
                       </div>
+                    ) : (
+                      <span className="text-gray-400 text-sm">Click to sign</span>
                     )}
                   </div>
                 )}
@@ -1544,13 +1637,15 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                     onDoubleClick={() => handleSignOffDoubleClick('qc')}
                     title="Double-click to sign"
                   >
-                    {signOffs.qc.name && (
-                      <div className="text-sm text-white font-medium">
-                        {signOffs.qc.name}
+                    {signOffs.qc.name ? (
+                      <div className="flex flex-col">
+                        <div className="font-medium text-white">{signOffs.qc.name}</div>
                         {signOffs.qc.date && (
                           <div className="text-xs text-gray-300">{signOffs.qc.date}</div>
                         )}
                       </div>
+                    ) : (
+                      <span className="text-gray-400 text-sm">Click to sign</span>
                     )}
                   </div>
                 )}
