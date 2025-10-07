@@ -6,7 +6,15 @@ import {
   ClipboardDocumentListIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  CalendarIcon
+  CalendarIcon,
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  EyeIcon,
+  BellIcon,
+  BellSlashIcon,
+  ArrowUpIcon,
+  ArrowDownIcon
 } from '@heroicons/react/24/outline';
 
 const Stocktake = () => {
