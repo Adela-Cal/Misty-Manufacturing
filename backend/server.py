@@ -3649,7 +3649,7 @@ async def update_raw_substrate_stock(
                 previous_quantity=previous_quantity,
                 new_quantity=new_quantity,
                 reference_type="manual",
-                notes=update_data.get("notes", "Manual adjustment"),
+                notes=update_data.notes or "Manual adjustment",
                 created_by=current_user["user_id"]
             )
             
@@ -3781,7 +3781,7 @@ async def update_raw_material_stock(
                 previous_quantity=previous_quantity,
                 new_quantity=new_quantity,
                 reference_type="manual",
-                notes=update_data.get("notes", "Manual adjustment"),
+                notes=update_data.notes or "Manual adjustment",
                 created_by=current_user["user_id"]
             )
             
