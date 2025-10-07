@@ -1665,50 +1665,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             </div>
           </div>
 
-          {/* Print Styles */}
-          <style dangerouslySetInnerHTML={{
-            __html: `
-            @media print {
-              .no-print { display: none !important; }
-              .print-content { 
-                font-size: 12px !important;
-                margin: 0 !important;
-                padding: 20px !important;
-                background: white !important;
-                color: black !important;
-              }
-              .print-content * {
-                background: white !important;
-                color: black !important;
-                border-color: #333 !important;
-              }
-              .print-content h1, .print-content h2, .print-content h3, .print-content h4 {
-                color: black !important;
-              }
-              .print-content table {
-                border: 1px solid #333 !important;
-              }
-              .print-content td, .print-content th {
-                border: 1px solid #333 !important;
-                background: white !important;
-                color: black !important;
-              }
-              .print-content .bg-yellow-600 {
-                background: #fef3c7 !important;
-                color: black !important;
-              }
-              .print-content .bg-green-600 {
-                background: #dcfce7 !important;
-                color: black !important;
-              }
-              .print-content .bg-blue-600 {
-                background: #dbeafe !important;
-                color: black !important;
-              }
-              body { print-color-adjust: exact; }
-            }
-            `
-          }} />
+          {/* Temporarily removed print styles to fix layout */}
         </div>
       </div>
     );
