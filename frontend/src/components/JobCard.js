@@ -1374,61 +1374,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
 
           {/* Quality Control & Safety section temporarily removed - will be re-added at bottom */}
 
-          {/* Packing & Delivery */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
-              <TruckIcon className="h-5 w-5 mr-2" />
-              Packing & Delivery
-            </h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-semibold text-white mb-2">Packing Requirements</h4>
-                <table className="w-full text-sm border border-gray-600">
-                  <tbody>
-                    <tr className="border-b border-gray-600">
-                      <td className="p-2 bg-gray-700 text-gray-300">Tubes per Carton</td>
-                      <td className="p-2 text-right font-medium text-white">{calculations.tubesPerCarton}</td>
-                    </tr>
-                    <tr className="border-b border-gray-600">
-                      <td className="p-2 bg-gray-700 text-gray-300">Cartons Required</td>
-                      <td className="p-2 text-right font-medium text-white">{calculations.cartonsRequired}</td>
-                    </tr>
-                    <tr className="border-b border-gray-600">
-                      <td className="p-2 bg-gray-700 text-gray-300">Cartons per Pallet</td>
-                      <td className="p-2 text-right font-medium text-white">{calculations.cartonsPerPallet}</td>
-                    </tr>
-                    <tr className="bg-blue-600 font-bold text-white">
-                      <td className="p-2">PALLETS REQUIRED</td>
-                      <td className="p-2 text-right">{calculations.palletsRequired}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div>
-                <h4 className="font-semibold text-white mb-2">Consumables Usage</h4>
-                <table className="w-full text-sm border border-gray-600">
-                  <tbody>
-                    <tr className="border-b border-gray-600">
-                      <td className="p-2 bg-gray-700 text-gray-300">Cartons Required</td>
-                      <td className="p-2 text-right font-medium text-white">{calculations.cartonsRequired}</td>
-                    </tr>
-                    <tr className="border-b border-gray-600">
-                      <td className="p-2 bg-gray-700 text-gray-300">Tape Rolls Required</td>
-                      <td className="p-2 text-right font-medium text-white">{calculations.tapeRollsRequired}</td>
-                    </tr>
-                    {productSpecs?.consumables && productSpecs.consumables.length > 0 && (
-                      productSpecs.consumables.map((consumable, index) => (
-                        <tr key={index} className="border-b border-gray-600">
-                          <td className="p-2 bg-gray-700 text-gray-300">{consumable.specification_name}</td>
-                          <td className="p-2 text-right font-medium text-white">{consumable.measurement_unit}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          {/* Packing & Delivery section temporarily removed - will be re-added at bottom */}
 
           {/* Other Products in Order */}
           {order?.other_products && order.other_products.length > 0 && (
