@@ -192,10 +192,15 @@ const Stocktake = () => {
   const loadStockAlerts = async () => {
     try {
       const response = await apiHelpers.get('/stock/alerts');
-      setStockAlerts(response.data || []);
-      setShowStockAlert((response.data || []).length > 0);
+      // Handle StandardResponse format: response.data.data contains the actual array
+      const data = response.data?.data || response.data || [];
+      const alerts = Array.isArray(data) ? data : [];
+      setStockAlerts(alerts);
+      setShowStockAlert(alerts.length > 0);
     } catch (error) {
       console.error('Failed to load stock alerts:', error);
+      setStockAlerts([]); // Ensure it's always an array
+      setShowStockAlert(false);
     }
   };
 
