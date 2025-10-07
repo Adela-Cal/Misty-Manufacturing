@@ -856,7 +856,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           </div>
 
           {/* Order Information */}
-          <div className="grid grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
               <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
                 <DocumentTextIcon className="h-5 w-5 mr-2" />
