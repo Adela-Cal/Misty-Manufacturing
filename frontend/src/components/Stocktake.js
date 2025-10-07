@@ -1135,7 +1135,7 @@ const Stocktake = () => {
                                   name="shared_with_clients"
                                   value={client.id}
                                   defaultChecked={(selectedItem.shared_with_clients || []).includes(client.id)}
-                                  className="w-4 h-4 text-yellow-500 bg-gray-600 border-gray-500 rounded focus:ring-yellow-500"
+                                  className="w-4 h-4 text-yellow-500 bg-gray-600 border-gray-500 rounded focus:ring-yellow-500 focus:ring-2"
                                 />
                                 <label htmlFor={`client_${client.id}`} className="ml-2 text-sm text-white">
                                   {client.company_name}
