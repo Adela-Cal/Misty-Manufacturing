@@ -1106,11 +1106,11 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                               const excessCores = Math.max(0, core.quantity - requiredQuantity);
                               
                               return (
-                                <div key={core.id} className="text-sm text-white grid grid-cols-6 gap-2 items-center bg-green-700 p-2 rounded">
+                                <div key={core.id} className="text-sm text-white grid grid-cols-3 lg:grid-cols-6 gap-1 lg:gap-2 items-center bg-green-700 p-2 rounded">
                                   <span>{core.length}m</span>
                                   <span>{core.quantity}</span>
-                                  <span className="text-yellow-200">{totalMeters}m</span>
-                                  <span className={excessCores > 0 ? 'text-yellow-300 font-medium' : 'text-gray-300'}>
+                                  <span className="hidden lg:block text-yellow-200">{totalMeters}m</span>
+                                  <span className={`hidden lg:block ${excessCores > 0 ? 'text-yellow-300 font-medium' : 'text-gray-300'}`}>
                                     {excessCores > 0 ? `+${excessCores}` : '0'}
                                   </span>
                                   <div className="flex items-center">
