@@ -1711,6 +1711,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         }
       `}</style>
       </div>
+      </>
     );
   } catch (error) {
     console.error('JobCard render error:', error);
