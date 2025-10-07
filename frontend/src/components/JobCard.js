@@ -1372,7 +1372,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             </div>
           </div>
 
-          {/* Quality Control & Safety */}
+          {/* Quality Control & Safety - Ensuring proper containment */}
           {productSpecs?.qc_tolerances && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
