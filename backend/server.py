@@ -3733,7 +3733,7 @@ async def create_raw_material_stock(
 @api_router.put("/stock/raw-materials/{material_id}", response_model=StandardResponse)
 async def update_raw_material_stock(
     material_id: str,
-    update_data: Dict[str, Any],
+    update_data: RawMaterialStockUpdate,
     current_user: dict = Depends(require_manager_or_admin)
 ):
     """Update raw material stock quantity or details"""
