@@ -1665,6 +1665,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             </div>
           </div>
 
+          {/* Print Styles */}
           <style dangerouslySetInnerHTML={{
             __html: `
             @media print {
