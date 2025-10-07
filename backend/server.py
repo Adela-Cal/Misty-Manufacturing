@@ -3709,9 +3709,9 @@ async def create_raw_material_stock(
             stock_type="raw_material",
             stock_id=material.id,
             movement_type="addition",
-            quantity_change=material_data["quantity_on_hand"],
+            quantity_change=material_data.quantity_on_hand,
             previous_quantity=0.0,
-            new_quantity=material_data["quantity_on_hand"],
+            new_quantity=material_data.quantity_on_hand,
             reference_type="manual",
             notes="Initial stock creation",
             created_by=current_user["user_id"]
