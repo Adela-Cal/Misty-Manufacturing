@@ -1100,7 +1100,7 @@ const Stocktake = () => {
                             id="is_shared_product"
                             name="is_shared_product"
                             defaultChecked={selectedItem.is_shared_product}
-                            className="w-4 h-4 text-yellow-500 bg-gray-700 border-gray-600 rounded focus:ring-yellow-500"
+                            className="w-4 h-4 text-yellow-500 bg-gray-700 border-gray-600 rounded focus:ring-yellow-500 focus:ring-2"
                             onChange={(e) => {
                               const sharedSection = document.getElementById('shared-clients-section');
                               if (e.target.checked) {
