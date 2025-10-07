@@ -313,7 +313,7 @@ const Stocktake = () => {
             {stockAlerts.length > 0 && (
               <div className="bg-red-900/20 border border-red-500 rounded-lg p-3 flex items-center">
                 <BellIcon className="h-5 w-5 text-red-400 mr-2" />
-                <span className="text-red-300 text-sm">{stockAlerts.length} stock alert{stockAlerts.length > 1 ? 's' : ''}</span>
+                <span className="text-red-300 text-sm">{(stockAlerts || []).length} stock alert{(stockAlerts || []).length > 1 ? 's' : ''}</span>
               </div>
             )}
             {isFirstBusinessDay && stocktakeRequired && (
