@@ -295,15 +295,47 @@ const Stocktake = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Monthly Stocktake</h1>
-            <p className="text-gray-400">Inventory count for {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Stock Management System</h1>
+            <p className="text-gray-400">Manage inventory, stocktakes, and stock alerts</p>
           </div>
-          {isFirstBusinessDay && stocktakeRequired && (
-            <div className="bg-red-900/20 border border-red-500 rounded-lg p-3 flex items-center">
-              <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-2" />
-              <span className="text-red-300 text-sm">Stocktake required today!</span>
-            </div>
-          )}
+          <div className="flex items-center space-x-4">
+            {stockAlerts.length > 0 && (
+              <div className="bg-red-900/20 border border-red-500 rounded-lg p-3 flex items-center">
+                <BellIcon className="h-5 w-5 text-red-400 mr-2" />
+                <span className="text-red-300 text-sm">{stockAlerts.length} stock alert{stockAlerts.length > 1 ? 's' : ''}</span>
+              </div>
+            )}
+            {isFirstBusinessDay && stocktakeRequired && (
+              <div className="bg-yellow-900/20 border border-yellow-500 rounded-lg p-3 flex items-center">
+                <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400 mr-2" />
+                <span className="text-yellow-300 text-sm">Stocktake required today!</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="mb-6">
+          <nav className="flex space-x-1 bg-gray-800 p-1 rounded-lg">
+            {[
+              { id: 'monthly', label: 'Monthly Stocktake', icon: CalendarIcon },
+              { id: 'raw_substrates', label: 'Raw Substrates On-Hand', icon: ClipboardDocumentListIcon },
+              { id: 'raw_materials', label: 'Raw Materials On Hand', icon: CheckCircleIcon }
+            ].map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === id
+                    ? 'bg-yellow-500 text-black'
+                    : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                }`}
+              >
+                <Icon className="h-4 w-4 mr-2" />
+                {label}
+              </button>
+            ))}
+          </nav>
         </div>
 
         {/* Stocktake Status */}
