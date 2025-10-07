@@ -3540,7 +3540,7 @@ async def get_raw_substrates_stock(
 
 @api_router.post("/stock/raw-substrates", response_model=StandardResponse)
 async def create_raw_substrate_stock(
-    substrate_data: Dict[str, Any],
+    substrate_data: RawSubstrateStockCreate,
     current_user: dict = Depends(require_manager_or_admin)
 ):
     """Create new raw substrate stock entry"""
