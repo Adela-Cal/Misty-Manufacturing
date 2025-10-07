@@ -692,7 +692,7 @@ const Stocktake = () => {
                           <div className="flex items-center justify-center space-x-2">
                             <button 
                               className="text-blue-400 hover:text-blue-300"
-                              onClick={() => handleViewItem(material, 'material')}
+                              onClick={() => handleViewItem(substrate, 'substrate')}
                               title="View Details"
                             >
                               <EyeIcon className="h-4 w-4" />
