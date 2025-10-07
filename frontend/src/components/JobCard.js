@@ -1037,7 +1037,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                   <h4 className="font-semibold text-white mb-2">{getFinishedQuantityTitle()}</h4>
                   
                   {stage === 'winding' ? (
-                    /* Master Core Lengths Section for Core Winding */
+                    // Master Core Lengths Section for Core Winding
                     <div className="bg-green-600 p-3 rounded border border-green-500">
                       <div className="mb-3">
                         <span className="text-white font-medium block mb-2">Master Core Entries:</span>
