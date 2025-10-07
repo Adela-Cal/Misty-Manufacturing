@@ -1225,8 +1225,9 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                       )}
                     </div>
                   )}
-                    
-                    {stage === 'paper_slitting' && (
+                </div>
+
+                {stage === 'paper_slitting' && (
                       <div className="mt-3">
                         <div className="text-sm text-green-200 font-medium mb-2">Additional Widths Produced:</div>
                         
