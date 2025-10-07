@@ -26,6 +26,9 @@ class BackendAPITester:
         self.test_employee_id = None
         self.test_manager_id = None
         self.test_timesheet_id = None
+        self.test_material_id = None
+        self.test_substrate_id = None
+        self.test_alert_id = None
         
     def log_result(self, test_name, success, message, details=None):
         """Log test result"""
