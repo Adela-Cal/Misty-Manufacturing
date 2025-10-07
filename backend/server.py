@@ -3838,7 +3838,7 @@ async def get_stock_alerts(current_user: dict = Depends(require_any_role)):
 @api_router.post("/stock/alerts/{alert_id}/acknowledge", response_model=StandardResponse)
 async def acknowledge_stock_alert(
     alert_id: str,
-    acknowledge_data: Dict[str, Any],
+    acknowledge_data: StockAlertAcknowledge,
     current_user: dict = Depends(require_any_role)
 ):
     """Acknowledge a stock alert"""
