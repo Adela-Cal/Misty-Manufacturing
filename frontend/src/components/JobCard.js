@@ -1666,6 +1666,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             </div>
           </div>
         </div>
+      </div>
       </>
     );
   } catch (error) {
