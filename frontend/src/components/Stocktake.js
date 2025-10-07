@@ -38,8 +38,13 @@ const Stocktake = () => {
   // Modal states
   const [showSubstrateModal, setShowSubstrateModal] = useState(false);
   const [showMaterialModal, setShowMaterialModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [editingField, setEditingField] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItemType, setSelectedItemType] = useState(null); // 'substrate' or 'material'
 
   // Form states for new entries
   const [substrateForm, setSubstrateForm] = useState({
