@@ -919,6 +919,294 @@ const Stocktake = () => {
             </div>
           </div>
         )}
+
+        {/* View Details Modal */}
+        {showViewModal && selectedItem && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">
+                  {selectedItemType === 'substrate' ? 'Raw Substrate Details' : 'Raw Material Details'}
+                </h3>
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {selectedItemType === 'substrate' ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-1">Client</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">{selectedItem.client_name}</div>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-1">Product Code</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">{selectedItem.product_code}</div>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-300 mb-1">Product Description</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">{selectedItem.product_description}</div>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-1">Quantity on Hand</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">{selectedItem.quantity_on_hand} {selectedItem.unit_of_measure}</div>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-1">Minimum Stock Level</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">{selectedItem.minimum_stock_level} {selectedItem.unit_of_measure}</div>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-1">Source Order</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">{selectedItem.source_order_id}</div>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-1">Shared Product</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">{selectedItem.is_shared_product ? 'Yes' : 'No'}</div>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-300 mb-1">Created</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">
+                          {selectedItem.created_at ? new Date(selectedItem.created_at).toLocaleDateString() : 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-300 mb-1">Material Name</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">{selectedItem.material_name}</div>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-1">Quantity on Hand</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">{selectedItem.quantity_on_hand} {selectedItem.unit_of_measure}</div>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-1">Minimum Stock Level</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">{selectedItem.minimum_stock_level} {selectedItem.unit_of_measure}</div>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-1">Usage per Month</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">{selectedItem.usage_rate_per_month} {selectedItem.unit_of_measure}</div>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-1">Alert Threshold (Days)</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">{selectedItem.alert_threshold_days}</div>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-300 mb-1">Created</label>
+                        <div className="text-white bg-gray-700 p-2 rounded">
+                          {selectedItem.created_at ? new Date(selectedItem.created_at).toLocaleDateString() : 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="misty-button misty-button-secondary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Modal */}
+        {showEditModal && selectedItem && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">
+                  Edit {selectedItemType === 'substrate' ? 'Raw Substrate' : 'Raw Material'}
+                </h3>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ×
+                </button>
+              </div>
+
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const updatedData = {};
+                for (let [key, value] of formData.entries()) {
+                  if (key.includes('quantity') || key.includes('minimum') || key.includes('usage') || key.includes('alert')) {
+                    updatedData[key] = parseFloat(value) || 0;
+                  } else if (key === 'is_shared_product') {
+                    updatedData[key] = value === 'true';
+                  } else {
+                    updatedData[key] = value;
+                  }
+                }
+                handleEditSave(updatedData);
+              }}>
+                <div className="space-y-4">
+                  {selectedItemType === 'substrate' ? (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm text-gray-300 mb-1">Quantity on Hand</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            name="quantity_on_hand"
+                            defaultValue={selectedItem.quantity_on_hand}
+                            className="misty-input w-full"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-300 mb-1">Minimum Stock Level</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            name="minimum_stock_level"
+                            defaultValue={selectedItem.minimum_stock_level}
+                            className="misty-input w-full"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="block text-sm text-gray-300 mb-1">Shared Product</label>
+                          <select
+                            name="is_shared_product"
+                            defaultValue={selectedItem.is_shared_product ? 'true' : 'false'}
+                            className="misty-select w-full"
+                          >
+                            <option value="false">No</option>
+                            <option value="true">Yes</option>
+                          </select>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm text-gray-300 mb-1">Quantity on Hand</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            name="quantity_on_hand"
+                            defaultValue={selectedItem.quantity_on_hand}
+                            className="misty-input w-full"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-300 mb-1">Minimum Stock Level</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            name="minimum_stock_level"
+                            defaultValue={selectedItem.minimum_stock_level}
+                            className="misty-input w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-300 mb-1">Usage per Month</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            name="usage_rate_per_month"
+                            defaultValue={selectedItem.usage_rate_per_month}
+                            className="misty-input w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-300 mb-1">Alert Threshold (Days)</label>
+                          <input
+                            type="number"
+                            name="alert_threshold_days"
+                            defaultValue={selectedItem.alert_threshold_days}
+                            className="misty-input w-full"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    className="misty-button misty-button-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="misty-button misty-button-primary"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && selectedItem && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">Confirm Delete</h3>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-gray-300">
+                  Are you sure you want to delete this {selectedItemType === 'substrate' ? 'raw substrate' : 'raw material'}?
+                </p>
+                <div className="mt-2 p-3 bg-gray-700 rounded">
+                  <p className="text-white font-medium">
+                    {selectedItemType === 'substrate' ? selectedItem.product_description : selectedItem.material_name}
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    {selectedItem.quantity_on_hand} {selectedItem.unit_of_measure} on hand
+                  </p>
+                </div>
+                <p className="text-red-400 text-sm mt-2">
+                  This action cannot be undone. All stock movements and alerts for this item will also be deleted.
+                </p>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="misty-button misty-button-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="misty-button misty-button-primary bg-red-600 hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
