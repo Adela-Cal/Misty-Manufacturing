@@ -1092,11 +1092,11 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                         {/* Display master core entries */}
                         {masterCores.length > 0 && (
                           <div className="space-y-2">
-                            <div className="text-xs text-green-100 grid grid-cols-6 gap-2 font-semibold border-b border-green-500 pb-1">
+                            <div className="text-xs text-green-100 grid grid-cols-3 lg:grid-cols-6 gap-1 lg:gap-2 font-semibold border-b border-green-500 pb-1">
                               <span>Length (m)</span>
                               <span>Quantity</span>
-                              <span>Total Meters</span>
-                              <span>Excess Cores</span>
+                              <span className="hidden lg:block">Total Meters</span>
+                              <span className="hidden lg:block">Excess Cores</span>
                               <span>Add to Stock</span>
                               <span>Actions</span>
                             </div>
