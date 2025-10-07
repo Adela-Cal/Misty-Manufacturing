@@ -771,7 +771,7 @@ const Stocktake = () => {
                   </tbody>
                 </table>
                 
-                {rawMaterialsStock.length === 0 && (
+                {(!rawMaterialsStock || rawMaterialsStock.length === 0) && (
                   <div className="p-8 text-center text-gray-400">
                     <CheckCircleIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No raw materials found</p>
