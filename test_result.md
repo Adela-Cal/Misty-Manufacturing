@@ -913,7 +913,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Client Product Catalogue Production & Makeready Parameters Retention Bug"
+    - "Tubes Per Carton Packaging Validation in Order Creation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
