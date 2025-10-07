@@ -845,14 +845,14 @@ const Stocktake = () => {
                             </button>
                             <button 
                               className="text-yellow-400 hover:text-yellow-300"
-                              onClick={() => handleEditItem(substrate, 'substrate')}
+                              onClick={() => handleEditItem(material, 'material')}
                               title="Edit"
                             >
                               <PencilIcon className="h-4 w-4" />
                             </button>
                             <button 
                               className="text-red-400 hover:text-red-300"
-                              onClick={() => handleDeleteItem(substrate, 'substrate')}
+                              onClick={() => handleDeleteItem(material, 'material')}
                               title="Delete"
                             >
                               <TrashIcon className="h-4 w-4" />
