@@ -966,7 +966,17 @@ const Stocktake = () => {
                       </div>
                       <div>
                         <label className="block text-sm text-gray-300 mb-1">Shared Product</label>
-                        <div className="text-white bg-gray-700 p-2 rounded">{selectedItem.is_shared_product ? 'Yes' : 'No'}</div>
+                        <div className="text-white bg-gray-700 p-2 rounded">
+                          {selectedItem.is_shared_product ? 'Yes' : 'No'}
+                          {selectedItem.is_shared_product && selectedItem.shared_with_clients && selectedItem.shared_with_clients.length > 0 && (
+                            <div className="text-xs text-gray-300 mt-1">
+                              Shared with: {selectedItem.shared_with_clients.map(clientId => {
+                                const client = clients.find(c => c.id === clientId);
+                                return client ? client.company_name : clientId;
+                              }).join(', ')}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <div className="col-span-2">
                         <label className="block text-sm text-gray-300 mb-1">Created</label>
