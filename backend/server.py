@@ -3575,10 +3575,10 @@ async def create_raw_substrate_stock(
             stock_type="raw_substrate",
             stock_id=substrate.id,
             movement_type="addition",
-            quantity_change=substrate_data["quantity_on_hand"],
+            quantity_change=substrate_data.quantity_on_hand,
             previous_quantity=0.0,
-            new_quantity=substrate_data["quantity_on_hand"],
-            reference_id=substrate_data["source_order_id"],
+            new_quantity=substrate_data.quantity_on_hand,
+            reference_id=substrate_data.source_order_id,
             reference_type="order",
             notes=f"Initial stock creation from excess production",
             created_by=current_user["user_id"]
