@@ -700,18 +700,22 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     const coreLength = parseFloat(productSpecs.core_width) / 1000 || 1.2; // Convert mm to meters, default 1.2m
     const orderQuantity = jobData?.order?.quantity || 1;
     
-    // Get winding angle from core winding specification
-    let windingAngle = 65; // Default angle in degrees
-    if (coreWindingSpec && coreWindingSpec.recommendedAngle) {
-      const angleMatch = coreWindingSpec.recommendedAngle.match(/(\d+)/);
-      if (angleMatch) {
-        windingAngle = parseInt(angleMatch[1]);
+    // Get length factor from core winding specification (predefined manufacturing values)
+    let lengthFactor = 2.366; // Default length factor
+    let windingAngle = 65; // Default angle for display
+    
+    if (coreWindingSpec) {
+      // Use the predefined length factor from machinery specifications
+      lengthFactor = parseFloat(coreWindingSpec.lengthFactor) || 2.366;
+      
+      // Extract angle for display purposes
+      if (coreWindingSpec.recommendedAngle) {
+        const angleMatch = coreWindingSpec.recommendedAngle.match(/(\d+)/);
+        if (angleMatch) {
+          windingAngle = parseInt(angleMatch[1]);
+        }
       }
     }
-
-    // Calculate length factor: 1/cos(angle in radians)
-    const angleInRadians = (windingAngle * Math.PI) / 180;
-    const lengthFactor = 1 / Math.cos(angleInRadians);
 
     const materialRequirements = productSpecs.material_layers.map((layer, index) => {
       // Calculate laps per layer (using quantity as laps, default to 1)
