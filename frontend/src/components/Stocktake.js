@@ -399,7 +399,7 @@ const Stocktake = () => {
           <nav className="flex space-x-1 bg-gray-800 p-1 rounded-lg">
             {[
               { id: 'monthly', label: 'Monthly Stocktake', icon: CalendarIcon },
-              { id: 'raw_substrates', label: 'Raw Substrates On-Hand', icon: ClipboardDocumentListIcon },
+              { id: 'raw_substrates', label: 'Products On Hand', icon: ClipboardDocumentListIcon },
               { id: 'raw_materials', label: 'Raw Materials On Hand', icon: CheckCircleIcon }
             ].map(({ id, label, icon: Icon }) => (
               <button
