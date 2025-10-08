@@ -1177,9 +1177,21 @@ const Stocktake = () => {
                     </>
                   ) : (
                     <>
-                      <div className="grid grid-cols-2 gap-4">
+                      {/* Material Selection (for reference, read-only in edit mode) */}
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-1">Selected Material</label>
+                        <div className="bg-gray-700 p-3 rounded">
+                          <div className="text-white text-sm">{selectedItem.material_name}</div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            Material ID: {selectedItem.material_id || 'N/A'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stock Information Grid */}
+                      <div className="grid grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm text-gray-300 mb-1">Quantity on Hand</label>
+                          <label className="block text-sm text-gray-300 mb-1">Quantity on Hand *</label>
                           <input
                             type="number"
                             step="0.01"
@@ -1188,6 +1200,21 @@ const Stocktake = () => {
                             className="misty-input w-full"
                             required
                           />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-300 mb-1">Unit of Measure *</label>
+                          <select
+                            name="unit_of_measure"
+                            defaultValue={selectedItem.unit_of_measure}
+                            className="misty-select w-full"
+                          >
+                            <option value="kg">Kilograms</option>
+                            <option value="tons">Tons</option>
+                            <option value="meters">Meters</option>
+                            <option value="liters">Liters</option>
+                            <option value="units">Units</option>
+                            <option value="rolls">Rolls</option>
+                          </select>
                         </div>
                         <div>
                           <label className="block text-sm text-gray-300 mb-1">Minimum Stock Level</label>
@@ -1199,8 +1226,12 @@ const Stocktake = () => {
                             className="misty-input w-full"
                           />
                         </div>
+                      </div>
+
+                      {/* Usage and Alert Settings Grid */}
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm text-gray-300 mb-1">Usage per Month</label>
+                          <label className="block text-sm text-gray-300 mb-1">Usage Rate (per month)</label>
                           <input
                             type="number"
                             step="0.01"
