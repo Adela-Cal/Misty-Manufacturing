@@ -653,7 +653,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
       const response = await apiHelpers.post('/stock/raw-substrates', stockData);
       
       if (response.success) {
-        toast.success(`${excessCores} excess cores added to Raw Substrates stock`);
+        toast.success(`${excessCores} excess biscuit pieces added to Raw Substrates stock`);
         return true;
       } else {
         throw new Error(response.message || 'Failed to add to stock');
