@@ -477,6 +477,21 @@ backend:
         comment: "🎉 MATERIAL CALCULATION FUNCTIONALITY FULLY OPERATIONAL! Comprehensive testing completed with 100% success rate. CRITICAL VERIFICATION CONFIRMED: ✅ Successfully accessed ADM-2025-0001 order in Paper Slitting stage, ✅ Job card modal opened successfully via data-testid selector, ✅ Found 'Materials Required (Calculated Quantities)' section working perfectly, ✅ CALCULATION PARAMETERS SECTION VERIFIED: Core Length: 0.10m, Winding Angle: 65°, Length Factor: 2.366, Order Quantity: 1700 cores, ✅ MATERIAL CALCULATIONS WORKING: Found 5 total required meters calculations (402.3m, 390.2m, etc.) highlighted in green, ✅ FORMULA DISPLAYS WORKING: Found 5 formula displays showing '(0.10m × 2.366) × X laps' format, ✅ MATERIAL LAYER DETAILS VERIFIED: All 3 layer types found (Inner Most Layer, Central Layer, Outer Most Layer), ✅ GSM VALUES IN CALCULATIONS: Found 5 GSM values correctly displayed (155, 360) with proper material information, ✅ SPIRAL CORE FORMULA IMPLEMENTATION: Using core length × length factor × laps per core × order quantity for accurate material calculations. CONCLUSION: The Material Calculation functionality is production-ready and fully functional, providing accurate material requirements using the spiral core manufacturing formula with proper calculation parameters, total meters display, and complete material layer information."
 
 frontend:
+  - task: "Core Winding Job Card Section Removal"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/JobCard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Removed Quality Control & Safety, Packing & Delivery, Consumables, and Operator Sign-off sections from Core Winding Job Cards by adding conditional rendering based on stage !== 'winding'. These sections are now hidden for winding stage jobs while remaining visible for other job types."
+      - working: true
+        agent: "testing"
+        comment: "🎉 CORE WINDING JOB CARD SECTION REMOVAL FULLY SUCCESSFUL: Comprehensive testing completed with 100% success rate. CRITICAL VERIFICATION CONFIRMED: ✅ Login with demo credentials (Callum/Peach7510) working perfectly, ✅ Successfully navigated to Production Board, ✅ Found winding stage with 2 jobs (ADM-2025-0001, ADM-2025-0002), ✅ Successfully opened Core Winding Job Card modal for ADM-2025-0001. SECTIONS SUCCESSFULLY REMOVED FROM WINDING JOBS: ✅ PASS: 'Quality Control & Safety' section NOT FOUND (properly removed), ✅ PASS: 'Packing & Delivery' section NOT FOUND (properly removed), ✅ PASS: 'Consumables Usage' section NOT FOUND (properly removed), ✅ PASS: 'Operator Sign-off' section NOT FOUND (properly removed). SECTIONS PROPERLY PRESENT IN WINDING JOBS: ✅ PASS: 'Order Information' section present and visible (Order ID: ADM-2025-0001, Customer: Label Makers, Quantity: 2,970 units, Priority: Normal/Low), ✅ PASS: 'Machine Line: Core Winder Line' section present and visible with setup notes functionality, ✅ PASS: 'Product Specifications' section present and visible (Product Code: LMPC76ID3T100W, Core ID: 76mm, Tube Length: 100mm, Wall Thickness: 3mm), ✅ PASS: 'Materials Required' section present and visible (showing J260 B-Grade Spool Paper and Jintian Paper materials with proper quantities and specifications), ✅ PASS: Production workflow sections working correctly for winding stage. CONDITIONAL RENDERING VERIFICATION: The implementation correctly uses stage !== 'winding' conditional rendering to hide Quality Control & Safety, Packing & Delivery, Consumables, and Operator Sign-off sections specifically for winding jobs while keeping all essential sections (Order Information, Machine Line, Product Specifications, Materials Required) visible and functional. LAYOUT IMPROVEMENT CONFIRMED: The Core Winding Job Card is now much cleaner and simpler, focusing only on the sections relevant to the winding stage, which resolves the layout issues mentioned in the review request. The modal displays properly with all required information without the clutter of irrelevant sections."
+
   - task: "Job Card Modal Opening Fix and Auto-Refresh Prevention"
     implemented: true
     working: true
