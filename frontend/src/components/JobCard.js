@@ -1048,9 +1048,9 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                             <input
                               type="number"
                               step="0.1"
-                              placeholder="Length (m)"
-                              value={newMasterCore.length}
-                              onChange={(e) => setNewMasterCore(prev => ({ ...prev, length: e.target.value }))}
+                              placeholder="Width (mm)"
+                              value={newMasterCore.width}
+                              onChange={(e) => setNewMasterCore(prev => ({ ...prev, width: e.target.value }))}
                               className="w-full px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white"
                             />
                           </div>
