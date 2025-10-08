@@ -561,19 +561,19 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     }));
   };
 
-  // Master Core management functions
+  // Additional Biscuit Widths management functions
   const handleAddMasterCore = () => {
-    if (newMasterCore.length && newMasterCore.quantity) {
+    if (newMasterCore.width && newMasterCore.quantity) {
       const coreEntry = {
         id: Date.now(),
-        length: parseFloat(newMasterCore.length),
+        width: parseFloat(newMasterCore.width),
         quantity: parseInt(newMasterCore.quantity),
         addToStock: newMasterCore.addToStock,
         addedToStock: false // Track if already added to stock
       };
       
       setMasterCores(prev => [...prev, coreEntry]);
-      setNewMasterCore({ length: '', quantity: '', addToStock: false });
+      setNewMasterCore({ width: '', quantity: '', addToStock: false });
       
       // If addToStock is true, automatically add excess to stock
       if (coreEntry.addToStock) {
