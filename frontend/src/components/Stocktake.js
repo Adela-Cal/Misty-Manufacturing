@@ -1488,15 +1488,37 @@ const Stocktake = () => {
               }}>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm text-gray-300 mb-1">Material Name *</label>
-                    <input
-                      type="text"
-                      value={materialForm.material_name}
-                      onChange={(e) => setMaterialForm(prev => ({ ...prev, material_name: e.target.value }))}
-                      className="misty-input w-full"
+                    <label className="block text-sm text-gray-300 mb-1">Select Material *</label>
+                    <select
+                      value={materialForm.material_id}
+                      onChange={(e) => {
+                        const selectedMaterial = availableMaterials.find(m => m.id === e.target.value);
+                        if (selectedMaterial) {
+                          setMaterialForm(prev => ({
+                            ...prev,
+                            material_id: e.target.value,
+                            material_name: `${selectedMaterial.supplier} - ${selectedMaterial.product_code}`,
+                            unit_of_measure: selectedMaterial.unit || 'kg'
+                          }));
+                        }
+                      }}
+                      className="misty-select w-full"
                       required
-                    />
+                    >
+                      <option value="">Select Material from Database</option>
+                      {availableMaterials.map(material => (
+                        <option key={material.id} value={material.id}>
+                          {material.supplier} - {material.product_code} ({material.gsm}GSM {material.thickness}mm)
+                        </option>
+                      ))}
+                    </select>
                   </div>
+                  {materialForm.material_name && (
+                    <div className="bg-gray-700 p-3 rounded">
+                      <label className="block text-sm text-gray-300 mb-1">Selected Material</label>
+                      <div className="text-white text-sm">{materialForm.material_name}</div>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
