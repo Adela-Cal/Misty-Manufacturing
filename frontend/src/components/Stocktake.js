@@ -572,7 +572,7 @@ const Stocktake = () => {
             {/* Header with filter and actions */}
             <div className="bg-gray-800 rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-white">Raw Substrates On-Hand</h2>
+                <h2 className="text-xl font-semibold text-white">Products On Hand</h2>
                 <div className="flex items-center space-x-4">
                   <button
                     onClick={checkLowStock}
