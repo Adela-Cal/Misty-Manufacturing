@@ -1089,7 +1089,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                       {masterCores.length > 0 && (
                         <div className="space-y-1">
                           <div className="text-xs text-green-100 font-semibold border-b border-green-500 pb-1">
-                            Core Entries:
+                            Biscuit Width Entries:
                           </div>
                           {masterCores.map((core) => {
                             const requiredQuantity = jobData?.order?.quantity || 0;
@@ -1098,7 +1098,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                             return (
                               <div key={core.id} className="bg-green-700 p-2 rounded text-sm">
                                 <div className="flex justify-between items-center">
-                                  <span className="text-white">{core.length}m × {core.quantity} cores</span>
+                                  <span className="text-white">{core.width}mm × {core.quantity} pieces</span>
                                   <div className="flex items-center space-x-2">
                                     {excessCores > 0 && (
                                       <span className="text-yellow-300 text-xs">+{excessCores} excess</span>
