@@ -1039,7 +1039,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                   
                   {stage === 'winding' ? (
                     <div className="bg-green-600 p-3 rounded border border-green-500">
-                      <span className="text-white font-medium block mb-2">Master Core Production:</span>
+                      <span className="text-white font-medium block mb-2">Additional Biscuit Widths:</span>
                       
                       {/* Simplified Form */}
                       <div className="mb-3 space-y-2">
