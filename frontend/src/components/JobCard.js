@@ -717,22 +717,41 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
       }
     }
 
-    const materialRequirements = productSpecs.material_layers.map((layer, index) => {
-      // Calculate laps per layer (using quantity as laps, default to 1)
+    // Sort layers by width to determine proper layering order (narrower = inner, wider = outer)
+    const sortedLayers = [...productSpecs.material_layers].sort((a, b) => {
+      const widthA = parseFloat(a.width) || 0;
+      const widthB = parseFloat(b.width) || 0;
+      return widthA - widthB;
+    });
+
+    // Calculate initial core radius (diameter / 2)
+    const coreRadius = (parseFloat(productSpecs.core_id) || 76) / 2; // mm
+    let currentRadius = coreRadius;
+
+    const materialRequirements = sortedLayers.map((layer, index) => {
+      const thickness = parseFloat(layer.thickness) || 0; // mm
       const lapsPerCore = layer.quantity || 1;
       
-      // Material length per core = (core length × length factor) × laps
-      const metersPerCore = (coreLength * lengthFactor) * lapsPerCore;
+      // Calculate circumference at current radius level
+      const circumferenceAtLayer = (2 * Math.PI * currentRadius) / 1000; // Convert mm to meters
+      
+      // Material length per core = (circumference at this layer × length factor) × laps
+      const metersPerCore = (circumferenceAtLayer * lengthFactor) * lapsPerCore;
       
       // Total material needed for entire order
       const totalMeters = metersPerCore * orderQuantity;
+      
+      // Update radius for next layer (add thickness for each lap)
+      currentRadius += (thickness * lapsPerCore);
 
       return {
         ...layer,
         metersPerCore: metersPerCore,
         totalMeters: totalMeters,
         lapsPerCore: lapsPerCore,
-        lengthFactor: lengthFactor.toFixed(3)
+        lengthFactor: lengthFactor.toFixed(3),
+        layerRadius: currentRadius - (thickness * lapsPerCore), // Radius at start of this layer
+        layerOrder: index + 1 // Order from inner to outer
       };
     });
 
