@@ -237,6 +237,17 @@ const Stocktake = () => {
     }
   };
 
+  const loadAvailableMaterials = async () => {
+    try {
+      const response = await apiHelpers.getMaterials();
+      const data = response.data || [];
+      setAvailableMaterials(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Failed to load available materials:', error);
+      setAvailableMaterials([]);
+    }
+  };
+
   const handleDoubleClick = (itemId, field) => {
     setEditingItem(itemId);
     setEditingField(field);
