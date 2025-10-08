@@ -1119,7 +1119,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                           {/* Compact Summary */}
                           {jobData?.order?.quantity && (
                             <div className="text-xs text-green-100 pt-1 border-t border-green-500">
-                              Total: {masterCores.reduce((sum, core) => sum + core.quantity, 0)} cores | 
+                              Total: {masterCores.reduce((sum, core) => sum + core.quantity, 0)} pieces | 
                               Required: {jobData.order.quantity} | 
                               Excess: {masterCores.reduce((sum, core) => sum + Math.max(0, core.quantity - jobData.order.quantity), 0)}
                             </div>
