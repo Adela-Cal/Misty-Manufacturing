@@ -680,7 +680,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const getFinishedQuantityTitle = () => {
     switch (stage) {
       case 'winding':
-        return 'Master Core Lengths';
+        return 'Additional Biscuit Widths Produced';
       case 'finishing':
         return 'Total Finished Cores';
       case 'paper_slitting':
