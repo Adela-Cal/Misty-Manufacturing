@@ -1278,6 +1278,294 @@ const Stocktake = () => {
             </div>
           </div>
         )}
+
+        {/* Add Product Entry Modal */}
+        {showSubstrateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">Add Product Entry</h3>
+                <button
+                  onClick={() => setShowSubstrateModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ×
+                </button>
+              </div>
+
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  await apiHelpers.post('/stock/raw-substrates', substrateForm);
+                  setShowSubstrateModal(false);
+                  loadRawSubstrates();
+                  toast.success('Product entry added successfully');
+                  // Reset form
+                  setSubstrateForm({
+                    client_id: '',
+                    client_name: '',
+                    product_id: '',
+                    product_code: '',
+                    product_description: '',
+                    quantity_on_hand: 0,
+                    unit_of_measure: 'units',
+                    source_order_id: '',
+                    is_shared_product: false,
+                    shared_with_clients: [],
+                    minimum_stock_level: 0
+                  });
+                } catch (error) {
+                  console.error('Failed to add product entry:', error);
+                  toast.error('Failed to add product entry');
+                }
+              }}>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-300 mb-1">Client *</label>
+                      <select
+                        value={substrateForm.client_id}
+                        onChange={(e) => {
+                          const selectedClient = clients.find(c => c.id === e.target.value);
+                          setSubstrateForm(prev => ({
+                            ...prev,
+                            client_id: e.target.value,
+                            client_name: selectedClient?.company_name || ''
+                          }));
+                        }}
+                        className="misty-select w-full"
+                        required
+                      >
+                        <option value="">Select Client</option>
+                        {clients.map(client => (
+                          <option key={client.id} value={client.id}>{client.company_name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-300 mb-1">Product Code *</label>
+                      <input
+                        type="text"
+                        value={substrateForm.product_code}
+                        onChange={(e) => setSubstrateForm(prev => ({ ...prev, product_code: e.target.value }))}
+                        className="misty-input w-full"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Product Description *</label>
+                    <input
+                      type="text"
+                      value={substrateForm.product_description}
+                      onChange={(e) => setSubstrateForm(prev => ({ ...prev, product_description: e.target.value }))}
+                      className="misty-input w-full"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-300 mb-1">Quantity on Hand *</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={substrateForm.quantity_on_hand}
+                        onChange={(e) => setSubstrateForm(prev => ({ ...prev, quantity_on_hand: parseFloat(e.target.value) || 0 }))}
+                        className="misty-input w-full"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-300 mb-1">Unit of Measure *</label>
+                      <select
+                        value={substrateForm.unit_of_measure}
+                        onChange={(e) => setSubstrateForm(prev => ({ ...prev, unit_of_measure: e.target.value }))}
+                        className="misty-select w-full"
+                      >
+                        <option value="units">Units</option>
+                        <option value="pieces">Pieces</option>
+                        <option value="cores">Cores</option>
+                        <option value="tubes">Tubes</option>
+                        <option value="meters">Meters</option>
+                        <option value="kg">Kilograms</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-300 mb-1">Minimum Stock Level</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={substrateForm.minimum_stock_level}
+                        onChange={(e) => setSubstrateForm(prev => ({ ...prev, minimum_stock_level: parseFloat(e.target.value) || 0 }))}
+                        className="misty-input w-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Source Order ID</label>
+                    <input
+                      type="text"
+                      value={substrateForm.source_order_id}
+                      onChange={(e) => setSubstrateForm(prev => ({ ...prev, source_order_id: e.target.value }))}
+                      className="misty-input w-full"
+                      placeholder="Order that created this stock (optional)"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowSubstrateModal(false)}
+                    className="misty-button misty-button-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="misty-button misty-button-primary"
+                  >
+                    Add Entry
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Add Material Stock Modal */}
+        {showMaterialModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">Add Raw Material Stock</h3>
+                <button
+                  onClick={() => setShowMaterialModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ×
+                </button>
+              </div>
+
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  await apiHelpers.post('/stock/raw-materials', materialForm);
+                  setShowMaterialModal(false);
+                  loadRawMaterialsStock();
+                  toast.success('Raw material stock added successfully');
+                  // Reset form
+                  setMaterialForm({
+                    material_id: '',
+                    material_name: '',
+                    quantity_on_hand: 0,
+                    unit_of_measure: 'kg',
+                    minimum_stock_level: 0,
+                    alert_threshold_days: 7,
+                    supplier_id: '',
+                    usage_rate_per_month: 0
+                  });
+                } catch (error) {
+                  console.error('Failed to add raw material stock:', error);
+                  toast.error('Failed to add raw material stock');
+                }
+              }}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Material Name *</label>
+                    <input
+                      type="text"
+                      value={materialForm.material_name}
+                      onChange={(e) => setMaterialForm(prev => ({ ...prev, material_name: e.target.value }))}
+                      className="misty-input w-full"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-300 mb-1">Quantity on Hand *</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={materialForm.quantity_on_hand}
+                        onChange={(e) => setMaterialForm(prev => ({ ...prev, quantity_on_hand: parseFloat(e.target.value) || 0 }))}
+                        className="misty-input w-full"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-300 mb-1">Unit of Measure *</label>
+                      <select
+                        value={materialForm.unit_of_measure}
+                        onChange={(e) => setMaterialForm(prev => ({ ...prev, unit_of_measure: e.target.value }))}
+                        className="misty-select w-full"
+                      >
+                        <option value="kg">Kilograms</option>
+                        <option value="tons">Tons</option>
+                        <option value="meters">Meters</option>
+                        <option value="liters">Liters</option>
+                        <option value="units">Units</option>
+                        <option value="rolls">Rolls</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-300 mb-1">Minimum Stock Level</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={materialForm.minimum_stock_level}
+                        onChange={(e) => setMaterialForm(prev => ({ ...prev, minimum_stock_level: parseFloat(e.target.value) || 0 }))}
+                        className="misty-input w-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-300 mb-1">Usage Rate (per month)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={materialForm.usage_rate_per_month}
+                        onChange={(e) => setMaterialForm(prev => ({ ...prev, usage_rate_per_month: parseFloat(e.target.value) || 0 }))}
+                        className="misty-input w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-300 mb-1">Alert Threshold (Days)</label>
+                      <input
+                        type="number"
+                        value={materialForm.alert_threshold_days}
+                        onChange={(e) => setMaterialForm(prev => ({ ...prev, alert_threshold_days: parseInt(e.target.value) || 7 }))}
+                        className="misty-input w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowMaterialModal(false)}
+                    className="misty-button misty-button-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="misty-button misty-button-primary"
+                  >
+                    Add Material
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
