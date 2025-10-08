@@ -1024,7 +1024,9 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                         
                         {/* Compact calculation summary at bottom */}
                         <div className="text-xs text-gray-400 mt-2 pt-2 border-t border-gray-600">
-                          Formula: Core Length {(parseFloat(productSpecs.core_width) / 1000 || 1.2).toFixed(2)}m × Angle Factor {materialRequirements[0]?.lengthFactor || '2.366'} × Laps × {jobData?.order?.quantity || 1} cores
+                          Formula: Layer Circumference × Angle Factor {materialRequirements[0]?.lengthFactor || '2.366'} × Laps × {jobData?.order?.quantity || 1} cores
+                          <br />
+                          <span className="text-gray-500">Layers ordered by width (narrower=inner, wider=outer), each layer calculated at its radius</span>
                         </div>
                       </div>
                     );
