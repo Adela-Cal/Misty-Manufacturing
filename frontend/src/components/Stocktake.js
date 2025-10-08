@@ -77,6 +77,7 @@ const Stocktake = () => {
     loadStocktakeStatus();
     loadClients();
     loadStockAlerts();
+    loadAvailableMaterials();
   }, []);
 
   useEffect(() => {
