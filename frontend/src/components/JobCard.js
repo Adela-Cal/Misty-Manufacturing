@@ -659,8 +659,8 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         throw new Error(response.message || 'Failed to add to stock');
       }
     } catch (error) {
-      console.error('Failed to add cores to stock:', error);
-      toast.error('Failed to add cores to stock');
+      console.error('Failed to add biscuit pieces to stock:', error);
+      toast.error('Failed to add biscuit pieces to stock');
       return false;
     }
   };
