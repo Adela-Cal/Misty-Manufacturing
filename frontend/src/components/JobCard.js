@@ -741,20 +741,34 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
 
   // Get core winding specification for calculations
   const getCoreWindingSpecForCalculation = () => {
-    if (!productSpecs?.core_winding_spec_id) return null;
-    
-    // This should match the core winding specs from Machinery Specifications
+    // Core winding specifications from Machinery Specifications
     const coreWindingSpecs = [
-      { id: 'cw_15_20', recommendedAngle: '72°', lengthFactor: '3.236' },
-      { id: 'cw_21_30', recommendedAngle: '70°', lengthFactor: '2.924' },
-      { id: 'cw_31_50', recommendedAngle: '68°', lengthFactor: '2.670' },
-      { id: 'cw_51_70', recommendedAngle: '66°', lengthFactor: '2.459' },
-      { id: 'cw_71_120', recommendedAngle: '65°', lengthFactor: '2.366' },
-      { id: 'cw_121_200', recommendedAngle: '64°', lengthFactor: '2.281' },
-      { id: 'cw_201_plus', recommendedAngle: '62°', lengthFactor: '2.130' }
+      { id: 'cw_15_20', range: [15, 20], recommendedAngle: '72°', lengthFactor: '3.236' },
+      { id: 'cw_21_30', range: [21, 30], recommendedAngle: '70°', lengthFactor: '2.924' },
+      { id: 'cw_31_50', range: [31, 50], recommendedAngle: '68°', lengthFactor: '2.670' },
+      { id: 'cw_51_70', range: [51, 70], recommendedAngle: '66°', lengthFactor: '2.459' },
+      { id: 'cw_71_120', range: [71, 120], recommendedAngle: '65°', lengthFactor: '2.366' },
+      { id: 'cw_121_200', range: [121, 200], recommendedAngle: '64°', lengthFactor: '2.281' },
+      { id: 'cw_201_plus', range: [201, 999], recommendedAngle: '62°', lengthFactor: '2.130' }
     ];
     
-    return coreWindingSpecs.find(spec => spec.id === productSpecs.core_winding_spec_id);
+    // First try to use the specified core_winding_spec_id
+    if (productSpecs?.core_winding_spec_id) {
+      const specById = coreWindingSpecs.find(spec => spec.id === productSpecs.core_winding_spec_id);
+      if (specById) return specById;
+    }
+    
+    // If no spec_id or not found, auto-determine based on core diameter (core_id)
+    const coreDiameter = parseFloat(productSpecs?.core_id) || 76; // Default to 76mm if not specified
+    
+    for (const spec of coreWindingSpecs) {
+      if (coreDiameter >= spec.range[0] && coreDiameter <= spec.range[1]) {
+        return spec;
+      }
+    }
+    
+    // Default fallback
+    return coreWindingSpecs[4]; // 71-120mm range as default
   };
 
   if (loading) {
