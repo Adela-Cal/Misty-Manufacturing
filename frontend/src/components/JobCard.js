@@ -642,7 +642,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         shared_with_clients: [],
         created_from_excess: true,
         material_specifications: {
-          core_length: coreEntry.length,
+          biscuit_width: coreEntry.width,
           core_diameter: productSpecs.core_diameter,
           material_layers: productSpecs.material_layers
         },
