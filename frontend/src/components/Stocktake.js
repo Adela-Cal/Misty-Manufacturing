@@ -586,7 +586,7 @@ const Stocktake = () => {
                     className="misty-button misty-button-primary"
                   >
                     <PlusIcon className="h-4 w-4 mr-2" />
-                    Add Stock Entry
+                    Add Product Entry
                   </button>
                 </div>
               </div>
