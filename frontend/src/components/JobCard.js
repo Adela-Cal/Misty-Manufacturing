@@ -69,10 +69,10 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const [isEditingFinishedQuantity, setIsEditingFinishedQuantity] = useState(false);
   const [editedFinishedQuantity, setEditedFinishedQuantity] = useState(0);
 
-  // Master Core Lengths states (for core winding jobs)
+  // Additional Biscuit Widths states (for core winding jobs)
   const [masterCores, setMasterCores] = useState([]);
   const [isEditingMasterCore, setIsEditingMasterCore] = useState(false);
-  const [newMasterCore, setNewMasterCore] = useState({ length: '', quantity: '', addToStock: false });
+  const [newMasterCore, setNewMasterCore] = useState({ width: '', quantity: '', addToStock: false });
   
   // Machine-specific additional production states
   const [additionalProduction, setAdditionalProduction] = useState({
