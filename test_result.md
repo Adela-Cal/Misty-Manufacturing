@@ -477,6 +477,21 @@ backend:
         comment: "🎉 MATERIAL CALCULATION FUNCTIONALITY FULLY OPERATIONAL! Comprehensive testing completed with 100% success rate. CRITICAL VERIFICATION CONFIRMED: ✅ Successfully accessed ADM-2025-0001 order in Paper Slitting stage, ✅ Job card modal opened successfully via data-testid selector, ✅ Found 'Materials Required (Calculated Quantities)' section working perfectly, ✅ CALCULATION PARAMETERS SECTION VERIFIED: Core Length: 0.10m, Winding Angle: 65°, Length Factor: 2.366, Order Quantity: 1700 cores, ✅ MATERIAL CALCULATIONS WORKING: Found 5 total required meters calculations (402.3m, 390.2m, etc.) highlighted in green, ✅ FORMULA DISPLAYS WORKING: Found 5 formula displays showing '(0.10m × 2.366) × X laps' format, ✅ MATERIAL LAYER DETAILS VERIFIED: All 3 layer types found (Inner Most Layer, Central Layer, Outer Most Layer), ✅ GSM VALUES IN CALCULATIONS: Found 5 GSM values correctly displayed (155, 360) with proper material information, ✅ SPIRAL CORE FORMULA IMPLEMENTATION: Using core length × length factor × laps per core × order quantity for accurate material calculations. CONCLUSION: The Material Calculation functionality is production-ready and fully functional, providing accurate material requirements using the spiral core manufacturing formula with proper calculation parameters, total meters display, and complete material layer information."
 
 frontend:
+  - task: "Additional Biscuit Widths Produced Section Update"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/JobCard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated Core Winding Job Card section from 'Master Core Lengths' to 'Additional Biscuit Widths Produced' with terminology changes: Width (mm) instead of Length (m), pieces instead of cores, Biscuit Width Entries instead of Core Entries"
+      - working: true
+        agent: "testing"
+        comment: "🎉 ADDITIONAL BISCUIT WIDTHS PRODUCED SECTION UPDATE FULLY FUNCTIONAL: Comprehensive testing completed with 100% success rate for all critical requirements. CRITICAL VERIFICATION CONFIRMED: ✅ Login with demo credentials (Callum/Peach7510) working perfectly, ✅ Production Board navigation successful, ✅ Job Card modal opens successfully via ClipboardDocumentListIcon buttons, ✅ Section title correctly displays 'Additional Biscuit Widths Produced' (not 'Master Core Lengths'), ✅ Section label shows 'Additional Biscuit Widths:' as required. INPUT FORM ELEMENTS VERIFIED: ✅ First input field has 'Width (mm)' placeholder (not 'Length (m)'), ✅ Second input field has 'Quantity' placeholder (unchanged), ✅ Checkbox labeled 'Add excess to stock' (unchanged), ✅ Button labeled '+ Add Entry' (unchanged). FUNCTIONALITY TESTING SUCCESSFUL: ✅ Successfully entered width: 150 and quantity: 100, ✅ Clicked 'Add Entry' button and entry was created successfully, ✅ Entry displays correctly as '150mm × 100 pieces' (not '150m × 100 cores'), ✅ List header shows 'Biscuit Width Entries:' (not 'Core Entries:'), ✅ All functionality working: adding entries, proper display format, correct terminology. TERMINOLOGY UPDATE VERIFICATION: ✅ No old terminology found - complete migration from cores/length to biscuits/width successful, ✅ All display formats updated correctly throughout the section, ✅ Checkbox functionality and excess calculation working properly. CONCLUSION: The terminology update from 'Master Core Lengths' to 'Additional Biscuit Widths Produced' is production-ready and fully functional. All requested changes implemented correctly while maintaining existing functionality for adding entries, removing entries, and excess stock calculations."
+
   - task: "Core Winding Job Card Section Removal"
     implemented: true
     working: true
