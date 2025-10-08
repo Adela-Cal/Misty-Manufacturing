@@ -34,6 +34,7 @@ const Stocktake = () => {
   const [clients, setClients] = useState([]);
   const [stockAlerts, setStockAlerts] = useState([]);
   const [showStockAlert, setShowStockAlert] = useState(false);
+  const [availableMaterials, setAvailableMaterials] = useState([]); // Materials from database
 
   // Modal states
   const [showSubstrateModal, setShowSubstrateModal] = useState(false);
