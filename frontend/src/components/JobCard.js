@@ -1077,7 +1077,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                           </label>
                           <button
                             onClick={handleAddMasterCore}
-                            disabled={!newMasterCore.length || !newMasterCore.quantity}
+                            disabled={!newMasterCore.width || !newMasterCore.quantity}
                             className="px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 disabled:opacity-50"
                           >
                             + Add Entry
