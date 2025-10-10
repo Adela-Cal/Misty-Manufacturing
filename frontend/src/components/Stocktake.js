@@ -1421,13 +1421,42 @@ const Stocktake = () => {
 
                   <div>
                     <label className="block text-sm text-gray-300 mb-1">Product Description *</label>
-                    <input
-                      type="text"
-                      value={substrateForm.product_description}
-                      onChange={(e) => setSubstrateForm(prev => ({ ...prev, product_description: e.target.value }))}
-                      className="misty-input w-full"
-                      required
-                    />
+                    {substrateForm.client_id ? (
+                      <select
+                        value={substrateForm.product_id}
+                        onChange={(e) => {
+                          const selectedProduct = clientProducts.find(p => p.id === e.target.value);
+                          if (selectedProduct) {
+                            setSubstrateForm(prev => ({
+                              ...prev,
+                              product_id: e.target.value,
+                              product_code: selectedProduct.product_code || '',
+                              product_description: selectedProduct.product_description || selectedProduct.product_name || ''
+                            }));
+                          } else {
+                            setSubstrateForm(prev => ({
+                              ...prev,
+                              product_id: '',
+                              product_code: '',
+                              product_description: ''
+                            }));
+                          }
+                        }}
+                        className="misty-select w-full"
+                        required
+                      >
+                        <option value="">Select Product from Client Catalogue</option>
+                        {clientProducts.map(product => (
+                          <option key={product.id} value={product.id}>
+                            {product.product_description || product.product_name || product.product_code}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <div className="misty-input w-full bg-gray-700 text-gray-400 flex items-center">
+                        Please select a client first to see their product catalogue
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
