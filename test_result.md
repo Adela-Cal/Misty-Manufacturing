@@ -964,7 +964,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Stock Management System API Implementation"
+    - "Add Product Entry Modal Client Product Catalogue Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
