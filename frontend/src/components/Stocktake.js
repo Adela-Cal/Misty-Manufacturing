@@ -1438,7 +1438,7 @@ const Stocktake = () => {
                               ...prev,
                               product_id: e.target.value,
                               product_code: selectedProduct.product_code || '',
-                              product_description: selectedProduct.product_description || selectedProduct.product_name || ''
+                              product_description: selectedProduct.product_description || ''
                             }));
                           } else {
                             setSubstrateForm(prev => ({
