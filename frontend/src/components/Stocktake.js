@@ -1386,8 +1386,17 @@ const Stocktake = () => {
                           setSubstrateForm(prev => ({
                             ...prev,
                             client_id: e.target.value,
-                            client_name: selectedClient?.company_name || ''
+                            client_name: selectedClient?.company_name || '',
+                            product_id: '', // Reset product selection
+                            product_code: '',
+                            product_description: ''
                           }));
+                          // Load products for selected client
+                          if (e.target.value) {
+                            loadClientProducts(e.target.value);
+                          } else {
+                            setClientProducts([]);
+                          }
                         }}
                         className="misty-select w-full"
                         required
