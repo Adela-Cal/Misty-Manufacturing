@@ -251,7 +251,7 @@ const Stocktake = () => {
 
   const loadClientProducts = async (clientId) => {
     try {
-      const response = await apiHelpers.get(`/client-products?client_id=${clientId}`);
+      const response = await apiHelpers.get(`/clients/${clientId}/products`);
       const data = response.data || [];
       setClientProducts(Array.isArray(data) ? data : []);
     } catch (error) {
