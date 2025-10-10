@@ -1388,14 +1388,19 @@ const Stocktake = () => {
                         value={substrateForm.client_id}
                         onChange={(e) => {
                           const selectedClient = clients.find(c => c.id === e.target.value);
-                          setSubstrateForm(prev => ({
-                            ...prev,
-                            client_id: e.target.value,
-                            client_name: selectedClient?.company_name || '',
-                            product_id: '', // Reset product selection
-                            product_code: '',
-                            product_description: ''
-                          }));
+                          console.log('Client selected:', e.target.value, selectedClient); // Debug log
+                          setSubstrateForm(prev => {
+                            const newForm = {
+                              ...prev,
+                              client_id: e.target.value,
+                              client_name: selectedClient?.company_name || '',
+                              product_id: '', // Reset product selection
+                              product_code: '',
+                              product_description: ''
+                            };
+                            console.log('Updated substrate form:', newForm); // Debug log
+                            return newForm;
+                          });
                           // Load products for selected client
                           if (e.target.value) {
                             loadClientProducts(e.target.value);
