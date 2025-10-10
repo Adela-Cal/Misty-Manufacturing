@@ -249,6 +249,17 @@ const Stocktake = () => {
     }
   };
 
+  const loadClientProducts = async (clientId) => {
+    try {
+      const response = await apiHelpers.get(`/client-products?client_id=${clientId}`);
+      const data = response.data || [];
+      setClientProducts(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Failed to load client products:', error);
+      setClientProducts([]);
+    }
+  };
+
   const handleDoubleClick = (itemId, field) => {
     setEditingItem(itemId);
     setEditingField(field);
