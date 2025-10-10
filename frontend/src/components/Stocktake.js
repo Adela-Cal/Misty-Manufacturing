@@ -1519,7 +1519,10 @@ const Stocktake = () => {
                 <div className="flex justify-end space-x-3 mt-6">
                   <button
                     type="button"
-                    onClick={() => setShowSubstrateModal(false)}
+                    onClick={() => {
+                      setShowSubstrateModal(false);
+                      setClientProducts([]); // Reset client products
+                    }}
                     className="misty-button misty-button-secondary"
                   >
                     Cancel
