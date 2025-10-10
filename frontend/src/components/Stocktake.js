@@ -251,8 +251,9 @@ const Stocktake = () => {
 
   const loadClientProducts = async (clientId) => {
     try {
-      const response = await apiHelpers.get(`/clients/${clientId}/products`);
+      const response = await apiHelpers.get(`/clients/${clientId}/catalog`);
       const data = response.data || [];
+      console.log('Loaded client products:', data); // Debug log
       setClientProducts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to load client products:', error);
