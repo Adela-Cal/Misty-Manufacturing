@@ -1413,7 +1413,9 @@ const Stocktake = () => {
                         type="text"
                         value={substrateForm.product_code}
                         onChange={(e) => setSubstrateForm(prev => ({ ...prev, product_code: e.target.value }))}
-                        className="misty-input w-full"
+                        className={`misty-input w-full ${substrateForm.product_id ? 'bg-gray-700 text-gray-300' : ''}`}
+                        readOnly={substrateForm.product_id ? true : false}
+                        placeholder={substrateForm.product_id ? 'Auto-populated from selected product' : 'Enter product code'}
                         required
                       />
                     </div>
