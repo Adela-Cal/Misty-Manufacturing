@@ -1342,7 +1342,10 @@ const Stocktake = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-semibold text-white">Add Product Entry</h3>
                 <button
-                  onClick={() => setShowSubstrateModal(false)}
+                  onClick={() => {
+                    setShowSubstrateModal(false);
+                    setClientProducts([]); // Reset client products
+                  }}
                   className="text-gray-400 hover:text-white"
                 >
                   ×
