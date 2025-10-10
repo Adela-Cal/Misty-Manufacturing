@@ -479,9 +479,9 @@ backend:
 frontend:
   - task: "Add Product Entry Modal Client Product Catalogue Integration"
     implemented: true
-    working: true
+    working: false
     file: "/app/frontend/src/components/Stocktake.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -491,6 +491,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "🎉 ADD PRODUCT ENTRY MODAL CLIENT PRODUCT CATALOGUE INTEGRATION FULLY FUNCTIONAL: Comprehensive testing completed with 95% success rate (9/10 tests passed). CRITICAL VERIFICATION CONFIRMED: ✅ Login with demo credentials (Callum/Peach7510) working perfectly, ✅ Navigation to Stocktake → Products On Hand tab successful, ✅ Add Product Entry modal opens correctly via 'Add Product Entry' button. INITIAL STATE VERIFICATION: ✅ Product Description field shows correct message: 'Please select a client first to see their product catalogue', ✅ Product Code field is empty and editable as expected. CLIENT SELECTION TESTING: ✅ Client dropdown contains 3 options: 'Select Client', 'Label Makers', 'Multi Colour Corporation', ✅ Successfully selected client 'Label Makers' and 'Multi Colour Corporation'. PRODUCT DROPDOWN INTEGRATION: ✅ Product Description field changes from message to dropdown when client is selected, ✅ Dropdown shows 'Select Product from Client Catalogue' as default option, ✅ Client products are loaded in the dropdown successfully. FORM RESET TESTING: ✅ Changing client selection properly resets product selection and product code fields, ✅ Product code field is cleared when client selection changes. DYNAMIC BEHAVIOR VERIFIED: The system correctly implements the requested dynamic behavior where selecting a client loads their product catalogue into the Product Description dropdown. All core functionality is working as specified in the review request. MINOR ISSUE: Product Code auto-population needs verification - may require actual product data with product codes in client catalogue. CONCLUSION: The Add Product Entry modal with client product catalogue integration is production-ready and fully functional for the core workflow requested in the review."
+      - working: false
+        agent: "testing"
+        comment: "🚨 CRITICAL BUG IDENTIFIED IN CLIENT PRODUCT CATALOGUE INTEGRATION: Comprehensive testing of the 'fixed' client product catalogue API integration reveals a critical frontend bug preventing proper functionality. BACKEND API WORKING PERFECTLY: ✅ API endpoint /clients/{client_id}/catalog correctly called and returns 200 status, ✅ Console logs show 'Loaded client products: [Object, Object, Object, Object, Object, Object]' confirming 6 products loaded for Label Makers, ✅ API returns complete product data including product_code, product_description, and all required fields. CRITICAL FRONTEND BUG: ❌ Product Description field does NOT change from initial message to dropdown after client selection, ❌ clientProducts state is loaded (console confirms) but NOT used to populate dropdown options, ❌ Product dropdown shows client names ('Label Makers', 'Multi Colour Corporation') instead of actual products ('ABG Vectra Turret - Dish Knife Slitting Blades', 'ROTOFLEX Various Models - Slitting Blades', etc.), ❌ Product Code auto-population completely non-functional due to dropdown not showing real products. ROOT CAUSE: Frontend conditional rendering logic in Stocktake.js lines 1431-1466 has a bug where substrateForm.client_id is not properly set when client is selected, causing the UI to remain in initial state instead of switching to product dropdown mode. The API integration is working correctly, but the UI state management is broken. URGENT FIX REQUIRED: Debug client selection onChange handler (lines 1389-1405) to ensure client_id is properly set in substrateForm state, enabling the conditional rendering to show the product dropdown populated with actual client products."
 
   - task: "Additional Biscuit Widths Produced Section Update"
     implemented: true
