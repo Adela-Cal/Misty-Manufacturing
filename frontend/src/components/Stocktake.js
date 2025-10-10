@@ -1455,7 +1455,7 @@ const Stocktake = () => {
                         <option value="">Select Product from Client Catalogue</option>
                         {clientProducts.map(product => (
                           <option key={product.id} value={product.id}>
-                            {product.product_description || product.product_name || product.product_code}
+                            {product.product_description}
                           </option>
                         ))}
                       </select>
