@@ -1370,6 +1370,7 @@ const Stocktake = () => {
                     shared_with_clients: [],
                     minimum_stock_level: 0
                   });
+                  setClientProducts([]); // Reset client products
                 } catch (error) {
                   console.error('Failed to add product entry:', error);
                   toast.error('Failed to add product entry');
