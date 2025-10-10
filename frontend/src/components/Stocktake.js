@@ -1433,10 +1433,7 @@ const Stocktake = () => {
 
                   <div>
                     <label className="block text-sm text-gray-300 mb-1">Product Description *</label>
-                    {(() => {
-                      console.log('Rendering condition - client_id:', substrateForm.client_id, 'clientProducts:', clientProducts.length);
-                      return substrateForm.client_id;
-                    })() ? (
+                    {substrateForm.client_id && clientProducts.length > 0 ? (
                       <select
                         value={substrateForm.product_id}
                         onChange={(e) => {
