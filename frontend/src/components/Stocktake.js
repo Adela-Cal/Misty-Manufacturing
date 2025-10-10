@@ -1464,6 +1464,10 @@ const Stocktake = () => {
                           </option>
                         ))}
                       </select>
+                    ) : substrateForm.client_id && clientProducts.length === 0 ? (
+                      <div className="misty-input w-full bg-gray-600 text-gray-300 flex items-center">
+                        Loading products...
+                      </div>
                     ) : (
                       <div className="misty-input w-full bg-gray-700 text-gray-400 flex items-center">
                         Please select a client first to see their product catalogue
