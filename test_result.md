@@ -983,7 +983,8 @@ metadata:
 test_plan:
   current_focus:
     - "Add Product Entry Modal Client Product Catalogue Integration"
-  stuck_tasks: []
+  stuck_tasks:
+    - "Add Product Entry Modal Client Product Catalogue Integration"
   test_all: false
   test_priority: "high_first"
 
