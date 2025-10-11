@@ -235,22 +235,35 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       const item = formData.items[itemIndex];
       
       // Get product specifications to determine material requirements
+      console.log('Loading product specifications for:', item.product_id);
       const productResponse = await apiHelpers.getClientProduct(formData.client_id, item.product_id);
       const product = productResponse.data;
       
-      // Calculate material requirements based on product specs
-      const requirements = calculateMaterialRequirements(product, remainingQuantity);
+      console.log('Product specifications loaded:', product);
       
-      setSelectedItem({ index: itemIndex, item, remainingQuantity });
-      setMaterialRequirements(requirements);
-      
-      // Load available slit widths for all required materials
-      await loadAvailableSlitWidths(requirements.materials);
-      
-      setShowMaterialRequirements(true);
+      // Get product specifications to extract material layers
+      if (product.specifications && product.specifications.length > 0) {
+        const specResponse = await apiHelpers.get(`/product-specifications/${product.specifications[0]}`);
+        const productSpec = specResponse.data;
+        
+        console.log('Product specification details:', productSpec);
+        
+        // Calculate material requirements based on product specs and material layers
+        const requirements = await calculateMaterialRequirements(productSpec, product, remainingQuantity);
+        
+        setSelectedItem({ index: itemIndex, item, remainingQuantity });
+        setMaterialRequirements(requirements);
+        
+        // Load available slit widths for all required materials
+        await loadAvailableSlitWidths(requirements.materials);
+        
+        setShowMaterialRequirements(true);
+      } else {
+        toast.error('No product specifications found for this product');
+      }
     } catch (error) {
       console.error('Failed to load material requirements:', error);
-      toast.error('Failed to load material requirements');
+      toast.error('Failed to load material requirements: ' + error.message);
     }
   };
 
