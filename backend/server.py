@@ -4108,6 +4108,84 @@ async def allocate_stock(
         logger.error(f"Failed to allocate stock: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to allocate stock")
 
+@api_router.get("/stock/history", response_model=StandardResponse)
+async def get_stock_history(
+    product_id: str,
+    client_id: str,
+    current_user: dict = Depends(require_any_role)
+):
+    """Get stock history for a specific product and client"""
+    try:
+        # Get all stock entries for this product/client combination
+        stock_entries = await db.raw_substrate_stock.find({
+            "product_id": product_id,
+            "client_id": client_id
+        }).to_list(length=None)
+        
+        # Get stock movements for these entries
+        stock_ids = [entry["id"] for entry in stock_entries]
+        movements = await db.stock_movements.find({
+            "stock_id": {"$in": stock_ids}
+        }).sort("created_at", -1).to_list(length=None)
+        
+        # Combine stock entries with their movements
+        history_data = {
+            "product_id": product_id,
+            "client_id": client_id,
+            "stock_entries": stock_entries,
+            "movements": movements,
+            "total_entries": len(stock_entries),
+            "total_quantity": sum(entry.get("quantity_on_hand", 0) for entry in stock_entries)
+        }
+        
+        return StandardResponse(
+            success=True,
+            message="Stock history retrieved successfully",
+            data=history_data
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get stock history: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve stock history")
+
+@api_router.get("/stock/allocations", response_model=StandardResponse)
+async def get_stock_allocations(
+    product_id: str,
+    client_id: str,
+    current_user: dict = Depends(require_any_role)
+):
+    """Get current stock allocations for a specific product and client"""
+    try:
+        # Get allocation movements (negative quantities that haven't been archived)
+        allocations = await db.stock_movements.find({
+            "product_id": product_id,
+            "client_id": client_id,
+            "movement_type": "allocation",
+            "quantity": {"$lt": 0},  # Negative quantities are allocations
+            "is_archived": {"$ne": True}  # Not archived
+        }).sort("created_at", -1).to_list(length=None)
+        
+        # Calculate total allocated quantity
+        total_allocated = sum(abs(allocation.get("quantity", 0)) for allocation in allocations)
+        
+        allocation_data = {
+            "product_id": product_id,
+            "client_id": client_id,
+            "allocations": allocations,
+            "total_allocated": total_allocated,
+            "active_orders": len(allocations)
+        }
+        
+        return StandardResponse(
+            success=True,
+            message="Stock allocations retrieved successfully",
+            data=allocation_data
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get stock allocations: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve stock allocations")
+
 # ============= SYSTEM ENDPOINTS =============
 
 @api_router.get("/")
