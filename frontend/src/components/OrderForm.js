@@ -1675,10 +1675,11 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
 
                   {/* Material Layer Details Section */}
                   <div className="mb-4 p-3 bg-blue-900/10 border border-blue-600 rounded-lg">
-                    <h5 className="text-sm font-medium text-blue-300 mb-2">
+                    <h5 className="text-sm font-medium text-blue-300 mb-2 flex items-center">
+                      <span className="mr-2">📋</span>
                       {materialData.layer_position} Requirements
                     </h5>
-                    <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div className="grid grid-cols-2 gap-4 text-xs mb-3">
                       <div>
                         <span className="text-gray-400">Layer Type:</span>
                         <div className="text-white">{materialData.layer_position}</div>
@@ -1704,6 +1705,92 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Spiral Core Formation Specifications */}
+                    {materialData.spiral_specifications && Object.values(materialData.spiral_specifications).some(val => val !== null && val !== '') && (
+                      <div className="border-t border-blue-700 pt-3">
+                        <h6 className="text-sm font-medium text-green-300 mb-2 flex items-center">
+                          <span className="mr-2">🌀</span>
+                          Spiral Core Formation Specs
+                        </h6>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                          
+                          {materialData.spiral_specifications.allocation_percent && (
+                            <div className="bg-green-900/20 border border-green-700 rounded p-2">
+                              <span className="text-green-300 font-medium block">Layer Allocation</span>
+                              <div className="text-green-200 text-sm font-medium">
+                                {materialData.spiral_specifications.allocation_percent}%
+                              </div>
+                              <div className="text-green-400 text-xs">of spiral formation</div>
+                            </div>
+                          )}
+
+                          {materialData.spiral_specifications.sequence && (
+                            <div className="bg-blue-900/20 border border-blue-700 rounded p-2">
+                              <span className="text-blue-300 font-medium block">Layer Sequence</span>
+                              <div className="text-blue-200 text-sm font-medium">
+                                #{materialData.spiral_specifications.sequence}
+                              </div>
+                              <div className="text-blue-400 text-xs">application order</div>
+                            </div>
+                          )}
+
+                          {materialData.spiral_specifications.winding_direction && (
+                            <div className="bg-purple-900/20 border border-purple-700 rounded p-2">
+                              <span className="text-purple-300 font-medium block">Winding Direction</span>
+                              <div className="text-purple-200 text-sm font-medium flex items-center">
+                                {materialData.spiral_specifications.winding_direction === 'clockwise' && '↻'}
+                                {materialData.spiral_specifications.winding_direction === 'counterclockwise' && '↺'}
+                                {materialData.spiral_specifications.winding_direction === 'alternating' && '⤴️'}
+                                <span className="ml-1 capitalize">{materialData.spiral_specifications.winding_direction}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {materialData.spiral_specifications.overlap_factor && (
+                            <div className="bg-yellow-900/20 border border-yellow-700 rounded p-2">
+                              <span className="text-yellow-300 font-medium block">Overlap Factor</span>
+                              <div className="text-yellow-200 text-sm font-medium">
+                                {materialData.spiral_specifications.overlap_factor}x
+                              </div>
+                              <div className="text-yellow-400 text-xs">material overlap</div>
+                            </div>
+                          )}
+
+                          {materialData.spiral_specifications.tension_level && (
+                            <div className="bg-red-900/20 border border-red-700 rounded p-2">
+                              <span className="text-red-300 font-medium block">Tension Level</span>
+                              <div className="text-red-200 text-sm font-medium flex items-center">
+                                {materialData.spiral_specifications.tension_level === 'high' && '⚡⚡⚡'}
+                                {materialData.spiral_specifications.tension_level === 'medium' && '⚡⚡'}
+                                {materialData.spiral_specifications.tension_level === 'low' && '⚡'}
+                                <span className="ml-1 capitalize">{materialData.spiral_specifications.tension_level}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {materialData.spiral_specifications.feed_rate_mpm && (
+                            <div className="bg-indigo-900/20 border border-indigo-700 rounded p-2">
+                              <span className="text-indigo-300 font-medium block">Feed Rate</span>
+                              <div className="text-indigo-200 text-sm font-medium">
+                                {materialData.spiral_specifications.feed_rate_mpm} m/min
+                              </div>
+                              <div className="text-indigo-400 text-xs">application speed</div>
+                            </div>
+                          )}
+
+                          {materialData.spiral_specifications.qc_checkpoints && (
+                            <div className="bg-orange-900/20 border border-orange-700 rounded p-2 md:col-span-2">
+                              <span className="text-orange-300 font-medium block">Quality Control</span>
+                              <div className="text-orange-200 text-sm">
+                                {materialData.spiral_specifications.qc_checkpoints}
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Allocation Progress Section */}
