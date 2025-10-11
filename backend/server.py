@@ -4075,6 +4075,11 @@ async def get_stock_allocations(
             "is_archived": {"$ne": True}  # Not archived
         }).sort("created_at", -1).to_list(length=None)
         
+        # Remove MongoDB ObjectIds from allocations
+        for allocation in allocations:
+            if "_id" in allocation:
+                del allocation["_id"]
+        
         # Calculate total allocated quantity
         total_allocated = sum(abs(allocation.get("quantity", 0)) for allocation in allocations)
         
