@@ -1715,8 +1715,13 @@ const ProductSpecifications = () => {
                             
                             {/* Allocation Percentage */}
                             <div>
-                              <label className="block text-xs font-medium text-blue-200 mb-1">
-                                Allocation % *
+                              <label className="block text-xs font-medium text-blue-200 mb-1 flex items-center">
+                                Allocation % * 
+                                {layer.spiral_sequence && (
+                                  <span className="ml-1 text-green-300" title="Auto-calculated based on layer sequence">
+                                    ⚡
+                                  </span>
+                                )}
                               </label>
                               <input
                                 type="number"
@@ -1725,11 +1730,16 @@ const ProductSpecifications = () => {
                                 max="100"
                                 value={layer.spiral_allocation_percent || ''}
                                 onChange={(e) => handleMaterialLayerChange(index, 'spiral_allocation_percent', e.target.value)}
-                                className="misty-input w-full text-sm"
+                                className={`misty-input w-full text-sm ${
+                                  layer.spiral_sequence ? 'bg-green-900/20 border-green-600' : ''
+                                }`}
                                 placeholder="% of total"
                               />
                               <div className="text-xs text-blue-300 mt-1">
-                                Percentage of this layer in spiral formation
+                                {layer.spiral_sequence 
+                                  ? 'Auto-calculated from layer sequence' 
+                                  : 'Percentage of this layer in spiral formation'
+                                }
                               </div>
                             </div>
 
