@@ -1992,7 +1992,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                                           materialData.required_quantity_meters - (materialAllocations[materialData.material_id] || 0)
                                         ).toFixed(1)}
                                         placeholder="Meters"
-                                        className="misty-input w-20 text-sm"
+                                        className="misty-input w-24 text-sm"
                                         id={`allocate-${materialData.material_id}-${widthIndex}`}
                                       />
                                       <button
@@ -2004,15 +2004,22 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                                             const firstEntry = widthGroup.entries[0];
                                             handleSlitWidthAllocation(materialData.material_id, firstEntry.id, quantity);
                                             input.value = '';
+                                          } else {
+                                            toast.error('Please enter a valid quantity greater than 0');
                                           }
                                         }}
-                                        className="misty-button misty-button-primary text-xs py-1 px-2"
+                                        className="misty-button misty-button-primary text-xs py-1 px-3"
                                       >
                                         Allocate
                                       </button>
                                     </div>
-                                    <div className="text-xs text-gray-400">
-                                      Need: {(materialData.required_quantity_meters - (materialAllocations[materialData.material_id] || 0)).toFixed(1)}m
+                                    <div className="text-xs text-center">
+                                      <div className="text-gray-400">
+                                        Need: {(materialData.required_quantity_meters - (materialAllocations[materialData.material_id] || 0)).toFixed(1)}m
+                                      </div>
+                                      <div className="text-blue-300 text-xs">
+                                        Formula: {materialData.order_quantity || selectedItem.remainingQuantity} × {materialData.quantity_per_unit}m
+                                      </div>
                                     </div>
                                   </div>
                                 )}
