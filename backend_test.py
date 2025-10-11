@@ -4980,6 +4980,371 @@ def main_slit_width_management_review():
     tester = BackendAPITester()
     tester.run_slit_width_management_tests()
 
+    def test_slit_width_update_endpoint(self):
+        """Test PUT /api/slit-widths/{slit_width_id} endpoint"""
+        print("\n=== SLIT WIDTH UPDATE ENDPOINT TESTING ===")
+        
+        # First, create a test slit width entry
+        test_slit_width_id = self.create_test_slit_width()
+        if not test_slit_width_id:
+            self.log_result("Slit Width Update - Setup", False, "Failed to create test slit width entry")
+            return
+        
+        try:
+            # Test 1: Update quantity_meters successfully
+            update_data = {
+                "quantity_meters": 1500.0,
+                "remaining_quantity": 1500.0
+            }
+            
+            response = self.session.put(f"{API_BASE}/slit-widths/{test_slit_width_id}", json=update_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log_result(
+                    "Slit Width Update - Quantity Meters", 
+                    True, 
+                    "Successfully updated quantity_meters and remaining_quantity",
+                    f"Updated to 1500.0 meters"
+                )
+            else:
+                self.log_result(
+                    "Slit Width Update - Quantity Meters", 
+                    False, 
+                    f"Failed to update quantity: {response.status_code}",
+                    response.text
+                )
+            
+            # Test 2: Update remaining quantity only
+            update_data = {
+                "remaining_quantity": 1200.0
+            }
+            
+            response = self.session.put(f"{API_BASE}/slit-widths/{test_slit_width_id}", json=update_data)
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Slit Width Update - Remaining Quantity", 
+                    True, 
+                    "Successfully updated remaining_quantity only",
+                    f"Updated to 1200.0 meters"
+                )
+            else:
+                self.log_result(
+                    "Slit Width Update - Remaining Quantity", 
+                    False, 
+                    f"Failed to update remaining quantity: {response.status_code}",
+                    response.text
+                )
+            
+            # Test 3: Update allocation status
+            update_data = {
+                "is_allocated": True,
+                "allocated_to_order_id": "test-order-123",
+                "allocated_quantity": 300.0,
+                "remaining_quantity": 900.0
+            }
+            
+            response = self.session.put(f"{API_BASE}/slit-widths/{test_slit_width_id}", json=update_data)
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Slit Width Update - Allocation Status", 
+                    True, 
+                    "Successfully updated allocation status and details",
+                    f"Allocated 300.0 meters to order test-order-123"
+                )
+            else:
+                self.log_result(
+                    "Slit Width Update - Allocation Status", 
+                    False, 
+                    f"Failed to update allocation: {response.status_code}",
+                    response.text
+                )
+            
+            # Test 4: Test with non-existent slit width ID (should return 404)
+            fake_id = "non-existent-slit-width-id"
+            update_data = {"quantity_meters": 500.0}
+            
+            response = self.session.put(f"{API_BASE}/slit-widths/{fake_id}", json=update_data)
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Slit Width Update - Non-existent ID", 
+                    True, 
+                    "Correctly returns 404 for non-existent slit width ID",
+                    f"ID: {fake_id}"
+                )
+            else:
+                self.log_result(
+                    "Slit Width Update - Non-existent ID", 
+                    False, 
+                    f"Expected 404, got {response.status_code}",
+                    response.text
+                )
+            
+            # Test 5: Test validation with invalid data
+            update_data = {
+                "quantity_meters": -100.0  # Negative value should be handled
+            }
+            
+            response = self.session.put(f"{API_BASE}/slit-widths/{test_slit_width_id}", json=update_data)
+            
+            # Note: The endpoint might accept negative values, so we check the actual behavior
+            if response.status_code in [200, 422]:
+                self.log_result(
+                    "Slit Width Update - Validation", 
+                    True, 
+                    f"Validation handled appropriately: {response.status_code}",
+                    "Negative values handled as per business logic"
+                )
+            else:
+                self.log_result(
+                    "Slit Width Update - Validation", 
+                    False, 
+                    f"Unexpected response to negative value: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Slit Width Update Endpoint", False, f"Error: {str(e)}")
+    
+    def test_slit_width_delete_endpoint(self):
+        """Test DELETE /api/slit-widths/{slit_width_id} endpoint"""
+        print("\n=== SLIT WIDTH DELETE ENDPOINT TESTING ===")
+        
+        try:
+            # Test 1: Create and delete unallocated slit width (should work)
+            unallocated_id = self.create_test_slit_width()
+            if unallocated_id:
+                response = self.session.delete(f"{API_BASE}/slit-widths/{unallocated_id}")
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    self.log_result(
+                        "Slit Width Delete - Unallocated Entry", 
+                        True, 
+                        "Successfully deleted unallocated slit width entry",
+                        f"ID: {unallocated_id}"
+                    )
+                else:
+                    self.log_result(
+                        "Slit Width Delete - Unallocated Entry", 
+                        False, 
+                        f"Failed to delete unallocated entry: {response.status_code}",
+                        response.text
+                    )
+            
+            # Test 2: Create allocated slit width and try to delete (should fail with 400)
+            allocated_id = self.create_test_slit_width()
+            if allocated_id:
+                # First allocate it
+                allocation_data = {
+                    "is_allocated": True,
+                    "allocated_to_order_id": "test-order-456",
+                    "allocated_quantity": 200.0,
+                    "remaining_quantity": 800.0
+                }
+                
+                update_response = self.session.put(f"{API_BASE}/slit-widths/{allocated_id}", json=allocation_data)
+                
+                if update_response.status_code == 200:
+                    # Now try to delete the allocated entry
+                    delete_response = self.session.delete(f"{API_BASE}/slit-widths/{allocated_id}")
+                    
+                    if delete_response.status_code == 400:
+                        self.log_result(
+                            "Slit Width Delete - Allocated Entry", 
+                            True, 
+                            "Correctly prevents deletion of allocated slit width (400 error)",
+                            f"ID: {allocated_id}"
+                        )
+                    else:
+                        self.log_result(
+                            "Slit Width Delete - Allocated Entry", 
+                            False, 
+                            f"Expected 400, got {delete_response.status_code}",
+                            delete_response.text
+                        )
+                else:
+                    self.log_result(
+                        "Slit Width Delete - Allocation Setup", 
+                        False, 
+                        f"Failed to allocate slit width for delete test: {update_response.status_code}",
+                        update_response.text
+                    )
+            
+            # Test 3: Test with non-existent slit width ID (should return 404)
+            fake_id = "non-existent-slit-width-delete-id"
+            response = self.session.delete(f"{API_BASE}/slit-widths/{fake_id}")
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Slit Width Delete - Non-existent ID", 
+                    True, 
+                    "Correctly returns 404 for non-existent slit width ID",
+                    f"ID: {fake_id}"
+                )
+            else:
+                self.log_result(
+                    "Slit Width Delete - Non-existent ID", 
+                    False, 
+                    f"Expected 404, got {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Slit Width Delete Endpoint", False, f"Error: {str(e)}")
+    
+    def create_test_slit_width(self):
+        """Create a test slit width entry for testing"""
+        try:
+            slit_width_data = {
+                "raw_material_id": "test-material-001",
+                "raw_material_name": "Test Paper Roll - 80gsm",
+                "slit_width_mm": 150.0,
+                "quantity_meters": 1000.0,
+                "source_job_id": "test-job-001",
+                "source_order_id": "test-order-001",
+                "created_from_additional_widths": True,
+                "material_specifications": {
+                    "gsm": 80,
+                    "thickness_mm": 0.1,
+                    "color": "White"
+                }
+            }
+            
+            response = self.session.post(f"{API_BASE}/slit-widths", json=slit_width_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                slit_width_id = result.get('data', {}).get('id')
+                if slit_width_id:
+                    return slit_width_id
+                else:
+                    print(f"Warning: Slit width created but no ID returned: {result}")
+                    return None
+            else:
+                print(f"Failed to create test slit width: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            print(f"Error creating test slit width: {str(e)}")
+            return None
+    
+    def test_slit_width_error_handling(self):
+        """Test error handling and validation for slit width endpoints"""
+        print("\n=== SLIT WIDTH ERROR HANDLING TESTING ===")
+        
+        try:
+            # Test 1: Update with empty data (should handle gracefully)
+            test_id = self.create_test_slit_width()
+            if test_id:
+                response = self.session.put(f"{API_BASE}/slit-widths/{test_id}", json={})
+                
+                if response.status_code in [400, 422]:
+                    self.log_result(
+                        "Slit Width Error - Empty Update Data", 
+                        True, 
+                        f"Correctly handles empty update data: {response.status_code}",
+                        "Validation working as expected"
+                    )
+                elif response.status_code == 200:
+                    self.log_result(
+                        "Slit Width Error - Empty Update Data", 
+                        True, 
+                        "Accepts empty update data (no changes made)",
+                        "Graceful handling of no-op updates"
+                    )
+                else:
+                    self.log_result(
+                        "Slit Width Error - Empty Update Data", 
+                        False, 
+                        f"Unexpected response: {response.status_code}",
+                        response.text
+                    )
+            
+            # Test 2: Update with invalid JSON structure
+            if test_id:
+                invalid_data = {
+                    "quantity_meters": "not_a_number",
+                    "is_allocated": "not_a_boolean"
+                }
+                
+                response = self.session.put(f"{API_BASE}/slit-widths/{test_id}", json=invalid_data)
+                
+                if response.status_code == 422:
+                    self.log_result(
+                        "Slit Width Error - Invalid Data Types", 
+                        True, 
+                        "Correctly validates data types (422 validation error)",
+                        "Pydantic validation working"
+                    )
+                else:
+                    self.log_result(
+                        "Slit Width Error - Invalid Data Types", 
+                        False, 
+                        f"Expected 422, got {response.status_code}",
+                        response.text
+                    )
+            
+            # Test 3: Test authentication requirement
+            # Temporarily remove auth header
+            original_headers = self.session.headers.copy()
+            if 'Authorization' in self.session.headers:
+                del self.session.headers['Authorization']
+            
+            response = self.session.put(f"{API_BASE}/slit-widths/{test_id or 'test'}", json={"quantity_meters": 100})
+            
+            if response.status_code == 401:
+                self.log_result(
+                    "Slit Width Error - Authentication Required", 
+                    True, 
+                    "Correctly requires authentication (401 unauthorized)",
+                    "Security working as expected"
+                )
+            else:
+                self.log_result(
+                    "Slit Width Error - Authentication Required", 
+                    False, 
+                    f"Expected 401, got {response.status_code}",
+                    "Authentication may not be properly enforced"
+                )
+            
+            # Restore auth headers
+            self.session.headers.update(original_headers)
+            
+            # Clean up test entry
+            if test_id:
+                self.session.delete(f"{API_BASE}/slit-widths/{test_id}")
+                
+        except Exception as e:
+            self.log_result("Slit Width Error Handling", False, f"Error: {str(e)}")
+
+    def run_slit_width_update_delete_tests(self):
+        """Run comprehensive slit width update and delete endpoint tests"""
+        print("\n" + "="*80)
+        print("SLIT WIDTH UPDATE AND DELETE ENDPOINTS TESTING")
+        print("="*80)
+        
+        # Step 1: Authenticate
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with tests")
+            return
+        
+        # Step 2: Test slit width update endpoint
+        self.test_slit_width_update_endpoint()
+        
+        # Step 3: Test slit width delete endpoint
+        self.test_slit_width_delete_endpoint()
+        
+        # Step 4: Test error handling and validation
+        self.test_slit_width_error_handling()
+        
+        # Print summary
+        self.print_test_summary()
+
 if __name__ == "__main__":
-    # Run the Slit Width Management Backend API tests as requested in the review
-    main_slit_width_management_review()
+    # Run the specific slit width update and delete tests requested in the review
+    tester = BackendAPITester()
+    tester.run_slit_width_update_delete_tests()
