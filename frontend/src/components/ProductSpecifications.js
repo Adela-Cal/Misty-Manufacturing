@@ -558,7 +558,15 @@ const ProductSpecifications = () => {
           thickness: null,  // Don't default to 0 to avoid false calculations
           gsm: null,  // Don't default to 0 to avoid false calculations
           quantity: 1,  // Default quantity to 1
-          notes: ''
+          notes: '',
+          // Spiral core allocation fields
+          spiral_allocation_percent: null,
+          spiral_sequence: '',
+          winding_direction: '',
+          overlap_factor: 1.0,
+          tension_level: '',
+          feed_rate_mpm: null,
+          qc_checkpoints: ''
         }
       ]
     }));
