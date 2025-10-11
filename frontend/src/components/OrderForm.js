@@ -351,6 +351,92 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     return requirements;
   };
 
+  // Create fallback material requirements when product specifications are missing
+  const createFallbackMaterialRequirements = async (product, quantity) => {
+    console.log('Creating fallback material requirements for:', product.product_name);
+    
+    const requirements = {
+      productName: product.product_name || 'Unknown Product',
+      quantity: quantity,
+      materials: []
+    };
+
+    try {
+      // Get all available raw materials to show as potential options
+      const rawMaterialsResponse = await apiHelpers.getRawMaterialsStock();
+      const rawMaterials = rawMaterialsResponse.data?.data || rawMaterialsResponse.data || [];
+      
+      console.log('Available raw materials for fallback:', rawMaterials);
+      
+      // Filter materials that are likely relevant for paper products
+      const relevantMaterials = rawMaterials.filter(material => 
+        material.material_name && (
+          material.material_name.toLowerCase().includes('paper') ||
+          material.material_name.toLowerCase().includes('jintian') ||
+          material.material_name.toLowerCase().includes('j260') ||
+          material.material_name.toLowerCase().includes('substrate')
+        )
+      );
+      
+      // If no relevant materials found, use all materials
+      const materialsToShow = relevantMaterials.length > 0 ? relevantMaterials : rawMaterials.slice(0, 3);
+      
+      // Create generic requirements for each relevant material
+      materialsToShow.forEach((material, index) => {
+        const materialRequirement = {
+          material_id: material.material_id,
+          material_name: material.material_name,
+          layer_position: `Layer ${index + 1}`,
+          layer_thickness_mm: 0.15, // Generic thickness
+          layer_gsm: 200, // Generic GSM
+          required_width_mm: 100, // Generic width - user can see available options
+          required_quantity_meters: quantity * 0.1, // Generic calculation
+          quantity_per_unit: 0.1,
+          purpose: `Generic material requirement (${material.material_name})`,
+          notes: 'No product specifications available - showing available raw materials'
+        };
+        
+        requirements.materials.push(materialRequirement);
+      });
+      
+      // If no materials found at all, create a generic entry
+      if (requirements.materials.length === 0) {
+        requirements.materials.push({
+          material_id: 'fallback',
+          material_name: 'Generic Paper Material',
+          layer_position: 'Unknown Layer',
+          layer_thickness_mm: 0.15,
+          layer_gsm: 200,
+          required_width_mm: 100,
+          required_quantity_meters: quantity * 0.1,
+          quantity_per_unit: 0.1,
+          purpose: 'Generic material requirement - please check product specifications',
+          notes: 'No product specifications or raw materials found'
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error loading raw materials for fallback:', error);
+      
+      // Ultimate fallback - create a basic requirement
+      requirements.materials.push({
+        material_id: 'fallback',
+        material_name: 'Paper Material',
+        layer_position: 'Unknown Layer',
+        layer_thickness_mm: 0.15,
+        layer_gsm: 200,
+        required_width_mm: 100,
+        required_quantity_meters: quantity * 0.1,
+        quantity_per_unit: 0.1,
+        purpose: 'Fallback material requirement',
+        notes: 'Unable to load product specifications or raw materials'
+      });
+    }
+
+    console.log('Fallback material requirements created:', requirements);
+    return requirements;
+  };
+
   // Load available slit widths for required materials
   const loadAvailableSlitWidths = async (materialRequirements) => {
     try {
