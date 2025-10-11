@@ -558,15 +558,16 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     }
   };
 
-  // Allocate slit width to order
+  // Allocate slit width to order and reduce from stock on hand
   const handleSlitWidthAllocation = async (materialId, slitWidthId, allocationQuantity) => {
     try {
       const allocationRequest = {
         slit_width_id: slitWidthId,
-        order_id: `pending-${Date.now()}`, // Temporary order ID for pending orders
+        order_id: `pending-order-${Date.now()}`, // Temporary order ID for pending orders
         required_quantity_meters: parseFloat(allocationQuantity)
       };
 
+      console.log('Allocating slit width:', allocationRequest);
       const response = await apiHelpers.allocateSlitWidth(allocationRequest);
       
       if (response.data.success) {
@@ -583,22 +584,45 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
         const materialReq = materialRequirements.materials.find(m => m.material_id === materialId);
         const requiredQuantity = materialReq ? materialReq.required_quantity_meters : 0;
         
-        // Provide appropriate feedback
+        // Provide appropriate feedback based on formula calculation
         if (newTotalAllocated >= requiredQuantity) {
-          toast.success(`✅ Correct Quantity Of Material Allocated! (${newTotalAllocated.toFixed(1)}m of ${requiredQuantity.toFixed(1)}m required)`);
+          toast.success(
+            `✅ Correct Quantity Of Material Allocated!\n` +
+            `Formula: ${materialReq.order_quantity || selectedItem.remainingQuantity} units × ${materialReq.quantity_per_unit}m/unit = ${requiredQuantity.toFixed(1)}m\n` +
+            `Allocated: ${newTotalAllocated.toFixed(1)}m ✓`
+          );
         } else {
           const remainingNeeded = requiredQuantity - newTotalAllocated;
-          toast.warning(`⚠️ Further Material Requires Slitting! Still need ${remainingNeeded.toFixed(1)}m (allocated ${newTotalAllocated.toFixed(1)}m of ${requiredQuantity.toFixed(1)}m)`);
+          toast.warning(
+            `⚠️ Further Material Requires Slitting!\n` +
+            `Formula: ${materialReq.order_quantity || selectedItem.remainingQuantity} units × ${materialReq.quantity_per_unit}m/unit = ${requiredQuantity.toFixed(1)}m\n` +
+            `Still need: ${remainingNeeded.toFixed(1)}m (allocated ${newTotalAllocated.toFixed(1)}m)`
+          );
         }
         
-        // Refresh available slit widths
+        // Create a record of this allocation for order tracking
+        const allocationRecord = {
+          material_id: materialId,
+          material_name: materialReq.material_name,
+          layer_position: materialReq.layer_position,
+          slit_width_id: slitWidthId,
+          allocated_quantity: parseFloat(allocationQuantity),
+          allocation_timestamp: new Date().toISOString(),
+          order_reference: allocationRequest.order_id,
+          formula_used: materialReq.calculation_formula
+        };
+        
+        console.log('Material allocation recorded:', allocationRecord);
+        
+        // Refresh available slit widths to show updated stock levels
         await loadAvailableSlitWidths(materialRequirements.materials);
       } else {
         toast.error(response.data.message || 'Failed to allocate slit width');
       }
     } catch (error) {
       console.error('Failed to allocate slit width:', error);
-      toast.error('Failed to allocate slit width');
+      const errorMessage = error.response?.data?.message || error.message || 'Network error occurred';
+      toast.error(`Failed to allocate slit width: ${errorMessage}`);
     }
   };
 
