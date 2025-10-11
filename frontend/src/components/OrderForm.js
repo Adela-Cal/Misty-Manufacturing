@@ -139,7 +139,10 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     try {
       const response = await apiHelpers.get(`/stock/check-availability?product_id=${productId}&client_id=${clientId}`);
       console.log('Stock API response:', response); // Debug log
-      const stockData = response.data;
+      
+      // Handle nested response structure: response.data.data
+      const stockData = response.data?.data || response.data;
+      console.log('Extracted stock data:', stockData); // Debug log
       
       if (stockData && stockData.quantity_on_hand > 0) {
         console.log('Stock available, showing modal:', stockData); // Debug log
