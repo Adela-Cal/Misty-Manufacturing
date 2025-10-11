@@ -210,6 +210,8 @@ export const apiHelpers = {
   // Slit Width Management
   getSlitWidthsByMaterial: (materialId) => api.get(`/slit-widths/material/${materialId}`),
   createSlitWidth: (data) => api.post('/slit-widths', data),
+  updateSlitWidth: (slitWidthId, data) => api.put(`/slit-widths/${slitWidthId}`, data),
+  deleteSlitWidth: (slitWidthId) => api.delete(`/slit-widths/${slitWidthId}`),
   checkSlitWidthAvailability: (materialId, widthMm, quantityMeters) => 
     api.get(`/slit-widths/check-availability?material_id=${materialId}&required_width_mm=${widthMm}&required_quantity_meters=${quantityMeters}`),
   allocateSlitWidth: (allocationData) => api.post('/slit-widths/allocate', allocationData),
