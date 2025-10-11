@@ -311,15 +311,15 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
             console.log(`Material ${layer.material_id} not found in materials database, using layer data`);
           }
           
-          // Calculate material requirements for this layer
-          const layerQuantityPerUnit = layer.quantity_usage || 1;
+          // Calculate material requirements using the provided formula
+          // Formula: Total Required = Number of Units × Quantity per Unit
+          const layerQuantityPerUnit = layer.quantity_usage || layer.quantity || 0.1; // Default to 0.1m per unit if not specified
           const requiredWidthMm = layer.width_mm || 100; // Default width if not specified
           
-          // More accurate calculation based on material properties
-          const materialLengthPerUnit = layerQuantityPerUnit; // meters per unit from specs
-          const requiredLengthMeters = quantity * materialLengthPerUnit;
+          // Apply the exact formula from the screenshot
+          const totalRequiredMeters = quantity * layerQuantityPerUnit;
           
-          console.log(`Material calculation: ${quantity} units × ${materialLengthPerUnit}m/unit = ${requiredLengthMeters}m`);
+          console.log(`Layer calculation using formula: ${quantity} units × ${layerQuantityPerUnit}m/unit = ${totalRequiredMeters}m`);
           
           // Extract spiral core layer specifications if available
           const spiralSpecs = {
