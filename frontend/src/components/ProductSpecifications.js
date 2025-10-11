@@ -713,6 +713,54 @@ const ProductSpecifications = () => {
     }, 0);
   };
 
+  // Auto-balance all spiral allocations to total 100%
+  const autoBalanceSpiralAllocations = () => {
+    setFormData(prev => {
+      const updatedLayers = [...prev.material_layers];
+      const layersWithSequence = updatedLayers.filter(layer => layer.spiral_sequence);
+      
+      if (layersWithSequence.length === 0) return prev;
+      
+      // Recalculate all allocations based on sequences
+      updatedLayers.forEach((layer, index) => {
+        if (layer.spiral_sequence) {
+          const calculations = calculateSpiralAllocation(layer.spiral_sequence, layersWithSequence.length);
+          if (calculations.allocation !== null) {
+            updatedLayers[index] = {
+              ...layer,
+              spiral_allocation_percent: calculations.allocation,
+              overlap_factor: calculations.overlap
+            };
+          }
+        }
+      });
+      
+      // Fine-tune to ensure exactly 100% total
+      const totalAllocation = updatedLayers.reduce((sum, layer) => {
+        return sum + (parseFloat(layer.spiral_allocation_percent) || 0);
+      }, 0);
+      
+      if (totalAllocation > 0 && totalAllocation !== 100) {
+        const adjustmentFactor = 100 / totalAllocation;
+        updatedLayers.forEach((layer, index) => {
+          if (layer.spiral_allocation_percent) {
+            updatedLayers[index] = {
+              ...layer,
+              spiral_allocation_percent: parseFloat((layer.spiral_allocation_percent * adjustmentFactor).toFixed(1))
+            };
+          }
+        });
+      }
+      
+      return {
+        ...prev,
+        material_layers: updatedLayers
+      };
+    });
+    
+    toast.success('Spiral allocations auto-balanced to 100%');
+  };
+
   const calculateTotalThickness = () => {
     const total = formData.material_layers.reduce((sum, layer) => {
       const thickness = parseFloat(layer.thickness) || 0;
