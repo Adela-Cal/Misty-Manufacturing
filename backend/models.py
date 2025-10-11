@@ -176,6 +176,8 @@ class OrderItem(BaseModel):
     total_price: float
     specifications: Optional[ProductSpecification] = None
     is_completed: bool = False  # Track if this item is completed
+    allocated_stock: Optional[int] = 0  # Quantity allocated from existing stock
+    remaining_to_produce: Optional[int] = None  # Calculated: quantity - allocated_stock
 
 class Order(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
