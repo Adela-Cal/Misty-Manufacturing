@@ -255,6 +255,56 @@ const Stocktake = () => {
     }
   };
 
+  // Group products by product_id + client_id combination
+  const groupProductsByItem = (substrates) => {
+    const groups = {};
+    
+    substrates.forEach(substrate => {
+      const key = `${substrate.product_id}-${substrate.client_id}`;
+      if (!groups[key]) {
+        groups[key] = {
+          ...substrate,
+          total_quantity: 0,
+          entries: [],
+          allocated_quantity: 0,
+          available_quantity: 0
+        };
+      }
+      
+      groups[key].total_quantity += substrate.quantity_on_hand;
+      groups[key].entries.push(substrate);
+    });
+
+    // Calculate available vs allocated for each group
+    Object.keys(groups).forEach(key => {
+      groups[key].available_quantity = groups[key].total_quantity - groups[key].allocated_quantity;
+    });
+
+    return Object.values(groups);
+  };
+
+  // Load stock history for a specific product
+  const loadStockHistory = async (productId, clientId) => {
+    try {
+      const response = await apiHelpers.get(`/stock/history?product_id=${productId}&client_id=${clientId}`);
+      setSelectedStockHistory(response.data);
+      setShowStockHistory(true);
+    } catch (error) {
+      console.error('Failed to load stock history:', error);
+      toast.error('Failed to load stock history');
+    }
+  };
+
+  // Load stock allocations for a specific product
+  const loadStockAllocations = async (productId, clientId) => {
+    try {
+      const response = await apiHelpers.get(`/stock/allocations?product_id=${productId}&client_id=${clientId}`);
+      setStockAllocations(response.data);
+    } catch (error) {
+      console.error('Failed to load stock allocations:', error);
+    }
+  };
+
   const loadClientProducts = async (clientId) => {
     try {
       const response = await apiHelpers.get(`/clients/${clientId}/catalog`);
