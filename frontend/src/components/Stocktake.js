@@ -2226,38 +2226,93 @@ const Stocktake = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-600">
                     {materialSlitWidths.length > 0 ? (
-                      materialSlitWidths.map((widthGroup, index) => (
-                        <tr key={index} className="hover:bg-gray-600">
-                          <td className="px-4 py-2 text-sm font-medium text-white">
-                            {widthGroup.slit_width_mm}mm
-                          </td>
-                          <td className="px-4 py-2 text-right text-sm text-white">
-                            {widthGroup.total_quantity_meters.toFixed(2)}
-                          </td>
-                          <td className="px-4 py-2 text-right text-sm">
-                            <span className={`${widthGroup.available_quantity_meters > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                              {widthGroup.available_quantity_meters.toFixed(2)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-center text-sm text-gray-300">
-                            {widthGroup.entries.length}
-                          </td>
-                          <td className="px-4 py-2 text-center">
-                            <div className="flex items-center justify-center space-x-2">
-                              <button
-                                onClick={() => {
-                                  // Show detailed entries for this width
-                                  console.log('Detailed entries:', widthGroup.entries);
-                                }}
-                                className="text-blue-400 hover:text-blue-300 text-xs"
-                                title="View detailed entries"
-                              >
-                                <EyeIcon className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                      materialSlitWidths.flatMap((widthGroup) => 
+                        widthGroup.entries.map((entry, entryIndex) => (
+                          <tr key={`${widthGroup.slit_width_mm}-${entryIndex}`} className="hover:bg-gray-600">
+                            <td className="px-4 py-2 text-sm font-medium text-white">
+                              {entry.slit_width_mm}mm
+                            </td>
+                            <td className="px-4 py-2 text-right text-sm text-white">
+                              {editingSlitWidth === entry.id ? (
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  defaultValue={entry.quantity_meters}
+                                  onBlur={(e) => {
+                                    handleUpdateSlitWidthQuantity(entry.id, e.target.value);
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleUpdateSlitWidthQuantity(entry.id, e.target.value);
+                                    }
+                                    if (e.key === 'Escape') {
+                                      setEditingSlitWidth(null);
+                                    }
+                                  }}
+                                  className="misty-input w-20 text-right text-sm"
+                                  autoFocus
+                                />
+                              ) : (
+                                <span 
+                                  className="cursor-pointer hover:bg-gray-500 px-2 py-1 rounded"
+                                  onDoubleClick={() => setEditingSlitWidth(entry.id)}
+                                  title="Double-click to edit quantity"
+                                >
+                                  {entry.quantity_meters.toFixed(2)}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-2 text-right text-sm">
+                              <span className={`${entry.remaining_quantity > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {entry.remaining_quantity.toFixed(2)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-center text-sm text-gray-300">
+                              {entry.created_from_additional_widths ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-900 text-blue-300">
+                                  Job Card
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-900 text-green-300">
+                                  Manual
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-2 text-center">
+                              <div className="flex items-center justify-center space-x-1">
+                                <button
+                                  onClick={() => handleAdjustSlitWidth(entry.id, entry.remaining_quantity, 10)}
+                                  className="text-green-400 hover:text-green-300 text-xs p-1"
+                                  title="Add 10 meters"
+                                >
+                                  <ArrowUpIcon className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleAdjustSlitWidth(entry.id, entry.remaining_quantity, -10)}
+                                  className="text-yellow-400 hover:text-yellow-300 text-xs p-1"
+                                  title="Subtract 10 meters"
+                                >
+                                  <ArrowDownIcon className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => setEditingSlitWidth(entry.id)}
+                                  className="text-blue-400 hover:text-blue-300 text-xs p-1"
+                                  title="Edit quantity"
+                                >
+                                  <PencilIcon className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteSlitWidth(entry.id)}
+                                  className="text-red-400 hover:text-red-300 text-xs p-1"
+                                  title="Delete entry"
+                                >
+                                  <TrashIcon className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )
                     ) : (
                       <tr>
                         <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
