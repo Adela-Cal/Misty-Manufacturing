@@ -540,17 +540,62 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   };
 
   // Additional slitting widths handlers
-  const handleAddSlittingWidth = () => {
+  const handleAddSlittingWidth = async () => {
     if (newSlittingWidth.width && newSlittingWidth.meters) {
+      const slittingEntry = {
+        width: parseFloat(newSlittingWidth.width),
+        meters: parseFloat(newSlittingWidth.meters),
+        id: Date.now() // Simple ID for removal
+      };
+
+      // Add to local state
       setAdditionalProduction(prev => ({
         ...prev,
-        slittingWidths: [...prev.slittingWidths, { 
-          width: parseFloat(newSlittingWidth.width),
-          meters: parseFloat(newSlittingWidth.meters),
-          id: Date.now() // Simple ID for removal
-        }]
+        slittingWidths: [...prev.slittingWidths, slittingEntry]
       }));
       setNewSlittingWidth({ width: '', meters: '' });
+
+      // Save to database for slit width tracking
+      await saveslittingWidthToDatabase(slittingEntry);
+    }
+  };
+
+  // Save slitting width to database for material allocation
+  const saveSlittingWidthToDatabase = async (slittingEntry) => {
+    try {
+      // Get the first raw material from the material layers as the source
+      if (jobData?.materialLayers && jobData.materialLayers.length > 0) {
+        const primaryMaterial = jobData.materialLayers[0]; // Use first material as the source
+        
+        const slitWidthData = {
+          raw_material_id: primaryMaterial.material_id,
+          raw_material_name: primaryMaterial.material_name || primaryMaterial.product_name || 'Unknown Material',
+          slit_width_mm: slittingEntry.width,
+          quantity_meters: slittingEntry.meters,
+          source_job_id: jobId,
+          source_order_id: jobData.order.id,
+          created_from_additional_widths: true,
+          material_specifications: {
+            gsm: primaryMaterial.gsm,
+            thickness_mm: primaryMaterial.thickness,
+            layer_type: primaryMaterial.layer_type,
+            supplier: primaryMaterial.supplier
+          }
+        };
+
+        const response = await apiHelpers.post('/slit-widths', slitWidthData);
+        
+        if (response.success) {
+          console.log('Slit width saved to database successfully');
+        } else {
+          console.error('Failed to save slit width:', response.message);
+        }
+      } else {
+        console.warn('No material layers available to create slit width entry');
+      }
+    } catch (error) {
+      console.error('Error saving slit width to database:', error);
+      // Don't show error toast to user as this is background functionality
     }
   };
 
