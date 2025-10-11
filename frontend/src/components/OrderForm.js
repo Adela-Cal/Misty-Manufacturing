@@ -229,6 +229,114 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     }
   };
 
+  // Show material requirements modal when stock is insufficient
+  const showMaterialRequirementsModal = async (itemIndex, remainingQuantity) => {
+    try {
+      const item = formData.items[itemIndex];
+      
+      // Get product specifications to determine material requirements
+      const productResponse = await apiHelpers.getClientProduct(formData.client_id, item.product_id);
+      const product = productResponse.data;
+      
+      // Calculate material requirements based on product specs
+      const requirements = calculateMaterialRequirements(product, remainingQuantity);
+      
+      setSelectedItem({ index: itemIndex, item, remainingQuantity });
+      setMaterialRequirements(requirements);
+      
+      // Load available slit widths for all required materials
+      await loadAvailableSlitWidths(requirements.materials);
+      
+      setShowMaterialRequirements(true);
+    } catch (error) {
+      console.error('Failed to load material requirements:', error);
+      toast.error('Failed to load material requirements');
+    }
+  };
+
+  // Calculate material requirements based on product specifications
+  const calculateMaterialRequirements = (product, quantity) => {
+    // This would be product-specific logic
+    // For now, we'll create a simplified example based on product specifications
+    const requirements = {
+      productName: product.product_name,
+      quantity: quantity,
+      materials: []
+    };
+
+    // If product has material_used specifications, calculate requirements
+    if (product.material_used && product.material_used.length > 0) {
+      // Simplified calculation - in reality this would be more complex
+      requirements.materials.push({
+        material_id: product.material_used[0],
+        material_name: 'Paper Material', // Would be fetched from material data
+        required_width_mm: 100, // Would be calculated from product specs
+        required_quantity_meters: quantity * 10, // Simplified calculation
+        purpose: 'Primary substrate material'
+      });
+    }
+
+    return requirements;
+  };
+
+  // Load available slit widths for required materials
+  const loadAvailableSlitWidths = async (materialRequirements) => {
+    try {
+      const slitWidthPromises = materialRequirements.map(async (requirement) => {
+        try {
+          const response = await apiHelpers.getSlitWidthsByMaterial(requirement.material_id);
+          return {
+            material_id: requirement.material_id,
+            material_name: requirement.material_name,
+            required_width_mm: requirement.required_width_mm,
+            required_quantity_meters: requirement.required_quantity_meters,
+            available_widths: response.data?.data?.slit_widths || []
+          };
+        } catch (error) {
+          console.error(`Failed to load slit widths for material ${requirement.material_id}:`, error);
+          return {
+            material_id: requirement.material_id,
+            material_name: requirement.material_name,
+            required_width_mm: requirement.required_width_mm,
+            required_quantity_meters: requirement.required_quantity_meters,
+            available_widths: []
+          };
+        }
+      });
+
+      const results = await Promise.all(slitWidthPromises);
+      setAvailableSlitWidths(results);
+    } catch (error) {
+      console.error('Failed to load slit widths:', error);
+      setAvailableSlitWidths([]);
+    }
+  };
+
+  // Allocate slit width to order
+  const handleSlitWidthAllocation = async (materialId, slitWidthId, allocationQuantity) => {
+    try {
+      const allocationRequest = {
+        slit_width_id: slitWidthId,
+        order_id: `pending-${Date.now()}`, // Temporary order ID for pending orders
+        required_quantity_meters: allocationQuantity
+      };
+
+      const response = await apiHelpers.allocateSlitWidth(allocationRequest);
+      
+      if (response.data.success) {
+        toast.success(`Allocated ${allocationQuantity} meters of slit material`);
+        
+        // Refresh available slit widths
+        await loadAvailableSlitWidths(materialRequirements.materials);
+      } else {
+        toast.error(response.data.message || 'Failed to allocate slit width');
+      }
+    } catch (error) {
+      console.error('Failed to allocate slit width:', error);
+      toast.error('Failed to allocate slit width');
+    }
+  };
+
   // Decline stock allocation for a specific item
   const handleDeclineStockAllocation = (itemIndex) => {
     setItemStockData(prev => ({
