@@ -1130,7 +1130,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Material Requirements Workflow After Stock Allocation"
+    - "Enhanced Raw Materials Needed Functionality with Fallback Material Requirements"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
