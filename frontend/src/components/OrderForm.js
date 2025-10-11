@@ -39,15 +39,8 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
   });
   const [packagingValidation, setPackagingValidation] = useState({}); // Track tubes per carton validation
   
-  // Stock allocation states
-  const [showStockAllocationModal, setShowStockAllocationModal] = useState(false);
-  const [stockAllocationData, setStockAllocationData] = useState({
-    productId: '',
-    productName: '',
-    stockOnHand: 0,
-    itemIndex: 0,
-    maxAllocation: 0
-  });
+  // Stock allocation states - track per item
+  const [itemStockData, setItemStockData] = useState({}); // Object keyed by item index
 
   useEffect(() => {
     loadClients();
