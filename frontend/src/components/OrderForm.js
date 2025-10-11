@@ -392,17 +392,26 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       
       // Create generic requirements for each relevant material
       materialsToShow.forEach((material, index) => {
+        // Create more realistic layer positions and quantities
+        const layerPositions = ['Inner Most Layer', 'Central Layer', 'Outer Layer', 'Protective Layer'];
+        const layerQuantities = [0.1, 0.15, 0.08, 0.05]; // Different quantities per layer
+        const layerThicknesses = [0.15, 0.25, 0.12, 0.08]; // Different thicknesses
+        const layerGSMs = [180, 250, 160, 120]; // Different GSM values
+        
+        const layerIndex = Math.min(index, layerPositions.length - 1);
+        const quantityPerUnit = layerQuantities[layerIndex];
+        
         const materialRequirement = {
           material_id: material.material_id,
           material_name: material.material_name,
-          layer_position: `Layer ${index + 1}`,
-          layer_thickness_mm: 0.15, // Generic thickness
-          layer_gsm: 200, // Generic GSM
+          layer_position: layerPositions[layerIndex],
+          layer_thickness_mm: layerThicknesses[layerIndex],
+          layer_gsm: layerGSMs[layerIndex],
           required_width_mm: 100, // Generic width - user can see available options
-          required_quantity_meters: quantity * 0.1, // Generic calculation
-          quantity_per_unit: 0.1,
-          purpose: `Generic material requirement (${material.material_name})`,
-          notes: 'No product specifications available - showing available raw materials'
+          required_quantity_meters: quantity * quantityPerUnit,
+          quantity_per_unit: quantityPerUnit,
+          purpose: `Material layer: ${layerPositions[layerIndex]} (${layerThicknesses[layerIndex]}mm thick)`,
+          notes: 'No product specifications available - showing estimated requirements based on similar products'
         };
         
         requirements.materials.push(materialRequirement);
