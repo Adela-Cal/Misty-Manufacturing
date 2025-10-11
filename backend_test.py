@@ -3698,6 +3698,18 @@ class BackendAPITester:
                         False, 
                         "❌ GET /api/xero/callback returns 200 but unexpected content",
                         f"Content: {content[:200]}..."
+                    )
+            else:
+                self.log_result(
+                    "Xero OAuth Callback GET Accessibility", 
+                    False, 
+                    f"❌ GET /api/xero/callback failed with status {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Xero OAuth Callback GET Accessibility", False, f"Error: {str(e)}")
+
     # ============= STOCK ALLOCATION BACKEND API TESTS =============
     
     def test_stock_availability_check_endpoint(self):
