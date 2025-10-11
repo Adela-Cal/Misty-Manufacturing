@@ -585,6 +585,54 @@ class RawMaterialStockUpdate(BaseModel):
 class StockAlertAcknowledge(BaseModel):
     snooze_hours: Optional[int] = None
 
+# Slit Width Management Models for Raw Material Allocation
+class SlitWidth(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    raw_material_id: str  # Reference to the original raw material stock
+    raw_material_name: str
+    slit_width_mm: float  # The width of the slit material
+    quantity_meters: float  # How many meters of this width are available
+    source_job_id: str  # Which slitting job created this slit width
+    source_order_id: str  # Which order the slitting job belonged to
+    created_from_additional_widths: bool = True  # True if from JobCard additional widths
+    is_allocated: bool = False  # Whether this stock is allocated to an order
+    allocated_to_order_id: Optional[str] = None
+    allocated_quantity: Optional[float] = None
+    remaining_quantity: float  # Available quantity after allocations
+    material_specifications: Optional[dict] = Field(default_factory=dict)  # Material specs from original
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+    created_by: str
+
+class SlitWidthCreate(BaseModel):
+    raw_material_id: str
+    raw_material_name: str
+    slit_width_mm: float
+    quantity_meters: float
+    source_job_id: str
+    source_order_id: str
+    created_from_additional_widths: bool = True
+    material_specifications: Optional[dict] = Field(default_factory=dict)
+
+class SlitWidthUpdate(BaseModel):
+    quantity_meters: Optional[float] = None
+    is_allocated: Optional[bool] = None
+    allocated_to_order_id: Optional[str] = None
+    allocated_quantity: Optional[float] = None
+    remaining_quantity: Optional[float] = None
+
+class SlitWidthAllocationRequest(BaseModel):
+    slit_width_id: str
+    order_id: str
+    required_quantity_meters: float
+    
+class SlitWidthAllocationResponse(BaseModel):
+    success: bool
+    allocated_quantity: float
+    remaining_required: float
+    slit_width_id: str
+    message: str
+
 class Stocktake(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     stocktake_date: date
