@@ -2220,7 +2220,7 @@ const Stocktake = () => {
                       <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Width (mm)</th>
                       <th className="px-4 py-2 text-right text-sm font-medium text-gray-300">Total Meters</th>
                       <th className="px-4 py-2 text-right text-sm font-medium text-gray-300">Available Meters</th>
-                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-300">Entries</th>
+                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-300">Source</th>
                       <th className="px-4 py-2 text-center text-sm font-medium text-gray-300">Actions</th>
                     </tr>
                   </thead>
