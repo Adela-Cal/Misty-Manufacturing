@@ -1773,15 +1773,12 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                       </div>
                       <div>
                         <span className="text-gray-400">Quantity per Unit:</span>
-                        <div className="text-white">{materialData.quantity_per_unit}m</div>
+                        <div className="text-white">{materialData.quantity_per_unit}m/unit</div>
                       </div>
-                      <div>
-                        <span className="text-gray-400">Total Required:</span>
-                        <div className="text-blue-300 font-medium">
-                          {materialData.required_quantity_meters.toFixed(1)}m
-                        </div>
-                        <div className="text-gray-500 text-xs">
-                          ({selectedItem.remainingQuantity} units × {materialData.quantity_per_unit}m/unit)
+                      <div className="col-span-2">
+                        <span className="text-gray-400">Formula Calculation:</span>
+                        <div className="text-blue-300 font-medium bg-blue-900/20 border border-blue-600 rounded p-2 mt-1">
+                          {materialData.calculation_formula || `${materialData.order_quantity || selectedItem.remainingQuantity} units × ${materialData.quantity_per_unit}m/unit = ${materialData.required_quantity_meters.toFixed(1)}m`}
                         </div>
                       </div>
                       <div>
@@ -1790,6 +1787,10 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                           {materialData.layer_thickness_mm}mm thick
                           {materialData.layer_gsm > 0 && `, ${materialData.layer_gsm} GSM`}
                         </div>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Required Width:</span>
+                        <div className="text-white">{materialData.required_width_mm}mm</div>
                       </div>
                     </div>
 
