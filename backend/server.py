@@ -4007,6 +4007,107 @@ async def delete_raw_material_stock(
         logger.error(f"Failed to delete raw material stock: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to delete raw material stock")
 
+# ============= STOCK AVAILABILITY & ALLOCATION ENDPOINTS =============
+
+@api_router.get("/stock/check-availability", response_model=StandardResponse)
+async def check_stock_availability(
+    product_id: str,
+    client_id: str,
+    current_user: dict = Depends(require_any_role)
+):
+    """Check stock availability for a specific product and client"""
+    try:
+        # Check if there's any stock for this product from this client
+        stock = await db.raw_substrate_stock.find_one({
+            "product_id": product_id,
+            "client_id": client_id,
+            "quantity_on_hand": {"$gt": 0}
+        })
+        
+        if stock:
+            return StandardResponse(
+                success=True,
+                message="Stock available",
+                data={
+                    "product_id": product_id,
+                    "client_id": client_id,
+                    "quantity_on_hand": stock["quantity_on_hand"],
+                    "stock_id": stock["id"]
+                }
+            )
+        else:
+            raise HTTPException(status_code=404, detail="No stock available for this product")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to check stock availability: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to check stock availability")
+
+@api_router.post("/stock/allocate", response_model=StandardResponse)
+async def allocate_stock(
+    allocation_data: dict,
+    current_user: dict = Depends(require_any_role)
+):
+    """Allocate stock for an order"""
+    try:
+        product_id = allocation_data.get("product_id")
+        client_id = allocation_data.get("client_id")
+        quantity = allocation_data.get("quantity")
+        order_reference = allocation_data.get("order_reference")
+        
+        if not all([product_id, client_id, quantity]):
+            raise HTTPException(status_code=400, detail="Missing required fields")
+            
+        # Find the stock entry
+        stock = await db.raw_substrate_stock.find_one({
+            "product_id": product_id,
+            "client_id": client_id,
+            "quantity_on_hand": {"$gte": quantity}
+        })
+        
+        if not stock:
+            raise HTTPException(status_code=400, detail="Insufficient stock available")
+        
+        # Update stock quantity
+        new_quantity = stock["quantity_on_hand"] - quantity
+        result = await db.raw_substrate_stock.update_one(
+            {"id": stock["id"]},
+            {"$set": {"quantity_on_hand": new_quantity}}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Stock entry not found")
+        
+        # Create stock movement record
+        movement_id = str(uuid.uuid4())
+        movement = {
+            "id": movement_id,
+            "stock_id": stock["id"],
+            "movement_type": "allocation",
+            "quantity": -quantity,  # Negative for allocation
+            "reference": order_reference,
+            "created_by": current_user["user_id"],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.stock_movements.insert_one(movement)
+        
+        return StandardResponse(
+            success=True,
+            message=f"Successfully allocated {quantity} units from stock",
+            data={
+                "allocated_quantity": quantity,
+                "remaining_stock": new_quantity,
+                "movement_id": movement_id
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to allocate stock: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to allocate stock")
+
 # ============= SYSTEM ENDPOINTS =============
 
 @api_router.get("/")
