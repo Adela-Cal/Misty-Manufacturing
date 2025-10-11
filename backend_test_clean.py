@@ -228,7 +228,7 @@ class BackendAPITester:
                 client_id = debug_data.get('client_id')
                 
                 # Expected environment-based URL (from .env file)
-                expected_callback_url = "https://mfg-workflow.preview.emergentagent.com/api/xero/callback"
+                expected_callback_url = "https://factory-tracker-5.preview.emergentagent.com/api/xero/callback"
                 
                 checks = []
                 all_checks_passed = True
@@ -292,7 +292,7 @@ class BackendAPITester:
                 debug_info = auth_data.get('debug_info', {})
                 
                 # Expected callback URL from environment
-                expected_callback_url = "https://mfg-workflow.preview.emergentagent.com/api/xero/callback"
+                expected_callback_url = "https://factory-tracker-5.preview.emergentagent.com/api/xero/callback"
                 
                 checks = []
                 all_checks_passed = True
