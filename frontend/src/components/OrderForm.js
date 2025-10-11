@@ -339,6 +339,8 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
 
   // Decline stock allocation for a specific item
   const handleDeclineStockAllocation = (itemIndex) => {
+    const item = formData.items[itemIndex];
+    
     setItemStockData(prev => ({
       ...prev,
       [itemIndex]: {
