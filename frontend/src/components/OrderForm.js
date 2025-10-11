@@ -1004,6 +1004,58 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
           </div>
         </div>
       )}
+
+      {/* Stock Allocation Modal */}
+      {showStockAllocationModal && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowStockAllocationModal(false)}>
+          <div className="modal-content max-w-md">
+            <div className="p-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-white mb-2">Stock Available</h3>
+                <p className="text-gray-300">
+                  We have <span className="font-semibold text-yellow-400">{stockAllocationData.stockOnHand} units</span> of{' '}
+                  <span className="font-medium">{stockAllocationData.productName}</span> in stock.
+                </p>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-white font-medium mb-2">Would you like to allocate stock to this order?</p>
+                <div className="bg-gray-700 p-3 rounded-lg space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Available in stock:</span>
+                    <span className="text-white">{stockAllocationData.stockOnHand} units</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Order quantity:</span>
+                    <span className="text-white">{formData.items[stockAllocationData.itemIndex]?.quantity} units</span>
+                  </div>
+                  <div className="flex justify-between border-t border-gray-600 pt-2">
+                    <span className="text-gray-300">Max allocation:</span>
+                    <span className="text-yellow-400 font-medium">{stockAllocationData.maxAllocation} units</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowStockAllocationModal(false)}
+                  className="misty-button misty-button-secondary"
+                >
+                  No, Don't Allocate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleStockAllocation(stockAllocationData.maxAllocation)}
+                  className="misty-button misty-button-primary"
+                >
+                  Yes, Allocate {stockAllocationData.maxAllocation} Units
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
