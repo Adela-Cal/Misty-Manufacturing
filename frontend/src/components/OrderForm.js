@@ -1522,6 +1522,19 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
               <p className="text-sm text-blue-200 mb-3">
                 Raw materials needed for manufacturing the remaining {selectedItem.remainingQuantity} units
               </p>
+              
+              {/* Show warning if using fallback materials */}
+              {materialRequirements.materials.some(m => m.notes && m.notes.includes('No product specifications')) && (
+                <div className="p-3 bg-yellow-900/20 border border-yellow-600 rounded mb-3">
+                  <div className="flex items-center text-yellow-300 text-sm">
+                    <span className="mr-2">⚠️</span>
+                    <span className="font-medium">Product specifications missing</span>
+                  </div>
+                  <p className="text-yellow-200 text-xs mt-1">
+                    Showing available raw materials. Please add product specifications for accurate material requirements.
+                  </p>
+                </div>
+              )}
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div>
                   <span className="text-gray-300">Total Required:</span>
