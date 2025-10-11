@@ -319,14 +319,26 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     // Update form data
     setFormData(prev => ({ ...prev, items: newItems }));
     
-    // Validate packaging for paper core products when quantity or product changes
+    // Validate packaging and check stock when quantity or product changes
     if (field === 'quantity' || field === 'product_id') {
       const productId = field === 'product_id' ? value : newItems[index].product_id;
       const qty = field === 'quantity' ? quantity : newItems[index].quantity;
       
-      // Use setTimeout to ensure state is updated before validation
+      // Use setTimeout to ensure state is updated before validation and stock checking
       setTimeout(() => {
         validatePackaging(index, qty, productId);
+        
+        // Check stock availability when both product and quantity are set
+        if (productId && qty > 0 && formData.client_id) {
+          checkStockAvailability(productId, formData.client_id, index, qty);
+        } else if (qty <= 0) {
+          // Clear stock data if quantity is 0 or negative
+          setItemStockData(prev => {
+            const updated = { ...prev };
+            delete updated[index];
+            return updated;
+          });
+        }
       }, 0);
     }
   };
