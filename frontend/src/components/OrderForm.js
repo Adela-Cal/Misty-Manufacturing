@@ -637,7 +637,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                         </label>
                         {clientProducts.length > 0 ? (
                           <select
-                            value={item.product_name}
+                            value={item.product_id}
                             onChange={(e) => {
                               const selectedProduct = clientProducts.find(p => p.id === e.target.value);
                               
