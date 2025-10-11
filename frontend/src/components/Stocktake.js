@@ -2108,12 +2108,21 @@ const Stocktake = () => {
                 <h3 className="text-xl font-semibold text-white">
                   Slit Widths - {selectedMaterial.name}
                 </h3>
-                <button
-                  onClick={() => setShowSlitWidthsModal(false)}
-                  className="text-gray-400 hover:text-white"
-                >
-                  ✕
-                </button>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setShowAddSlitWidthForm(true)}
+                    className="misty-button misty-button-primary"
+                  >
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Add Width
+                  </button>
+                  <button
+                    onClick={() => setShowSlitWidthsModal(false)}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
 
               <div className="mb-4 p-4 bg-gray-700 rounded-lg">
