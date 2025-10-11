@@ -4454,7 +4454,7 @@ async def allocate_slit_width(
                 "$set": {
                     "is_allocated": True,
                     "allocated_to_order_id": allocation_request.order_id,
-                    "allocated_quantity": (slit_width.get("allocated_quantity", 0) + allocated_quantity),
+                    "allocated_quantity": ((slit_width.get("allocated_quantity") or 0) + allocated_quantity),
                     "remaining_quantity": new_remaining,
                     "updated_at": datetime.now(timezone.utc)
                 }
