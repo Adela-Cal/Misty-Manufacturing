@@ -1553,6 +1553,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
               <div className="text-sm text-gray-400">
                 <p>• Exact matches are preferred for optimal material usage</p>
                 <p>• Close matches (±5mm) may be acceptable depending on specifications</p>
+                <p>• Allocated slit widths will be reserved for this production order</p>
               </div>
               <div className="flex space-x-3">
                 <button
@@ -1564,7 +1565,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                 <button
                   onClick={() => {
                     setShowMaterialRequirements(false);
-                    toast.success('Material requirements noted. Continue with order creation.');
+                    toast.success('Raw materials allocated for production. Continue with order creation.');
                   }}
                   className="misty-button misty-button-primary"
                 >
