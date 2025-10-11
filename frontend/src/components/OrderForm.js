@@ -47,6 +47,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
   const [materialRequirements, setMaterialRequirements] = useState(null);
   const [availableSlitWidths, setAvailableSlitWidths] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [materialAllocations, setMaterialAllocations] = useState({}); // Track allocations per material
 
   useEffect(() => {
     loadClients();
