@@ -2150,6 +2150,69 @@ const Stocktake = () => {
                 </div>
               </div>
 
+              {/* Add Slit Width Form */}
+              {showAddSlitWidthForm && (
+                <div className="mb-4 p-4 bg-blue-900/20 border border-blue-700 rounded-lg">
+                  <h4 className="text-lg font-medium text-white mb-3">Add New Slit Width</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Slit Width (mm)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={slitWidthForm.slit_width_mm}
+                        onChange={(e) => setSlitWidthForm(prev => ({
+                          ...prev,
+                          slit_width_mm: e.target.value
+                        }))}
+                        className="misty-input"
+                        placeholder="e.g. 50.5"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Quantity (meters)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={slitWidthForm.quantity_meters}
+                        onChange={(e) => setSlitWidthForm(prev => ({
+                          ...prev,
+                          quantity_meters: e.target.value
+                        }))}
+                        className="misty-input"
+                        placeholder="e.g. 100.0"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end space-x-3 mt-4">
+                    <button
+                      onClick={() => {
+                        setShowAddSlitWidthForm(false);
+                        setSlitWidthForm({
+                          slit_width_mm: '',
+                          quantity_meters: '',
+                          source_job_id: 'manual-entry',
+                          source_order_id: 'manual-entry'
+                        });
+                      }}
+                      className="misty-button misty-button-secondary"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleAddSlitWidth}
+                      className="misty-button misty-button-primary"
+                    >
+                      Add Width
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-gray-700 rounded-lg overflow-hidden">
                 <table className="w-full">
                   <thead className="bg-gray-600">
