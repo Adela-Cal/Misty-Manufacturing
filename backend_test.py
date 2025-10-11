@@ -4474,29 +4474,6 @@ class BackendAPITester:
         
         # Print summary
         self.print_test_summary()
-                    )
-            elif response.status_code == 404:
-                self.log_result(
-                    "Xero OAuth Callback GET Accessibility", 
-                    False, 
-                    "🚨 CRITICAL: GET /api/xero/callback returns 404 - THIS IS THE REPORTED ISSUE!",
-                    "The callback endpoint is not accessible, causing OAuth redirect failures"
-                )
-            else:
-                self.log_result(
-                    "Xero OAuth Callback GET Accessibility", 
-                    False, 
-                    f"❌ GET /api/xero/callback failed with status {response.status_code}",
-                    response.text
-                )
-            
-            # Test 2: GET /api/xero/callback with sample OAuth parameters
-            test_params = {
-                'code': 'test_auth_code_12345',
-                'state': 'test_state_67890'
-            }
-            
-            response_with_params = self.session.get(f"{API_BASE}/xero/callback", params=test_params)
             
             if response_with_params.status_code == 200:
                 content = response_with_params.text
