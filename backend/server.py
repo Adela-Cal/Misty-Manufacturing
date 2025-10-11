@@ -4164,11 +4164,14 @@ async def allocate_stock(
         movement = {
             "id": movement_id,
             "stock_id": stock["id"],
+            "product_id": product_id,
+            "client_id": client_id,
             "movement_type": "allocation",
             "quantity": -quantity,  # Negative for allocation
             "reference": order_reference,
             "created_by": current_user["user_id"],
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "is_archived": False
         }
         await db.stock_movements.insert_one(movement)
         
