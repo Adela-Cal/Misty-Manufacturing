@@ -9660,6 +9660,11 @@ def main_stock_management_review():
     tester = BackendAPITester()
     tester.run_stock_management_tests()
 
+def main_stock_allocation_review():
+    """Main function to run Stock Allocation Backend API tests"""
+    tester = BackendAPITester()
+    tester.run_stock_allocation_tests()
+
 if __name__ == "__main__":
-    # Run the Stock Management System tests as requested in the review
-    main_stock_management_review()
+    # Run the Stock Allocation Backend API tests as requested in the review
+    main_stock_allocation_review()
