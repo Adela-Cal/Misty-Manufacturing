@@ -1541,14 +1541,25 @@ const ProductSpecifications = () => {
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-white">Material Layers</h3>
-                    <button
-                      type="button"
-                      onClick={addMaterialLayer}
-                      className="misty-button misty-button-secondary flex items-center text-sm"
-                    >
-                      <PlusIcon className="h-4 w-4 mr-2" />
-                      Add Material Layer
-                    </button>
+                    <div className="flex items-center space-x-3">
+                      <button
+                        type="button"
+                        onClick={autoBalanceSpiralAllocations}
+                        className="misty-button misty-button-primary flex items-center text-sm"
+                        title="Auto-calculate spiral allocations based on layer sequences"
+                      >
+                        <span className="mr-2">⚖️</span>
+                        Auto-Balance Spiral
+                      </button>
+                      <button
+                        type="button"
+                        onClick={addMaterialLayer}
+                        className="misty-button misty-button-secondary flex items-center text-sm"
+                      >
+                        <PlusIcon className="h-4 w-4 mr-2" />
+                        Add Material Layer
+                      </button>
+                    </div>
                   </div>
                   
                   <div className="space-y-4">
