@@ -4297,6 +4297,249 @@ async def get_stock_allocations(
         logger.error(f"Failed to get stock allocations: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve stock allocations")
 
+# ============= SLIT WIDTH MANAGEMENT ENDPOINTS =============
+
+@api_router.get("/slit-widths/material/{material_id}", response_model=StandardResponse)
+async def get_slit_widths_by_material(
+    material_id: str,
+    current_user: dict = Depends(require_any_role)
+):
+    """Get all slit widths available for a specific raw material"""
+    try:
+        # Get all slit widths for this raw material
+        slit_widths = await db.slit_widths.find({
+            "raw_material_id": material_id,
+            "remaining_quantity": {"$gt": 0}  # Only show slit widths with remaining stock
+        }).sort("slit_width_mm", 1).to_list(length=None)
+        
+        # Remove MongoDB ObjectIds
+        for width in slit_widths:
+            if "_id" in width:
+                del width["_id"]
+        
+        # Group by width and sum quantities
+        width_groups = {}
+        for width in slit_widths:
+            width_mm = width["slit_width_mm"]
+            if width_mm not in width_groups:
+                width_groups[width_mm] = {
+                    "slit_width_mm": width_mm,
+                    "total_quantity_meters": 0,
+                    "available_quantity_meters": 0,
+                    "entries": []
+                }
+            width_groups[width_mm]["total_quantity_meters"] += width["quantity_meters"]
+            width_groups[width_mm]["available_quantity_meters"] += width["remaining_quantity"]
+            width_groups[width_mm]["entries"].append(width)
+        
+        # Convert to list
+        grouped_widths = list(width_groups.values())
+        
+        return StandardResponse(
+            success=True,
+            message="Slit widths retrieved successfully",
+            data={
+                "material_id": material_id,
+                "slit_widths": grouped_widths,
+                "total_widths": len(grouped_widths)
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get slit widths: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve slit widths")
+
+@api_router.post("/slit-widths", response_model=StandardResponse)
+async def create_slit_width(
+    slit_width_data: SlitWidthCreate,
+    current_user: dict = Depends(require_any_role)
+):
+    """Create new slit width entry from slitting job"""
+    try:
+        # Create the slit width entry
+        slit_width = SlitWidth(
+            **slit_width_data.dict(),
+            remaining_quantity=slit_width_data.quantity_meters,
+            created_by=current_user["username"]
+        )
+        
+        # Convert to dict and prepare for MongoDB
+        slit_width_dict = slit_width.dict()
+        
+        # Insert into database
+        result = await db.slit_widths.insert_one(slit_width_dict)
+        
+        return StandardResponse(
+            success=True,
+            message="Slit width created successfully",
+            data={"slit_width_id": slit_width.id}
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to create slit width: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create slit width")
+
+@api_router.get("/slit-widths/check-availability", response_model=StandardResponse)
+async def check_slit_width_availability(
+    material_id: str,
+    required_width_mm: float,
+    required_quantity_meters: float,
+    current_user: dict = Depends(require_any_role)
+):
+    """Check if required slit width and quantity is available"""
+    try:
+        # Find slit widths that match the required width
+        matching_widths = await db.slit_widths.find({
+            "raw_material_id": material_id,
+            "slit_width_mm": required_width_mm,
+            "remaining_quantity": {"$gt": 0}
+        }).sort("created_at", 1).to_list(length=None)  # FIFO order
+        
+        # Calculate available quantity
+        total_available = sum(width["remaining_quantity"] for width in matching_widths)
+        
+        # Remove MongoDB ObjectIds
+        for width in matching_widths:
+            if "_id" in width:
+                del width["_id"]
+        
+        availability_data = {
+            "material_id": material_id,
+            "required_width_mm": required_width_mm,
+            "required_quantity_meters": required_quantity_meters,
+            "available_quantity_meters": total_available,
+            "is_sufficient": total_available >= required_quantity_meters,
+            "shortage_meters": max(0, required_quantity_meters - total_available),
+            "matching_entries": matching_widths
+        }
+        
+        return StandardResponse(
+            success=True,
+            message="Slit width availability checked",
+            data=availability_data
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to check slit width availability: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to check availability")
+
+@api_router.post("/slit-widths/allocate", response_model=StandardResponse)
+async def allocate_slit_width(
+    allocation_request: SlitWidthAllocationRequest,
+    current_user: dict = Depends(require_any_role)
+):
+    """Allocate slit width to an order"""
+    try:
+        # Get the specific slit width entry
+        slit_width = await db.slit_widths.find_one({"id": allocation_request.slit_width_id})
+        
+        if not slit_width:
+            raise HTTPException(status_code=404, detail="Slit width entry not found")
+        
+        # Check if enough quantity is available
+        if slit_width["remaining_quantity"] < allocation_request.required_quantity_meters:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Insufficient quantity. Available: {slit_width['remaining_quantity']} meters, Required: {allocation_request.required_quantity_meters} meters"
+            )
+        
+        # Calculate new quantities
+        allocated_quantity = min(slit_width["remaining_quantity"], allocation_request.required_quantity_meters)
+        new_remaining = slit_width["remaining_quantity"] - allocated_quantity
+        
+        # Update the slit width entry
+        await db.slit_widths.update_one(
+            {"id": allocation_request.slit_width_id},
+            {
+                "$set": {
+                    "is_allocated": True,
+                    "allocated_to_order_id": allocation_request.order_id,
+                    "allocated_quantity": (slit_width.get("allocated_quantity", 0) + allocated_quantity),
+                    "remaining_quantity": new_remaining,
+                    "updated_at": datetime.now(timezone.utc)
+                }
+            }
+        )
+        
+        # Create stock movement record
+        movement = StockMovement(
+            stock_type="slit_width",
+            stock_id=allocation_request.slit_width_id,
+            movement_type="allocation",
+            quantity_change=-allocated_quantity,  # Negative for allocation
+            previous_quantity=slit_width["remaining_quantity"],
+            new_quantity=new_remaining,
+            reference_id=allocation_request.order_id,
+            reference_type="order",
+            notes=f"Allocated {allocated_quantity} meters of {slit_width['slit_width_mm']}mm width to order",
+            created_by=current_user["username"]
+        )
+        
+        # Insert movement record
+        movement_dict = movement.dict()
+        await db.stock_movements.insert_one(movement_dict)
+        
+        return StandardResponse(
+            success=True,
+            message=f"Successfully allocated {allocated_quantity} meters",
+            data={
+                "allocated_quantity": allocated_quantity,
+                "remaining_required": allocation_request.required_quantity_meters - allocated_quantity,
+                "slit_width_id": allocation_request.slit_width_id,
+                "new_remaining_quantity": new_remaining
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to allocate slit width: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to allocate slit width")
+
+@api_router.get("/slit-widths/allocations/{order_id}", response_model=StandardResponse)
+async def get_slit_width_allocations(
+    order_id: str,
+    current_user: dict = Depends(require_any_role)
+):
+    """Get all slit width allocations for a specific order"""
+    try:
+        # Find all slit widths allocated to this order
+        allocations = await db.slit_widths.find({
+            "allocated_to_order_id": order_id,
+            "is_allocated": True
+        }).to_list(length=None)
+        
+        # Remove MongoDB ObjectIds
+        for allocation in allocations:
+            if "_id" in allocation:
+                del allocation["_id"]
+        
+        # Get related stock movements
+        movements = await db.stock_movements.find({
+            "reference_id": order_id,
+            "stock_type": "slit_width",
+            "movement_type": "allocation"
+        }).sort("created_at", -1).to_list(length=None)
+        
+        for movement in movements:
+            if "_id" in movement:
+                del movement["_id"]
+        
+        return StandardResponse(
+            success=True,
+            message="Slit width allocations retrieved successfully",
+            data={
+                "order_id": order_id,
+                "allocations": allocations,
+                "movements": movements,
+                "total_allocated_meters": sum(alloc.get("allocated_quantity", 0) for alloc in allocations)
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get slit width allocations: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve allocations")
+
 # ============= SYSTEM ENDPOINTS =============
 
 @api_router.get("/")
