@@ -133,6 +133,60 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     });
   };
 
+  // Check stock availability for a product
+  const checkStockAvailability = async (productId, clientId, itemIndex) => {
+    try {
+      const response = await apiHelpers.get(`/stock/check-availability?product_id=${productId}&client_id=${clientId}`);
+      const stockData = response.data;
+      
+      if (stockData && stockData.quantity_on_hand > 0) {
+        const product = clientProducts.find(p => p.id === productId);
+        setStockAllocationData({
+          productId,
+          productName: product?.product_description || '',
+          stockOnHand: stockData.quantity_on_hand,
+          itemIndex,
+          maxAllocation: Math.min(stockData.quantity_on_hand, formData.items[itemIndex].quantity)
+        });
+        setShowStockAllocationModal(true);
+      }
+    } catch (error) {
+      console.log('No stock available or error checking stock:', error);
+      // Silently continue - no stock available is not an error state
+    }
+  };
+
+  // Handle stock allocation
+  const handleStockAllocation = async (allocateQuantity) => {
+    try {
+      const { productId, itemIndex } = stockAllocationData;
+      
+      // Allocate stock on the backend
+      await apiHelpers.post('/stock/allocate', {
+        product_id: productId,
+        client_id: formData.client_id,
+        quantity: allocateQuantity,
+        order_reference: `Pending Order - ${new Date().toISOString()}`
+      });
+
+      // Update the form data to include allocated stock info
+      const newItems = [...formData.items];
+      newItems[itemIndex] = {
+        ...newItems[itemIndex],
+        allocated_stock: allocateQuantity,
+        remaining_to_produce: newItems[itemIndex].quantity - allocateQuantity
+      };
+      
+      setFormData(prev => ({ ...prev, items: newItems }));
+      setShowStockAllocationModal(false);
+      
+      toast.success(`${allocateQuantity} units allocated from stock`);
+    } catch (error) {
+      console.error('Failed to allocate stock:', error);
+      toast.error('Failed to allocate stock');
+    }
+  };
+
   // Validate quantity against tubes per carton for paper core products
   const validatePackaging = (itemIndex, quantity, productId) => {
     if (!productId || !quantity) {
