@@ -656,6 +656,11 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                                   unit_price: unitPrice,
                                   total_price: totalPrice
                                 };
+                                
+                                // Check stock availability after product selection
+                                if (formData.client_id && selectedProduct.id) {
+                                  checkStockAvailability(selectedProduct.id, formData.client_id, index);
+                                }
                               } else {
                                 newItems[index] = {
                                   ...newItems[index],
