@@ -4983,7 +4983,6 @@ def main_slit_width_management_review():
 if __name__ == "__main__":
     # Run the Slit Width Management Backend API tests as requested in the review
     main_slit_width_management_review()
-        """Test all slit width management endpoints"""
         print("\n=== SLIT WIDTH MANAGEMENT ENDPOINTS TESTING ===")
         
         # Test data setup
