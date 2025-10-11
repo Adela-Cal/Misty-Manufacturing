@@ -1565,7 +1565,152 @@ const ProductSpecifications = () => {
                               placeholder="Width in mm"
                             />
                           </div>
+                        </div>
 
+                        {/* Spiral Core Allocation Section */}
+                        <div className="mt-4 p-3 bg-blue-900/10 border border-blue-600 rounded-lg">
+                          <h5 className="text-sm font-medium text-blue-300 mb-3 flex items-center">
+                            <span className="mr-2">🌀</span>
+                            Spiral Core Allocation - Layer {index + 1} ({layer.layer_type})
+                          </h5>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            
+                            {/* Allocation Percentage */}
+                            <div>
+                              <label className="block text-xs font-medium text-blue-200 mb-1">
+                                Allocation % *
+                              </label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                max="100"
+                                value={layer.spiral_allocation_percent || ''}
+                                onChange={(e) => handleMaterialLayerChange(index, 'spiral_allocation_percent', e.target.value)}
+                                className="misty-input w-full text-sm"
+                                placeholder="% of total"
+                              />
+                              <div className="text-xs text-blue-300 mt-1">
+                                Percentage of this layer in spiral formation
+                              </div>
+                            </div>
+
+                            {/* Layer Sequence */}
+                            <div>
+                              <label className="block text-xs font-medium text-blue-200 mb-1">
+                                Layer Sequence
+                              </label>
+                              <select
+                                value={layer.spiral_sequence || ''}
+                                onChange={(e) => handleMaterialLayerChange(index, 'spiral_sequence', e.target.value)}
+                                className="misty-select w-full text-sm"
+                              >
+                                <option value="">Select sequence</option>
+                                <option value="1">1st Layer (Core contact)</option>
+                                <option value="2">2nd Layer</option>
+                                <option value="3">3rd Layer</option>
+                                <option value="4">4th Layer</option>
+                                <option value="5">5th Layer (Outer)</option>
+                              </select>
+                              <div className="text-xs text-blue-300 mt-1">
+                                Order of application in spiral winding
+                              </div>
+                            </div>
+
+                            {/* Winding Direction */}
+                            <div>
+                              <label className="block text-xs font-medium text-blue-200 mb-1">
+                                Winding Direction
+                              </label>
+                              <select
+                                value={layer.winding_direction || ''}
+                                onChange={(e) => handleMaterialLayerChange(index, 'winding_direction', e.target.value)}
+                                className="misty-select w-full text-sm"
+                              >
+                                <option value="">Select direction</option>
+                                <option value="clockwise">Clockwise</option>
+                                <option value="counterclockwise">Counter-clockwise</option>
+                                <option value="alternating">Alternating</option>
+                              </select>
+                              <div className="text-xs text-blue-300 mt-1">
+                                Direction of material application
+                              </div>
+                            </div>
+
+                            {/* Overlap Factor */}
+                            <div>
+                              <label className="block text-xs font-medium text-blue-200 mb-1">
+                                Overlap Factor
+                              </label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                max="10"
+                                value={layer.overlap_factor || ''}
+                                onChange={(e) => handleMaterialLayerChange(index, 'overlap_factor', e.target.value)}
+                                className="misty-input w-full text-sm"
+                                placeholder="0.0 - 10.0"
+                              />
+                              <div className="text-xs text-blue-300 mt-1">
+                                Material overlap multiplier (1.0 = no overlap)
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Advanced Spiral Settings */}
+                          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            
+                            {/* Tension Control */}
+                            <div>
+                              <label className="block text-xs font-medium text-blue-200 mb-1">
+                                Tension Level
+                              </label>
+                              <select
+                                value={layer.tension_level || ''}
+                                onChange={(e) => handleMaterialLayerChange(index, 'tension_level', e.target.value)}
+                                className="misty-select w-full text-sm"
+                              >
+                                <option value="">Select tension</option>
+                                <option value="low">Low (1-3)</option>
+                                <option value="medium">Medium (4-6)</option>
+                                <option value="high">High (7-10)</option>
+                              </select>
+                            </div>
+
+                            {/* Material Feed Rate */}
+                            <div>
+                              <label className="block text-xs font-medium text-blue-200 mb-1">
+                                Feed Rate (m/min)
+                              </label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                value={layer.feed_rate_mpm || ''}
+                                onChange={(e) => handleMaterialLayerChange(index, 'feed_rate_mpm', e.target.value)}
+                                className="misty-input w-full text-sm"
+                                placeholder="Meters per minute"
+                              />
+                            </div>
+
+                            {/* Quality Control Points */}
+                            <div>
+                              <label className="block text-xs font-medium text-blue-200 mb-1">
+                                QC Check Points
+                              </label>
+                              <input
+                                type="text"
+                                value={layer.qc_checkpoints || ''}
+                                onChange={(e) => handleMaterialLayerChange(index, 'qc_checkpoints', e.target.value)}
+                                className="misty-input w-full text-sm"
+                                placeholder="e.g., Every 10m, Visual, Thickness"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4 mt-4">
                           {/* Notes */}
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">
