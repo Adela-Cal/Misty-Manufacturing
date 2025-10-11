@@ -244,26 +244,36 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       
       console.log('Product specifications loaded:', product);
       
-      // Get product specifications to extract material layers
+      let requirements;
+      let productSpec = null;
+      
+      // Try to get product specifications to extract material layers
       if (product.specifications && product.specifications.length > 0) {
-        const specResponse = await apiHelpers.get(`/product-specifications/${product.specifications[0]}`);
-        const productSpec = specResponse.data;
-        
-        console.log('Product specification details:', productSpec);
-        
-        // Calculate material requirements based on product specs and material layers
-        const requirements = await calculateMaterialRequirements(productSpec, product, remainingQuantity);
-        
-        setSelectedItem({ index: itemIndex, item, remainingQuantity });
-        setMaterialRequirements(requirements);
-        
-        // Load available slit widths for all required materials
-        await loadAvailableSlitWidths(requirements.materials);
-        
-        setShowMaterialRequirements(true);
+        try {
+          const specResponse = await apiHelpers.get(`/product-specifications/${product.specifications[0]}`);
+          productSpec = specResponse.data;
+          console.log('Product specification details:', productSpec);
+          
+          // Calculate material requirements based on product specs and material layers
+          requirements = await calculateMaterialRequirements(productSpec, product, remainingQuantity);
+        } catch (specError) {
+          console.error('Failed to load product specification details:', specError);
+          // Fall back to generic requirements
+          requirements = await createFallbackMaterialRequirements(product, remainingQuantity);
+        }
       } else {
-        toast.error('No product specifications found for this product');
+        console.log('No product specifications found, creating fallback requirements');
+        // Create fallback material requirements when no specifications exist
+        requirements = await createFallbackMaterialRequirements(product, remainingQuantity);
       }
+      
+      setSelectedItem({ index: itemIndex, item, remainingQuantity });
+      setMaterialRequirements(requirements);
+      
+      // Load available slit widths for all required materials
+      await loadAvailableSlitWidths(requirements.materials);
+      
+      setShowMaterialRequirements(true);
     } catch (error) {
       console.error('Failed to load material requirements:', error);
       toast.error('Failed to load material requirements: ' + error.message);
