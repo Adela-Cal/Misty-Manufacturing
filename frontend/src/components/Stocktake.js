@@ -385,7 +385,7 @@ const Stocktake = () => {
 
     try {
       console.log('Attempting to delete slit width:', slitWidthId); // Debug log
-      const response = await apiHelpers.delete(`/slit-widths/${slitWidthId}`);
+      const response = await apiHelpers.deleteSlitWidth(slitWidthId);
       
       console.log('Delete response:', response); // Debug log
       
