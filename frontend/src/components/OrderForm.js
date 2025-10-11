@@ -639,15 +639,15 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                           <select
                             value={item.product_name}
                             onChange={(e) => {
-                              const selectedProduct = clientProducts.find(p => p.product_description === e.target.value);
+                              const selectedProduct = clientProducts.find(p => p.id === e.target.value);
                               
-                              const newItems = [...formData.items];
-                              if (selectedProduct) {
+                              if (selectedProduct && e.target.value) {
                                 // Get current quantity and ensure it's a number
                                 const currentQuantity = Number(item.quantity) || 1;
                                 const unitPrice = Number(selectedProduct.price_ex_gst) || 0;
                                 const totalPrice = currentQuantity * unitPrice;
                                 
+                                const newItems = [...formData.items];
                                 // Update the item with all changes at once including product_id
                                 newItems[index] = {
                                   ...newItems[index],
@@ -657,21 +657,26 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                                   total_price: totalPrice
                                 };
                                 
-                                // Check stock availability after product selection
-                                if (formData.client_id && selectedProduct.id) {
+                                // Update form data first, then check stock
+                                setFormData(prev => ({ ...prev, items: newItems }));
+                                
+                                // Check stock availability after product selection with a small delay
+                                setTimeout(() => {
+                                  console.log('Checking stock for:', selectedProduct.id, formData.client_id); // Debug log
                                   checkStockAvailability(selectedProduct.id, formData.client_id, index);
-                                }
+                                }, 100);
+                                
                               } else {
+                                const newItems = [...formData.items];
                                 newItems[index] = {
                                   ...newItems[index],
                                   product_id: '',
-                                  product_name: e.target.value,
+                                  product_name: '',
                                   unit_price: 0,
                                   total_price: 0
                                 };
+                                setFormData(prev => ({ ...prev, items: newItems }));
                               }
-                              
-                              setFormData(prev => ({ ...prev, items: newItems }));
                             }}
                             className={`misty-select w-full ${errors[`item_${index}_product_name`] ? 'border-red-500' : ''}`}
                           >
