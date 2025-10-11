@@ -1663,6 +1663,474 @@ class BackendAPITester:
         
         print("\n" + "="*60)
     
+    def test_slit_width_delete_endpoint(self):
+        """Test DELETE /api/slit-widths/{slit_width_id} endpoint specifically for frontend debugging"""
+        print("\n=== SLIT WIDTH DELETE ENDPOINT TESTING ===")
+        
+        # Test scenario 1: Create a test slit width entry first
+        test_slit_width_data = {
+            "raw_material_id": "test-material-001",
+            "raw_material_name": "Test Paper Roll - 1200mm x 0.15mm",
+            "slit_width_mm": 300.0,
+            "quantity_meters": 500.0,
+            "source_job_id": "test-job-001",
+            "source_order_id": "test-order-001",
+            "created_from_additional_widths": True,
+            "material_specifications": {
+                "thickness_mm": 0.15,
+                "gsm": 120,
+                "material_type": "Paper"
+            }
+        }
+        
+        try:
+            # Create test slit width
+            create_response = self.session.post(f"{API_BASE}/slit-widths", json=test_slit_width_data)
+            
+            if create_response.status_code == 200:
+                create_result = create_response.json()
+                slit_width_id = create_result.get('data', {}).get('slit_width_id')
+                
+                self.log_result(
+                    "Create Test Slit Width", 
+                    True, 
+                    f"Successfully created test slit width with ID: {slit_width_id}",
+                    f"Width: {test_slit_width_data['slit_width_mm']}mm, Quantity: {test_slit_width_data['quantity_meters']}m"
+                )
+                
+                if slit_width_id:
+                    # Test scenario 2: Try to delete the created entry (should succeed)
+                    self.test_delete_unallocated_slit_width(slit_width_id)
+                    
+                    # Test scenario 3: Test error cases
+                    self.test_delete_nonexistent_slit_width()
+                    
+                    # Test scenario 4: Create allocated slit width and test deletion (should fail)
+                    self.test_delete_allocated_slit_width()
+                    
+                    # Test scenario 5: Verify response format matches frontend expectations
+                    self.test_slit_width_delete_response_format()
+                else:
+                    self.log_result(
+                        "Create Test Slit Width", 
+                        False, 
+                        "Failed to get slit_width_id from response",
+                        create_result
+                    )
+            else:
+                self.log_result(
+                    "Create Test Slit Width", 
+                    False, 
+                    f"Failed to create test slit width: {create_response.status_code}",
+                    create_response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Create Test Slit Width", False, f"Error: {str(e)}")
+    
+    def test_delete_unallocated_slit_width(self, slit_width_id):
+        """Test deleting an unallocated slit width (should succeed)"""
+        try:
+            response = self.session.delete(f"{API_BASE}/slit-widths/{slit_width_id}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                success = result.get('success')
+                message = result.get('message')
+                
+                if success is True:
+                    self.log_result(
+                        "Delete Unallocated Slit Width", 
+                        True, 
+                        f"Successfully deleted unallocated slit width",
+                        f"Response: success={success}, message='{message}'"
+                    )
+                    
+                    # Verify the response format matches frontend expectations
+                    if 'success' in result and isinstance(result['success'], bool):
+                        self.log_result(
+                            "Delete Response Format - Success Field", 
+                            True, 
+                            f"Response contains 'success' field as boolean: {result['success']}",
+                            "Frontend expects response.data.success to be true"
+                        )
+                    else:
+                        self.log_result(
+                            "Delete Response Format - Success Field", 
+                            False, 
+                            f"Response missing or invalid 'success' field",
+                            f"Frontend expects response.data.success, got: {result}"
+                        )
+                else:
+                    self.log_result(
+                        "Delete Unallocated Slit Width", 
+                        False, 
+                        f"Delete succeeded but success field is not True: {success}",
+                        result
+                    )
+            else:
+                self.log_result(
+                    "Delete Unallocated Slit Width", 
+                    False, 
+                    f"Failed to delete slit width: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Delete Unallocated Slit Width", False, f"Error: {str(e)}")
+    
+    def test_delete_nonexistent_slit_width(self):
+        """Test deleting a non-existent slit width ID (should return 404)"""
+        try:
+            fake_id = "non-existent-slit-width-id"
+            response = self.session.delete(f"{API_BASE}/slit-widths/{fake_id}")
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Delete Non-existent Slit Width", 
+                    True, 
+                    "Correctly returns 404 for non-existent slit width ID",
+                    f"ID: {fake_id}"
+                )
+            else:
+                self.log_result(
+                    "Delete Non-existent Slit Width", 
+                    False, 
+                    f"Expected 404, got {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Delete Non-existent Slit Width", False, f"Error: {str(e)}")
+    
+    def test_delete_allocated_slit_width(self):
+        """Test deleting an allocated slit width (should fail with 400)"""
+        try:
+            # Create a slit width that's allocated
+            allocated_slit_width_data = {
+                "raw_material_id": "test-material-002",
+                "raw_material_name": "Test Paper Roll - Allocated",
+                "slit_width_mm": 250.0,
+                "quantity_meters": 300.0,
+                "source_job_id": "test-job-002",
+                "source_order_id": "test-order-002",
+                "created_from_additional_widths": True,
+                "material_specifications": {}
+            }
+            
+            create_response = self.session.post(f"{API_BASE}/slit-widths", json=allocated_slit_width_data)
+            
+            if create_response.status_code == 200:
+                create_result = create_response.json()
+                slit_width_id = create_result.get('data', {}).get('slit_width_id')
+                
+                if slit_width_id:
+                    # Update it to be allocated
+                    allocation_data = {
+                        "is_allocated": True,
+                        "allocated_to_order_id": "test-order-allocation",
+                        "allocated_quantity": 150.0,
+                        "remaining_quantity": 150.0
+                    }
+                    
+                    update_response = self.session.put(f"{API_BASE}/slit-widths/{slit_width_id}", json=allocation_data)
+                    
+                    if update_response.status_code == 200:
+                        # Now try to delete it (should fail)
+                        delete_response = self.session.delete(f"{API_BASE}/slit-widths/{slit_width_id}")
+                        
+                        if delete_response.status_code == 400:
+                            error_detail = delete_response.json().get('detail', '')
+                            if 'allocated' in error_detail.lower():
+                                self.log_result(
+                                    "Delete Allocated Slit Width", 
+                                    True, 
+                                    "Correctly prevents deletion of allocated slit width with 400 error",
+                                    f"Error: {error_detail}"
+                                )
+                            else:
+                                self.log_result(
+                                    "Delete Allocated Slit Width", 
+                                    False, 
+                                    f"Got 400 but wrong error message: {error_detail}",
+                                    "Expected message about allocation"
+                                )
+                        else:
+                            self.log_result(
+                                "Delete Allocated Slit Width", 
+                                False, 
+                                f"Expected 400, got {delete_response.status_code}",
+                                delete_response.text
+                            )
+                    else:
+                        self.log_result(
+                            "Update Slit Width for Allocation Test", 
+                            False, 
+                            f"Failed to allocate slit width: {update_response.status_code}",
+                            update_response.text
+                        )
+                else:
+                    self.log_result(
+                        "Create Allocated Test Slit Width", 
+                        False, 
+                        "Failed to get slit_width_id from create response"
+                    )
+            else:
+                self.log_result(
+                    "Create Allocated Test Slit Width", 
+                    False, 
+                    f"Failed to create allocated test slit width: {create_response.status_code}",
+                    create_response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Delete Allocated Slit Width", False, f"Error: {str(e)}")
+    
+    def test_slit_width_delete_response_format(self):
+        """Test that delete response format matches frontend expectations"""
+        try:
+            # Create another test slit width for response format testing
+            test_data = {
+                "raw_material_id": "test-material-format",
+                "raw_material_name": "Test Paper Roll - Format Test",
+                "slit_width_mm": 400.0,
+                "quantity_meters": 200.0,
+                "source_job_id": "test-job-format",
+                "source_order_id": "test-order-format",
+                "created_from_additional_widths": True,
+                "material_specifications": {}
+            }
+            
+            create_response = self.session.post(f"{API_BASE}/slit-widths", json=test_data)
+            
+            if create_response.status_code == 200:
+                create_result = create_response.json()
+                slit_width_id = create_result.get('data', {}).get('slit_width_id')
+                
+                if slit_width_id:
+                    # Test delete response format
+                    delete_response = self.session.delete(f"{API_BASE}/slit-widths/{slit_width_id}")
+                    
+                    if delete_response.status_code == 200:
+                        result = delete_response.json()
+                        
+                        # Check if response has the expected structure for frontend
+                        expected_fields = ['success', 'message']
+                        missing_fields = [field for field in expected_fields if field not in result]
+                        
+                        if not missing_fields:
+                            self.log_result(
+                                "Delete Response Format - Structure", 
+                                True, 
+                                "Response contains all expected fields",
+                                f"Fields: {list(result.keys())}"
+                            )
+                            
+                            # Check specific field types
+                            if isinstance(result.get('success'), bool):
+                                self.log_result(
+                                    "Delete Response Format - Success Type", 
+                                    True, 
+                                    f"'success' field is boolean: {result['success']}",
+                                    "Frontend can check response.data.success === true"
+                                )
+                            else:
+                                self.log_result(
+                                    "Delete Response Format - Success Type", 
+                                    False, 
+                                    f"'success' field is not boolean: {type(result.get('success'))}",
+                                    f"Value: {result.get('success')}"
+                                )
+                                
+                            if isinstance(result.get('message'), str):
+                                self.log_result(
+                                    "Delete Response Format - Message Type", 
+                                    True, 
+                                    f"'message' field is string: '{result['message']}'",
+                                    "Provides user feedback"
+                                )
+                            else:
+                                self.log_result(
+                                    "Delete Response Format - Message Type", 
+                                    False, 
+                                    f"'message' field is not string: {type(result.get('message'))}",
+                                    f"Value: {result.get('message')}"
+                                )
+                        else:
+                            self.log_result(
+                                "Delete Response Format - Structure", 
+                                False, 
+                                f"Response missing expected fields: {missing_fields}",
+                                f"Available fields: {list(result.keys())}"
+                            )
+                    else:
+                        self.log_result(
+                            "Delete Response Format Test", 
+                            False, 
+                            f"Delete failed: {delete_response.status_code}",
+                            delete_response.text
+                        )
+                else:
+                    self.log_result(
+                        "Create Slit Width for Format Test", 
+                        False, 
+                        "Failed to get slit_width_id"
+                    )
+            else:
+                self.log_result(
+                    "Create Slit Width for Format Test", 
+                    False, 
+                    f"Failed to create: {create_response.status_code}",
+                    create_response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Delete Response Format Test", False, f"Error: {str(e)}")
+
+    def run_slit_width_delete_tests(self):
+        """Run comprehensive slit width delete endpoint testing as requested in review"""
+        print("\n" + "="*60)
+        print("SLIT WIDTH DELETE ENDPOINT TESTING")
+        print("Testing DELETE /api/slit-widths/{slit_width_id} endpoint for frontend debugging")
+        print("="*60)
+        
+        # Step 1: Authenticate
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with tests")
+            return
+        
+        # Step 2: Test slit width delete endpoint comprehensively
+        self.test_slit_width_delete_endpoint()
+        
+        # Print summary focused on slit width delete functionality
+        self.print_slit_width_delete_summary()
+
+    def print_slit_width_delete_summary(self):
+        """Print summary focused on slit width delete endpoint testing"""
+        print("\n" + "="*60)
+        print("SLIT WIDTH DELETE ENDPOINT TEST SUMMARY")
+        print("="*60)
+        
+        total_tests = len(self.test_results)
+        passed_tests = len([r for r in self.test_results if r['success']])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {failed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%" if total_tests > 0 else "0%")
+        
+        # Analyze slit width specific results
+        slit_width_tests = [r for r in self.test_results if 'slit width' in r['test'].lower() or 'delete' in r['test'].lower()]
+        slit_width_passed = len([r for r in slit_width_tests if r['success']])
+        slit_width_failed = len(slit_width_tests) - slit_width_passed
+        
+        print(f"\nSlit Width Delete Tests: {len(slit_width_tests)}")
+        print(f"Slit Width Passed: {slit_width_passed}")
+        print(f"Slit Width Failed: {slit_width_failed}")
+        print(f"Slit Width Success Rate: {(slit_width_passed/len(slit_width_tests))*100:.1f}%" if slit_width_tests else "0%")
+        
+        print("\n" + "-"*60)
+        print("DELETE ENDPOINT FUNCTIONALITY ANALYSIS:")
+        print("-"*60)
+        
+        # Check key functionality areas
+        functionality_areas = {
+            "Create Test Data": ["create test slit width"],
+            "Delete Unallocated": ["delete unallocated"],
+            "Error Handling": ["non-existent", "404"],
+            "Allocation Protection": ["allocated", "400"],
+            "Response Format": ["response format", "success field"]
+        }
+        
+        for area, keywords in functionality_areas.items():
+            area_tests = [r for r in self.test_results 
+                         if any(keyword in r['test'].lower() for keyword in keywords)]
+            
+            if area_tests:
+                area_passed = len([r for r in area_tests if r['success']])
+                area_total = len(area_tests)
+                status = "✅" if area_passed == area_total else "⚠️" if area_passed > 0 else "❌"
+                
+                print(f"{status} {area}: {area_passed}/{area_total} tests passed")
+                
+                # Show failed tests for this area
+                failed_area_tests = [r for r in area_tests if not r['success']]
+                for failed_test in failed_area_tests:
+                    print(f"    ❌ {failed_test['test']}: {failed_test['message']}")
+        
+        print("\n" + "="*60)
+        print("FRONTEND INTEGRATION ANALYSIS:")
+        print("="*60)
+        
+        # Check for response format issues that would affect frontend
+        response_format_tests = [r for r in self.test_results if 'response format' in r['test'].lower()]
+        
+        if response_format_tests:
+            all_format_passed = all(r['success'] for r in response_format_tests)
+            if all_format_passed:
+                print("✅ Response format matches frontend expectations")
+                print("✅ Frontend can check response.data.success === true")
+                print("✅ Delete functionality should work correctly in frontend")
+            else:
+                print("❌ Response format issues detected")
+                print("❌ Frontend may not receive expected response structure")
+                print("❌ This could explain why delete functionality isn't working")
+        else:
+            print("❓ Response format not tested - unable to verify frontend compatibility")
+        
+        # Check for critical issues
+        critical_issues = []
+        for result in self.test_results:
+            if not result['success'] and any(keyword in result['test'].lower() 
+                                           for keyword in ['delete', 'response format', 'success field']):
+                critical_issues.append(result['test'])
+        
+        if critical_issues:
+            print(f"\n🚨 CRITICAL ISSUES AFFECTING FRONTEND:")
+            for issue in critical_issues:
+                print(f"  ❌ {issue}")
+        else:
+            print(f"\n✅ No critical issues detected that would affect frontend")
+        
+        print("\n" + "="*60)
+        print("ROOT CAUSE ANALYSIS FOR FRONTEND DELETE ISSUE:")
+        print("="*60)
+        
+        # Analyze the specific issue reported
+        delete_success_tests = [r for r in self.test_results if 'delete unallocated' in r['test'].lower()]
+        format_tests = [r for r in self.test_results if 'success field' in r['test'].lower()]
+        
+        if delete_success_tests and format_tests:
+            delete_working = all(r['success'] for r in delete_success_tests)
+            format_working = all(r['success'] for r in format_tests)
+            
+            if delete_working and format_working:
+                print("✅ DELETE endpoint is working correctly")
+                print("✅ Response format matches frontend expectations")
+                print("✅ The issue may be resolved or was environment-specific")
+                print("\n💡 POSSIBLE CAUSES OF ORIGINAL ISSUE:")
+                print("  1. Network connectivity issues between frontend and backend")
+                print("  2. Authentication token problems")
+                print("  3. Frontend error handling not properly checking response.data.success")
+                print("  4. Race conditions or timing issues in frontend")
+            elif delete_working and not format_working:
+                print("✅ DELETE endpoint functionality is working")
+                print("❌ Response format does not match frontend expectations")
+                print("🚨 ROOT CAUSE: Frontend expects response.data.success but getting different format")
+                print("\n💡 SOLUTION NEEDED:")
+                print("  1. Fix backend response format to include 'success' field as boolean")
+                print("  2. Ensure response structure matches StandardResponse model")
+            elif not delete_working:
+                print("❌ DELETE endpoint is not working correctly")
+                print("🚨 ROOT CAUSE: Backend delete functionality has issues")
+                print("\n💡 SOLUTION NEEDED:")
+                print("  1. Fix backend delete endpoint implementation")
+                print("  2. Check database connectivity and permissions")
+                print("  3. Verify authentication and authorization")
+        
+        print("\n" + "="*60)
+
     def run_xero_oauth_callback_debug_tests(self):
         """Run comprehensive Xero OAuth callback 404 debugging tests as requested in review"""
         print("\n" + "="*60)
