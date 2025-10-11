@@ -1787,8 +1787,13 @@ const ProductSpecifications = () => {
 
                             {/* Overlap Factor */}
                             <div>
-                              <label className="block text-xs font-medium text-blue-200 mb-1">
+                              <label className="block text-xs font-medium text-blue-200 mb-1 flex items-center">
                                 Overlap Factor
+                                {layer.spiral_sequence && (
+                                  <span className="ml-1 text-green-300" title="Auto-calculated based on layer sequence">
+                                    ⚡
+                                  </span>
+                                )}
                               </label>
                               <input
                                 type="number"
@@ -1797,11 +1802,16 @@ const ProductSpecifications = () => {
                                 max="10"
                                 value={layer.overlap_factor || ''}
                                 onChange={(e) => handleMaterialLayerChange(index, 'overlap_factor', e.target.value)}
-                                className="misty-input w-full text-sm"
+                                className={`misty-input w-full text-sm ${
+                                  layer.spiral_sequence ? 'bg-green-900/20 border-green-600' : ''
+                                }`}
                                 placeholder="0.0 - 10.0"
                               />
                               <div className="text-xs text-blue-300 mt-1">
-                                Material overlap multiplier (1.0 = no overlap)
+                                {layer.spiral_sequence 
+                                  ? 'Auto-calculated from layer sequence' 
+                                  : 'Material overlap multiplier (1.0 = no overlap)'
+                                }
                               </div>
                             </div>
                           </div>
