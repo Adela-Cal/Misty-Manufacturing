@@ -45,6 +45,11 @@ const Stocktake = () => {
   const [selectedStockHistory, setSelectedStockHistory] = useState(null);
   const [stockAllocations, setStockAllocations] = useState([]);
 
+  // Slit widths modal states
+  const [showSlitWidthsModal, setShowSlitWidthsModal] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const [materialSlitWidths, setMaterialSlitWidths] = useState([]);
+
   // Modal states
   const [showSubstrateModal, setShowSubstrateModal] = useState(false);
   const [showMaterialModal, setShowMaterialModal] = useState(false);
