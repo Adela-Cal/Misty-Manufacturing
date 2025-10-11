@@ -268,27 +268,73 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
   };
 
   // Calculate material requirements based on product specifications
-  const calculateMaterialRequirements = (product, quantity) => {
-    // This would be product-specific logic
-    // For now, we'll create a simplified example based on product specifications
+  const calculateMaterialRequirements = async (productSpec, product, quantity) => {
+    console.log('Calculating material requirements for quantity:', quantity);
+    console.log('Product spec:', productSpec);
+    
     const requirements = {
-      productName: product.product_name,
+      productName: product.product_name || 'Unknown Product',
       quantity: quantity,
       materials: []
     };
 
-    // If product has material_used specifications, calculate requirements
-    if (product.material_used && product.material_used.length > 0) {
-      // Simplified calculation - in reality this would be more complex
+    // Extract material layers from product specifications
+    if (productSpec.material_layers && productSpec.material_layers.length > 0) {
+      console.log('Found material layers:', productSpec.material_layers);
+      
+      // Process each material layer
+      for (const layer of productSpec.material_layers) {
+        try {
+          // Get material details from the materials database
+          let materialData = null;
+          try {
+            const materialResponse = await apiHelpers.get(`/materials/${layer.material_id}`);
+            materialData = materialResponse.data;
+          } catch (error) {
+            console.log(`Material ${layer.material_id} not found in materials database, using layer data`);
+          }
+          
+          // Calculate material requirements for this layer
+          const layerQuantityPerUnit = layer.quantity_usage || 1;
+          const requiredWidthMm = layer.width_mm || 100; // Default width if not specified
+          const requiredLengthMeters = quantity * layerQuantityPerUnit; // Simple calculation
+          
+          const materialRequirement = {
+            material_id: layer.material_id,
+            material_name: materialData?.material_name || layer.product_name || layer.material_product || 'Unknown Material',
+            layer_position: layer.layer_position || 'Unknown Layer',
+            layer_thickness_mm: layer.thickness_mm || 0,
+            layer_gsm: layer.gsm || 0,
+            required_width_mm: requiredWidthMm,
+            required_quantity_meters: requiredLengthMeters,
+            quantity_per_unit: layerQuantityPerUnit,
+            purpose: `Material layer: ${layer.layer_position || 'Unknown'} (${layer.thickness_mm}mm thick)`,
+            notes: layer.notes || ''
+          };
+          
+          requirements.materials.push(materialRequirement);
+          console.log('Added material requirement:', materialRequirement);
+          
+        } catch (error) {
+          console.error('Error processing material layer:', layer, error);
+        }
+      }
+    } else {
+      console.log('No material layers found in product specification');
+      
+      // Fallback: create a generic requirement if no material layers
       requirements.materials.push({
-        material_id: product.material_used[0],
-        material_name: 'Paper Material', // Would be fetched from material data
-        required_width_mm: 100, // Would be calculated from product specs
-        required_quantity_meters: quantity * 10, // Simplified calculation
-        purpose: 'Primary substrate material'
+        material_id: 'unknown',
+        material_name: 'Paper Material',
+        layer_position: 'Unknown Layer',
+        required_width_mm: 100,
+        required_quantity_meters: quantity * 10,
+        quantity_per_unit: 1,
+        purpose: 'Generic material requirement (no specification found)'
       });
     }
 
+    console.log('Final material requirements:', requirements);
     return requirements;
   };
 
