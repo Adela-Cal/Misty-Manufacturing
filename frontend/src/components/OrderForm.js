@@ -339,8 +339,10 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
             layer_thickness_mm: layer.thickness_mm || 0,
             layer_gsm: layer.gsm || 0,
             required_width_mm: requiredWidthMm,
-            required_quantity_meters: requiredLengthMeters,
+            required_quantity_meters: totalRequiredMeters, // Use the calculated total from formula
             quantity_per_unit: layerQuantityPerUnit,
+            order_quantity: quantity, // Store the order quantity for reference
+            calculation_formula: `${quantity} units × ${layerQuantityPerUnit}m/unit = ${totalRequiredMeters}m`,
             purpose: `Material layer: ${layer.layer_position || 'Unknown'} (${layer.thickness_mm}mm thick)`,
             notes: layer.notes || '',
             // Include spiral core specifications
