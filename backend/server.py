@@ -4360,7 +4360,7 @@ async def create_slit_width(
         slit_width = SlitWidth(
             **slit_width_data.dict(),
             remaining_quantity=slit_width_data.quantity_meters,
-            created_by=current_user["username"]
+            created_by=current_user["sub"]
         )
         
         # Convert to dict and prepare for MongoDB
