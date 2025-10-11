@@ -537,13 +537,32 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       const allocationRequest = {
         slit_width_id: slitWidthId,
         order_id: `pending-${Date.now()}`, // Temporary order ID for pending orders
-        required_quantity_meters: allocationQuantity
+        required_quantity_meters: parseFloat(allocationQuantity)
       };
 
       const response = await apiHelpers.allocateSlitWidth(allocationRequest);
       
       if (response.data.success) {
-        toast.success(`Allocated ${allocationQuantity} meters of slit material`);
+        // Update local allocations tracking
+        const currentAllocations = materialAllocations[materialId] || 0;
+        const newTotalAllocated = currentAllocations + parseFloat(allocationQuantity);
+        
+        setMaterialAllocations(prev => ({
+          ...prev,
+          [materialId]: newTotalAllocated
+        }));
+        
+        // Find the material requirement to check if allocation is sufficient
+        const materialReq = materialRequirements.materials.find(m => m.material_id === materialId);
+        const requiredQuantity = materialReq ? materialReq.required_quantity_meters : 0;
+        
+        // Provide appropriate feedback
+        if (newTotalAllocated >= requiredQuantity) {
+          toast.success(`✅ Correct Quantity Of Material Allocated! (${newTotalAllocated.toFixed(1)}m of ${requiredQuantity.toFixed(1)}m required)`);
+        } else {
+          const remainingNeeded = requiredQuantity - newTotalAllocated;
+          toast.warning(`⚠️ Further Material Requires Slitting! Still need ${remainingNeeded.toFixed(1)}m (allocated ${newTotalAllocated.toFixed(1)}m of ${requiredQuantity.toFixed(1)}m)`);
+        }
         
         // Refresh available slit widths
         await loadAvailableSlitWidths(materialRequirements.materials);
