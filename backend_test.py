@@ -5181,7 +5181,11 @@ class BackendAPITester:
             
             if response.status_code == 200:
                 result = response.json()
-                slit_width_id = result.get('data', {}).get('id')
+                # Try different possible ID field names
+                slit_width_id = (result.get('data', {}).get('id') or 
+                               result.get('data', {}).get('slit_width_id') or
+                               result.get('slit_width_id') or
+                               result.get('id'))
                 if slit_width_id:
                     return slit_width_id
                 else:
