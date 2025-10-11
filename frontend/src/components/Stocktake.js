@@ -14,7 +14,9 @@ import {
   BellIcon,
   BellSlashIcon,
   ArrowUpIcon,
-  ArrowDownIcon
+  ArrowDownIcon,
+  ClockIcon,
+  CubeIcon
 } from '@heroicons/react/24/outline';
 
 const Stocktake = () => {
