@@ -341,29 +341,84 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
   // Load available slit widths for required materials
   const loadAvailableSlitWidths = async (materialRequirements) => {
     try {
+      console.log('Loading slit widths for materials:', materialRequirements);
+      
       const slitWidthPromises = materialRequirements.map(async (requirement) => {
         try {
-          const response = await apiHelpers.getSlitWidthsByMaterial(requirement.material_id);
+          console.log(`Searching for slit widths for material: ${requirement.material_name}`);
+          
+          // First, try to find the material in raw materials on hand by name
+          let materialId = requirement.material_id;
+          
+          // If material_id is 'unknown', search by name
+          if (materialId === 'unknown' || !materialId) {
+            try {
+              // Get all raw materials and find matching name
+              const rawMaterialsResponse = await apiHelpers.getRawMaterialsStock();
+              const rawMaterials = rawMaterialsResponse.data?.data || rawMaterialsResponse.data || [];
+              
+              console.log('Raw materials available:', rawMaterials);
+              
+              // Look for material by name (partial match)
+              const matchingMaterial = rawMaterials.find(material => 
+                material.material_name && 
+                (material.material_name.toLowerCase().includes(requirement.material_name.toLowerCase()) ||
+                 requirement.material_name.toLowerCase().includes(material.material_name.toLowerCase()) ||
+                 material.material_name.toLowerCase().includes('jintian') ||
+                 material.material_name.toLowerCase().includes('j260'))
+              );
+              
+              if (matchingMaterial) {
+                materialId = matchingMaterial.material_id;
+                console.log(`Found matching raw material: ${matchingMaterial.material_name} (ID: ${materialId})`);
+              } else {
+                console.log(`No matching raw material found for: ${requirement.material_name}`);
+              }
+            } catch (error) {
+              console.error('Error searching raw materials:', error);
+            }
+          }
+          
+          // Load slit widths for this material
+          let slitWidths = [];
+          if (materialId && materialId !== 'unknown') {
+            try {
+              const response = await apiHelpers.getSlitWidthsByMaterial(materialId);
+              slitWidths = response.data?.data?.slit_widths || [];
+              console.log(`Found ${slitWidths.length} slit widths for material ${materialId}`);
+            } catch (error) {
+              console.log(`No slit widths found for material ${materialId}:`, error.message);
+            }
+          }
+          
           return {
-            material_id: requirement.material_id,
+            material_id: materialId,
             material_name: requirement.material_name,
+            layer_position: requirement.layer_position,
             required_width_mm: requirement.required_width_mm,
             required_quantity_meters: requirement.required_quantity_meters,
-            available_widths: response.data?.data?.slit_widths || []
+            quantity_per_unit: requirement.quantity_per_unit,
+            purpose: requirement.purpose,
+            available_widths: slitWidths
           };
+          
         } catch (error) {
-          console.error(`Failed to load slit widths for material ${requirement.material_id}:`, error);
+          console.error(`Failed to load slit widths for material ${requirement.material_name}:`, error);
           return {
             material_id: requirement.material_id,
             material_name: requirement.material_name,
+            layer_position: requirement.layer_position,
             required_width_mm: requirement.required_width_mm,
             required_quantity_meters: requirement.required_quantity_meters,
+            quantity_per_unit: requirement.quantity_per_unit,
+            purpose: requirement.purpose,
             available_widths: []
           };
         }
       });
 
       const results = await Promise.all(slitWidthPromises);
+      console.log('Final slit width results:', results);
       setAvailableSlitWidths(results);
     } catch (error) {
       console.error('Failed to load slit widths:', error);
