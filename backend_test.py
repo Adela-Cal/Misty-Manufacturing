@@ -4502,7 +4502,19 @@ def main_stock_management_review():
     tester = BackendAPITester()
     tester.run_stock_management_tests()
 
-    def test_slit_width_management_endpoints(self):
+def main_stock_allocation_review():
+    """Main function to run Stock Allocation Backend API tests"""
+    tester = BackendAPITester()
+    tester.run_stock_allocation_tests()
+
+def main_slit_width_management_review():
+    """Main function to run Slit Width Management Backend API tests"""
+    tester = BackendAPITester()
+    tester.run_slit_width_management_tests()
+
+if __name__ == "__main__":
+    # Run the Slit Width Management Backend API tests as requested in the review
+    main_slit_width_management_review()
         """Test all slit width management endpoints"""
         print("\n=== SLIT WIDTH MANAGEMENT ENDPOINTS TESTING ===")
         
