@@ -1146,14 +1146,27 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                     {/* Stock Allocated Confirmation */}
                     {item.allocated_stock > 0 && (
                       <div className="mt-4 p-3 bg-green-900/20 border border-green-500 rounded-lg">
-                        <div className="flex items-center text-green-300 text-sm">
-                          <span className="mr-2">✓</span>
-                          <span className="font-medium">
-                            {item.allocated_stock} units allocated from stock
-                          </span>
-                          <span className="ml-2 text-green-400">
-                            • {item.remaining_to_produce || (item.quantity - item.allocated_stock)} to produce
-                          </span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center text-green-300 text-sm">
+                            <span className="mr-2">✓</span>
+                            <span className="font-medium">
+                              {item.allocated_stock} units allocated from stock
+                            </span>
+                            <span className="ml-2 text-green-400">
+                              • {item.remaining_to_produce || (item.quantity - item.allocated_stock)} to produce
+                            </span>
+                          </div>
+                          
+                          {/* Show Material Requirements button if there's remaining quantity to produce */}
+                          {(item.remaining_to_produce || (item.quantity - item.allocated_stock)) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => showMaterialRequirementsModal(index, item.remaining_to_produce || (item.quantity - item.allocated_stock))}
+                              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors font-medium"
+                            >
+                              Raw Materials Needed
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
