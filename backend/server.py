@@ -4540,6 +4540,92 @@ async def get_slit_width_allocations(
         logger.error(f"Failed to get slit width allocations: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve allocations")
 
+@api_router.put("/slit-widths/{slit_width_id}", response_model=StandardResponse)
+async def update_slit_width(
+    slit_width_id: str,
+    update_data: SlitWidthUpdate,
+    current_user: dict = Depends(require_any_role)
+):
+    """Update slit width entry"""
+    try:
+        # Check if slit width exists
+        slit_width = await db.slit_widths.find_one({"id": slit_width_id})
+        
+        if not slit_width:
+            raise HTTPException(status_code=404, detail="Slit width entry not found")
+        
+        # Prepare update data
+        update_dict = {}
+        if update_data.quantity_meters is not None:
+            update_dict["quantity_meters"] = update_data.quantity_meters
+        if update_data.remaining_quantity is not None:
+            update_dict["remaining_quantity"] = update_data.remaining_quantity
+        if update_data.is_allocated is not None:
+            update_dict["is_allocated"] = update_data.is_allocated
+        if update_data.allocated_to_order_id is not None:
+            update_dict["allocated_to_order_id"] = update_data.allocated_to_order_id
+        if update_data.allocated_quantity is not None:
+            update_dict["allocated_quantity"] = update_data.allocated_quantity
+            
+        update_dict["updated_at"] = datetime.now(timezone.utc)
+        
+        # Update the entry
+        result = await db.slit_widths.update_one(
+            {"id": slit_width_id},
+            {"$set": update_dict}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=400, detail="No changes made to slit width")
+        
+        return StandardResponse(
+            success=True,
+            message="Slit width updated successfully"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to update slit width: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to update slit width")
+
+@api_router.delete("/slit-widths/{slit_width_id}", response_model=StandardResponse)
+async def delete_slit_width(
+    slit_width_id: str,
+    current_user: dict = Depends(require_any_role)
+):
+    """Delete slit width entry"""
+    try:
+        # Check if slit width exists
+        slit_width = await db.slit_widths.find_one({"id": slit_width_id})
+        
+        if not slit_width:
+            raise HTTPException(status_code=404, detail="Slit width entry not found")
+        
+        # Check if it's allocated to prevent deletion
+        if slit_width.get("is_allocated") and slit_width.get("allocated_quantity", 0) > 0:
+            raise HTTPException(
+                status_code=400, 
+                detail="Cannot delete slit width that is allocated to orders"
+            )
+        
+        # Delete the entry
+        result = await db.slit_widths.delete_one({"id": slit_width_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=400, detail="Failed to delete slit width")
+        
+        return StandardResponse(
+            success=True,
+            message="Slit width deleted successfully"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete slit width: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to delete slit width")
+
 # ============= SYSTEM ENDPOINTS =============
 
 @api_router.get("/")
