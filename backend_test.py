@@ -5350,23 +5350,8 @@ def main_slit_width_update_delete_review():
     tester.run_slit_width_update_delete_tests()
 
 if __name__ == "__main__":
-        """Test PUT /api/slit-widths/{slit_width_id} endpoint"""
-        print("\n=== SLIT WIDTH UPDATE ENDPOINT TESTING ===")
-        
-        # First, create a test slit width entry
-        test_slit_width_id = self.create_test_slit_width()
-        if not test_slit_width_id:
-            self.log_result("Slit Width Update - Setup", False, "Failed to create test slit width entry")
-            return
-        
-        try:
-            # Test 1: Update quantity_meters successfully
-            update_data = {
-                "quantity_meters": 1500.0,
-                "remaining_quantity": 1500.0
-            }
-            
-            response = self.session.put(f"{API_BASE}/slit-widths/{test_slit_width_id}", json=update_data)
+    # Run the specific slit width update and delete tests requested in the review
+    main_slit_width_update_delete_review()
             
             if response.status_code == 200:
                 result = response.json()
