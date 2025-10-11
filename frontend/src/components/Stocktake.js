@@ -280,6 +280,25 @@ const Stocktake = () => {
     }
   };
 
+  // Load slit widths for a specific material
+  const loadSlitWidths = async (materialId, materialName) => {
+    try {
+      const response = await apiHelpers.getSlitWidthsByMaterial(materialId);
+      const data = response.data?.data || response.data || {};
+      
+      setSelectedMaterial({
+        id: materialId,
+        name: materialName
+      });
+      setMaterialSlitWidths(data.slit_widths || []);
+      setShowSlitWidthsModal(true);
+    } catch (error) {
+      console.error('Failed to load slit widths:', error);
+      toast.error('Failed to load slit widths for this material');
+      setMaterialSlitWidths([]);
+    }
+  };
+
   // Group products by product_id + client_id combination
   const groupProductsByItem = async (substrates) => {
     const groups = {};
