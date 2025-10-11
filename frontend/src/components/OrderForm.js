@@ -1663,30 +1663,39 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                               </td>
                               <td className="px-3 py-2 text-center">
                                 {widthGroup.available_quantity_meters > 0 && (
-                                  <div className="flex items-center justify-center space-x-2">
-                                    <input
-                                      type="number"
-                                      step="0.1"
-                                      max={Math.min(widthGroup.available_quantity_meters, materialData.required_quantity_meters)}
-                                      placeholder="Meters"
-                                      className="misty-input w-20 text-sm"
-                                      id={`allocate-${materialData.material_id}-${widthIndex}`}
-                                    />
-                                    <button
-                                      onClick={() => {
-                                        const input = document.getElementById(`allocate-${materialData.material_id}-${widthIndex}`);
-                                        const quantity = parseFloat(input.value);
-                                        if (quantity > 0) {
-                                          // Get the first entry ID from the width group
-                                          const firstEntry = widthGroup.entries[0];
-                                          handleSlitWidthAllocation(materialData.material_id, firstEntry.id, quantity);
-                                          input.value = '';
-                                        }
-                                      }}
-                                      className="misty-button misty-button-primary text-xs py-1 px-2"
-                                    >
-                                      Allocate
-                                    </button>
+                                  <div className="flex flex-col items-center space-y-1">
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="number"
+                                        step="0.1"
+                                        max={Math.min(widthGroup.available_quantity_meters, materialData.required_quantity_meters)}
+                                        defaultValue={Math.min(
+                                          widthGroup.available_quantity_meters, 
+                                          materialData.required_quantity_meters - (materialAllocations[materialData.material_id] || 0)
+                                        ).toFixed(1)}
+                                        placeholder="Meters"
+                                        className="misty-input w-20 text-sm"
+                                        id={`allocate-${materialData.material_id}-${widthIndex}`}
+                                      />
+                                      <button
+                                        onClick={() => {
+                                          const input = document.getElementById(`allocate-${materialData.material_id}-${widthIndex}`);
+                                          const quantity = parseFloat(input.value);
+                                          if (quantity > 0) {
+                                            // Get the first entry ID from the width group
+                                            const firstEntry = widthGroup.entries[0];
+                                            handleSlitWidthAllocation(materialData.material_id, firstEntry.id, quantity);
+                                            input.value = '';
+                                          }
+                                        }}
+                                        className="misty-button misty-button-primary text-xs py-1 px-2"
+                                      >
+                                        Allocate
+                                      </button>
+                                    </div>
+                                    <div className="text-xs text-gray-400">
+                                      Need: {(materialData.required_quantity_meters - (materialAllocations[materialData.material_id] || 0)).toFixed(1)}m
+                                    </div>
                                   </div>
                                 )}
                               </td>
