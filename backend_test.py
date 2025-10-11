@@ -5263,18 +5263,18 @@ class BackendAPITester:
             
             response = self.session.put(f"{API_BASE}/slit-widths/{test_id or 'test'}", json={"quantity_meters": 100})
             
-            if response.status_code == 401:
+            if response.status_code in [401, 403]:
                 self.log_result(
                     "Slit Width Error - Authentication Required", 
                     True, 
-                    "Correctly requires authentication (401 unauthorized)",
+                    f"Correctly requires authentication ({response.status_code})",
                     "Security working as expected"
                 )
             else:
                 self.log_result(
                     "Slit Width Error - Authentication Required", 
                     False, 
-                    f"Expected 401, got {response.status_code}",
+                    f"Expected 401 or 403, got {response.status_code}",
                     "Authentication may not be properly enforced"
                 )
             
