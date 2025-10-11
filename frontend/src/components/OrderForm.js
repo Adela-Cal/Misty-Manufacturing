@@ -1624,33 +1624,118 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
 
             {/* Overall Material Requirements Summary */}
             <div className="mb-6 p-4 bg-gray-700/30 border border-gray-600 rounded-lg">
-              <h4 className="text-lg font-medium text-white mb-3">Total Material Requirements Breakdown</h4>
-              <div className="space-y-2">
-                {materialRequirements.materials.map((material, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center">
-                      <span className="w-3 h-3 bg-blue-500 rounded-full mr-3"></span>
-                      <span className="text-gray-300">{material.layer_position}:</span>
-                      <span className="text-white ml-2">{material.material_name}</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-blue-300 font-medium">
-                        {material.required_quantity_meters.toFixed(1)}m
+              <h4 className="text-lg font-medium text-white mb-3 flex items-center">
+                <span className="mr-2">📊</span>
+                Material Requirements & Spiral Formation Overview
+              </h4>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Material Requirements List */}
+                <div>
+                  <h5 className="text-sm font-medium text-gray-300 mb-2">Material Requirements</h5>
+                  <div className="space-y-2">
+                    {materialRequirements.materials.map((material, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center">
+                          <span className="w-3 h-3 bg-blue-500 rounded-full mr-3"></span>
+                          <span className="text-gray-300">{material.layer_position}:</span>
+                          <span className="text-white ml-2">{material.material_name}</span>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-blue-300 font-medium">
+                            {material.required_quantity_meters.toFixed(1)}m
+                          </div>
+                          <div className="text-gray-500 text-xs">
+                            {material.quantity_per_unit}m × {selectedItem.remainingQuantity} units
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-gray-500 text-xs">
-                        {material.quantity_per_unit}m × {selectedItem.remainingQuantity} units
+                    ))}
+                    <div className="border-t border-gray-600 pt-2 mt-3">
+                      <div className="flex items-center justify-between text-sm font-medium">
+                        <span className="text-gray-300">Total Required:</span>
+                        <span className="text-yellow-300">
+                          {materialRequirements.materials.reduce((sum, m) => sum + m.required_quantity_meters, 0).toFixed(1)}m
+                        </span>
                       </div>
                     </div>
-                  </div>
-                ))}
-                <div className="border-t border-gray-600 pt-2 mt-3">
-                  <div className="flex items-center justify-between text-sm font-medium">
-                    <span className="text-gray-300">Total Required:</span>
-                    <span className="text-yellow-300">
-                      {materialRequirements.materials.reduce((sum, m) => sum + m.required_quantity_meters, 0).toFixed(1)}m
-                    </span>
                   </div>
                 </div>
+
+                {/* Spiral Formation Process */}
+                {materialRequirements.materials.some(m => m.spiral_specifications && m.spiral_specifications.sequence) && (
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-300 mb-2 flex items-center">
+                      <span className="mr-2">🌀</span>
+                      Spiral Formation Process
+                    </h5>
+                    <div className="space-y-2">
+                      {materialRequirements.materials
+                        .filter(material => material.spiral_specifications?.sequence)
+                        .sort((a, b) => parseInt(a.spiral_specifications.sequence) - parseInt(b.spiral_specifications.sequence))
+                        .map((material, seqIndex) => (
+                          <div key={seqIndex} className="bg-gray-800/50 rounded p-2 text-xs">
+                            <div className="flex items-center mb-1">
+                              <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center mr-2 text-xs font-bold">
+                                {material.spiral_specifications.sequence}
+                              </div>
+                              <div className="font-medium text-white">{material.material_name}</div>
+                            </div>
+                            <div className="ml-8 grid grid-cols-2 gap-2 text-gray-300">
+                              <div className="flex items-center">
+                                <span className="text-blue-300">🎯</span>
+                                <span className="ml-1">{material.spiral_specifications.allocation_percent}% allocation</span>
+                              </div>
+                              {material.spiral_specifications.winding_direction && (
+                                <div className="flex items-center">
+                                  <span className="text-purple-300">
+                                    {material.spiral_specifications.winding_direction === 'clockwise' ? '↻' : '↺'}
+                                  </span>
+                                  <span className="ml-1 capitalize">{material.spiral_specifications.winding_direction}</span>
+                                </div>
+                              )}
+                              {material.spiral_specifications.tension_level && (
+                                <div className="flex items-center">
+                                  <span className="text-red-300">⚡</span>
+                                  <span className="ml-1 capitalize">{material.spiral_specifications.tension_level} tension</span>
+                                </div>
+                              )}
+                              {material.spiral_specifications.feed_rate_mpm && (
+                                <div className="flex items-center">
+                                  <span className="text-indigo-300">🏃</span>
+                                  <span className="ml-1">{material.spiral_specifications.feed_rate_mpm} m/min</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      }
+                      
+                      {/* Spiral Formation Status */}
+                      {(() => {
+                        const totalSpiral = materialRequirements.materials
+                          .filter(m => m.spiral_specifications?.allocation_percent)
+                          .reduce((sum, m) => sum + parseFloat(m.spiral_specifications.allocation_percent), 0);
+                        
+                        if (totalSpiral > 0) {
+                          return (
+                            <div className={`mt-2 p-2 rounded text-xs text-center font-medium ${
+                              Math.abs(totalSpiral - 100) < 0.1 
+                                ? 'bg-green-900/20 border border-green-600 text-green-300' 
+                                : 'bg-yellow-900/20 border border-yellow-600 text-yellow-300'
+                            }`}>
+                              {Math.abs(totalSpiral - 100) < 0.1 
+                                ? `✅ Perfect spiral formation: ${totalSpiral.toFixed(1)}%` 
+                                : `⚠️ Spiral allocation: ${totalSpiral.toFixed(1)}% (should be 100%)`
+                              }
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
