@@ -903,6 +903,33 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                 <div className="text-gray-300"><strong className="text-white">Order ID:</strong> {jobData?.order?.order_number || `ORD-${orderId || jobId}` || 'N/A'}</div>
                 <div className="text-gray-300"><strong className="text-white">Customer:</strong> {jobData?.order?.client_name || 'Unknown Client'}</div>
                 <div className="text-gray-300"><strong className="text-white">Quantity:</strong> {(jobData?.order?.quantity || 1000)?.toLocaleString()} units</div>
+                
+                {/* Stock Allocation Information */}
+                {jobData?.order?.items?.some(item => item.allocated_stock > 0) && (
+                  <div className="mt-3 p-3 bg-blue-900/20 border border-blue-500 rounded">
+                    <div className="text-blue-300 font-medium mb-2">📦 Stock Allocated</div>
+                    {jobData.order.items.map((item, index) => 
+                      item.allocated_stock > 0 && (
+                        <div key={index} className="text-sm space-y-1">
+                          <div className="text-blue-200">
+                            <strong>Product:</strong> {item.product_name}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="text-blue-200">
+                              <strong>From Stock:</strong> {item.allocated_stock?.toLocaleString()} units
+                            </div>
+                            <div className="text-blue-200">
+                              <strong>To Produce:</strong> {item.remaining_to_produce?.toLocaleString()} units
+                            </div>
+                          </div>
+                          {index < jobData.order.items.filter(i => i.allocated_stock > 0).length - 1 && (
+                            <hr className="border-blue-600 my-2" />
+                          )}
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
                 <div className="text-gray-300"><strong className="text-white">Due Date:</strong> {jobData?.order?.due_date ? new Date(jobData.order.due_date).toLocaleDateString() : 'Not set'}</div>
                 <div className="text-gray-300"><strong className="text-white">Priority:</strong> 
                   <span className={`ml-2 px-2 py-1 rounded text-xs ${
