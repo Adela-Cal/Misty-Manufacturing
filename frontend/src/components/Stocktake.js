@@ -361,7 +361,7 @@ const Stocktake = () => {
         remaining_quantity: parseFloat(newQuantity)
       };
 
-      const response = await apiHelpers.put(`/slit-widths/${slitWidthId}`, updateData);
+      const response = await apiHelpers.updateSlitWidth(slitWidthId, updateData);
       
       if (response.data.success) {
         toast.success('Slit width updated successfully');
