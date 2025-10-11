@@ -1600,6 +1600,38 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
               </div>
             </div>
 
+            {/* Overall Material Requirements Summary */}
+            <div className="mb-6 p-4 bg-gray-700/30 border border-gray-600 rounded-lg">
+              <h4 className="text-lg font-medium text-white mb-3">Total Material Requirements Breakdown</h4>
+              <div className="space-y-2">
+                {materialRequirements.materials.map((material, idx) => (
+                  <div key={idx} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center">
+                      <span className="w-3 h-3 bg-blue-500 rounded-full mr-3"></span>
+                      <span className="text-gray-300">{material.layer_position}:</span>
+                      <span className="text-white ml-2">{material.material_name}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-blue-300 font-medium">
+                        {material.required_quantity_meters.toFixed(1)}m
+                      </div>
+                      <div className="text-gray-500 text-xs">
+                        {material.quantity_per_unit}m × {selectedItem.remainingQuantity} units
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div className="border-t border-gray-600 pt-2 mt-3">
+                  <div className="flex items-center justify-between text-sm font-medium">
+                    <span className="text-gray-300">Total Required:</span>
+                    <span className="text-yellow-300">
+                      {materialRequirements.materials.reduce((sum, m) => sum + m.required_quantity_meters, 0).toFixed(1)}m
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-6">
               {availableSlitWidths.map((materialData, index) => (
                 <div key={index} className="bg-gray-700 rounded-lg p-4">
