@@ -581,6 +581,40 @@ const ProductSpecifications = () => {
     calculateTotalThickness();
   };
 
+  // Calculate automatic allocation percentage and overlap factor based on layer sequence
+  const calculateSpiralAllocation = (sequence, totalLayers) => {
+    const seq = parseInt(sequence);
+    if (!seq || seq < 1 || seq > 5) return { allocation: null, overlap: null };
+    
+    // Spiral core allocation patterns based on manufacturing standards
+    const allocationPatterns = {
+      1: { base: 45, overlap: 1.2 }, // Inner most layer - highest allocation, more overlap for adhesion
+      2: { base: 25, overlap: 1.1 }, // Second layer - medium allocation
+      3: { base: 20, overlap: 1.0 }, // Third layer - standard overlap
+      4: { base: 7, overlap: 0.9 },  // Fourth layer - minimal overlap
+      5: { base: 3, overlap: 0.8 }   // Outer layer - least allocation, minimal overlap
+    };
+    
+    // Adjust allocation based on total number of layers
+    const pattern = allocationPatterns[seq];
+    let adjustedAllocation = pattern.base;
+    
+    // If fewer layers, redistribute allocation
+    if (totalLayers === 1) {
+      adjustedAllocation = 100;
+    } else if (totalLayers === 2) {
+      adjustedAllocation = seq === 1 ? 70 : 30;
+    } else if (totalLayers === 3) {
+      const allocations = { 1: 50, 2: 30, 3: 20 };
+      adjustedAllocation = allocations[seq] || pattern.base;
+    }
+    
+    return {
+      allocation: adjustedAllocation,
+      overlap: pattern.overlap
+    };
+  };
+
   const handleMaterialLayerChange = (index, field, value) => {
     setFormData(prev => {
       const updatedLayers = [...prev.material_layers]; // Create a new array
@@ -588,6 +622,43 @@ const ProductSpecifications = () => {
       
       // Update the field that was changed
       currentLayer[field] = value;
+      
+      // If spiral_sequence changes, automatically calculate allocation % and overlap factor
+      if (field === 'spiral_sequence' && value) {
+        const totalLayersWithSequence = updatedLayers.filter(layer => layer.spiral_sequence).length;
+        const calculations = calculateSpiralAllocation(value, totalLayersWithSequence);
+        
+        if (calculations.allocation !== null) {
+          currentLayer.spiral_allocation_percent = calculations.allocation;
+          currentLayer.overlap_factor = calculations.overlap;
+          
+          // Also set some intelligent defaults based on sequence
+          if (!currentLayer.winding_direction) {
+            // Alternate winding direction by sequence for better spiral formation
+            currentLayer.winding_direction = parseInt(value) % 2 === 1 ? 'clockwise' : 'counterclockwise';
+          }
+          
+          if (!currentLayer.tension_level) {
+            // Inner layers need higher tension, outer layers lower tension
+            const tensionMap = { '1': 'high', '2': 'medium', '3': 'medium', '4': 'low', '5': 'low' };
+            currentLayer.tension_level = tensionMap[value] || 'medium';
+          }
+          
+          if (!currentLayer.feed_rate_mpm) {
+            // Feed rate typically decreases for outer layers
+            const feedRateMap = { '1': 15, '2': 12, '3': 10, '4': 8, '5': 6 };
+            currentLayer.feed_rate_mpm = feedRateMap[value] || 10;
+          }
+        }
+        
+        console.log(`Auto-calculated for sequence ${value}:`, {
+          allocation: calculations.allocation,
+          overlap: calculations.overlap,
+          winding: currentLayer.winding_direction,
+          tension: currentLayer.tension_level,
+          feedRate: currentLayer.feed_rate_mpm
+        });
+      }
       
       // If material_id changes, update material_name, thickness, and GSM
       if (field === 'material_id' && value) {
