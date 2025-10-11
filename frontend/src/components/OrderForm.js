@@ -1616,6 +1616,28 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                     </div>
                   </div>
 
+                  {/* Allocation Progress Section */}
+                  {materialAllocations[materialData.material_id] > 0 && (
+                    <div className="mb-4 p-3 bg-green-900/20 border border-green-600 rounded-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <div>
+                          <span className="text-green-300 font-medium">Allocated: {materialAllocations[materialData.material_id].toFixed(1)}m</span>
+                          <span className="text-gray-400 ml-2">of {materialData.required_quantity_meters.toFixed(1)}m required</span>
+                        </div>
+                        <div className={`px-2 py-1 rounded text-xs ${
+                          materialAllocations[materialData.material_id] >= materialData.required_quantity_meters 
+                            ? 'bg-green-900 text-green-300' 
+                            : 'bg-yellow-900 text-yellow-300'
+                        }`}>
+                          {materialAllocations[materialData.material_id] >= materialData.required_quantity_meters 
+                            ? '✅ Complete' 
+                            : `${((materialAllocations[materialData.material_id] / materialData.required_quantity_meters) * 100).toFixed(0)}% Complete`
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {materialData.available_widths.length > 0 ? (
                     <div className="overflow-hidden rounded-lg">
                       <table className="w-full">
