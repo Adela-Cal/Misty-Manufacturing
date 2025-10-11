@@ -1168,6 +1168,27 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                       </div>
                     </div>
 
+                    {/* Material Requirements Section - always show if quantity > 0 */}
+                    {item.quantity > 0 && !itemStockData[index]?.showAllocation && !item.allocated_stock && (
+                      <div className="mt-4 p-3 bg-gray-700/20 border border-gray-500 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="text-gray-300 text-sm">
+                            <span className="font-medium">No stock available for this product</span>
+                            <div className="text-xs text-gray-400 mt-1">
+                              View raw materials needed for manufacturing {item.quantity} units
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => showMaterialRequirementsModal(index, item.quantity)}
+                            className="px-3 py-1 bg-orange-600 hover:bg-orange-700 text-white text-sm rounded transition-colors font-medium"
+                          >
+                            Raw Materials Needed
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Stock Allocation Section - appears inline under each item */}
                     {itemStockData[index] && itemStockData[index].showAllocation && (
                       <div className="mt-4 p-4 bg-blue-900/20 border border-blue-500 rounded-lg">
