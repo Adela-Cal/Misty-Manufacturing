@@ -135,23 +135,28 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
 
   // Check stock availability for a product
   const checkStockAvailability = async (productId, clientId, itemIndex) => {
+    console.log('checkStockAvailability called:', { productId, clientId, itemIndex }); // Debug log
     try {
       const response = await apiHelpers.get(`/stock/check-availability?product_id=${productId}&client_id=${clientId}`);
+      console.log('Stock API response:', response); // Debug log
       const stockData = response.data;
       
       if (stockData && stockData.quantity_on_hand > 0) {
+        console.log('Stock available, showing modal:', stockData); // Debug log
         const product = clientProducts.find(p => p.id === productId);
         setStockAllocationData({
           productId,
           productName: product?.product_description || '',
           stockOnHand: stockData.quantity_on_hand,
           itemIndex,
-          maxAllocation: Math.min(stockData.quantity_on_hand, formData.items[itemIndex].quantity)
+          maxAllocation: Math.min(stockData.quantity_on_hand, formData.items[itemIndex].quantity || 1)
         });
         setShowStockAllocationModal(true);
+      } else {
+        console.log('No stock data or zero quantity:', stockData); // Debug log
       }
     } catch (error) {
-      console.log('No stock available or error checking stock:', error);
+      console.log('No stock available or error checking stock:', error.response?.status, error.response?.data);
       // Silently continue - no stock available is not an error state
     }
   };
