@@ -186,6 +186,9 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       const stockData = itemStockData[itemIndex];
       if (!stockData) return;
       
+      const item = formData.items[itemIndex];
+      const remainingQuantity = item.quantity - allocateQuantity;
+      
       // Allocate stock on the backend
       await apiHelpers.post('/stock/allocate', {
         product_id: stockData.productId,
@@ -199,7 +202,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       newItems[itemIndex] = {
         ...newItems[itemIndex],
         allocated_stock: allocateQuantity,
-        remaining_to_produce: newItems[itemIndex].quantity - allocateQuantity
+        remaining_to_produce: remainingQuantity
       };
       
       setFormData(prev => ({ ...prev, items: newItems }));
@@ -215,6 +218,11 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       }));
       
       toast.success(`${allocateQuantity} units allocated from stock`);
+      
+      // If there's remaining quantity, show material requirements
+      if (remainingQuantity > 0) {
+        await showMaterialRequirementsModal(itemIndex, remainingQuantity);
+      }
     } catch (error) {
       console.error('Failed to allocate stock:', error);
       toast.error('Failed to allocate stock');
