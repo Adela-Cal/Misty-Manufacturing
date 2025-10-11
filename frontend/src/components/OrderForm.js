@@ -1427,9 +1427,18 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
               {availableSlitWidths.map((materialData, index) => (
                 <div key={index} className="bg-gray-700 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-lg font-medium text-white">{materialData.material_name}</h4>
-                    <div className="text-sm text-gray-300">
-                      Required: {materialData.required_width_mm}mm × {materialData.required_quantity_meters}m
+                    <div>
+                      <h4 className="text-lg font-medium text-white">{materialData.material_name}</h4>
+                      <div className="text-sm text-gray-400">
+                        {materialData.layer_position} • {materialData.purpose}
+                      </div>
+                    </div>
+                    <div className="text-right text-sm text-gray-300">
+                      <div>Required: {materialData.required_width_mm}mm</div>
+                      <div>Quantity: {materialData.required_quantity_meters.toFixed(1)}m</div>
+                      <div className="text-xs text-gray-400">
+                        ({materialData.quantity_per_unit} per unit)
+                      </div>
                     </div>
                   </div>
 
