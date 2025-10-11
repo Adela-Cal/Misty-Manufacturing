@@ -384,18 +384,37 @@ const Stocktake = () => {
     }
 
     try {
+      console.log('Attempting to delete slit width:', slitWidthId); // Debug log
       const response = await apiHelpers.delete(`/slit-widths/${slitWidthId}`);
       
-      if (response.data.success) {
-        toast.success('Slit width deleted successfully');
+      console.log('Delete response:', response); // Debug log
+      
+      // Check if response has data property and success field
+      const success = response.data?.success || response.success;
+      const message = response.data?.message || response.message;
+      
+      if (success) {
+        toast.success(message || 'Slit width deleted successfully');
         // Reload slit widths
         await loadSlitWidths(selectedMaterial.id, selectedMaterial.name);
       } else {
-        toast.error(response.data.message || 'Failed to delete slit width');
+        console.error('Delete failed:', response);
+        toast.error(message || 'Failed to delete slit width');
       }
     } catch (error) {
       console.error('Failed to delete slit width:', error);
-      toast.error('Failed to delete slit width');
+      
+      // Check if it's an HTTP error response
+      if (error.response) {
+        const errorMessage = error.response.data?.message || error.response.data?.detail || 'Failed to delete slit width';
+        toast.error(errorMessage);
+        
+        // Log more details for debugging
+        console.error('Error status:', error.response.status);
+        console.error('Error data:', error.response.data);
+      } else {
+        toast.error('Network error: Failed to delete slit width');
+      }
     }
   };
 
