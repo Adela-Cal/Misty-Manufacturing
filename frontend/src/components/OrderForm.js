@@ -126,9 +126,21 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     });
   };
 
-  // Check stock availability for a product
-  const checkStockAvailability = async (productId, clientId, itemIndex) => {
-    console.log('checkStockAvailability called:', { productId, clientId, itemIndex }); // Debug log
+  // Check stock availability for a product and quantity
+  const checkStockAvailability = async (productId, clientId, itemIndex, quantity) => {
+    console.log('checkStockAvailability called:', { productId, clientId, itemIndex, quantity }); // Debug log
+    
+    // Clear previous stock data for this item
+    setItemStockData(prev => {
+      const updated = { ...prev };
+      delete updated[itemIndex];
+      return updated;
+    });
+    
+    if (!productId || !quantity || quantity <= 0) {
+      return; // Don't check stock without product and quantity
+    }
+    
     try {
       const response = await apiHelpers.get(`/stock/check-availability?product_id=${productId}&client_id=${clientId}`);
       console.log('Stock API response:', response); // Debug log
@@ -138,16 +150,21 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       console.log('Extracted stock data:', stockData); // Debug log
       
       if (stockData && stockData.quantity_on_hand > 0) {
-        console.log('Stock available, showing modal:', stockData); // Debug log
+        console.log('Stock available, storing for item:', stockData); // Debug log
         const product = clientProducts.find(p => p.id === productId);
-        setStockAllocationData({
-          productId,
-          productName: product?.product_description || '',
-          stockOnHand: stockData.quantity_on_hand,
-          itemIndex,
-          maxAllocation: Math.min(stockData.quantity_on_hand, formData.items[itemIndex].quantity || 1)
-        });
-        setShowStockAllocationModal(true);
+        const maxAllocation = Math.min(stockData.quantity_on_hand, quantity);
+        
+        setItemStockData(prev => ({
+          ...prev,
+          [itemIndex]: {
+            productId,
+            productName: product?.product_description || '',
+            stockOnHand: stockData.quantity_on_hand,
+            maxAllocation,
+            quantity,
+            showAllocation: true
+          }
+        }));
       } else {
         console.log('No stock data or zero quantity:', stockData); // Debug log
       }
