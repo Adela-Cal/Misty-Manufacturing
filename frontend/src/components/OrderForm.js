@@ -348,6 +348,10 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
         showAllocation: false
       }
     }));
+    
+    // Show material requirements modal since no stock will be allocated
+    showMaterialRequirementsModal(itemIndex, item.quantity);
+    }));
   };
 
   // Validate quantity against tubes per carton for paper core products
