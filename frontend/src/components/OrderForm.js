@@ -696,14 +696,15 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                                   total_price: totalPrice
                                 };
                                 
-                                // Update form data first, then check stock
+                                // Update form data
                                 setFormData(prev => ({ ...prev, items: newItems }));
                                 
-                                // Check stock availability after product selection with a small delay
-                                setTimeout(() => {
-                                  console.log('Checking stock for:', selectedProduct.id, formData.client_id); // Debug log
-                                  checkStockAvailability(selectedProduct.id, formData.client_id, index);
-                                }, 100);
+                                // Check stock if quantity is already filled
+                                if (newItems[index].quantity > 0) {
+                                  setTimeout(() => {
+                                    checkStockAvailability(selectedProduct.id, formData.client_id, index, newItems[index].quantity);
+                                  }, 100);
+                                }
                                 
                               } else {
                                 const newItems = [...formData.items];
