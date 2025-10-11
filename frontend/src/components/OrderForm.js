@@ -1422,7 +1422,10 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
             </div>
 
             <div className="mb-4 p-4 bg-blue-900/20 border border-blue-700 rounded-lg">
-              <h4 className="text-lg font-medium text-white mb-2">Order Summary</h4>
+              <h4 className="text-lg font-medium text-white mb-2">Production Requirements</h4>
+              <p className="text-sm text-blue-200 mb-3">
+                Raw materials needed for manufacturing the remaining {selectedItem.remainingQuantity} units
+              </p>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div>
                   <span className="text-gray-300">Total Required:</span>
@@ -1433,7 +1436,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                   <div className="font-medium text-green-400">{selectedItem.item.allocated_stock || 0} units</div>
                 </div>
                 <div>
-                  <span className="text-gray-300">Remaining to Produce:</span>
+                  <span className="text-gray-300">To Manufacture:</span>
                   <div className="font-medium text-yellow-400">{selectedItem.remainingQuantity} units</div>
                 </div>
               </div>
