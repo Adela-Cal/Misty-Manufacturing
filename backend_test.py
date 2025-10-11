@@ -5344,7 +5344,12 @@ def main_slit_width_management_review():
     tester = BackendAPITester()
     tester.run_slit_width_management_tests()
 
-    def test_slit_width_update_endpoint(self):
+def main_slit_width_update_delete_review():
+    """Main function to run Slit Width Update and Delete endpoint tests"""
+    tester = BackendAPITester()
+    tester.run_slit_width_update_delete_tests()
+
+if __name__ == "__main__":
         """Test PUT /api/slit-widths/{slit_width_id} endpoint"""
         print("\n=== SLIT WIDTH UPDATE ENDPOINT TESTING ===")
         
