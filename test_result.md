@@ -17,6 +17,21 @@ backend:
         agent: "testing"
         comment: "🎉 SLIT WIDTH UPDATE AND DELETE ENDPOINTS FULLY FUNCTIONAL: Comprehensive testing of the new PUT and DELETE endpoints completed with 100% success rate (12/12 tests passed). CRITICAL FUNCTIONALITY VERIFIED: ✅ PUT /api/slit-widths/{slit_width_id} endpoint working perfectly - successfully updates quantity_meters (1500.0), remaining_quantity (1200.0), allocation status (is_allocated: true, allocated_to_order_id, allocated_quantity: 300.0), ✅ DELETE /api/slit-widths/{slit_width_id} endpoint working correctly - successfully deletes unallocated entries, properly prevents deletion of allocated entries with 400 error as designed, ✅ Error handling excellent - returns 404 for non-existent IDs, handles authentication properly (403 forbidden), validates data types correctly (422 for invalid data), ✅ Edge cases handled properly - empty update data accepted gracefully, invalid data types properly validated, authentication requirements enforced. MANUAL ADD/SUBTRACT FUNCTIONALITY SUPPORT CONFIRMED: ✅ Update endpoint supports all required fields for manual quantity adjustments in slit widths modal, ✅ Allocation tracking working correctly - allocated entries cannot be deleted (business logic protection), ✅ Quantity updates properly tracked with remaining_quantity calculations, ✅ All validation scenarios working as expected for production use. CONCLUSION: The new slit width update and delete endpoints are production-ready and fully support the manual add/subtract functionality in the slit widths modal. All requested test scenarios passed successfully with proper error handling and business logic validation."
 
+  - task: "Slit Width Update and Delete Endpoints for Manual Add/Subtract Functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing new PUT and DELETE endpoints for slit width manual add/subtract functionality in modal"
+      - working: true
+        agent: "testing"
+        comment: "🎉 SLIT WIDTH UPDATE AND DELETE ENDPOINTS FULLY FUNCTIONAL: Comprehensive testing completed with 100% success rate (12/12 tests passed). ENDPOINT FUNCTIONALITY VERIFIED: ✅ PUT /api/slit-widths/{slit_width_id} - Successfully updates quantity_meters (1500.0), remaining_quantity (1200.0), allocation status (is_allocated: true, allocated_to_order_id: test-order-123, allocated_quantity: 300.0), handles non-existent IDs with 404, validates data types with 422 errors, accepts negative values per business logic, ✅ DELETE /api/slit-widths/{slit_width_id} - Successfully deletes unallocated entries, correctly prevents deletion of allocated entries with 400 error, returns 404 for non-existent IDs, ✅ Error handling comprehensive - authentication enforced (403), empty update data handled gracefully, invalid data types validated properly. BUSINESS LOGIC PROTECTION: ✅ Allocated slit widths cannot be deleted (prevents data integrity issues), ✅ Quantity tracking maintained through updates, ✅ Allocation status properly managed. MANUAL ADD/SUBTRACT SUPPORT: All endpoints support the manual quantity adjustment functionality in the slit widths modal with proper validation and error handling. Production-ready implementation."
+
   - task: "Inline Stock Allocation Feature Testing"
     implemented: true
     working: true
