@@ -1731,13 +1731,30 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                     </div>
                   ) : (
                     <div className="p-8 text-center text-gray-400">
-                      <div className="text-lg mb-2">No slit widths available</div>
-                      <p className="text-sm">
-                        Required width: {materialData.required_width_mm}mm × {materialData.required_quantity_meters}m
-                      </p>
-                      <p className="text-xs mt-2 text-yellow-400">
-                        This material will need to be slit from raw stock
-                      </p>
+                      {materialData.available_widths.length === 0 ? (
+                        <>
+                          <div className="text-lg mb-2">No slit widths available</div>
+                          <p className="text-sm">
+                            Required width: {materialData.required_width_mm}mm × {materialData.required_quantity_meters.toFixed(1)}m
+                          </p>
+                          <p className="text-xs mt-2 text-yellow-400">
+                            This material will need to be slit from raw stock
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-lg mb-2">No relevant slit widths available</div>
+                          <p className="text-sm">
+                            Required width: {materialData.required_width_mm}mm × {materialData.required_quantity_meters.toFixed(1)}m
+                          </p>
+                          <p className="text-xs mt-2 text-yellow-400">
+                            Available widths are too different from requirement (>10mm difference)
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Material will need to be slit to {materialData.required_width_mm}mm width
+                          </p>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
