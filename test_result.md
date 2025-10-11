@@ -1,4 +1,19 @@
 frontend:
+  - task: "Enhanced Raw Materials Needed Functionality with Fallback Material Requirements"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/OrderForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing enhanced Raw Materials Needed functionality with fallback material requirements when product specifications are missing"
+      - working: false
+        agent: "testing"
+        comment: "🚨 CRITICAL BUG IDENTIFIED - RAW MATERIALS NEEDED BUTTON NOT APPEARING: Comprehensive testing of the enhanced Raw Materials Needed functionality revealed a critical implementation bug. TESTING RESULTS: ✅ Login with demo credentials (Callum/Peach7510) working perfectly, ✅ Navigation to Orders → Create New Order successful, ✅ Label Makers client selection working correctly, ✅ LM Paper Core product selection successful (exactly as requested in test), ✅ Quantity set to 3135 units as specified, ✅ Stock check API correctly returns 404 (no stock available) - expected behavior. CRITICAL ISSUE IDENTIFIED: ❌ Raw Materials Needed button does NOT appear when there's no stock available, ❌ Found 0 Raw Materials buttons on page, ❌ Found 0 green confirmation sections, ❌ Found 0 blue stock allocation sections. ROOT CAUSE ANALYSIS: The Raw Materials Needed button only appears inside the green confirmation section when item.allocated_stock > 0 (line 1243 in OrderForm.js). However, when stock check returns 404 (no stock available), the allocated_stock field is never set, so the entire green confirmation section doesn't render, and consequently the Raw Materials Needed button doesn't appear. This contradicts the test requirement that the button should show fallback material requirements even when product specifications are missing. EXPECTED BEHAVIOR: The Raw Materials Needed button should appear when there's no stock available to allow users to see available raw materials as fallback options. CONSOLE LOGS: Stock check API calls failing with 404 as expected: 'Failed to load resource: the server responded with a status of 404 () at /api/stock/check-availability'. CONCLUSION: The enhanced Raw Materials Needed functionality is NOT working as designed. The button fails to appear in the critical scenario where no stock is available, preventing users from accessing fallback material requirements. This is a blocking issue that prevents the fallback material requirements workflow from functioning."
+
   - task: "Slit Width Delete Functionality in Stocktake Modal"
     implemented: true
     working: true
