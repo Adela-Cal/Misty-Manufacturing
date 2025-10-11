@@ -219,9 +219,12 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       
       toast.success(`${allocateQuantity} units allocated from stock`);
       
-      // If there's remaining quantity, show material requirements
+      // If there's remaining quantity, automatically show material requirements for production
       if (remainingQuantity > 0) {
-        await showMaterialRequirementsModal(itemIndex, remainingQuantity);
+        // Add a small delay to let the user see the success message
+        setTimeout(async () => {
+          await showMaterialRequirementsModal(itemIndex, remainingQuantity);
+        }, 1500);
       }
     } catch (error) {
       console.error('Failed to allocate stock:', error);
