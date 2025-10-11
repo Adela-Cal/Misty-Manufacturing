@@ -1603,7 +1603,13 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-600">
-                          {materialData.available_widths.map((widthGroup, widthIndex) => (
+                          {materialData.available_widths
+                            .filter(widthGroup => {
+                              // Only show relevant widths (exact match or within 10mm tolerance)
+                              const difference = Math.abs(widthGroup.slit_width_mm - materialData.required_width_mm);
+                              return difference <= 10; // Only show widths within 10mm of required width
+                            })
+                            .map((widthGroup, widthIndex) => (
                             <tr key={widthIndex} className="hover:bg-gray-600">
                               <td className="px-3 py-2 text-sm font-medium text-white">
                                 {widthGroup.slit_width_mm}mm
