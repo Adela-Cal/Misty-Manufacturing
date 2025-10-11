@@ -95,6 +95,20 @@ const Stocktake = () => {
     }
   }, [activeTab, selectedClient]);
 
+  // Group products whenever rawSubstrates changes
+  useEffect(() => {
+    if (rawSubstrates && rawSubstrates.length > 0) {
+      const filtered = selectedClient === 'all' 
+        ? rawSubstrates 
+        : rawSubstrates.filter(substrate => substrate.client_id === selectedClient);
+      
+      const grouped = groupProductsByItem(filtered);
+      setGroupedProducts(grouped);
+    } else {
+      setGroupedProducts([]);
+    }
+  }, [rawSubstrates, selectedClient]);
+
   const loadStocktakeStatus = async () => {
     try {
       setLoading(true);
