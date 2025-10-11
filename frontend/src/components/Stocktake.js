@@ -1989,6 +1989,117 @@ const Stocktake = () => {
             </div>
           </div>
         )}
+
+        {/* Slit Widths Modal */}
+        {showSlitWidthsModal && selectedMaterial && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">
+                  Slit Widths - {selectedMaterial.name}
+                </h3>
+                <button
+                  onClick={() => setShowSlitWidthsModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="mb-4 p-4 bg-gray-700 rounded-lg">
+                <h4 className="text-lg font-medium text-white mb-2">Summary</h4>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-300">Total Widths Available:</span>
+                    <div className="font-medium text-white">{materialSlitWidths.length}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-300">Total Available Meters:</span>
+                    <div className="font-medium text-white">
+                      {materialSlitWidths.reduce((sum, width) => sum + width.available_quantity_meters, 0).toFixed(2)}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-gray-300">Width Range:</span>
+                    <div className="font-medium text-white">
+                      {materialSlitWidths.length > 0 
+                        ? `${Math.min(...materialSlitWidths.map(w => w.slit_width_mm))}mm - ${Math.max(...materialSlitWidths.map(w => w.slit_width_mm))}mm`
+                        : 'No widths available'
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-700 rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-600">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Width (mm)</th>
+                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-300">Total Meters</th>
+                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-300">Available Meters</th>
+                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-300">Entries</th>
+                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-300">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-600">
+                    {materialSlitWidths.length > 0 ? (
+                      materialSlitWidths.map((widthGroup, index) => (
+                        <tr key={index} className="hover:bg-gray-600">
+                          <td className="px-4 py-2 text-sm font-medium text-white">
+                            {widthGroup.slit_width_mm}mm
+                          </td>
+                          <td className="px-4 py-2 text-right text-sm text-white">
+                            {widthGroup.total_quantity_meters.toFixed(2)}
+                          </td>
+                          <td className="px-4 py-2 text-right text-sm">
+                            <span className={`${widthGroup.available_quantity_meters > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              {widthGroup.available_quantity_meters.toFixed(2)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-center text-sm text-gray-300">
+                            {widthGroup.entries.length}
+                          </td>
+                          <td className="px-4 py-2 text-center">
+                            <div className="flex items-center justify-center space-x-2">
+                              <button
+                                onClick={() => {
+                                  // Show detailed entries for this width
+                                  console.log('Detailed entries:', widthGroup.entries);
+                                }}
+                                className="text-blue-400 hover:text-blue-300 text-xs"
+                                title="View detailed entries"
+                              >
+                                <EyeIcon className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                          <ClipboardDocumentListIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>No slit widths available for this material</p>
+                          <p className="text-sm">Slit widths are created from slitting jobs</p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={() => setShowSlitWidthsModal(false)}
+                  className="misty-button misty-button-secondary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
