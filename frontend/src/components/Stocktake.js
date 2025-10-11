@@ -1748,6 +1748,197 @@ const Stocktake = () => {
             </div>
           </div>
         )}
+
+        {/* Stock History Modal */}
+        {showStockHistory && selectedStockHistory && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">Stock History</h3>
+                <button
+                  onClick={() => setShowStockHistory(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="mb-4 p-4 bg-gray-700 rounded-lg">
+                <h4 className="text-lg font-medium text-white mb-2">Summary</h4>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-300">Total Stock Entries:</span>
+                    <div className="font-medium text-white">{selectedStockHistory.total_entries}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-300">Total Quantity:</span>
+                    <div className="font-medium text-white">{selectedStockHistory.total_quantity}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-300">Total Movements:</span>
+                    <div className="font-medium text-white">{selectedStockHistory.movements?.length || 0}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {/* Stock Entries */}
+                <div>
+                  <h4 className="text-lg font-medium text-white mb-3">Stock Entries</h4>
+                  <div className="bg-gray-700 rounded-lg overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-600">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Source Order</th>
+                          <th className="px-4 py-2 text-right text-sm font-medium text-gray-300">Quantity</th>
+                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Unit</th>
+                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Added Date</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-600">
+                        {selectedStockHistory.stock_entries?.map((entry, index) => (
+                          <tr key={index} className="hover:bg-gray-600">
+                            <td className="px-4 py-2 text-sm text-white">{entry.source_order_id || 'Manual Entry'}</td>
+                            <td className="px-4 py-2 text-right text-sm text-white">{entry.quantity_on_hand}</td>
+                            <td className="px-4 py-2 text-sm text-gray-300">{entry.unit_of_measure}</td>
+                            <td className="px-4 py-2 text-sm text-gray-300">
+                              {entry.created_at ? new Date(entry.created_at).toLocaleDateString() : 'N/A'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Stock Movements */}
+                {selectedStockHistory.movements && selectedStockHistory.movements.length > 0 && (
+                  <div>
+                    <h4 className="text-lg font-medium text-white mb-3">Recent Movements</h4>
+                    <div className="bg-gray-700 rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-600">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Type</th>
+                            <th className="px-4 py-2 text-right text-sm font-medium text-gray-300">Quantity</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Reference</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-600">
+                          {selectedStockHistory.movements.slice(0, 10).map((movement, index) => (
+                            <tr key={index} className="hover:bg-gray-600">
+                              <td className="px-4 py-2 text-sm">
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  movement.movement_type === 'allocation' ? 'bg-red-600 text-white' :
+                                  movement.movement_type === 'adjustment' ? 'bg-blue-600 text-white' :
+                                  'bg-green-600 text-white'
+                                }`}>
+                                  {movement.movement_type}
+                                </span>
+                              </td>
+                              <td className={`px-4 py-2 text-right text-sm font-medium ${
+                                movement.quantity < 0 ? 'text-red-400' : 'text-green-400'
+                              }`}>
+                                {movement.quantity > 0 ? '+' : ''}{movement.quantity}
+                              </td>
+                              <td className="px-4 py-2 text-sm text-gray-300">{movement.reference}</td>
+                              <td className="px-4 py-2 text-sm text-gray-300">
+                                {movement.created_at ? new Date(movement.created_at).toLocaleDateString() : 'N/A'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={() => setShowStockHistory(false)}
+                  className="misty-button misty-button-secondary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Stock Allocations Modal */}
+        {stockAllocations && stockAllocations.length > 0 && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-3xl max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">Stock Allocations</h3>
+                <button
+                  onClick={() => setStockAllocations([])}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="mb-4 p-4 bg-gray-700 rounded-lg">
+                <h4 className="text-lg font-medium text-white mb-2">Allocation Summary</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-300">Active Orders:</span>
+                    <div className="font-medium text-white">{stockAllocations.length}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-300">Total Allocated:</span>
+                    <div className="font-medium text-yellow-400">
+                      {stockAllocations.reduce((sum, alloc) => sum + Math.abs(alloc.quantity), 0)} units
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-700 rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-600">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Order Reference</th>
+                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-300">Allocated Qty</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Allocated Date</th>
+                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-300">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-600">
+                    {stockAllocations.map((allocation, index) => (
+                      <tr key={index} className="hover:bg-gray-600">
+                        <td className="px-4 py-2 text-sm text-white">{allocation.reference}</td>
+                        <td className="px-4 py-2 text-right text-sm text-yellow-400 font-medium">
+                          {Math.abs(allocation.quantity)}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-300">
+                          {allocation.created_at ? new Date(allocation.created_at).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td className="px-4 py-2 text-center">
+                          <span className="px-2 py-1 bg-yellow-600 text-white text-xs rounded">
+                            Active
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={() => setStockAllocations([])}
+                  className="misty-button misty-button-secondary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
