@@ -1465,15 +1465,19 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                               <td className="px-3 py-2 text-center">
                                 {widthGroup.slit_width_mm === materialData.required_width_mm ? (
                                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-900 text-green-300">
-                                    Exact Match
+                                    ✓ Exact Match
                                   </span>
                                 ) : Math.abs(widthGroup.slit_width_mm - materialData.required_width_mm) <= 5 ? (
                                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-yellow-900 text-yellow-300">
-                                    Close Match
+                                    ± Close Match ({Math.abs(widthGroup.slit_width_mm - materialData.required_width_mm)}mm off)
+                                  </span>
+                                ) : widthGroup.slit_width_mm > materialData.required_width_mm ? (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-900 text-blue-300">
+                                    ↑ Wider ({widthGroup.slit_width_mm - materialData.required_width_mm}mm over)
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-600 text-gray-400">
-                                    Different
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-900 text-red-300">
+                                    ↓ Narrower ({materialData.required_width_mm - widthGroup.slit_width_mm}mm under)
                                   </span>
                                 )}
                               </td>
