@@ -207,6 +207,14 @@ export const apiHelpers = {
   acknowledgeStockAlert: (id, data) => api.post(`/stock/alerts/${id}/acknowledge`, data),
   checkLowStock: () => api.post('/stock/check-low-stock'),
 
+  // Slit Width Management
+  getSlitWidthsByMaterial: (materialId) => api.get(`/slit-widths/material/${materialId}`),
+  createSlitWidth: (data) => api.post('/slit-widths', data),
+  checkSlitWidthAvailability: (materialId, widthMm, quantityMeters) => 
+    api.get(`/slit-widths/check-availability?material_id=${materialId}&required_width_mm=${widthMm}&required_quantity_meters=${quantityMeters}`),
+  allocateSlitWidth: (allocationData) => api.post('/slit-widths/allocate', allocationData),
+  getSlitWidthAllocations: (orderId) => api.get(`/slit-widths/allocations/${orderId}`),
+
   // Generic GET/POST/PUT methods for flexibility
   get: (url) => api.get(url),
   post: (url, data) => api.post(url, data),
