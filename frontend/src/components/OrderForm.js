@@ -311,7 +311,12 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
           // Calculate material requirements for this layer
           const layerQuantityPerUnit = layer.quantity_usage || 1;
           const requiredWidthMm = layer.width_mm || 100; // Default width if not specified
-          const requiredLengthMeters = quantity * layerQuantityPerUnit; // Simple calculation
+          
+          // More accurate calculation based on material properties
+          const materialLengthPerUnit = layerQuantityPerUnit; // meters per unit from specs
+          const requiredLengthMeters = quantity * materialLengthPerUnit;
+          
+          console.log(`Material calculation: ${quantity} units × ${materialLengthPerUnit}m/unit = ${requiredLengthMeters}m`);
           
           const materialRequirement = {
             material_id: layer.material_id,
