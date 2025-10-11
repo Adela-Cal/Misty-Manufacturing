@@ -87,6 +87,21 @@ backend:
         agent: "testing"
         comment: "🎉 INLINE STOCK ALLOCATION FEATURE SUCCESSFULLY UPDATED AND VERIFIED! Comprehensive testing of the updated inline stock allocation implementation completed with full confirmation of the new design. CRITICAL IMPLEMENTATION CHANGE VERIFIED: ✅ Stock allocation has been successfully converted from modal popup to inline sections under each order item (lines 831-893 in OrderForm.js), ✅ Login with demo credentials (Callum/Peach7510) working perfectly, ✅ Navigation to Order Management → Create New Order successful, ✅ Label Makers client selection working with product catalog loading. INLINE STOCK ALLOCATION BEHAVIOR CONFIRMED: ✅ NO stock allocation section appears when only product is selected without quantity (correct behavior), ✅ Stock allocation section appears INLINE under order item after both product AND quantity are set, ✅ Section uses blue background (.bg-blue-900/20) with proper styling and positioning, ✅ Section includes all required elements: '📦 Stock Available (X units in stock)' header, Order quantity/Available stock/Max allocation grid, 'Would you like to allocate stock to this order?' prompt, 'Yes, Allocate X Units' and 'No, Don't Allocate' buttons, Close button (✕) in top right corner. BACKEND API INTEGRATION VERIFIED: ✅ Backend logs confirm successful API calls: GET /api/stock/check-availability returns 200 OK, POST /api/stock/allocate returns 200 OK, ✅ Stock availability checking triggered correctly when both product_id and quantity > 0, ✅ Network monitoring shows proper API integration with real stock data. INLINE SECTION FUNCTIONALITY TESTED: ✅ Section appears inline under each order item (not as modal popup), ✅ Multiple items can have independent inline stock allocation sections, ✅ Section disappears when quantity is set to 0, ✅ Allocation and decline actions work correctly with proper state management, ✅ Green confirmation section appears after successful allocation. CONCLUSION: The inline stock allocation feature is production-ready and fully functional. The implementation successfully replaces the previous modal popup with inline sections that appear under each order item, providing a better user experience with immediate visual feedback. All requirements from the review request have been successfully implemented and verified."
 
+  - task: "Stock On Hand (SOH) Allocation Functionality Debug"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/OrderForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Debug the Stock On Hand (SOH) allocation functionality in the Order Form that has reportedly disappeared"
+      - working: true
+        agent: "testing"
+        comment: "🎉 STOCK ON HAND (SOH) ALLOCATION FUNCTIONALITY FULLY OPERATIONAL! Comprehensive debugging completed with 100% success rate. CRITICAL FINDINGS: ✅ checkStockAvailability function IS being called correctly when product and quantity are set, ✅ Stock API calls ARE happening successfully (GET /api/stock/check-availability returns 200 OK), ✅ Stock data IS being extracted correctly (48 units available for ABG Vectra Turret product), ✅ Debug logs confirm: 'checkStockAvailability called', 'Stock API response', 'Extracted stock data', 'Stock available, storing for item', ✅ Stock allocation UI IS appearing correctly with blue background section showing: '📦 Stock Available (48 units in stock)', Order/Available/Max allocation grid, 'Would you like to allocate stock to this order?' prompt, 'Yes, Allocate 5 Units' and 'No, Don't Allocate' buttons. WORKFLOW VERIFIED: Login → Orders → Create New Order → Select Label Makers → Select ABG Vectra Turret product → Set quantity 5 → Stock allocation section appears inline under order item. The Stock On Hand allocation functionality has NOT disappeared - it is working correctly as designed. The inline stock allocation section appears with proper blue background styling and all expected functionality."
+
   - task: "Product Specifications Machinery Field Implementation"
     implemented: true
     working: true
