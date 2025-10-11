@@ -1263,6 +1263,161 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
         </div>
       )}
 
+      {/* Material Requirements Modal */}
+      {showMaterialRequirements && materialRequirements && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-white">
+                Material Requirements - {materialRequirements.productName}
+              </h3>
+              <button
+                onClick={() => setShowMaterialRequirements(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="mb-4 p-4 bg-blue-900/20 border border-blue-700 rounded-lg">
+              <h4 className="text-lg font-medium text-white mb-2">Order Summary</h4>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-300">Total Required:</span>
+                  <div className="font-medium text-white">{selectedItem.item.quantity} units</div>
+                </div>
+                <div>
+                  <span className="text-gray-300">Stock Allocated:</span>
+                  <div className="font-medium text-green-400">{selectedItem.item.allocated_stock || 0} units</div>
+                </div>
+                <div>
+                  <span className="text-gray-300">Remaining to Produce:</span>
+                  <div className="font-medium text-yellow-400">{selectedItem.remainingQuantity} units</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {availableSlitWidths.map((materialData, index) => (
+                <div key={index} className="bg-gray-700 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-lg font-medium text-white">{materialData.material_name}</h4>
+                    <div className="text-sm text-gray-300">
+                      Required: {materialData.required_width_mm}mm × {materialData.required_quantity_meters}m
+                    </div>
+                  </div>
+
+                  {materialData.available_widths.length > 0 ? (
+                    <div className="overflow-hidden rounded-lg">
+                      <table className="w-full">
+                        <thead className="bg-gray-600">
+                          <tr>
+                            <th className="px-3 py-2 text-left text-sm font-medium text-gray-300">Width (mm)</th>
+                            <th className="px-3 py-2 text-right text-sm font-medium text-gray-300">Available (m)</th>
+                            <th className="px-3 py-2 text-center text-sm font-medium text-gray-300">Match</th>
+                            <th className="px-3 py-2 text-center text-sm font-medium text-gray-300">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-600">
+                          {materialData.available_widths.map((widthGroup, widthIndex) => (
+                            <tr key={widthIndex} className="hover:bg-gray-600">
+                              <td className="px-3 py-2 text-sm font-medium text-white">
+                                {widthGroup.slit_width_mm}mm
+                              </td>
+                              <td className="px-3 py-2 text-right text-sm text-white">
+                                {widthGroup.available_quantity_meters.toFixed(2)}
+                              </td>
+                              <td className="px-3 py-2 text-center">
+                                {widthGroup.slit_width_mm === materialData.required_width_mm ? (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-900 text-green-300">
+                                    Exact Match
+                                  </span>
+                                ) : Math.abs(widthGroup.slit_width_mm - materialData.required_width_mm) <= 5 ? (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-yellow-900 text-yellow-300">
+                                    Close Match
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-600 text-gray-400">
+                                    Different
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-3 py-2 text-center">
+                                {widthGroup.available_quantity_meters > 0 && (
+                                  <div className="flex items-center justify-center space-x-2">
+                                    <input
+                                      type="number"
+                                      step="0.1"
+                                      max={Math.min(widthGroup.available_quantity_meters, materialData.required_quantity_meters)}
+                                      placeholder="Meters"
+                                      className="misty-input w-20 text-sm"
+                                      id={`allocate-${materialData.material_id}-${widthIndex}`}
+                                    />
+                                    <button
+                                      onClick={() => {
+                                        const input = document.getElementById(`allocate-${materialData.material_id}-${widthIndex}`);
+                                        const quantity = parseFloat(input.value);
+                                        if (quantity > 0) {
+                                          // Get the first entry ID from the width group
+                                          const firstEntry = widthGroup.entries[0];
+                                          handleSlitWidthAllocation(materialData.material_id, firstEntry.id, quantity);
+                                          input.value = '';
+                                        }
+                                      }}
+                                      className="misty-button misty-button-primary text-xs py-1 px-2"
+                                    >
+                                      Allocate
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center text-gray-400">
+                      <div className="text-lg mb-2">No slit widths available</div>
+                      <p className="text-sm">
+                        Required width: {materialData.required_width_mm}mm × {materialData.required_quantity_meters}m
+                      </p>
+                      <p className="text-xs mt-2 text-yellow-400">
+                        This material will need to be slit from raw stock
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-between mt-6 pt-4 border-t border-gray-600">
+              <div className="text-sm text-gray-400">
+                <p>• Exact matches are preferred for optimal material usage</p>
+                <p>• Close matches (±5mm) may be acceptable depending on specifications</p>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowMaterialRequirements(false)}
+                  className="misty-button misty-button-secondary"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMaterialRequirements(false);
+                    toast.success('Material requirements noted. Continue with order creation.');
+                  }}
+                  className="misty-button misty-button-primary"
+                >
+                  Continue Order
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Old stock allocation modal removed - now using inline sections */}
     </div>
   );
