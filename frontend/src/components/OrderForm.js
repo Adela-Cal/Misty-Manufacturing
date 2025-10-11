@@ -827,6 +827,85 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                         />
                       </div>
                     </div>
+
+                    {/* Stock Allocation Section - appears inline under each item */}
+                    {itemStockData[index] && itemStockData[index].showAllocation && (
+                      <div className="mt-4 p-4 bg-blue-900/20 border border-blue-500 rounded-lg">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center">
+                            <span className="text-blue-300 font-medium mr-2">📦 Stock Available</span>
+                            <span className="text-blue-200 text-sm">
+                              ({itemStockData[index].stockOnHand} units in stock)
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleDeclineStockAllocation(index)}
+                            className="text-gray-400 hover:text-white text-sm"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        
+                        <div className="mb-3 text-sm text-blue-200">
+                          <div className="grid grid-cols-3 gap-3 mb-3">
+                            <div>
+                              <span className="text-gray-300">Order Quantity:</span>
+                              <div className="font-medium">{itemStockData[index].quantity} units</div>
+                            </div>
+                            <div>
+                              <span className="text-gray-300">Available Stock:</span>
+                              <div className="font-medium">{itemStockData[index].stockOnHand} units</div>
+                            </div>
+                            <div>
+                              <span className="text-gray-300">Max Allocation:</span>
+                              <div className="font-medium text-yellow-400">{itemStockData[index].maxAllocation} units</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-blue-800/30 p-3 rounded mb-3">
+                          <p className="text-blue-100 text-sm font-medium mb-2">
+                            Would you like to allocate stock to this order?
+                          </p>
+                          <p className="text-blue-200 text-xs">
+                            This will reduce your stock on hand and show the allocated amount in the job card.
+                          </p>
+                        </div>
+
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => handleDeclineStockAllocation(index)}
+                            className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded transition-colors"
+                          >
+                            No, Don't Allocate
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleStockAllocation(index, itemStockData[index].maxAllocation)}
+                            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors font-medium"
+                          >
+                            Yes, Allocate {itemStockData[index].maxAllocation} Units
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Stock Allocated Confirmation */}
+                    {item.allocated_stock > 0 && (
+                      <div className="mt-4 p-3 bg-green-900/20 border border-green-500 rounded-lg">
+                        <div className="flex items-center text-green-300 text-sm">
+                          <span className="mr-2">✓</span>
+                          <span className="font-medium">
+                            {item.allocated_stock} units allocated from stock
+                          </span>
+                          <span className="ml-2 text-green-400">
+                            • {item.remaining_to_produce || (item.quantity - item.allocated_stock)} to produce
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
