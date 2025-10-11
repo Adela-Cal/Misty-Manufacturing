@@ -4472,7 +4472,7 @@ async def allocate_slit_width(
             reference_id=allocation_request.order_id,
             reference_type="order",
             notes=f"Allocated {allocated_quantity} meters of {slit_width['slit_width_mm']}mm width to order",
-            created_by=current_user["username"]
+            created_by=current_user["sub"]
         )
         
         # Insert movement record
