@@ -677,7 +677,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                           >
                             <option value="">Select a product</option>
                             {clientProducts.map(product => (
-                              <option key={product.id} value={product.product_description}>
+                              <option key={product.id} value={product.id}>
                                 {product.product_description} - ${parseFloat(product.price_ex_gst).toFixed(2)}
                               </option>
                             ))}
