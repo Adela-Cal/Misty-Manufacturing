@@ -1011,6 +1011,13 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
                           </button>
                           <button
                             type="button"
+                            onClick={() => showMaterialRequirementsModal(index, item.quantity - itemStockData[index].maxAllocation)}
+                            className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white text-sm rounded transition-colors"
+                          >
+                            View Materials Needed
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => handleStockAllocation(index, itemStockData[index].maxAllocation)}
                             className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors font-medium"
                           >
