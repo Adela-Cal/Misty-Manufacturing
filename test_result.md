@@ -1114,7 +1114,8 @@ metadata:
   test_sequence: 14
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Material Requirements Workflow After Stock Allocation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
