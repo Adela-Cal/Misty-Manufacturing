@@ -36,6 +36,12 @@ const Stocktake = () => {
   const [showStockAlert, setShowStockAlert] = useState(false);
   const [availableMaterials, setAvailableMaterials] = useState([]); // Materials from database
   const [clientProducts, setClientProducts] = useState([]); // Products from selected client's catalogue
+  
+  // Stock grouping and history states
+  const [groupedProducts, setGroupedProducts] = useState([]);
+  const [showStockHistory, setShowStockHistory] = useState(false);
+  const [selectedStockHistory, setSelectedStockHistory] = useState(null);
+  const [stockAllocations, setStockAllocations] = useState([]);
 
   // Modal states
   const [showSubstrateModal, setShowSubstrateModal] = useState(false);
