@@ -174,14 +174,15 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     }
   };
 
-  // Handle stock allocation
-  const handleStockAllocation = async (allocateQuantity) => {
+  // Handle stock allocation for a specific item
+  const handleStockAllocation = async (itemIndex, allocateQuantity) => {
     try {
-      const { productId, itemIndex } = stockAllocationData;
+      const stockData = itemStockData[itemIndex];
+      if (!stockData) return;
       
       // Allocate stock on the backend
       await apiHelpers.post('/stock/allocate', {
-        product_id: productId,
+        product_id: stockData.productId,
         client_id: formData.client_id,
         quantity: allocateQuantity,
         order_reference: `Pending Order - ${new Date().toISOString()}`
@@ -196,13 +197,33 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       };
       
       setFormData(prev => ({ ...prev, items: newItems }));
-      setShowStockAllocationModal(false);
+      
+      // Hide the stock allocation section for this item
+      setItemStockData(prev => ({
+        ...prev,
+        [itemIndex]: {
+          ...prev[itemIndex],
+          showAllocation: false,
+          allocated: true
+        }
+      }));
       
       toast.success(`${allocateQuantity} units allocated from stock`);
     } catch (error) {
       console.error('Failed to allocate stock:', error);
       toast.error('Failed to allocate stock');
     }
+  };
+
+  // Decline stock allocation for a specific item
+  const handleDeclineStockAllocation = (itemIndex) => {
+    setItemStockData(prev => ({
+      ...prev,
+      [itemIndex]: {
+        ...prev[itemIndex],
+        showAllocation: false
+      }
+    }));
   };
 
   // Validate quantity against tubes per carton for paper core products
