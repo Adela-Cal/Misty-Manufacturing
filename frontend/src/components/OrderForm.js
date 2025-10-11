@@ -271,6 +271,9 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       setSelectedItem({ index: itemIndex, item, remainingQuantity });
       setMaterialRequirements(requirements);
       
+      // Reset material allocations for fresh tracking
+      setMaterialAllocations({});
+      
       // Load available slit widths for all required materials
       await loadAvailableSlitWidths(requirements.materials);
       
