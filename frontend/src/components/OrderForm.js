@@ -321,6 +321,17 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
           
           console.log(`Material calculation: ${quantity} units × ${materialLengthPerUnit}m/unit = ${requiredLengthMeters}m`);
           
+          // Extract spiral core layer specifications if available
+          const spiralSpecs = {
+            allocation_percent: layer.spiral_allocation_percent || null,
+            sequence: layer.spiral_sequence || null,
+            winding_direction: layer.winding_direction || null,
+            overlap_factor: layer.overlap_factor || null,
+            tension_level: layer.tension_level || null,
+            feed_rate_mpm: layer.feed_rate_mpm || null,
+            qc_checkpoints: layer.qc_checkpoints || null
+          };
+
           const materialRequirement = {
             material_id: layer.material_id,
             material_name: materialData?.material_name || layer.product_name || layer.material_product || 'Unknown Material',
@@ -331,11 +342,13 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
             required_quantity_meters: requiredLengthMeters,
             quantity_per_unit: layerQuantityPerUnit,
             purpose: `Material layer: ${layer.layer_position || 'Unknown'} (${layer.thickness_mm}mm thick)`,
-            notes: layer.notes || ''
+            notes: layer.notes || '',
+            // Include spiral core specifications
+            spiral_specifications: spiralSpecs
           };
-          
+
           requirements.materials.push(materialRequirement);
-          console.log('Added material requirement:', materialRequirement);
+          console.log('Added material requirement with spiral specs:', materialRequirement);
           
         } catch (error) {
           console.error('Error processing material layer:', layer, error);
