@@ -5352,8 +5352,6 @@ def main_slit_width_update_delete_review():
 if __name__ == "__main__":
     # Run the specific slit width update and delete tests requested in the review
     main_slit_width_update_delete_review()
-            
-            if response.status_code == 200:
                 result = response.json()
                 self.log_result(
                     "Slit Width Update - Quantity Meters", 
