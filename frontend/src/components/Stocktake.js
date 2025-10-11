@@ -49,6 +49,14 @@ const Stocktake = () => {
   const [showSlitWidthsModal, setShowSlitWidthsModal] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
   const [materialSlitWidths, setMaterialSlitWidths] = useState([]);
+  const [showAddSlitWidthForm, setShowAddSlitWidthForm] = useState(false);
+  const [editingSlitWidth, setEditingSlitWidth] = useState(null);
+  const [slitWidthForm, setSlitWidthForm] = useState({
+    slit_width_mm: '',
+    quantity_meters: '',
+    source_job_id: 'manual-entry',
+    source_order_id: 'manual-entry'
+  });
 
   // Modal states
   const [showSubstrateModal, setShowSubstrateModal] = useState(false);
