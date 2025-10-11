@@ -893,7 +893,15 @@ const Stocktake = () => {
                   <tbody className="divide-y divide-gray-700">
                     {(rawMaterialsStock || []).map((material) => (
                       <tr key={material.id} className="hover:bg-gray-700">
-                        <td className="px-4 py-3 text-sm text-white">{material.material_name}</td>
+                        <td className="px-4 py-3 text-sm">
+                          <span 
+                            className="text-white cursor-pointer hover:bg-gray-600 px-2 py-1 rounded transition-colors duration-200"
+                            onDoubleClick={() => loadSlitWidths(material.material_id, material.material_name)}
+                            title="Double-click to view slit widths"
+                          >
+                            {material.material_name}
+                          </span>
+                        </td>
                         <td className="px-4 py-3 text-right">
                           {editingItem === material.id && editingField === 'quantity_on_hand' ? (
                             <input
