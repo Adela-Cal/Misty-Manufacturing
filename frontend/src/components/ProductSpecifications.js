@@ -1750,6 +1750,133 @@ const ProductSpecifications = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* Spiral Core Allocation Summary */}
+                  {formData.material_layers.length > 0 && (
+                    <div className="mt-6 p-4 bg-gray-800/50 border border-gray-600 rounded-lg">
+                      <h4 className="text-md font-medium text-white mb-3 flex items-center">
+                        <span className="mr-2">📊</span>
+                        Spiral Core Allocation Summary
+                      </h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Allocation Breakdown */}
+                        <div>
+                          <h5 className="text-sm font-medium text-gray-300 mb-2">Layer Allocation Breakdown</h5>
+                          <div className="space-y-2">
+                            {formData.material_layers.map((layer, index) => {
+                              const allocation = parseFloat(layer.spiral_allocation_percent) || 0;
+                              return (
+                                <div key={index} className="flex items-center justify-between text-sm">
+                                  <div className="flex items-center">
+                                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                                    <span className="text-gray-300">
+                                      Layer {index + 1} ({layer.layer_type}):
+                                    </span>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className={`font-medium ${allocation > 0 ? 'text-blue-300' : 'text-gray-500'}`}>
+                                      {allocation.toFixed(1)}%
+                                    </span>
+                                    {layer.spiral_sequence && (
+                                      <div className="text-xs text-gray-400">
+                                        Seq: {layer.spiral_sequence}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            <div className="border-t border-gray-600 pt-2">
+                              {(() => {
+                                const totalAllocation = formData.material_layers.reduce((sum, layer) => {
+                                  return sum + (parseFloat(layer.spiral_allocation_percent) || 0);
+                                }, 0);
+                                return (
+                                  <div className="flex items-center justify-between text-sm font-medium">
+                                    <span className="text-gray-300">Total Allocation:</span>
+                                    <span className={`${
+                                      Math.abs(totalAllocation - 100) < 0.1 
+                                        ? 'text-green-400' 
+                                        : totalAllocation > 100 
+                                        ? 'text-red-400' 
+                                        : 'text-yellow-400'
+                                    }`}>
+                                      {totalAllocation.toFixed(1)}%
+                                      {Math.abs(totalAllocation - 100) < 0.1 && ' ✓'}
+                                      {totalAllocation > 100 && ' ⚠️'}
+                                      {totalAllocation < 100 && totalAllocation > 0 && ' ⚠️'}
+                                    </span>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Formation Process Overview */}
+                        <div>
+                          <h5 className="text-sm font-medium text-gray-300 mb-2">Formation Process</h5>
+                          <div className="space-y-2">
+                            {formData.material_layers
+                              .filter(layer => layer.spiral_sequence)
+                              .sort((a, b) => parseInt(a.spiral_sequence) - parseInt(b.spiral_sequence))
+                              .map((layer, seqIndex) => (
+                                <div key={seqIndex} className="flex items-center text-xs">
+                                  <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 text-xs">
+                                    {layer.spiral_sequence}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="text-gray-300">{layer.material_name || 'Material not selected'}</div>
+                                    <div className="text-gray-500 flex items-center space-x-2">
+                                      {layer.winding_direction && <span>↻ {layer.winding_direction}</span>}
+                                      {layer.tension_level && <span>⚡ {layer.tension_level}</span>}
+                                      {layer.overlap_factor && layer.overlap_factor !== '1' && (
+                                        <span>⤴️ {layer.overlap_factor}x overlap</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            }
+                            {formData.material_layers.filter(layer => layer.spiral_sequence).length === 0 && (
+                              <div className="text-gray-500 text-xs italic">
+                                No layer sequences defined yet
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Validation Messages */}
+                      {(() => {
+                        const totalAllocation = formData.material_layers.reduce((sum, layer) => {
+                          return sum + (parseFloat(layer.spiral_allocation_percent) || 0);
+                        }, 0);
+                        
+                        if (totalAllocation > 100) {
+                          return (
+                            <div className="mt-4 p-3 bg-red-900/20 border border-red-600 rounded text-sm text-red-300">
+                              ⚠️ Warning: Total allocation exceeds 100% ({totalAllocation.toFixed(1)}%). Please adjust layer percentages.
+                            </div>
+                          );
+                        } else if (totalAllocation < 100 && totalAllocation > 0) {
+                          return (
+                            <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-600 rounded text-sm text-yellow-300">
+                              ⚠️ Notice: Total allocation is {totalAllocation.toFixed(1)}%. Consider adding more layers or adjusting percentages to reach 100%.
+                            </div>
+                          );
+                        } else if (Math.abs(totalAllocation - 100) < 0.1 && totalAllocation > 0) {
+                          return (
+                            <div className="mt-4 p-3 bg-green-900/20 border border-green-600 rounded text-sm text-green-300">
+                              ✅ Perfect! Total allocation is {totalAllocation.toFixed(1)}%. Spiral core formation is properly defined.
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  )}
                 </div>
                 )}
 
