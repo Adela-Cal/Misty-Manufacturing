@@ -4028,15 +4028,6 @@ async def get_stock_history(
         movements = await db.stock_movements.find({
             "stock_id": {"$in": stock_ids}
         }).sort("created_at", -1).to_list(length=None)
-
-        # Remove MongoDB ObjectIds from stock entries and movements
-        for entry in stock_entries:
-            if "_id" in entry:
-                del entry["_id"]
-        
-        for movement in movements:
-            if "_id" in movement:
-                del movement["_id"]
         
         # Combine stock entries with their movements
         history_data = {
@@ -4210,15 +4201,6 @@ async def get_stock_history(
     try:
         # Get all stock entries for this product/client combination
         stock_entries = await db.raw_substrate_stock.find({
-
-        # Remove MongoDB ObjectIds from stock entries and movements
-        for entry in stock_entries:
-            if "_id" in entry:
-                del entry["_id"]
-        
-        for movement in movements:
-            if "_id" in movement:
-                del movement["_id"]
             "product_id": product_id,
             "client_id": client_id
         }).to_list(length=None)
