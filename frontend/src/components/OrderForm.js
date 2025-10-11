@@ -41,6 +41,12 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
   
   // Stock allocation states - track per item
   const [itemStockData, setItemStockData] = useState({}); // Object keyed by item index
+  
+  // Material requirements modal states
+  const [showMaterialRequirements, setShowMaterialRequirements] = useState(false);
+  const [materialRequirements, setMaterialRequirements] = useState(null);
+  const [availableSlitWidths, setAvailableSlitWidths] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
     loadClients();
