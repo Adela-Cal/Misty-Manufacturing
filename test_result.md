@@ -418,6 +418,14 @@ backend:
     stuck_count: 0
     priority: "high"
     needs_retesting: false
+  
+  - task: "Material Requirements Workflow in OrderForm - Debug and Testing"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/OrderForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
