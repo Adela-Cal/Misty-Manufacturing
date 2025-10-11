@@ -272,7 +272,7 @@ const Stocktake = () => {
   };
 
   // Group products by product_id + client_id combination
-  const groupProductsByItem = (substrates) => {
+  const groupProductsByItem = async (substrates) => {
     const groups = {};
     
     substrates.forEach(substrate => {
@@ -290,6 +290,20 @@ const Stocktake = () => {
       groups[key].total_quantity += substrate.quantity_on_hand;
       groups[key].entries.push(substrate);
     });
+
+    // Load allocated quantities for each group
+    const groupKeys = Object.keys(groups);
+    for (const key of groupKeys) {
+      try {
+        const [productId, clientId] = key.split('-');
+        const response = await apiHelpers.get(`/stock/allocations?product_id=${productId}&client_id=${clientId}`);
+        const allocations = response.data?.data?.allocations || [];
+        groups[key].allocated_quantity = allocations.reduce((sum, alloc) => sum + Math.abs(alloc.quantity), 0);
+      } catch (error) {
+        console.log('Failed to load allocations for', key, error);
+        groups[key].allocated_quantity = 0;
+      }
+    }
 
     // Calculate available vs allocated for each group
     Object.keys(groups).forEach(key => {
