@@ -705,10 +705,10 @@ const Stocktake = () => {
               </div>
             </div>
 
-            {/* Stock Table */}
+            {/* Grouped Stock Table */}
             <div className="bg-gray-800 rounded-lg overflow-hidden">
               <div className="p-4 border-b border-gray-700">
-                <h3 className="text-lg font-semibold text-white">Stock Items ({(rawSubstrates || []).length})</h3>
+                <h3 className="text-lg font-semibold text-white">Grouped Products ({groupedProducts.length})</h3>
               </div>
 
               <div className="overflow-x-auto">
@@ -718,96 +718,71 @@ const Stocktake = () => {
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Client</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Product</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Code</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-300">Quantity</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-300">Available</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-300">Allocated</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-300">Total</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Unit</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-300">Min Level</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Source Order</th>
                       <th className="px-4 py-3 text-center text-sm font-medium text-gray-300">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-700">
-                    {(rawSubstrates || []).map((substrate) => (
-                      <tr key={substrate.id} className="hover:bg-gray-700">
-                        <td className="px-4 py-3 text-sm text-white">{substrate.client_name}</td>
+                    {groupedProducts.map((product) => (
+                      <tr key={`${product.product_id}-${product.client_id}`} className="hover:bg-gray-700">
+                        <td className="px-4 py-3 text-sm text-white">{product.client_name}</td>
                         <td className="px-4 py-3">
-                          <div className="text-sm text-white">{substrate.product_description}</div>
-                          {substrate.is_shared_product && (
+                          <div className="text-sm text-white">{product.product_description}</div>
+                          {product.is_shared_product && (
                             <div className="text-xs text-blue-400">Shared Product</div>
                           )}
+                          <div className="text-xs text-gray-400">{product.entries.length} stock entries</div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-300">{substrate.product_code}</td>
+                        <td className="px-4 py-3 text-sm text-gray-300">{product.product_code}</td>
                         <td className="px-4 py-3 text-right">
-                          {editingItem === substrate.id && editingField === 'quantity_on_hand' ? (
-                            <input
-                              type="number"
-                              defaultValue={substrate.quantity_on_hand}
-                              onBlur={(e) => handleFieldSave(substrate.id, 'quantity_on_hand', e.target.value, 'substrate')}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  handleFieldSave(substrate.id, 'quantity_on_hand', e.target.value, 'substrate');
-                                }
-                              }}
-                              className="misty-input w-20 text-right text-sm"
-                              autoFocus
-                            />
-                          ) : (
-                            <span
-                              className={`text-sm cursor-pointer hover:bg-gray-600 px-2 py-1 rounded ${
-                                substrate.quantity_on_hand <= substrate.minimum_stock_level ? 'text-red-400' : 'text-white'
-                              }`}
-                              onDoubleClick={() => handleDoubleClick(substrate.id, 'quantity_on_hand')}
-                            >
-                              {substrate.quantity_on_hand}
-                            </span>
-                          )}
+                          <span className={`text-sm font-medium ${
+                            product.available_quantity <= product.minimum_stock_level ? 'text-red-400' : 'text-green-400'
+                          }`}>
+                            {product.available_quantity}
+                          </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-300">{substrate.unit_of_measure}</td>
                         <td className="px-4 py-3 text-right">
-                          {editingItem === substrate.id && editingField === 'minimum_stock_level' ? (
-                            <input
-                              type="number"
-                              defaultValue={substrate.minimum_stock_level}
-                              onBlur={(e) => handleFieldSave(substrate.id, 'minimum_stock_level', e.target.value, 'substrate')}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  handleFieldSave(substrate.id, 'minimum_stock_level', e.target.value, 'substrate');
-                                }
-                              }}
-                              className="misty-input w-20 text-right text-sm"
-                              autoFocus
-                            />
-                          ) : (
-                            <span
-                              className="text-sm text-gray-300 cursor-pointer hover:bg-gray-600 px-2 py-1 rounded"
-                              onDoubleClick={() => handleDoubleClick(substrate.id, 'minimum_stock_level')}
-                            >
-                              {substrate.minimum_stock_level || 0}
-                            </span>
-                          )}
+                          <span className="text-sm text-yellow-400 font-medium">
+                            {product.allocated_quantity}
+                          </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-300">{substrate.source_order_id}</td>
+                        <td className="px-4 py-3 text-right">
+                          <span className="text-sm text-white font-medium">
+                            {product.total_quantity}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-300">{product.unit_of_measure}</td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center space-x-2">
                             <button 
-                              className="text-blue-400 hover:text-blue-300"
-                              onClick={() => handleViewItem(substrate, 'substrate')}
-                              title="View Details"
+                              className="text-blue-400 hover:text-blue-300 flex items-center text-xs"
+                              onClick={() => loadStockHistory(product.product_id, product.client_id)}
+                              title="View Stock History"
                             >
-                              <EyeIcon className="h-4 w-4" />
+                              <ClockIcon className="h-4 w-4 mr-1" />
+                              History
+                            </button>
+                            <button 
+                              className="text-purple-400 hover:text-purple-300 flex items-center text-xs"
+                              onClick={() => loadStockAllocations(product.product_id, product.client_id)}
+                              title="View Allocations"
+                            >
+                              <CubeIcon className="h-4 w-4 mr-1" />
+                              Allocations
                             </button>
                             <button 
                               className="text-yellow-400 hover:text-yellow-300"
-                              onClick={() => handleEditItem(substrate, 'substrate')}
+                              onClick={() => {
+                                setSelectedItem(product);
+                                setSelectedItemType('substrate');
+                                setShowEditModal(true);
+                              }}
                               title="Edit"
                             >
                               <PencilIcon className="h-4 w-4" />
-                            </button>
-                            <button 
-                              className="text-red-400 hover:text-red-300"
-                              onClick={() => handleDeleteItem(substrate, 'substrate')}
-                              title="Delete"
-                            >
-                              <TrashIcon className="h-4 w-4" />
                             </button>
                           </div>
                         </td>
@@ -816,10 +791,10 @@ const Stocktake = () => {
                   </tbody>
                 </table>
                 
-                {(!rawSubstrates || rawSubstrates.length === 0) && (
+                {(!groupedProducts || groupedProducts.length === 0) && (
                   <div className="p-8 text-center text-gray-400">
                     <ClipboardDocumentListIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No raw substrates found</p>
+                    <p>No grouped products found</p>
                     <p className="text-sm">Add stock entries from Job Card excess production or manually</p>
                   </div>
                 )}
