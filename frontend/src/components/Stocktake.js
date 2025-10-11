@@ -307,6 +307,108 @@ const Stocktake = () => {
     }
   };
 
+  // Add new slit width manually
+  const handleAddSlitWidth = async () => {
+    if (!slitWidthForm.slit_width_mm || !slitWidthForm.quantity_meters) {
+      toast.error('Please enter both width and quantity');
+      return;
+    }
+
+    try {
+      const slitWidthData = {
+        raw_material_id: selectedMaterial.id,
+        raw_material_name: selectedMaterial.name,
+        slit_width_mm: parseFloat(slitWidthForm.slit_width_mm),
+        quantity_meters: parseFloat(slitWidthForm.quantity_meters),
+        source_job_id: 'manual-entry',
+        source_order_id: 'manual-entry',
+        created_from_additional_widths: false,
+        material_specifications: {}
+      };
+
+      const response = await apiHelpers.createSlitWidth(slitWidthData);
+      
+      if (response.data.success) {
+        toast.success('Slit width added successfully');
+        setSlitWidthForm({
+          slit_width_mm: '',
+          quantity_meters: '',
+          source_job_id: 'manual-entry',
+          source_order_id: 'manual-entry'
+        });
+        setShowAddSlitWidthForm(false);
+        // Reload slit widths
+        await loadSlitWidths(selectedMaterial.id, selectedMaterial.name);
+      } else {
+        toast.error(response.data.message || 'Failed to add slit width');
+      }
+    } catch (error) {
+      console.error('Failed to add slit width:', error);
+      toast.error('Failed to add slit width');
+    }
+  };
+
+  // Update slit width quantity
+  const handleUpdateSlitWidthQuantity = async (slitWidthId, newQuantity) => {
+    if (newQuantity < 0) {
+      toast.error('Quantity cannot be negative');
+      return;
+    }
+
+    try {
+      const updateData = {
+        quantity_meters: parseFloat(newQuantity),
+        remaining_quantity: parseFloat(newQuantity)
+      };
+
+      const response = await apiHelpers.put(`/slit-widths/${slitWidthId}`, updateData);
+      
+      if (response.data.success) {
+        toast.success('Slit width updated successfully');
+        setEditingSlitWidth(null);
+        // Reload slit widths
+        await loadSlitWidths(selectedMaterial.id, selectedMaterial.name);
+      } else {
+        toast.error(response.data.message || 'Failed to update slit width');
+      }
+    } catch (error) {
+      console.error('Failed to update slit width:', error);
+      toast.error('Failed to update slit width');
+    }
+  };
+
+  // Delete slit width entry
+  const handleDeleteSlitWidth = async (slitWidthId) => {
+    if (!window.confirm('Are you sure you want to delete this slit width entry?')) {
+      return;
+    }
+
+    try {
+      const response = await apiHelpers.delete(`/slit-widths/${slitWidthId}`);
+      
+      if (response.data.success) {
+        toast.success('Slit width deleted successfully');
+        // Reload slit widths
+        await loadSlitWidths(selectedMaterial.id, selectedMaterial.name);
+      } else {
+        toast.error(response.data.message || 'Failed to delete slit width');
+      }
+    } catch (error) {
+      console.error('Failed to delete slit width:', error);
+      toast.error('Failed to delete slit width');
+    }
+  };
+
+  // Adjust slit width quantity (add or subtract)
+  const handleAdjustSlitWidth = async (slitWidthId, currentQuantity, adjustment) => {
+    const newQuantity = currentQuantity + adjustment;
+    if (newQuantity < 0) {
+      toast.error('Adjustment would result in negative quantity');
+      return;
+    }
+    await handleUpdateSlitWidthQuantity(slitWidthId, newQuantity);
+  };
+
   // Group products by product_id + client_id combination
   const groupProductsByItem = async (substrates) => {
     const groups = {};
