@@ -386,6 +386,135 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
     return requirements;
   };
 
+  // Create realistic material requirements based on paper core specifications (matching job card format)
+  const createRealisticMaterialRequirements = async (product, quantity) => {
+    console.log('Creating realistic paper core material requirements for:', product.product_name);
+    
+    const requirements = {
+      productName: product.product_name || 'Paper Core Product',
+      quantity: quantity,
+      materials: []
+    };
+
+    // Paper core material layers based on the job card specifications shown in screenshots
+    const paperCoreLayers = [
+      {
+        layer_position: 'Inner Most Layer',
+        material_name: 'J260 B-Grade Spool Paper',
+        width_mm: 103,
+        thickness_mm: 0.15,
+        gsm: 155,
+        quantity_per_unit: 0.6, // meters per core from job card
+        laps: 1,
+        spiral_specs: { allocation_percent: 15, sequence: '1', winding_direction: 'clockwise', tension_level: 'high' }
+      },
+      {
+        layer_position: 'Central Layer 1',
+        material_name: 'Jintian Paper - B Grade - Code J260',
+        width_mm: 103,
+        thickness_mm: 0.54,
+        gsm: 360,
+        quantity_per_unit: 0.55, // meters per core from job card
+        laps: 0.97,
+        spiral_specs: { allocation_percent: 25, sequence: '2', winding_direction: 'counterclockwise', tension_level: 'medium' }
+      },
+      {
+        layer_position: 'Central Layer 2',
+        material_name: 'Jintian Paper - B Grade - Code J260',
+        width_mm: 104,
+        thickness_mm: 0.54,
+        gsm: 360,
+        quantity_per_unit: 0.57, // meters per core from job card
+        laps: 1,
+        spiral_specs: { allocation_percent: 25, sequence: '3', winding_direction: 'clockwise', tension_level: 'medium' }
+      },
+      {
+        layer_position: 'Central Layer 3',
+        material_name: 'Jintian Paper - B Grade - Code J260',
+        width_mm: 105,
+        thickness_mm: 0.54,
+        gsm: 360,
+        quantity_per_unit: 0.58, // meters per core from job card
+        laps: 1,
+        spiral_specs: { allocation_percent: 25, sequence: '4', winding_direction: 'counterclockwise', tension_level: 'medium' }
+      },
+      {
+        layer_position: 'Outer Most Layer',
+        material_name: 'J260 B-Grade Spool Paper',
+        width_mm: 106,
+        thickness_mm: 0.15,
+        gsm: 155,
+        quantity_per_unit: 0.59, // meters per core from job card
+        laps: 1,
+        spiral_specs: { allocation_percent: 10, sequence: '5', winding_direction: 'clockwise', tension_level: 'low' }
+      }
+    ];
+
+    try {
+      // Get raw materials to match with layer specifications
+      const rawMaterialsResponse = await apiHelpers.getRawMaterialsStock();
+      const rawMaterials = rawMaterialsResponse.data?.data || rawMaterialsResponse.data || [];
+      
+      console.log('Available raw materials:', rawMaterials);
+      
+      // Create material requirements for each layer
+      paperCoreLayers.forEach((layer, index) => {
+        // Try to find matching raw material by name
+        let materialId = 'unknown';
+        const matchingMaterial = rawMaterials.find(material => 
+          material.material_name && (
+            material.material_name.toLowerCase().includes('jintian') ||
+            material.material_name.toLowerCase().includes('j260') ||
+            material.material_name.toLowerCase().includes('spool') ||
+            material.material_name.toLowerCase().includes(layer.material_name.toLowerCase().split(' ')[0])
+          )
+        );
+        
+        if (matchingMaterial) {
+          materialId = matchingMaterial.material_id;
+          console.log(`Matched ${layer.material_name} to raw material: ${matchingMaterial.material_name} (ID: ${materialId})`);
+        }
+        
+        // Calculate total meters needed using the formula from job card
+        const totalMetersRequired = quantity * layer.quantity_per_unit;
+        
+        const materialRequirement = {
+          material_id: materialId,
+          material_name: layer.material_name,
+          layer_position: layer.layer_position,
+          layer_thickness_mm: layer.thickness_mm,
+          layer_gsm: layer.gsm,
+          required_width_mm: layer.width_mm,
+          required_quantity_meters: totalMetersRequired,
+          quantity_per_unit: layer.quantity_per_unit,
+          order_quantity: quantity,
+          calculation_formula: `${quantity} units × ${layer.quantity_per_unit}m/unit = ${totalMetersRequired.toFixed(1)}m`,
+          laps: layer.laps,
+          purpose: `${layer.layer_position} - ${layer.thickness_mm}mm thick, ${layer.gsm} GSM`,
+          notes: `Based on paper core specifications: ${layer.laps} laps, ${layer.width_mm}mm width`,
+          spiral_specifications: {
+            allocation_percent: layer.spiral_specs.allocation_percent,
+            sequence: layer.spiral_specs.sequence,
+            winding_direction: layer.spiral_specs.winding_direction,
+            tension_level: layer.spiral_specs.tension_level,
+            overlap_factor: 1.0 + (index * 0.1), // Varying overlap factors
+            feed_rate_mpm: 15 - (index * 2), // Decreasing feed rates
+            qc_checkpoints: `Every ${10 + (index * 5)}m, Visual inspection, Thickness check`
+          }
+        };
+        
+        requirements.materials.push(materialRequirement);
+        console.log(`Added realistic material requirement for ${layer.layer_position}:`, materialRequirement);
+      });
+      
+    } catch (error) {
+      console.error('Error loading raw materials for realistic requirements:', error);
+    }
+
+    console.log('Final realistic material requirements:', requirements);
+    return requirements;
+  };
+
   // Create fallback material requirements when product specifications are missing
   const createFallbackMaterialRequirements = async (product, quantity) => {
     console.log('Creating fallback material requirements for:', product.product_name);
