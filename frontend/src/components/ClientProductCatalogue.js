@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import Layout from './Layout';
 import { apiHelpers } from '../utils/api';
 import { toast } from 'sonner';
 import { 
@@ -10,8 +8,7 @@ import {
   DocumentDuplicateIcon,
   XMarkIcon,
   CheckIcon,
-  PrinterIcon,
-  ArrowLeftIcon
+  PrinterIcon
 } from '@heroicons/react/24/outline';
 
 // Helper Components for Inline Editing
@@ -533,9 +530,7 @@ const ConsumablesSelector = ({ productSpecs, productSection, onAddConsumable, on
   );
 };
 
-const ClientProductCatalogue = () => {
-  const { clientId } = useParams();
-  const navigate = useNavigate();
+const ClientProductCatalogue = ({ clientId, onClose }) => {
   const [products, setProducts] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [clients, setClients] = useState([]);
@@ -1320,39 +1315,30 @@ const ClientProductCatalogue = () => {
   }
 
   return (
-    <Layout>
-      <div className="p-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => navigate('/clients')}
-              className="text-gray-400 hover:text-yellow-400 transition-colors"
-              title="Back to Clients"
-            >
-              <ArrowLeftIcon className="h-6 w-6" />
-            </button>
-            <div>
-              <h2 className="text-2xl font-bold text-white">
-                Product Catalogue
-              </h2>
-              {currentClient && (
-                <p className="text-sm text-gray-400 mt-1">
-                  {currentClient.company_name}
-                </p>
-              )}
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-content max-w-6xl max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white">
+              Client Product Catalogue
+            </h2>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleCreate}
+                className="misty-button misty-button-primary flex items-center"
+              >
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Add Product
+              </button>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={handleCreate}
-              className="misty-button misty-button-primary flex items-center"
-            >
-              <PlusIcon className="h-4 w-4 mr-2" />
-              Add Product
-            </button>
-          </div>
-        </div>
 
           {/* Products Table */}
           {products.length > 0 ? (
@@ -2101,7 +2087,7 @@ const ClientProductCatalogue = () => {
           </div>
         )}
       </div>
-    </Layout>
+    </div>
   );
 };
 
