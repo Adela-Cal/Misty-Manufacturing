@@ -486,9 +486,13 @@ const Stocktake = () => {
   const loadStockAllocations = async (productId, clientId) => {
     try {
       const response = await apiHelpers.get(`/stock/allocations?product_id=${productId}&client_id=${clientId}`);
-      setStockAllocations(response.data);
+      // Extract allocations from nested data structure
+      const allocations = response.data?.data?.allocations || [];
+      setStockAllocations(allocations);
+      console.log('Loaded allocations:', allocations);
     } catch (error) {
       console.error('Failed to load stock allocations:', error);
+      toast.error('Failed to load stock allocations');
     }
   };
 
