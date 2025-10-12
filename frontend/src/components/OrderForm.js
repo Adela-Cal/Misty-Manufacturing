@@ -240,32 +240,43 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
       
       // Get product specifications to determine material requirements
       console.log('Loading product specifications for:', item.product_id);
-      const productResponse = await apiHelpers.getClientProduct(formData.client_id, item.product_id);
-      const product = productResponse.data;
       
-      console.log('Product specifications loaded:', product);
+      // First, get the client product details
+      let product = null;
+      try {
+        const productResponse = await apiHelpers.getClientProduct(formData.client_id, item.product_id);
+        product = productResponse.data;
+        console.log('Product loaded:', product);
+      } catch (productError) {
+        console.error('Failed to load product details:', productError);
+        throw new Error('Product not found in client catalog');
+      }
       
+      // Then get the detailed product specifications
       let requirements;
       let productSpec = null;
       
-      // Try to get product specifications to extract material layers
-      if (product.specifications && product.specifications.length > 0) {
+      if (product && product.specifications && product.specifications.length > 0) {
         try {
+          // Load the actual product specification with material layers
           const specResponse = await apiHelpers.get(`/product-specifications/${product.specifications[0]}`);
           productSpec = specResponse.data;
-          console.log('Product specification details:', productSpec);
+          console.log('Product specification with material layers loaded:', productSpec);
           
-          // Calculate material requirements based on product specs and material layers
-          requirements = await calculateMaterialRequirements(productSpec, product, remainingQuantity);
+          if (productSpec && productSpec.material_layers && productSpec.material_layers.length > 0) {
+            // Calculate material requirements based on actual specification layers
+            requirements = await calculateMaterialRequirements(productSpec, product, remainingQuantity);
+          } else {
+            console.warn('Product specification found but no material layers defined');
+            requirements = await createRealisticMaterialRequirements(product, remainingQuantity);
+          }
         } catch (specError) {
           console.error('Failed to load product specification details:', specError);
-          // Fall back to generic requirements
-          requirements = await createFallbackMaterialRequirements(product, remainingQuantity);
+          requirements = await createRealisticMaterialRequirements(product, remainingQuantity);
         }
       } else {
-        console.log('No product specifications found, creating fallback requirements');
-        // Create fallback material requirements when no specifications exist
-        requirements = await createFallbackMaterialRequirements(product, remainingQuantity);
+        console.log('No product specifications linked, creating realistic material requirements based on product type');
+        requirements = await createRealisticMaterialRequirements(product, remainingQuantity);
       }
       
       setSelectedItem({ index: itemIndex, item, remainingQuantity });
