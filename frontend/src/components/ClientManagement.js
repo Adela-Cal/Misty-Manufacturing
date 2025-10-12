@@ -151,7 +151,7 @@ const ClientManagement = () => {
                       <p className="text-sm text-gray-400 truncate">{client.abn || 'No ABN'}</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 ml-2">
+                  <div className="flex items-center space-x-2 ml-2 relative z-10">
                     <button
                       onClick={() => handleEdit(client)}
                       className="text-gray-400 hover:text-yellow-400 transition-colors p-1"
@@ -172,7 +172,7 @@ const ClientManagement = () => {
                   </div>
                 </div>
                 
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-sm relative z-10">
                   <div className="flex items-start">
                     <span className="text-gray-400 w-16 flex-shrink-0">Address:</span>
                     <span className="text-gray-300">{client.address}, {client.city}, {client.state} {client.postal_code}</span>
