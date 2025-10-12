@@ -19,7 +19,8 @@ import {
   TruckIcon,
   DocumentTextIcon,
   CalculatorIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  TagIcon
 } from '@heroicons/react/24/outline';
 
 const Layout = ({ children }) => {
