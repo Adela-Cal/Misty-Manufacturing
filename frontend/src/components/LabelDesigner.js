@@ -1073,7 +1073,7 @@ const LabelDesigner = () => {
                     <div
                       draggable
                       onDragStart={(e) => handleDragStart(e, 'qr_code', 'qr', templateForm.qr_code_x, templateForm.qr_code_y)}
-                      className="absolute border-2 border-gray-400 bg-gray-200 flex items-center justify-center cursor-move hover:opacity-80"
+                      className="absolute bg-white flex items-center justify-center cursor-move hover:opacity-80 p-1"
                       style={{
                         left: `${templateForm.qr_code_x * 3.779527559}px`,
                         top: `${templateForm.qr_code_y * 3.779527559}px`,
@@ -1082,7 +1082,12 @@ const LabelDesigner = () => {
                       }}
                       title="Drag to reposition"
                     >
-                      <QrCodeIcon className="h-8 w-8 text-gray-600" />
+                      <QRCodeSVG 
+                        value="SAMPLE-ORDER-123"
+                        size={templateForm.qr_code_size * 3.779527559 - 8}
+                        level="M"
+                        includeMargin={false}
+                      />
                     </div>
                   )}
 
