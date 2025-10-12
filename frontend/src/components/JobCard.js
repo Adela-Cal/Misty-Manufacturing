@@ -817,6 +817,11 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const getLabelData = () => {
     if (!jobData?.order || !productSpecs) return {};
     
+    // Calculate cores per carton
+    const totalCores = jobData.order.quantity || 0;
+    const totalCartons = calculations.cartonsRequired || 1;
+    const coresPerCarton = Math.ceil(totalCores / totalCartons);
+    
     return {
       customer: jobData.order.client_name || '',
       order_number: jobData.order.order_number || jobData.order.id || '',
@@ -824,7 +829,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
       product_item: productSpecs.product_code || '',
       product_details: `${productSpecs.product_type || ''} ${productSpecs.internal_diameter || ''}mm ID x ${productSpecs.wall_thickness || ''}mm T`,
       product_quantity: `${jobData.order.quantity || 0} units`,
-      carton_qty: `${calculations.cartonsRequired || 0} cartons`
+      carton_qty: `${coresPerCarton} cores per carton`
     };
   };
 
