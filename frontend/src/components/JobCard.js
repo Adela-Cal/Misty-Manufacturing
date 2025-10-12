@@ -70,7 +70,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const [isEditingFinishedQuantity, setIsEditingFinishedQuantity] = useState(false);
   const [editedFinishedQuantity, setEditedFinishedQuantity] = useState(0);
 
-  // Additional Biscuit Widths states (for core winding jobs)
+  // Additional Biscuit Widths / Slit Widths states (for core winding and slitting jobs)
   const [masterCores, setMasterCores] = useState([]);
   const [isEditingMasterCore, setIsEditingMasterCore] = useState(false);
   const [newMasterCore, setNewMasterCore] = useState({ width: '', quantity: '', addToStock: false });
