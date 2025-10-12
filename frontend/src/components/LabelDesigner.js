@@ -712,9 +712,13 @@ const LabelDesigner = () => {
                             setTemplateForm(prev => ({
                               ...prev,
                               logo: {
-                                ...prev.logo,
+                                id: prev.logo.id,
+                                x_position: prev.logo.x_position,
+                                y_position: prev.logo.y_position,
                                 width: width,
-                                height: height
+                                height: height,
+                                image_data: prev.logo.image_data,
+                                image_format: prev.logo.image_format
                               }
                             }));
                             toast.success('Logo size reset to proportional');
