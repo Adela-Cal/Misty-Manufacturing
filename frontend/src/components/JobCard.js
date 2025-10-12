@@ -94,6 +94,9 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const [labelTemplates, setLabelTemplates] = useState([]);
   const [selectedLabelTemplate, setSelectedLabelTemplate] = useState(null);
   const [showLabelPreview, setShowLabelPreview] = useState(false);
+  const [showPrinterSelection, setShowPrinterSelection] = useState(false);
+  const [availablePrinters, setAvailablePrinters] = useState([]);
+  const [selectedPrinter, setSelectedPrinter] = useState(null);
 
   useEffect(() => {
     if (jobId && stage && orderId) {
