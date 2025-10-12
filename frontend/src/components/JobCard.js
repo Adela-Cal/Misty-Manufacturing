@@ -2313,21 +2313,26 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                 }}
               >
                 {/* Render Shapes */}
-                {selectedLabelTemplate.shapes?.map((shape) => (
-                  <div
-                    key={shape.id}
-                    className="absolute"
-                    style={{
-                      left: `${shape.x_position * 3.779527559}px`,
-                      top: `${shape.y_position * 3.779527559}px`,
-                      width: `${shape.width * 3.779527559}px`,
-                      height: `${shape.height * 3.779527559}px`,
-                      border: `${shape.border_width}px solid ${shape.border_color}`,
-                      backgroundColor: shape.fill_color || 'transparent',
-                      borderRadius: shape.shape_type === 'circle' ? '50%' : '0'
-                    }}
-                  />
-                ))}
+                {selectedLabelTemplate.shapes?.map((shape) => {
+                  // For lines, use solid background instead of border
+                  const isLine = shape.shape_type === 'line';
+                  
+                  return (
+                    <div
+                      key={shape.id}
+                      className="absolute"
+                      style={{
+                        left: `${shape.x_position * 3.779527559}px`,
+                        top: `${shape.y_position * 3.779527559}px`,
+                        width: `${shape.width * 3.779527559}px`,
+                        height: `${shape.height * 3.779527559}px`,
+                        border: isLine ? 'none' : `${shape.border_width}px solid ${shape.border_color}`,
+                        backgroundColor: isLine ? shape.border_color : (shape.fill_color || 'transparent'),
+                        borderRadius: shape.shape_type === 'circle' ? '50%' : '0'
+                      }}
+                    />
+                  );
+                })}
 
                 {/* Render Logo */}
                 {selectedLabelTemplate.logo && (
