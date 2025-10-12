@@ -11,7 +11,8 @@ import {
   DocumentDuplicateIcon,
   QrCodeIcon,
   XMarkIcon,
-  ArrowsRightLeftIcon
+  ArrowsRightLeftIcon,
+  HomeIcon
 } from '@heroicons/react/24/outline';
 
 const LabelDesigner = () => {
