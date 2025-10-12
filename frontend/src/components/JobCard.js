@@ -1239,6 +1239,64 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                         </div>
                       )}
                     </div>
+                  ) : stage === 'finishing' ? (
+                    <div className="bg-blue-600 p-3 rounded border border-blue-500">
+                      <span className="text-white font-medium block mb-2">Finishing Operations:</span>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-white font-medium">Total Finished Cores:</span>
+                        <div className="flex items-center">
+                          {isEditingFinishedQuantity ? (
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="number"
+                                value={editedFinishedQuantity}
+                                onChange={(e) => setEditedFinishedQuantity(e.target.value)}
+                                className="w-24 px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white text-center"
+                                min="0"
+                                autoFocus
+                              />
+                              <button
+                                onClick={handleSaveFinishedQuantity}
+                                className="px-2 py-1 bg-blue-700 text-white text-xs rounded hover:bg-blue-800"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                onClick={handleCancelEditFinishedQuantity}
+                                className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <span
+                              onDoubleClick={handleEditFinishedQuantity}
+                              className="cursor-pointer hover:bg-blue-700 px-2 py-1 rounded text-white font-bold"
+                              title="Double-click to edit finished quantity"
+                            >
+                              {finishedQuantity.toLocaleString()} cores
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Show excess calculation if quantity is higher than required */}
+                      {finishedQuantity > 0 && jobData?.order?.quantity && (
+                        <div className="mt-2 text-sm">
+                          <div className="flex justify-between text-blue-100">
+                            <span>Required Quantity:</span>
+                            <span>{jobData.order.quantity.toLocaleString()}</span>
+                          </div>
+                          {finishedQuantity > jobData.order.quantity && (
+                            <div className="flex justify-between text-yellow-200 font-medium">
+                              <span>Excess for Stocktake:</span>
+                              <span>{(finishedQuantity - jobData.order.quantity).toLocaleString()}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <div className="bg-green-600 p-3 rounded border border-green-500">
                       <div className="flex items-center justify-between">
