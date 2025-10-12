@@ -654,12 +654,17 @@ const LabelDesigner = () => {
                             type="number"
                             value={templateForm.logo.width.toFixed(1)}
                             onChange={(e) => {
-                              const newWidth = parseFloat(e.target.value);
+                              const newWidth = parseFloat(e.target.value) || 5;
                               setTemplateForm(prev => ({
                                 ...prev,
                                 logo: {
-                                  ...prev.logo,
-                                  width: newWidth
+                                  id: prev.logo.id,
+                                  x_position: prev.logo.x_position,
+                                  y_position: prev.logo.y_position,
+                                  width: newWidth,
+                                  height: prev.logo.height,
+                                  image_data: prev.logo.image_data,
+                                  image_format: prev.logo.image_format
                                 }
                               }));
                             }}
@@ -674,12 +679,17 @@ const LabelDesigner = () => {
                             type="number"
                             value={templateForm.logo.height.toFixed(1)}
                             onChange={(e) => {
-                              const newHeight = parseFloat(e.target.value);
+                              const newHeight = parseFloat(e.target.value) || 5;
                               setTemplateForm(prev => ({
                                 ...prev,
                                 logo: {
-                                  ...prev.logo,
-                                  height: newHeight
+                                  id: prev.logo.id,
+                                  x_position: prev.logo.x_position,
+                                  y_position: prev.logo.y_position,
+                                  width: prev.logo.width,
+                                  height: newHeight,
+                                  image_data: prev.logo.image_data,
+                                  image_format: prev.logo.image_format
                                 }
                               }));
                             }}
