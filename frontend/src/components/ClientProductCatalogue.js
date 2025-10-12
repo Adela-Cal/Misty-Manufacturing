@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import Layout from './Layout';
 import { apiHelpers } from '../utils/api';
 import { toast } from 'sonner';
 import { 
@@ -8,7 +10,8 @@ import {
   DocumentDuplicateIcon,
   XMarkIcon,
   CheckIcon,
-  PrinterIcon
+  PrinterIcon,
+  ArrowLeftIcon
 } from '@heroicons/react/24/outline';
 
 // Helper Components for Inline Editing
