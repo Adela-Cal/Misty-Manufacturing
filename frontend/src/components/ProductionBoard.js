@@ -266,7 +266,7 @@ const ProductionBoard = () => {
           <p className="text-xs text-gray-400 truncate">{job.client_name}</p>
           
           <div className="flex items-center justify-between mt-2 flex-wrap gap-1">
-            {/* Materials Status Hexagon */}
+            {/* Materials Status */}
             <button
               onClick={() => toggleMaterialsModal(job.id)}
               className="text-gray-400 hover:text-yellow-400 transition-colors"
@@ -275,17 +275,17 @@ const ProductionBoard = () => {
               <HexagonIcon status={materialsStatus} />
             </button>
             
-            {/* Book Icon for Order Items */}
+            {/* Order Items */}
             <button
               onClick={() => toggleJobExpansion(job.id)}
               className="text-gray-400 hover:text-yellow-400 transition-colors"
               title="View Order Items"
               data-testid={`expand-job-${job.id}`}
             >
-              <BookOpenIcon className="h-5 w-5" />
+              <BookOpenIcon className="h-4 w-4" />
             </button>
             
-            {/* Jumping Man Icon for Stage Movement */}
+            {/* Jump to Stage */}
             <div className="relative">
               <button
                 onClick={(e) => {
@@ -296,10 +296,9 @@ const ProductionBoard = () => {
                 title="Jump to Stage"
                 data-testid={`jump-stage-${job.id}`}
               >
-                <JumpingManIcon className="h-5 w-5" />
+                <JumpingManIcon className="h-4 w-4" />
               </button>
               
-              {/* Jump Dropdown Menu */}
               {jumpDropdowns[job.id] && (
                 <div 
                   className="absolute right-0 mt-1 w-48 bg-gray-800 border border-gray-600 rounded-md shadow-lg z-10"
@@ -324,19 +323,19 @@ const ProductionBoard = () => {
             <button
               onClick={() => handleOpenJobCard(job.id, stageKey, job.order_id || job.id)}
               className="text-gray-400 hover:text-purple-400 transition-colors"
-              title="View Interactive Job Card"
+              title="View Job Card"
               data-testid={`view-job-card-${job.id}`}
             >
-              <ClipboardDocumentListIcon className="h-5 w-5" />
+              <ClipboardDocumentListIcon className="h-4 w-4" />
             </button>
 
             <button
               onClick={() => handleDownloadJobCard(job.id, job.order_number)}
               className="text-gray-400 hover:text-blue-400 transition-colors"
-              title="Download Job Card"
+              title="Download"
               data-testid={`download-job-card-${job.id}`}
             >
-              <DocumentArrowDownIcon className="h-5 w-5" />
+              <DocumentArrowDownIcon className="h-4 w-4" />
             </button>
           </div>
         </div>
