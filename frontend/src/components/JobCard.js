@@ -1499,8 +1499,8 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             </div>
           )}
 
-          {/* Packing & Delivery - Hidden for Core Winding Jobs */}
-          {stage !== 'winding' && (
+          {/* Packing & Delivery - Hidden for Core Winding Jobs and Slitting Jobs */}
+          {stage !== 'winding' && stage !== 'paper_slitting' && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
                 <TruckIcon className="h-5 w-5 mr-2" />
