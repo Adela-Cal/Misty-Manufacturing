@@ -509,6 +509,11 @@ const Stocktake = () => {
       const archived = response.data?.data?.allocations || [];
       setArchivedAllocations(archived);
       setShowArchivedAllocations(true);
+      
+      if (archived.length === 0) {
+        toast.info('No archived allocations found for this product');
+      }
+      
       console.log('Loaded archived allocations:', archived);
     } catch (error) {
       console.error('Failed to load archived allocations:', error);
