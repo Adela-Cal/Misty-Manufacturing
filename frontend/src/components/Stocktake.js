@@ -2484,12 +2484,45 @@ const Stocktake = () => {
                                   <PencilIcon className="h-3 w-3" />
                                 </button>
                                 <button
-                                  onClick={(e) => {
+                                  onClick={async (e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    console.log('Delete button clicked! Entry ID:', entry.id);
-                                    console.log('Full entry object:', entry);
-                                    handleDeleteSlitWidth(entry.id);
+                                    
+                                    alert('Delete button clicked! ID: ' + entry.id);
+                                    
+                                    if (!entry.id) {
+                                      alert('Error: Entry ID is missing!');
+                                      return;
+                                    }
+                                    
+                                    const confirmed = window.confirm(`Are you sure you want to delete this slit width entry?\n\nWidth: ${entry.slit_width_mm}mm\nMeters: ${entry.quantity_meters}m`);
+                                    
+                                    if (!confirmed) {
+                                      return;
+                                    }
+                                    
+                                    try {
+                                      alert('Calling delete API for ID: ' + entry.id);
+                                      const response = await apiHelpers.deleteSlitWidth(entry.id);
+                                      alert('Delete API response: ' + JSON.stringify(response));
+                                      
+                                      if (response.data?.success || response.success) {
+                                        toast.success('Slit width deleted successfully');
+                                        await loadSlitWidths(selectedMaterial.id, selectedMaterial.name);
+                                      } else {
+                                        alert('Delete failed: ' + (response.data?.message || response.message));
+                                        toast.error('Failed to delete slit width');
+                                      }
+                                    } catch (error) {
+                                      alert('Error occurred: ' + error.message);
+                                      const errorMsg = error.response?.data?.detail || error.response?.data?.message || error.message;
+                                      
+                                      if (errorMsg.includes('allocated')) {
+                                        toast.error('Cannot delete: This slit width is allocated to an order');
+                                      } else {
+                                        toast.error('Delete failed: ' + errorMsg);
+                                      }
+                                    }
                                   }}
                                   className="text-red-400 hover:text-red-300 text-xs p-1 cursor-pointer"
                                   title="Delete entry"
