@@ -52,6 +52,7 @@ function AppRoutes() {
         <Route path="/machinery-rates" element={<MachineryRates />} />
         <Route path="/calculators" element={<Calculators />} />
         <Route path="/stocktake" element={<Stocktake />} />
+        <Route path="/label-designer" element={<LabelDesigner />} />
         <Route path="/payroll" element={<PayrollManagement />} />
         <Route path="/staff-security" element={<StaffSecurity />} />
         <Route path="/clients/:clientId/archived-jobs" element={<ArchivedJobs />} />
