@@ -1551,7 +1551,8 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                     )}
                   </div>
               </div>
-
+              
+              {/* Second Column - Production Times */}
               <div>
                 <h4 className="font-semibold text-white mb-2">Production Times (minutes)</h4>
                 <table className="w-full text-sm border border-gray-600">
