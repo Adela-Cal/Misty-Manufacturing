@@ -604,16 +604,27 @@ const Stocktake = () => {
 
   const confirmDelete = async () => {
     try {
+      console.log('Deleting item:', selectedItem);
+      console.log('Item type:', selectedItemType);
+      
+      if (!selectedItem || !selectedItem.id) {
+        toast.error('No item selected for deletion');
+        return;
+      }
+      
       const endpoint = selectedItemType === 'substrate' 
         ? `/stock/raw-substrates/${selectedItem.id}` 
         : `/stock/raw-materials/${selectedItem.id}`;
       
-      await apiHelpers.delete(endpoint);
+      console.log('Delete endpoint:', endpoint);
+      
+      const response = await apiHelpers.delete(endpoint);
+      console.log('Delete response:', response);
       
       if (selectedItemType === 'substrate') {
-        loadRawSubstrates();
+        await loadRawSubstrates();
       } else {
-        loadRawMaterialsStock();
+        await loadRawMaterialsStock();
       }
       
       setShowDeleteConfirm(false);
@@ -621,7 +632,9 @@ const Stocktake = () => {
       toast.success(`${selectedItemType === 'substrate' ? 'Substrate' : 'Material'} deleted successfully`);
     } catch (error) {
       console.error('Failed to delete item:', error);
-      toast.error('Failed to delete item');
+      console.error('Error details:', error.response?.data);
+      const errorMsg = error.response?.data?.detail || error.message || 'Failed to delete item';
+      toast.error(`Delete failed: ${errorMsg}`);
     }
   };
 
