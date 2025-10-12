@@ -2228,6 +2228,181 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         </div>
         </div>
       </div>
+
+      {/* Label Template Selection Modal */}
+      {showLabelPrintModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-white">Select Label Template</h3>
+              <button
+                onClick={() => setShowLabelPrintModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {labelTemplates.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-400 mb-4">No label templates found.</p>
+                <p className="text-sm text-gray-500">Create a template in the Label Designer first.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {labelTemplates.map(template => (
+                  <div
+                    key={template.id}
+                    onClick={() => handleSelectTemplate(template)}
+                    className="bg-gray-700 border border-gray-600 rounded-lg p-4 cursor-pointer hover:border-yellow-600 transition-colors"
+                  >
+                    <h4 className="text-lg font-semibold text-white mb-2">{template.template_name}</h4>
+                    <div className="text-sm text-gray-400 space-y-1">
+                      <p>Size: {template.width_mm} × {template.height_mm} mm</p>
+                      <p>Fields: {template.fields?.length || 0}</p>
+                      {template.logo && <p className="text-blue-400">✓ Logo included</p>}
+                      {template.include_qr_code && <p className="text-blue-400">✓ QR Code included</p>}
+                    </div>
+                    <button className="mt-3 w-full px-3 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm">
+                      Select Template
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Label Preview Modal */}
+      {showLabelPreview && selectedLabelTemplate && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-white">Label Preview</h3>
+              <button
+                onClick={() => setShowLabelPreview(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="mb-4 bg-gray-700 p-3 rounded">
+              <p className="text-white text-sm">
+                <strong>Template:</strong> {selectedLabelTemplate.template_name}
+              </p>
+              <p className="text-gray-300 text-sm mt-1">
+                <strong>Quantity to print:</strong> {calculations.cartonsRequired || 0} labels
+              </p>
+            </div>
+
+            {/* Label Preview */}
+            <div className="bg-white rounded-lg p-6 mb-4">
+              <div
+                className="relative bg-white border-2 border-gray-400 mx-auto print-label"
+                style={{
+                  width: `${selectedLabelTemplate.width_mm * 3.779527559}px`,
+                  height: `${selectedLabelTemplate.height_mm * 3.779527559}px`,
+                  maxWidth: '100%'
+                }}
+              >
+                {/* Render Shapes */}
+                {selectedLabelTemplate.shapes?.map((shape) => (
+                  <div
+                    key={shape.id}
+                    className="absolute"
+                    style={{
+                      left: `${shape.x_position * 3.779527559}px`,
+                      top: `${shape.y_position * 3.779527559}px`,
+                      width: `${shape.width * 3.779527559}px`,
+                      height: `${shape.height * 3.779527559}px`,
+                      border: `${shape.border_width}px solid ${shape.border_color}`,
+                      backgroundColor: shape.fill_color || 'transparent',
+                      borderRadius: shape.shape_type === 'circle' ? '50%' : '0'
+                    }}
+                  />
+                ))}
+
+                {/* Render Logo */}
+                {selectedLabelTemplate.logo && (
+                  <img
+                    src={selectedLabelTemplate.logo.image_data}
+                    alt="Company Logo"
+                    className="absolute"
+                    style={{
+                      left: `${selectedLabelTemplate.logo.x_position * 3.779527559}px`,
+                      top: `${selectedLabelTemplate.logo.y_position * 3.779527559}px`,
+                      width: `${selectedLabelTemplate.logo.width * 3.779527559}px`,
+                      height: `${selectedLabelTemplate.logo.height * 3.779527559}px`,
+                      objectFit: 'contain'
+                    }}
+                  />
+                )}
+
+                {/* Render Fields with Real Data */}
+                {selectedLabelTemplate.fields?.map((field) => {
+                  const labelData = getLabelData();
+                  const fieldValue = labelData[field.field_name] || 'N/A';
+                  
+                  return (
+                    <div
+                      key={field.id}
+                      className="absolute text-black"
+                      style={{
+                        left: `${field.x_position * 3.779527559}px`,
+                        top: `${field.y_position * 3.779527559}px`,
+                        fontSize: `${field.font_size}pt`,
+                        fontWeight: field.font_weight,
+                        textAlign: field.text_align,
+                        maxWidth: field.max_width ? `${field.max_width * 3.779527559}px` : 'none'
+                      }}
+                    >
+                      <div className="text-xs text-gray-600">{field.label}:</div>
+                      <div className="font-medium">{fieldValue}</div>
+                    </div>
+                  );
+                })}
+
+                {/* Render QR Code */}
+                {selectedLabelTemplate.include_qr_code && (
+                  <div
+                    className="absolute border-2 border-gray-400 bg-gray-200 flex items-center justify-center"
+                    style={{
+                      left: `${selectedLabelTemplate.qr_code_x * 3.779527559}px`,
+                      top: `${selectedLabelTemplate.qr_code_y * 3.779527559}px`,
+                      width: `${selectedLabelTemplate.qr_code_size * 3.779527559}px`,
+                      height: `${selectedLabelTemplate.qr_code_size * 3.779527559}px`
+                    }}
+                  >
+                    <span className="text-xs text-gray-500">QR Code</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowLabelPreview(false);
+                  setShowLabelPrintModal(true);
+                }}
+                className="misty-button misty-button-secondary"
+              >
+                Choose Different Template
+              </button>
+              <button
+                onClick={handlePrintLabels}
+                className="misty-button misty-button-primary flex items-center"
+              >
+                <PrinterIcon className="h-5 w-5 mr-2" />
+                Continue to Print ({calculations.cartonsRequired || 0} labels)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </>
     );
   } catch (error) {
