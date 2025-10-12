@@ -196,13 +196,26 @@ const LabelDesigner = () => {
           <h1 className="text-2xl font-bold text-white">Label Designer</h1>
           <p className="text-gray-400 mt-1">Create and manage carton label templates</p>
         </div>
-        <button
-          onClick={handleCreateNew}
-          className="misty-button misty-button-primary flex items-center"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Create New Template
-        </button>
+        <div className="flex space-x-2">
+          {isEditing && (
+            <button
+              onClick={() => setIsEditing(false)}
+              className="misty-button misty-button-secondary flex items-center"
+            >
+              <XMarkIcon className="h-5 w-5 mr-2" />
+              Return to Templates
+            </button>
+          )}
+          {!isEditing && (
+            <button
+              onClick={handleCreateNew}
+              className="misty-button misty-button-primary flex items-center"
+            >
+              <PlusIcon className="h-5 w-5 mr-2" />
+              Create New Template
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Template List */}
