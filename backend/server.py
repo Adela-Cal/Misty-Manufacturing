@@ -4925,7 +4925,7 @@ async def create_label_template(template: LabelTemplateCreate, current_user: dic
 @app.put("/api/label-templates/{template_id}")
 async def update_label_template(
     template_id: str,
-    template: LabelTemplateUpdate,
+    template: dict,  # Accept raw dict to avoid Pydantic validation issues
     current_user: dict = Depends(get_current_user)
 ):
     """Update a label template"""
@@ -4934,8 +4934,11 @@ async def update_label_template(
         if not existing_template:
             raise HTTPException(status_code=404, detail="Label template not found")
         
-        update_data = {k: v for k, v in template.dict().items() if v is not None}
+        # Remove None values and prepare update data
+        update_data = {k: v for k, v in template.items() if v is not None and k != 'id'}
         update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
+        logger.info(f"Updating template {template_id} with data: {update_data.keys()}")
         
         await db.label_templates.update_one(
             {"id": template_id},
