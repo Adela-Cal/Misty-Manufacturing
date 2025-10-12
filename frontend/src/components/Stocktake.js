@@ -2484,9 +2484,16 @@ const Stocktake = () => {
                                   <PencilIcon className="h-3 w-3" />
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteSlitWidth(entry.id)}
-                                  className="text-red-400 hover:text-red-300 text-xs p-1"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    console.log('Delete button clicked! Entry ID:', entry.id);
+                                    console.log('Full entry object:', entry);
+                                    handleDeleteSlitWidth(entry.id);
+                                  }}
+                                  className="text-red-400 hover:text-red-300 text-xs p-1 cursor-pointer"
                                   title="Delete entry"
+                                  type="button"
                                 >
                                   <TrashIcon className="h-3 w-3" />
                                 </button>
