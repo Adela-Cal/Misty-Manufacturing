@@ -57,7 +57,7 @@ function AppRoutes() {
         <Route path="/payroll" element={<PayrollManagement />} />
         <Route path="/staff-security" element={<StaffSecurity />} />
         <Route path="/clients/:clientId/archived-jobs" element={<ArchivedJobs />} />
-        <Route path="/clients/:clientId/product-catalogue" element={<ClientProductCatalogue />} />
+        {/* <Route path="/clients/:clientId/product-catalogue" element={<ClientProductCatalogue />} /> */}
         <Route path="/xero/callback" element={<XeroCallback />} />
         <Route path="/xero-oauth-callback" element={<XeroCallback />} />
         <Route path="*" element={<Navigate to="/" replace />} />
