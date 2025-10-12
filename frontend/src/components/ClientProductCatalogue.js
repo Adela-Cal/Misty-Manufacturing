@@ -533,7 +533,9 @@ const ConsumablesSelector = ({ productSpecs, productSection, onAddConsumable, on
   );
 };
 
-const ClientProductCatalogue = ({ clientId, onClose }) => {
+const ClientProductCatalogue = () => {
+  const { clientId } = useParams();
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [clients, setClients] = useState([]);
