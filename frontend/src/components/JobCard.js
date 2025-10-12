@@ -1443,6 +1443,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
               </div>
             </div>
           </div>
+          )}
 
           {/* Quality Control & Safety section temporarily removed - will be re-added at bottom */}
 
