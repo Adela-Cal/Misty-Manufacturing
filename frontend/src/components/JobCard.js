@@ -1768,26 +1768,35 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                                 onChange={(e) => {
                                   const selectedId = e.target.value;
                                   const selectedMat = rawMaterials.find(
-                                    m => m.id === selectedId || m.product_id === selectedId
+                                    m => m.product_id === selectedId
                                   );
                                   setNewSlittingWidth(prev => ({ 
                                     ...prev, 
                                     material_id: selectedId,
-                                    material_name: selectedMat ? (selectedMat.product_name || selectedMat.product_code) : ''
+                                    material_name: selectedMat ? selectedMat.product_name : ''
                                   }));
                                 }}
                                 className="w-full px-2 py-1 text-xs bg-gray-600 border border-gray-500 rounded text-white"
                               >
                                 <option value="">-- Select Raw Material --</option>
-                                {rawMaterials.map((material) => (
-                                  <option 
-                                    key={material.id || material.product_id} 
-                                    value={material.id || material.product_id}
-                                  >
-                                    {material.product_code} - {material.product_name || material.product_description || 'Unknown Material'}
-                                  </option>
-                                ))}
+                                {rawMaterials.length === 0 ? (
+                                  <option disabled>No raw materials available</option>
+                                ) : (
+                                  rawMaterials.map((material) => (
+                                    <option 
+                                      key={material.product_id} 
+                                      value={material.product_id}
+                                    >
+                                      {material.product_name || material.product_code || 'Unknown Material'}
+                                    </option>
+                                  ))
+                                )}
                               </select>
+                              {rawMaterials.length === 0 && (
+                                <p className="text-xs text-yellow-400 mt-1">
+                                  No raw materials found. Add materials to Raw Materials stock first.
+                                </p>
+                              )}
                             </div>
 
                             {/* Width and Meters inputs */}
