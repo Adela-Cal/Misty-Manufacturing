@@ -352,6 +352,45 @@ const LabelDesigner = () => {
                 />
               </div>
 
+              {/* Orientation Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Label Orientation
+                </label>
+                <div className="flex space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => handleOrientationChange('portrait')}
+                    className={`flex-1 px-4 py-3 rounded border-2 transition-all ${
+                      getCurrentOrientation() === 'portrait'
+                        ? 'border-yellow-600 bg-yellow-600/20 text-white'
+                        : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center">
+                      <div className="w-12 h-16 border-2 border-current mb-2 rounded"></div>
+                      <span className="text-sm font-medium">Portrait</span>
+                      <span className="text-xs text-gray-400">100 × 150 mm</span>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOrientationChange('landscape')}
+                    className={`flex-1 px-4 py-3 rounded border-2 transition-all ${
+                      getCurrentOrientation() === 'landscape'
+                        ? 'border-yellow-600 bg-yellow-600/20 text-white'
+                        : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center">
+                      <div className="w-16 h-12 border-2 border-current mb-2 rounded"></div>
+                      <span className="text-sm font-medium">Landscape</span>
+                      <span className="text-xs text-gray-400">150 × 100 mm</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
               {/* Dimensions */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
