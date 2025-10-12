@@ -30,11 +30,17 @@ const LabelDesigner = () => {
     width_mm: 100,
     height_mm: 150,
     fields: [],
+    shapes: [],
+    logo: null,
     include_qr_code: false,
     qr_code_x: 70,
     qr_code_y: 10,
     qr_code_size: 30
   });
+
+  // Dragging state
+  const [draggingElement, setDraggingElement] = useState(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   // Available fields that can be added to template
   const availableFields = [
