@@ -817,17 +817,30 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const getLabelData = () => {
     if (!jobData?.order || !productSpecs) return {};
     
-    // Calculate cores per carton
-    const totalCores = jobData.order.quantity || 0;
-    const totalCartons = calculations.cartonsRequired || 1;
-    const coresPerCarton = Math.ceil(totalCores / totalCartons);
+    // Get cores per carton from product specs (tubes_per_carton)
+    const coresPerCarton = calculations.tubesPerCarton || productSpecs.tubes_per_carton || 0;
+    
+    // Get product description - use client's product description if available
+    let productDescription = '';
+    if (jobData.order.product_description) {
+      productDescription = jobData.order.product_description;
+    } else if (productSpecs.product_description) {
+      productDescription = productSpecs.product_description;
+    } else {
+      // Fallback to building description from specs
+      const productType = productSpecs.product_type || 'Paper Core';
+      const id = productSpecs.internal_diameter ? `${productSpecs.internal_diameter}mm ID` : '';
+      const thickness = productSpecs.wall_thickness ? `${productSpecs.wall_thickness}mm T` : '';
+      const width = productSpecs.width ? `${productSpecs.width}mm W` : '';
+      productDescription = `${productType}${id ? ' - ' + id : ''}${thickness ? ' x ' + thickness : ''}${width ? ' x ' + width : ''}`;
+    }
     
     return {
       customer: jobData.order.client_name || '',
       order_number: jobData.order.order_number || jobData.order.id || '',
       due_date: jobData.order.due_date ? new Date(jobData.order.due_date).toLocaleDateString() : '',
       product_item: productSpecs.product_code || '',
-      product_details: `${productSpecs.product_type || ''} ${productSpecs.internal_diameter || ''}mm ID x ${productSpecs.wall_thickness || ''}mm T`,
+      product_details: productDescription,
       product_quantity: `${jobData.order.quantity || 0} units`,
       carton_qty: `${coresPerCarton} cores per carton`
     };
