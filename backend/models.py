@@ -874,4 +874,51 @@ class PaginatedResponse(BaseModel):
     total: int
     page: int
     per_page: int
+
+
+# Label Designer Models
+class LabelField(BaseModel):
+    field_name: str  # e.g., "customer", "order_number", "due_date", "product_item", etc.
+    label: str  # Display label for the field
+    x_position: float  # Position in mm from left
+    y_position: float  # Position in mm from top
+    font_size: int = 12  # Font size in pt
+    font_weight: str = "normal"  # "normal" or "bold"
+    text_align: str = "left"  # "left", "center", "right"
+    max_width: Optional[float] = None  # Max width in mm
+
+class LabelTemplate(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    template_name: str
+    width_mm: float = 100.0  # Default 100mm
+    height_mm: float = 150.0  # Default 150mm
+    fields: List[LabelField] = Field(default_factory=list)
+    include_qr_code: bool = False
+    qr_code_x: Optional[float] = None  # QR code X position in mm
+    qr_code_y: Optional[float] = None  # QR code Y position in mm
+    qr_code_size: Optional[float] = 30.0  # QR code size in mm
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_by: Optional[str] = None
+
+class LabelTemplateCreate(BaseModel):
+    template_name: str
+    width_mm: float = 100.0
+    height_mm: float = 150.0
+    fields: List[LabelField] = Field(default_factory=list)
+    include_qr_code: bool = False
+    qr_code_x: Optional[float] = None
+    qr_code_y: Optional[float] = None
+    qr_code_size: Optional[float] = 30.0
+
+class LabelTemplateUpdate(BaseModel):
+    template_name: Optional[str] = None
+    width_mm: Optional[float] = None
+    height_mm: Optional[float] = None
+    fields: Optional[List[LabelField]] = None
+    include_qr_code: Optional[bool] = None
+    qr_code_x: Optional[float] = None
+    qr_code_y: Optional[float] = None
+    qr_code_size: Optional[float] = None
+
     total_pages: int
