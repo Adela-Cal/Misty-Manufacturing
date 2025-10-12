@@ -1470,8 +1470,8 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
 
           {/* === SECTIONS RE-ADDED BELOW FOR PROPER CONTAINMENT === */}
 
-          {/* Quality Control & Safety - Hidden for Core Winding Jobs */}
-          {productSpecs?.qc_tolerances && stage !== 'winding' && (
+          {/* Quality Control & Safety - Hidden for Core Winding Jobs and Slitting Jobs */}
+          {productSpecs?.qc_tolerances && stage !== 'winding' && stage !== 'paper_slitting' && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
                 <ShieldCheckIcon className="h-5 w-5 mr-2" />
