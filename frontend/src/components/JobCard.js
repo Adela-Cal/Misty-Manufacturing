@@ -810,11 +810,61 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     setShowLabelPreview(true);
   };
 
-  const handlePrintLabels = () => {
-    // Trigger browser print
-    window.print();
-    toast.success(`Printing ${calculations.cartonsRequired || 0} label(s)...`);
-    setShowLabelPreview(false);
+  const handlePrintLabels = async () => {
+    try {
+      // Load available printers
+      const response = await apiHelpers.getPrinters();
+      if (response.data.success) {
+        setAvailablePrinters(response.data.data || []);
+        // Set default printer
+        const defaultPrinter = response.data.data.find(p => p.is_default);
+        setSelectedPrinter(defaultPrinter || response.data.data[0]);
+        setShowLabelPreview(false);
+        setShowPrinterSelection(true);
+      } else {
+        toast.error('Failed to load printers');
+      }
+    } catch (error) {
+      console.error('Error loading printers:', error);
+      toast.error('Failed to load printers');
+    }
+  };
+
+  const handleConfirmPrint = async () => {
+    if (!selectedPrinter) {
+      toast.error('Please select a printer');
+      return;
+    }
+
+    try {
+      if (selectedPrinter.is_browser) {
+        // Use browser print dialog
+        window.print();
+        toast.success(`Printing ${calculations.cartonsRequired || 0} label(s)...`);
+      } else {
+        // Send to specific printer
+        const response = await apiHelpers.printLabel({
+          printer_name: selectedPrinter.name,
+          is_browser: false,
+          template: selectedLabelTemplate,
+          data: getLabelData(),
+          copies: calculations.cartonsRequired || 1
+        });
+        
+        if (response.data.success) {
+          if (response.data.use_browser_print) {
+            window.print();
+          }
+          toast.success(response.data.message);
+        } else {
+          toast.error('Failed to print labels');
+        }
+      }
+      setShowPrinterSelection(false);
+    } catch (error) {
+      console.error('Error printing:', error);
+      toast.error('Failed to print labels');
+    }
   };
 
   // Get label data from order
