@@ -164,6 +164,28 @@ const LabelDesigner = () => {
     }));
   };
 
+  const handleOrientationChange = (orientation) => {
+    if (orientation === 'portrait') {
+      // Portrait: height > width (100 x 150)
+      setTemplateForm(prev => ({
+        ...prev,
+        width_mm: 100,
+        height_mm: 150
+      }));
+    } else {
+      // Landscape: width > height (150 x 100)
+      setTemplateForm(prev => ({
+        ...prev,
+        width_mm: 150,
+        height_mm: 100
+      }));
+    }
+  };
+
+  const getCurrentOrientation = () => {
+    return templateForm.height_mm > templateForm.width_mm ? 'portrait' : 'landscape';
+  };
+
   const handlePreview = (template) => {
     // Sample data for preview
     const sampleData = {
