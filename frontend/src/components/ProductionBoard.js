@@ -383,7 +383,7 @@ const ProductionBoard = () => {
 
         {/* Expanded Details */}
         {isExpanded && (
-          <div className="mt-4 pt-4 border-t border-gray-700">
+          <div className="mt-4 pt-4 border-t border-gray-700 relative z-10">
             <div className="space-y-3">
               {/* Order Items with checkboxes */}
               <div>
