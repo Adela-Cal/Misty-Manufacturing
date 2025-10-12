@@ -359,6 +359,28 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     }
   };
 
+  const loadRawMaterials = async () => {
+    try {
+      // Fetch raw materials (finished goods products) from stocktake
+      const response = await apiHelpers.getProducts();
+      const products = response.data || [];
+      
+      // Filter for raw materials - these are products that can be slit
+      // Typically paper rolls, films, etc. from the Raw Materials section
+      const rawMaterialsFiltered = products.filter(product => 
+        product.product_type === 'raw_material' || 
+        product.product_type === 'Raw Material' ||
+        product.category === 'raw_material'
+      );
+      
+      console.log('Loaded raw materials for slitting:', rawMaterialsFiltered);
+      setRawMaterials(rawMaterialsFiltered);
+    } catch (error) {
+      console.error('Failed to load raw materials:', error);
+      toast.error('Failed to load raw materials list');
+    }
+  };
+
   const calculateProduction = (job, order, product) => {
     // Add safety checks for all parameters
     if (!job || !order || !product) {
