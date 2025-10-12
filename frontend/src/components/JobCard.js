@@ -1488,6 +1488,33 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                           </div>
                         )}
                       </div>
+                      
+                      {/* Add Additional Finished Cores to Stock Section */}
+                      <div className="mt-4 border-t border-blue-500 pt-3">
+                        <span className="text-white font-medium block mb-2">Add Additional Finished Cores to Stock:</span>
+                        <div className="bg-blue-700/30 p-3 rounded border border-blue-500">
+                          <p className="text-xs text-blue-200 mb-2">
+                            Enter the quantity of finished cores to add directly to Products on Hand stock list
+                          </p>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="number"
+                              placeholder="Quantity"
+                              value={finishedCoresToStock}
+                              onChange={(e) => setFinishedCoresToStock(e.target.value)}
+                              className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white"
+                              min="1"
+                            />
+                            <button
+                              onClick={handleAddFinishedCoresToStock}
+                              disabled={!finishedCoresToStock || finishedCoresToStock <= 0}
+                              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Add to Stock
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <div className="bg-green-600 p-3 rounded border border-green-500">
