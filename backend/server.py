@@ -4865,6 +4865,108 @@ async def xero_auth_callback_direct(callback_data: dict):
         logger.error(f"Xero token exchange failed: {str(e)}")
         return {"error": f"Failed to exchange authorization code: {str(e)}"}
 
+
+
+# ======================
+# LABEL DESIGNER ENDPOINTS
+# ======================
+
+@app.get("/api/label-templates")
+async def get_label_templates(current_user: dict = Depends(get_current_user)):
+    """Get all label templates"""
+    try:
+        templates = await db.label_templates.find().to_list(length=None)
+        return {"success": True, "data": templates}
+    except Exception as e:
+        logger.error(f"Error fetching label templates: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/label-templates/{template_id}")
+async def get_label_template(template_id: str, current_user: dict = Depends(get_current_user)):
+    """Get a specific label template"""
+    try:
+        template = await db.label_templates.find_one({"id": template_id})
+        if not template:
+            raise HTTPException(status_code=404, detail="Label template not found")
+        return {"success": True, "data": template}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching label template: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/label-templates")
+async def create_label_template(template: LabelTemplateCreate, current_user: dict = Depends(get_current_user)):
+    """Create a new label template"""
+    try:
+        template_data = LabelTemplate(
+            **template.dict(),
+            created_by=current_user.get("sub")
+        )
+        
+        await db.label_templates.insert_one(template_data.dict())
+        
+        return {
+            "success": True,
+            "message": "Label template created successfully",
+            "data": template_data.dict()
+        }
+    except Exception as e:
+        logger.error(f"Error creating label template: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/api/label-templates/{template_id}")
+async def update_label_template(
+    template_id: str,
+    template: LabelTemplateUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a label template"""
+    try:
+        existing_template = await db.label_templates.find_one({"id": template_id})
+        if not existing_template:
+            raise HTTPException(status_code=404, detail="Label template not found")
+        
+        update_data = {k: v for k, v in template.dict().items() if v is not None}
+        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
+        await db.label_templates.update_one(
+            {"id": template_id},
+            {"$set": update_data}
+        )
+        
+        updated_template = await db.label_templates.find_one({"id": template_id})
+        
+        return {
+            "success": True,
+            "message": "Label template updated successfully",
+            "data": updated_template
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating label template: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/label-templates/{template_id}")
+async def delete_label_template(template_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a label template"""
+    try:
+        result = await db.label_templates.delete_one({"id": template_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Label template not found")
+        
+        return {
+            "success": True,
+            "message": "Label template deleted successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting label template: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
