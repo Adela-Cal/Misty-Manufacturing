@@ -1302,20 +1302,18 @@ const ClientProductCatalogue = () => {
 
   if (loading) {
     return (
-      <div className="modal-overlay">
-        <div className="modal-content max-w-6xl max-h-[90vh] overflow-y-auto">
-          <div className="p-8">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-700 rounded w-1/3 mb-8"></div>
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-16 bg-gray-700 rounded"></div>
-                ))}
-              </div>
+      <Layout>
+        <div className="p-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-700 rounded w-1/3 mb-8"></div>
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-16 bg-gray-700 rounded"></div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
