@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const LabelDesigner = () => {
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
