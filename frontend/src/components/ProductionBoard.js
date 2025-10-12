@@ -347,7 +347,7 @@ const ProductionBoard = () => {
         </div>
 
         {/* Job Summary */}
-        <div className="space-y-1 text-xs mt-2">
+        <div className="space-y-1 text-xs mt-2 relative z-10">
           <div className="flex justify-between">
             <span className="text-gray-400">Runtime:</span>
             <span className="text-yellow-400 font-medium truncate ml-1">
@@ -363,7 +363,7 @@ const ProductionBoard = () => {
         </div>
 
         {/* Navigation Arrows */}
-        <div className="flex justify-between mt-2 pt-2 border-t border-gray-700">
+        <div className="flex justify-between mt-2 pt-2 border-t border-gray-700 relative z-10">
           <button
             onClick={() => moveJobStage(job.id, stageKey, 'backward')}
             className="text-gray-400 hover:text-yellow-400 transition-colors"
