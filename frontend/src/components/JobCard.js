@@ -650,10 +650,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   };
 
   const handleRemoveSlittingWidth = (id) => {
-    setAdditionalProduction(prev => ({
-      ...prev,
-      slittingWidths: prev.slittingWidths.filter(width => width.id !== id)
-    }));
+    setPendingSlitWidths(prev => prev.filter(width => width.id !== id));
   };
 
   // Additional Biscuit Widths management functions
