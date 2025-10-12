@@ -84,6 +84,9 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
 
   // Order products completion tracking (for finishing stage)
   const [completedProducts, setCompletedProducts] = useState({});
+  
+  // Add finished cores to stock (for finishing stage)
+  const [finishedCoresToStock, setFinishedCoresToStock] = useState('');
 
   useEffect(() => {
     if (jobId && stage && orderId) {
