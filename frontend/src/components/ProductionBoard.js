@@ -247,26 +247,25 @@ const ProductionBoard = () => {
         data-testid={`job-card-${job.id}`}
       >
         {/* Job Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center flex-1">
+        <div className="mb-2">
+          <div className="flex items-center mb-1">
             {job.client_logo && (
               <img
                 src={job.client_logo}
                 alt={`${job.client_name} logo`}
-                className="h-8 w-8 rounded object-cover mr-3"
+                className="h-6 w-6 rounded object-cover mr-2"
               />
             )}
-            <div className="flex-1">
-              <h4 className="font-semibold text-white">{job.order_number}</h4>
-              <p className="text-sm text-gray-400">{job.client_name}</p>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold text-white text-sm truncate">{job.order_number}</h4>
             </div>
-            
             {isOverdue && (
-              <ExclamationTriangleIcon className="h-5 w-5 text-red-400 ml-2" />
+              <ExclamationTriangleIcon className="h-4 w-4 text-red-400 ml-1 flex-shrink-0" />
             )}
           </div>
+          <p className="text-xs text-gray-400 truncate">{job.client_name}</p>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-between mt-2 flex-wrap gap-1">
             {/* Materials Status Hexagon */}
             <button
               onClick={() => toggleMaterialsModal(job.id)}
