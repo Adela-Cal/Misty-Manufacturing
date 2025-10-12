@@ -631,14 +631,14 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   // Save slitting width to database for material allocation
   const saveSlittingWidthToDatabase = async (slittingEntry) => {
     try {
-      // Find the selected material from job's material layers
-      const selectedMaterial = jobData?.materialLayers?.find(
-        m => m.material_id === slittingEntry.material_id || m.product_id === slittingEntry.material_id
+      // Find the raw material stock record to get material specifications
+      const rawMaterialStock = rawMaterials.find(
+        m => m.material_id === slittingEntry.material_id
       );
 
-      if (!selectedMaterial) {
-        console.error('Selected material not found in job layers');
-        return;
+      if (!rawMaterialStock) {
+        console.error('Selected material not found in raw materials inventory');
+        throw new Error('Material not found in inventory');
       }
         
       const slitWidthData = {
@@ -647,25 +647,39 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         slit_width_mm: slittingEntry.width,
         quantity_meters: slittingEntry.meters,
         source_job_id: jobId,
-        source_order_id: jobData.order.id,
+        source_order_id: jobData?.order?.id || '',
         created_at: new Date().toISOString(),
         created_from_additional_widths: true,
-        material_specifications: {
-          gsm: selectedMaterial.gsm,
-          thickness_mm: selectedMaterial.thickness,
-          layer_type: selectedMaterial.layer_type,
-          supplier: selectedMaterial.supplier
-        }
+        material_specifications: {}
       };
 
-      const response = await apiHelpers.post('/slit-widths', slitWidthData);
+      // Save slit width record
+      const slitWidthResponse = await apiHelpers.post('/slit-widths', slitWidthData);
       
-      if (response.success) {
-        console.log('Slit width saved to database successfully');
-      } else {
-        console.error('Failed to save slit width:', response.message);
-        throw new Error(response.message);
+      if (!slitWidthResponse.success) {
+        console.error('Failed to save slit width:', slitWidthResponse.message);
+        throw new Error(slitWidthResponse.message || 'Failed to save slit width');
       }
+
+      console.log('Slit width saved to database successfully');
+
+      // Now update the raw material stock quantity
+      // We need to add the meters to the existing quantity
+      const newQuantity = rawMaterialStock.quantity_on_hand + slittingEntry.meters;
+      
+      const updateResponse = await apiHelpers.put(`/stock/raw-materials/${rawMaterialStock.id}`, {
+        quantity_on_hand: newQuantity,
+        notes: `Added ${slittingEntry.meters} meters from slitting job ${jobId} (${slittingEntry.width}mm width)`
+      });
+
+      if (!updateResponse.success) {
+        console.error('Failed to update raw material stock quantity:', updateResponse.message);
+        // Don't throw error here - slit width was already saved
+        toast.warning('Slit width saved but stock quantity update failed');
+      } else {
+        console.log(`Updated raw material stock: ${rawMaterialStock.material_name} quantity increased to ${newQuantity}`);
+      }
+
     } catch (error) {
       console.error('Error saving slit width to database:', error);
       throw error;
