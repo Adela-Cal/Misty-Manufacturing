@@ -636,11 +636,86 @@ const LabelDesigner = () => {
                     </label>
                   </div>
                 ) : (
-                  <div className="text-xs text-gray-300 space-y-1">
-                    <p>✓ Logo uploaded</p>
-                    <p>Position: {templateForm.logo.x_position.toFixed(1)}mm × {templateForm.logo.y_position.toFixed(1)}mm</p>
-                    <p>Size: {templateForm.logo.width.toFixed(1)}mm × {templateForm.logo.height.toFixed(1)}mm</p>
-                    <p className="text-gray-400 italic">Drag logo on preview to reposition</p>
+                  <div className="space-y-2">
+                    <div className="text-xs text-gray-300 bg-gray-700 p-2 rounded">
+                      <p>✓ Logo uploaded</p>
+                      <p className="text-gray-400 italic mt-1">Drag logo on preview to reposition</p>
+                    </div>
+                    
+                    {/* Logo Size Controls */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-300 mb-1">
+                        Logo Size (mm)
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Width</label>
+                          <input
+                            type="number"
+                            value={templateForm.logo.width.toFixed(1)}
+                            onChange={(e) => {
+                              const newWidth = parseFloat(e.target.value);
+                              setTemplateForm(prev => ({
+                                ...prev,
+                                logo: {
+                                  ...prev.logo,
+                                  width: newWidth
+                                }
+                              }));
+                            }}
+                            className="misty-input w-full text-xs py-1"
+                            step="0.5"
+                            min="5"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Height</label>
+                          <input
+                            type="number"
+                            value={templateForm.logo.height.toFixed(1)}
+                            onChange={(e) => {
+                              const newHeight = parseFloat(e.target.value);
+                              setTemplateForm(prev => ({
+                                ...prev,
+                                logo: {
+                                  ...prev.logo,
+                                  height: newHeight
+                                }
+                              }));
+                            }}
+                            className="misty-input w-full text-xs py-1"
+                            step="0.5"
+                            min="5"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          // Reset to proportional scaling
+                          const img = new Image();
+                          img.onload = () => {
+                            const aspectRatio = img.width / img.height;
+                            const maxWidth = templateForm.width_mm * 0.3;
+                            let width = maxWidth;
+                            let height = width / aspectRatio;
+                            
+                            setTemplateForm(prev => ({
+                              ...prev,
+                              logo: {
+                                ...prev.logo,
+                                width: width,
+                                height: height
+                              }
+                            }));
+                            toast.success('Logo size reset to proportional');
+                          };
+                          img.src = templateForm.logo.image_data;
+                        }}
+                        className="mt-2 text-xs px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500 w-full"
+                      >
+                        Reset Proportions
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
