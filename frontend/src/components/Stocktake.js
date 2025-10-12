@@ -492,10 +492,27 @@ const Stocktake = () => {
       // Extract allocations from nested data structure
       const allocations = response.data?.data?.allocations || [];
       setStockAllocations(allocations);
+      setCurrentAllocationProduct({ productId, clientId });
       console.log('Loaded allocations:', allocations);
     } catch (error) {
       console.error('Failed to load stock allocations:', error);
       toast.error('Failed to load stock allocations');
+    }
+  };
+
+  // Load archived allocations for a specific product
+  const loadArchivedAllocations = async () => {
+    if (!currentAllocationProduct) return;
+    
+    try {
+      const response = await apiHelpers.get(`/stock/allocations/archived?product_id=${currentAllocationProduct.productId}&client_id=${currentAllocationProduct.clientId}`);
+      const archived = response.data?.data?.allocations || [];
+      setArchivedAllocations(archived);
+      setShowArchivedAllocations(true);
+      console.log('Loaded archived allocations:', archived);
+    } catch (error) {
+      console.error('Failed to load archived allocations:', error);
+      toast.error('Failed to load archived allocations');
     }
   };
 
