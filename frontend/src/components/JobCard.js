@@ -1768,12 +1768,12 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                                 onChange={(e) => {
                                   const selectedId = e.target.value;
                                   const selectedMat = rawMaterials.find(
-                                    m => m.product_id === selectedId
+                                    m => m.material_id === selectedId
                                   );
                                   setNewSlittingWidth(prev => ({ 
                                     ...prev, 
                                     material_id: selectedId,
-                                    material_name: selectedMat ? selectedMat.product_name : ''
+                                    material_name: selectedMat ? selectedMat.material_name : ''
                                   }));
                                 }}
                                 className="w-full px-2 py-1 text-xs bg-gray-600 border border-gray-500 rounded text-white"
@@ -1784,10 +1784,10 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                                 ) : (
                                   rawMaterials.map((material) => (
                                     <option 
-                                      key={material.product_id} 
-                                      value={material.product_id}
+                                      key={material.material_id} 
+                                      value={material.material_id}
                                     >
-                                      {material.product_name || material.product_code || 'Unknown Material'}
+                                      {material.material_name || 'Unknown Material'}
                                     </option>
                                   ))
                                 )}
