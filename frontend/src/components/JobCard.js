@@ -106,14 +106,15 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
           signOffs,
           finishedQuantity,
           additionalProduction,
-          masterCores
+          masterCores,
+          completedProducts
         };
         localStorage.setItem(timingKey, JSON.stringify(timingData));
       }, 500); // Debounce by 500ms
       
       return () => clearTimeout(timeoutId);
     }
-  }, [isJobRunning, jobStartTime, actualRunTime, selectedMachine, setupNotes, signOffs, finishedQuantity, additionalProduction, jobId, stage]);
+  }, [isJobRunning, jobStartTime, actualRunTime, selectedMachine, setupNotes, signOffs, finishedQuantity, additionalProduction, completedProducts, jobId, stage]);
 
   // Update live timer when job is running (without causing form clearing)
   useEffect(() => {
