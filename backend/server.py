@@ -165,6 +165,10 @@ async def get_client(client_id: str, current_user: dict = Depends(require_any_ro
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
     
+    # Transform logo_path to proper URL for frontend
+    if client.get("logo_path"):
+        client["logo_path"] = get_file_url(client["logo_path"])
+    
     return Client(**client)
 
 @api_router.put("/clients/{client_id}", response_model=StandardResponse)
