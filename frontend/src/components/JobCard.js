@@ -1681,8 +1681,54 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             </div>
           )}
 
+          {/* Consumables Required - Show for Finishing Stage */}
+          {stage === 'finishing' && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
+                <DocumentTextIcon className="h-5 w-5 mr-2" />
+                Consumables Required
+              </h3>
+              <div className="bg-gray-700 p-4 rounded border border-gray-600">
+                <table className="w-full text-sm border border-gray-600">
+                  <thead>
+                    <tr className="bg-gray-600">
+                      <th className="p-2 text-left text-white">Item</th>
+                      <th className="p-2 text-right text-white">Quantity Required</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Cartons Required</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.cartonsRequired || 'N/A'}</td>
+                    </tr>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Tape Rolls Required</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.tapeRollsRequired || 'N/A'}</td>
+                    </tr>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Pallet Wrap</td>
+                      <td className="p-2 text-right font-medium text-white">As needed</td>
+                    </tr>
+                    <tr className="border-b border-gray-600">
+                      <td className="p-2 bg-gray-700 text-gray-300">Labels</td>
+                      <td className="p-2 text-right font-medium text-white">{jobData?.order?.quantity || 'N/A'}</td>
+                    </tr>
+                    {productSpecs?.consumables && productSpecs.consumables.length > 0 && (
+                      productSpecs.consumables.map((consumable, index) => (
+                        <tr key={index} className="border-b border-gray-600">
+                          <td className="p-2 bg-gray-700 text-gray-300">{consumable.specification_name}</td>
+                          <td className="p-2 text-right font-medium text-white">{consumable.measurement_unit}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {/* Packing & Delivery - Hidden for Core Winding Jobs and Slitting Jobs */}
-          {stage !== 'winding' && stage !== 'paper_slitting' && (
+          {stage !== 'winding' && stage !== 'paper_slitting' && stage !== 'finishing' && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
                 <TruckIcon className="h-5 w-5 mr-2" />
