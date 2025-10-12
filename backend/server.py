@@ -4876,6 +4876,10 @@ async def get_label_templates(current_user: dict = Depends(get_current_user)):
     """Get all label templates"""
     try:
         templates = await db.label_templates.find().to_list(length=None)
+        # Remove MongoDB's _id field
+        for template in templates:
+            if '_id' in template:
+                del template['_id']
         return {"success": True, "data": templates}
     except Exception as e:
         logger.error(f"Error fetching label templates: {str(e)}")
@@ -4888,6 +4892,9 @@ async def get_label_template(template_id: str, current_user: dict = Depends(get_
         template = await db.label_templates.find_one({"id": template_id})
         if not template:
             raise HTTPException(status_code=404, detail="Label template not found")
+        # Remove MongoDB's _id field
+        if '_id' in template:
+            del template['_id']
         return {"success": True, "data": template}
     except HTTPException:
         raise
