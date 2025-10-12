@@ -1114,7 +1114,8 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             </div>
           )}
 
-          {/* Production Calculations */}
+          {/* Production Calculations - Hidden for Finishing stage */}
+          {stage !== 'finishing' && (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
               <CalculatorIcon className="h-5 w-5 mr-2" />
