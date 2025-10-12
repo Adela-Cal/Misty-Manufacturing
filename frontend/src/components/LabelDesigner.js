@@ -75,6 +75,8 @@ const LabelDesigner = () => {
       width_mm: 100,
       height_mm: 150,
       fields: [],
+      shapes: [],
+      logo: null,
       include_qr_code: false,
       qr_code_x: 70,
       qr_code_y: 10,
