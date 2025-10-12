@@ -92,6 +92,8 @@ const LabelDesigner = () => {
       width_mm: template.width_mm,
       height_mm: template.height_mm,
       fields: template.fields || [],
+      shapes: template.shapes || [],
+      logo: template.logo || null,
       include_qr_code: template.include_qr_code || false,
       qr_code_x: template.qr_code_x || 70,
       qr_code_y: template.qr_code_y || 10,
