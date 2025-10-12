@@ -236,10 +236,10 @@ const LabelDesigner = () => {
           {!isEditing && (
             <>
               <button
-                onClick={() => window.location.href = '/'}
+                onClick={() => navigate('/')}
                 className="misty-button misty-button-secondary flex items-center"
               >
-                <ArrowsRightLeftIcon className="h-5 w-5 mr-2" />
+                <HomeIcon className="h-5 w-5 mr-2" />
                 Return to Dashboard
               </button>
               <button
