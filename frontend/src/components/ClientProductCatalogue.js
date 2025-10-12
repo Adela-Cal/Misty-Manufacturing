@@ -2100,6 +2100,7 @@ const ClientProductCatalogue = () => {
             </div>
           </div>
         )}
+        </div>
       </div>
     </Layout>
   );
