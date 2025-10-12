@@ -361,23 +361,22 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
 
   const loadRawMaterials = async () => {
     try {
-      // Fetch raw materials (finished goods products) from stocktake
-      const response = await apiHelpers.getProducts();
-      const products = response.data || [];
+      // Fetch raw materials from the same endpoint that Stocktake uses
+      const response = await apiHelpers.get('/stock/raw-materials');
+      // Handle StandardResponse format: response.data.data contains the actual array
+      const data = response.data?.data || response.data || [];
+      const rawMaterialsList = Array.isArray(data) ? data : [];
       
-      // Filter for raw materials - these are products that can be slit
-      // Typically paper rolls, films, etc. from the Raw Materials section
-      const rawMaterialsFiltered = products.filter(product => 
-        product.product_type === 'raw_material' || 
-        product.product_type === 'Raw Material' ||
-        product.category === 'raw_material'
-      );
+      console.log('Loaded raw materials for slitting dropdown:', rawMaterialsList);
+      setRawMaterials(rawMaterialsList);
       
-      console.log('Loaded raw materials for slitting:', rawMaterialsFiltered);
-      setRawMaterials(rawMaterialsFiltered);
+      if (rawMaterialsList.length === 0) {
+        console.warn('No raw materials found. Make sure materials are added to Raw Materials stock.');
+      }
     } catch (error) {
       console.error('Failed to load raw materials:', error);
       toast.error('Failed to load raw materials list');
+      setRawMaterials([]);
     }
   };
 
