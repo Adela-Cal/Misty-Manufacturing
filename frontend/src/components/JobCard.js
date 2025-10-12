@@ -667,7 +667,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
       // We need to add the meters to the existing quantity
       const newQuantity = rawMaterialStock.quantity_on_hand + slittingEntry.meters;
       
-      const updateResponse = await apiHelpers.get('/api').put(`/stock/raw-materials/${rawMaterialStock.id}`, {
+      const updateResponse = await api.put(`/stock/raw-materials/${rawMaterialStock.id}`, {
         quantity_on_hand: newQuantity,
         notes: `Added ${slittingEntry.meters} meters from slitting job ${jobId} (${slittingEntry.width}mm width)`
       });
