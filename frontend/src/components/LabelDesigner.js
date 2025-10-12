@@ -145,6 +145,7 @@ const LabelDesigner = () => {
 
   const handleAddField = () => {
     const newField = {
+      id: `field-${Date.now()}`,
       field_name: availableFields[0].value,
       label: availableFields[0].label,
       x_position: 10,
@@ -159,6 +160,104 @@ const LabelDesigner = () => {
       ...prev,
       fields: [...prev.fields, newField]
     }));
+  };
+
+  const handleAddShape = (shapeType) => {
+    const newShape = {
+      id: `shape-${Date.now()}`,
+      shape_type: shapeType,
+      x_position: 10,
+      y_position: 10,
+      width: shapeType === 'line' ? 50 : 30,
+      height: shapeType === 'line' ? 2 : 30,
+      border_width: 1,
+      border_color: '#000000',
+      fill_color: null
+    };
+
+    setTemplateForm(prev => ({
+      ...prev,
+      shapes: [...prev.shapes, newShape]
+    }));
+  };
+
+  const handleRemoveShape = (index) => {
+    setTemplateForm(prev => ({
+      ...prev,
+      shapes: prev.shapes.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleShapeChange = (index, field, value) => {
+    setTemplateForm(prev => ({
+      ...prev,
+      shapes: prev.shapes.map((s, i) => 
+        i === index ? { ...s, [field]: value } : s
+      )
+    }));
+  };
+
+  const handleLogoUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Check file type
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Only PNG and JPEG formats are supported');
+      return;
+    }
+
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size must be less than 2MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // Calculate dimensions to fit within label
+        const maxWidth = templateForm.width_mm * 0.3; // 30% of label width
+        const maxHeight = templateForm.height_mm * 0.3; // 30% of label height
+        
+        let width = maxWidth;
+        let height = (img.height / img.width) * width;
+        
+        if (height > maxHeight) {
+          height = maxHeight;
+          width = (img.width / img.height) * height;
+        }
+
+        const logo = {
+          id: `logo-${Date.now()}`,
+          x_position: 5,
+          y_position: 5,
+          width: width,
+          height: height,
+          image_data: e.target.result,
+          image_format: file.type.split('/')[1]
+        };
+
+        setTemplateForm(prev => ({
+          ...prev,
+          logo: logo
+        }));
+
+        toast.success('Logo uploaded successfully');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveLogo = () => {
+    setTemplateForm(prev => ({
+      ...prev,
+      logo: null
+    }));
+    toast.success('Logo removed');
   };
 
   const handleRemoveField = (index) => {
