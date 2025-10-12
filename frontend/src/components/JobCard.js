@@ -783,6 +783,51 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     }));
   };
 
+  // Handle Print Carton Labels button
+  const handlePrintCartonLabels = async () => {
+    try {
+      // Load label templates
+      const response = await apiHelpers.getLabelTemplates();
+      if (response.data.success) {
+        setLabelTemplates(response.data.data || []);
+        setShowLabelPrintModal(true);
+      } else {
+        toast.error('Failed to load label templates');
+      }
+    } catch (error) {
+      console.error('Error loading label templates:', error);
+      toast.error('Failed to load label templates');
+    }
+  };
+
+  const handleSelectTemplate = (template) => {
+    setSelectedLabelTemplate(template);
+    setShowLabelPrintModal(false);
+    setShowLabelPreview(true);
+  };
+
+  const handlePrintLabels = () => {
+    // Trigger browser print
+    window.print();
+    toast.success(`Printing ${calculations.cartonsRequired || 0} label(s)...`);
+    setShowLabelPreview(false);
+  };
+
+  // Get label data from order
+  const getLabelData = () => {
+    if (!jobData?.order || !productSpecs) return {};
+    
+    return {
+      customer: jobData.order.client_name || '',
+      order_number: jobData.order.order_number || jobData.order.id || '',
+      due_date: jobData.order.due_date ? new Date(jobData.order.due_date).toLocaleDateString() : '',
+      product_item: productSpecs.product_code || '',
+      product_details: `${productSpecs.product_type || ''} ${productSpecs.internal_diameter || ''}mm ID x ${productSpecs.wall_thickness || ''}mm T`,
+      product_quantity: `${jobData.order.quantity || 0} units`,
+      carton_qty: `${calculations.cartonsRequired || 0} cartons`
+    };
+  };
+
   // Handle adding finished cores directly to stock
   const handleAddFinishedCoresToStock = async () => {
     if (!finishedCoresToStock || finishedCoresToStock <= 0) {
