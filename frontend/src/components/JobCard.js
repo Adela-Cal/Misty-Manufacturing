@@ -2346,6 +2346,84 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
         </div>
       )}
 
+      {/* Printer Selection Modal */}
+      {showPrinterSelection && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg max-w-2xl w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-white">Select Printer</h3>
+              <button
+                onClick={() => setShowPrinterSelection(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="mb-4 bg-gray-700 p-3 rounded">
+              <p className="text-white text-sm">
+                <strong>Quantity to print:</strong> {calculations.cartonsRequired || 0} labels
+              </p>
+            </div>
+
+            <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">
+              {availablePrinters.map((printer, index) => (
+                <div
+                  key={index}
+                  onClick={() => setSelectedPrinter(printer)}
+                  className={`p-4 rounded border-2 cursor-pointer transition-all ${
+                    selectedPrinter?.name === printer.name
+                      ? 'border-yellow-600 bg-yellow-600/20'
+                      : 'border-gray-600 bg-gray-700 hover:border-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-white font-medium">{printer.name}</p>
+                      {printer.is_default && (
+                        <span className="text-xs text-green-400">Default Printer</span>
+                      )}
+                      {printer.is_browser && (
+                        <span className="text-xs text-blue-400 block mt-1">
+                          Uses your browser's print dialog
+                        </span>
+                      )}
+                    </div>
+                    {selectedPrinter?.name === printer.name && (
+                      <div className="text-yellow-400">
+                        <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowPrinterSelection(false);
+                  setShowLabelPreview(true);
+                }}
+                className="misty-button misty-button-secondary"
+              >
+                Back to Preview
+              </button>
+              <button
+                onClick={handleConfirmPrint}
+                disabled={!selectedPrinter}
+                className="misty-button misty-button-primary flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <PrinterIcon className="h-5 w-5 mr-2" />
+                Print {calculations.cartonsRequired || 0} Label(s)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Label Preview Modal */}
       {showLabelPreview && selectedLabelTemplate && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
