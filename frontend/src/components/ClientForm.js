@@ -853,14 +853,12 @@ const ClientForm = ({ client, onClose, onSuccess }) => {
       </div>
       
       {/* Product Catalogue Modal */}
-      {/* TEMPORARILY DISABLED - JSX ERROR IN COMPONENT
       {showProductCatalogue && client && (
         <ClientProductCatalogue
           clientId={client.id}
           onClose={() => setShowProductCatalogue(false)}
         />
       )}
-      */}
       
       {/* Archived Orders Modal */}
       {showArchivedOrders && client && (
