@@ -325,6 +325,66 @@ const LabelDesigner = () => {
     }
   };
 
+  // Drag and Drop handlers
+  const handleDragStart = (e, elementType, elementId, currentX, currentY) => {
+    const rect = e.target.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    
+    setDraggingElement({ type: elementType, id: elementId });
+    setDragOffset({ x: offsetX, y: offsetY });
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    if (!draggingElement) return;
+
+    const canvas = e.currentTarget;
+    const rect = canvas.getBoundingClientRect();
+    
+    // Calculate position in mm
+    const x = ((e.clientX - rect.left - dragOffset.x) / 3.779527559);
+    const y = ((e.clientY - rect.top - dragOffset.y) / 3.779527559);
+
+    // Update position based on element type
+    if (draggingElement.type === 'field') {
+      setTemplateForm(prev => ({
+        ...prev,
+        fields: prev.fields.map(f => 
+          f.id === draggingElement.id 
+            ? { ...f, x_position: Math.max(0, x), y_position: Math.max(0, y) }
+            : f
+        )
+      }));
+    } else if (draggingElement.type === 'shape') {
+      setTemplateForm(prev => ({
+        ...prev,
+        shapes: prev.shapes.map(s => 
+          s.id === draggingElement.id 
+            ? { ...s, x_position: Math.max(0, x), y_position: Math.max(0, y) }
+            : s
+        )
+      }));
+    } else if (draggingElement.type === 'logo' && templateForm.logo) {
+      setTemplateForm(prev => ({
+        ...prev,
+        logo: { ...prev.logo, x_position: Math.max(0, x), y_position: Math.max(0, y) }
+      }));
+    } else if (draggingElement.type === 'qr_code') {
+      setTemplateForm(prev => ({
+        ...prev,
+        qr_code_x: Math.max(0, x),
+        qr_code_y: Math.max(0, y)
+      }));
+    }
+
+    setDraggingElement(null);
+  };
+
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
