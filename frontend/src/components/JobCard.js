@@ -87,6 +87,12 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   
   // Add finished cores to stock (for finishing stage)
   const [finishedCoresToStock, setFinishedCoresToStock] = useState('');
+  
+  // Label printing state
+  const [showLabelPrintModal, setShowLabelPrintModal] = useState(false);
+  const [labelTemplates, setLabelTemplates] = useState([]);
+  const [selectedLabelTemplate, setSelectedLabelTemplate] = useState(null);
+  const [showLabelPreview, setShowLabelPreview] = useState(false);
 
   useEffect(() => {
     if (jobId && stage && orderId) {
