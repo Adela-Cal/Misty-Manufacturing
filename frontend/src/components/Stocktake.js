@@ -382,15 +382,24 @@ const Stocktake = () => {
 
   // Delete slit width entry
   const handleDeleteSlitWidth = async (slitWidthId) => {
+    console.log('Delete button clicked for slit width ID:', slitWidthId);
+    
+    if (!slitWidthId) {
+      toast.error('Invalid slit width ID');
+      console.error('Slit width ID is missing or undefined');
+      return;
+    }
+    
     if (!window.confirm('Are you sure you want to delete this slit width entry?')) {
+      console.log('Delete cancelled by user');
       return;
     }
 
     try {
-      console.log('Attempting to delete slit width:', slitWidthId); // Debug log
+      console.log('Attempting to delete slit width:', slitWidthId);
       const response = await apiHelpers.deleteSlitWidth(slitWidthId);
       
-      console.log('Delete response:', response); // Debug log
+      console.log('Delete response:', response);
       
       // Check if response has data property and success field
       const success = response.data?.success || response.success;
@@ -399,7 +408,12 @@ const Stocktake = () => {
       if (success) {
         toast.success(message || 'Slit width deleted successfully');
         // Reload slit widths
-        await loadSlitWidths(selectedMaterial.id, selectedMaterial.name);
+        if (selectedMaterial && selectedMaterial.id) {
+          await loadSlitWidths(selectedMaterial.id, selectedMaterial.name);
+          console.log('Slit widths reloaded after deletion');
+        } else {
+          console.warn('Cannot reload slit widths - selectedMaterial not available');
+        }
       } else {
         console.error('Delete failed:', response);
         toast.error(message || 'Failed to delete slit width');
@@ -410,13 +424,23 @@ const Stocktake = () => {
       // Check if it's an HTTP error response
       if (error.response) {
         const errorMessage = error.response.data?.message || error.response.data?.detail || 'Failed to delete slit width';
-        toast.error(errorMessage);
+        
+        // Special handling for allocated slit widths
+        if (error.response.status === 400 && errorMessage.includes('allocated')) {
+          toast.error('Cannot delete: This slit width is allocated to an order. Remove allocation first.');
+        } else {
+          toast.error(errorMessage);
+        }
         
         // Log more details for debugging
         console.error('Error status:', error.response.status);
         console.error('Error data:', error.response.data);
+      } else if (error.request) {
+        toast.error('Network error: Could not reach server');
+        console.error('No response received:', error.request);
       } else {
-        toast.error('Network error: Failed to delete slit width');
+        toast.error('Error: ' + error.message);
+        console.error('Error setting up request:', error.message);
       }
     }
   };
