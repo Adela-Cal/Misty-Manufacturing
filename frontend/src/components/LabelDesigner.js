@@ -307,7 +307,8 @@ const LabelDesigner = () => {
       due_date: '15/01/2025',
       product_item: 'Paper Core 76mm ID x 3mmT',
       product_details: 'Spiral wound, 1000mm length',
-      product_quantity: '500 units'
+      product_quantity: '500 units',
+      carton_qty: '10 cartons'
     };
 
     setPreviewData({ template, data: sampleData });
