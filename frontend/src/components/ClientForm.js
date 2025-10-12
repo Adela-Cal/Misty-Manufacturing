@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiHelpers } from '../utils/api';
 import { toast } from 'sonner';
 import { XMarkIcon, PhotoIcon, PlusIcon, TrashIcon, ArchiveBoxIcon } from '@heroicons/react/24/outline';
-// import ClientProductCatalogue from './ClientProductCatalogue';
+import ClientProductCatalogue from './ClientProductCatalogue';
 import ArchivedOrders from './ArchivedOrders';
 
 const ClientForm = ({ client, onClose, onSuccess }) => {
