@@ -341,29 +341,29 @@ const ProductionBoard = () => {
         </div>
 
         {/* Job Summary */}
-        <div className="space-y-1 text-sm">
+        <div className="space-y-1 text-xs mt-2">
           <div className="flex justify-between">
             <span className="text-gray-400">Runtime:</span>
-            <span className="text-yellow-400 font-medium">
-              {job.runtime || '2-3 days'}
+            <span className="text-yellow-400 font-medium truncate ml-1">
+              {job.runtime || '2-3d'}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-400">Due:</span>
-            <span className={isOverdue ? 'text-red-400' : 'text-gray-300'}>
+            <span className={`truncate ml-1 ${isOverdue ? 'text-red-400' : 'text-gray-300'}`}>
               {formatDate(job.due_date)}
             </span>
           </div>
         </div>
 
         {/* Navigation Arrows */}
-        <div className="flex justify-between mt-3">
+        <div className="flex justify-between mt-2 pt-2 border-t border-gray-700">
           <button
             onClick={() => moveJobStage(job.id, stageKey, 'backward')}
             className="text-gray-400 hover:text-yellow-400 transition-colors"
             title="Move to Previous Stage"
           >
-            <ArrowLeftIcon className="h-6 w-6 font-bold" />
+            <ArrowLeftIcon className="h-5 w-5" />
           </button>
           
           <button
@@ -371,7 +371,7 @@ const ProductionBoard = () => {
             className="text-gray-400 hover:text-yellow-400 transition-colors"
             title="Move to Next Stage"
           >
-            <ArrowRightIcon className="h-6 w-6 font-bold" />
+            <ArrowRightIcon className="h-5 w-5" />
           </button>
         </div>
 
