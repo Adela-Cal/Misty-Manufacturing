@@ -1296,6 +1296,76 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                           )}
                         </div>
                       )}
+                      
+                      {/* Additional Cores Produced Section */}
+                      <div className="mt-4 border-t border-blue-500 pt-3">
+                        <span className="text-white font-medium block mb-2">Additional Cores Produced:</span>
+                        
+                        {/* Add new core form */}
+                        <div className="mb-3 space-y-2">
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <input
+                                type="number"
+                                step="0.1"
+                                placeholder="Width (mm)"
+                                value={newMasterCore.width}
+                                onChange={(e) => setNewMasterCore(prev => ({ ...prev, width: e.target.value }))}
+                                className="w-full px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white"
+                              />
+                            </div>
+                            <div>
+                              <input
+                                type="number"
+                                placeholder="Quantity"
+                                value={newMasterCore.quantity}
+                                onChange={(e) => setNewMasterCore(prev => ({ ...prev, quantity: e.target.value }))}
+                                className="w-full px-2 py-1 text-sm bg-gray-600 border border-gray-500 rounded text-white"
+                              />
+                            </div>
+                            <div>
+                              <button
+                                onClick={handleAddMasterCore}
+                                disabled={!newMasterCore.width || !newMasterCore.quantity}
+                                className="w-full px-3 py-1 bg-blue-700 text-white text-sm rounded hover:bg-blue-800 disabled:opacity-50"
+                              >
+                                + Add Core
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Core Entries List */}
+                        {masterCores.length > 0 && (
+                          <div className="space-y-1">
+                            <div className="text-xs text-blue-100 font-semibold border-b border-blue-500 pb-1">
+                              Additional Cores Produced:
+                            </div>
+                            {masterCores.map((core) => (
+                              <div key={core.id} className="bg-blue-700 p-2 rounded text-sm">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-white">{core.width}mm × {core.quantity} cores</span>
+                                  <div className="flex items-center space-x-2">
+                                    <button
+                                      onClick={() => handleAddToStockOnHand(core)}
+                                      className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                                      title="Add to Stock on Hand"
+                                    >
+                                      Add to Stock
+                                    </button>
+                                    <button
+                                      onClick={() => handleRemoveMasterCore(core.id)}
+                                      className="text-red-300 hover:text-red-200 text-xs"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="bg-green-600 p-3 rounded border border-green-500">
