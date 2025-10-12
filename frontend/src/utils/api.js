@@ -217,6 +217,13 @@ export const apiHelpers = {
   allocateSlitWidth: (allocationData) => api.post('/slit-widths/allocate', allocationData),
   getSlitWidthAllocations: (orderId) => api.get(`/slit-widths/allocations/${orderId}`),
 
+  // Label Designer
+  getLabelTemplates: () => api.get('/label-templates'),
+  getLabelTemplate: (templateId) => api.get(`/label-templates/${templateId}`),
+  createLabelTemplate: (data) => api.post('/label-templates', data),
+  updateLabelTemplate: (templateId, data) => api.put(`/label-templates/${templateId}`, data),
+  deleteLabelTemplate: (templateId) => api.delete(`/label-templates/${templateId}`),
+
   // Generic GET/POST/PUT methods for flexibility
   get: (url) => api.get(url),
   post: (url, data) => api.post(url, data),
