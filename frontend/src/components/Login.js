@@ -39,12 +39,12 @@ const Login = () => {
           {/* Adela Merchants Logo */}
           <div className="mx-auto mb-4">
             <img 
-              src="/logo.svg" 
+              src="/adela-logo.jpg" 
               alt="Adela Merchants Logo" 
-              className="h-20 w-20 mx-auto"
+              className="h-24 w-24 mx-auto rounded-xl object-cover"
             />
           </div>
-          <h1 className="text-3xl font-bold text-yellow-400 mb-2">Misty</h1>
+          <h1 className="text-3xl font-bold text-yellow-400 mb-2">Adela Merchants</h1>
           <h2 className="text-xl text-gray-300 mb-2">Manufacturing Management</h2>
           <p className="text-sm text-gray-400">Adela Merchants</p>
         </div>
