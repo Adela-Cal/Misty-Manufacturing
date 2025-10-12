@@ -2391,7 +2391,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                 {/* Render QR Code */}
                 {selectedLabelTemplate.include_qr_code && (
                   <div
-                    className="absolute border-2 border-gray-400 bg-gray-200 flex items-center justify-center"
+                    className="absolute flex items-center justify-center bg-white p-1"
                     style={{
                       left: `${selectedLabelTemplate.qr_code_x * 3.779527559}px`,
                       top: `${selectedLabelTemplate.qr_code_y * 3.779527559}px`,
@@ -2399,7 +2399,12 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                       height: `${selectedLabelTemplate.qr_code_size * 3.779527559}px`
                     }}
                   >
-                    <span className="text-xs text-gray-500">QR Code</span>
+                    <QRCodeSVG 
+                      value={getLabelData().order_number}
+                      size={selectedLabelTemplate.qr_code_size * 3.779527559 - 8}
+                      level="M"
+                      includeMargin={false}
+                    />
                   </div>
                 )}
               </div>
