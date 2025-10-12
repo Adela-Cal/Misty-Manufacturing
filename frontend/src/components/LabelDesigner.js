@@ -231,13 +231,22 @@ const LabelDesigner = () => {
             </button>
           )}
           {!isEditing && (
-            <button
-              onClick={handleCreateNew}
-              className="misty-button misty-button-primary flex items-center"
-            >
-              <PlusIcon className="h-5 w-5 mr-2" />
-              Create New Template
-            </button>
+            <>
+              <button
+                onClick={() => window.location.href = '/'}
+                className="misty-button misty-button-secondary flex items-center"
+              >
+                <ArrowsRightLeftIcon className="h-5 w-5 mr-2" />
+                Return to Dashboard
+              </button>
+              <button
+                onClick={handleCreateNew}
+                className="misty-button misty-button-primary flex items-center"
+              >
+                <PlusIcon className="h-5 w-5 mr-2" />
+                Create New Template
+              </button>
+            </>
           )}
         </div>
       </div>
