@@ -49,7 +49,8 @@ const LabelDesigner = () => {
     { value: 'due_date', label: 'Due Date' },
     { value: 'product_item', label: 'Product Item' },
     { value: 'product_details', label: 'Product Details' },
-    { value: 'product_quantity', label: 'Product Quantity' }
+    { value: 'product_quantity', label: 'Product Quantity' },
+    { value: 'carton_qty', label: 'Carton Qty' }
   ];
 
   useEffect(() => {
