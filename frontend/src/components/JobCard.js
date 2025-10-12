@@ -1861,7 +1861,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                               onClick={handleSubmitSlitWidths}
                               className="mt-3 w-full px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded hover:bg-yellow-700"
                             >
-                              Submit Additional Slit Widths ({pendingSlitWidths.length})
+                              Submit to Raw Materials On Hand ({pendingSlitWidths.length})
                             </button>
                           </div>
                         )}
