@@ -900,19 +900,62 @@ const LabelDesigner = () => {
               </label>
               <div className="bg-white rounded-lg p-4 border-2 border-gray-600">
                 <div
-                  className="relative bg-white border-2 border-dashed border-gray-400 mx-auto"
+                  className="relative bg-white border-2 border-dashed border-gray-400 mx-auto overflow-hidden"
                   style={{
-                    width: `${templateForm.width_mm * 3.779527559}px`, // Convert mm to pixels (96 DPI)
+                    width: `${templateForm.width_mm * 3.779527559}px`,
                     height: `${templateForm.height_mm * 3.779527559}px`,
                     maxWidth: '100%',
                     aspectRatio: `${templateForm.width_mm} / ${templateForm.height_mm}`
                   }}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
                 >
-                  {/* Render Fields */}
-                  {templateForm.fields.map((field, index) => (
+                  {/* Render Shapes */}
+                  {templateForm.shapes.map((shape) => (
                     <div
-                      key={index}
-                      className="absolute text-black"
+                      key={shape.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, 'shape', shape.id, shape.x_position, shape.y_position)}
+                      className="absolute cursor-move hover:opacity-80"
+                      style={{
+                        left: `${shape.x_position * 3.779527559}px`,
+                        top: `${shape.y_position * 3.779527559}px`,
+                        width: `${shape.width * 3.779527559}px`,
+                        height: `${shape.height * 3.779527559}px`,
+                        border: `${shape.border_width}px solid ${shape.border_color}`,
+                        backgroundColor: shape.fill_color || 'transparent',
+                        borderRadius: shape.shape_type === 'circle' ? '50%' : '0'
+                      }}
+                      title="Drag to reposition"
+                    />
+                  ))}
+
+                  {/* Render Logo */}
+                  {templateForm.logo && (
+                    <img
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, 'logo', templateForm.logo.id, templateForm.logo.x_position, templateForm.logo.y_position)}
+                      src={templateForm.logo.image_data}
+                      alt="Company Logo"
+                      className="absolute cursor-move hover:opacity-80"
+                      style={{
+                        left: `${templateForm.logo.x_position * 3.779527559}px`,
+                        top: `${templateForm.logo.y_position * 3.779527559}px`,
+                        width: `${templateForm.logo.width * 3.779527559}px`,
+                        height: `${templateForm.logo.height * 3.779527559}px`,
+                        objectFit: 'contain'
+                      }}
+                      title="Drag to reposition"
+                    />
+                  )}
+
+                  {/* Render Fields */}
+                  {templateForm.fields.map((field) => (
+                    <div
+                      key={field.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, 'field', field.id, field.x_position, field.y_position)}
+                      className="absolute text-black cursor-move hover:bg-blue-50"
                       style={{
                         left: `${field.x_position * 3.779527559}px`,
                         top: `${field.y_position * 3.779527559}px`,
@@ -921,6 +964,7 @@ const LabelDesigner = () => {
                         textAlign: field.text_align,
                         maxWidth: field.max_width ? `${field.max_width * 3.779527559}px` : 'none'
                       }}
+                      title="Drag to reposition"
                     >
                       <div className="text-xs text-gray-400">{field.label}:</div>
                       <div className="font-medium">Sample Data</div>
@@ -930,13 +974,16 @@ const LabelDesigner = () => {
                   {/* Render QR Code */}
                   {templateForm.include_qr_code && (
                     <div
-                      className="absolute border-2 border-gray-400 bg-gray-200 flex items-center justify-center"
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, 'qr_code', 'qr', templateForm.qr_code_x, templateForm.qr_code_y)}
+                      className="absolute border-2 border-gray-400 bg-gray-200 flex items-center justify-center cursor-move hover:opacity-80"
                       style={{
                         left: `${templateForm.qr_code_x * 3.779527559}px`,
                         top: `${templateForm.qr_code_y * 3.779527559}px`,
                         width: `${templateForm.qr_code_size * 3.779527559}px`,
                         height: `${templateForm.qr_code_size * 3.779527559}px`
                       }}
+                      title="Drag to reposition"
                     >
                       <QrCodeIcon className="h-8 w-8 text-gray-600" />
                     </div>
@@ -961,7 +1008,7 @@ const LabelDesigner = () => {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2 text-center">
-                  Grid lines represent 10mm intervals
+                  <strong>Tip:</strong> Drag elements on the canvas to reposition them | Grid lines = 10mm intervals
                 </p>
               </div>
             </div>
