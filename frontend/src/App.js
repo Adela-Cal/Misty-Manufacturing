@@ -14,6 +14,7 @@ import ProductSpecifications from './components/ProductSpecifications';
 import MachineryRates from './components/MachineryRates';
 import Calculators from './components/Calculators';
 import Stocktake from './components/Stocktake';
+import LabelDesigner from './components/LabelDesigner';
 import PayrollManagement from './components/PayrollManagement';
 import Invoicing from './components/Invoicing';
 import StaffSecurity from './components/StaffSecurity';
