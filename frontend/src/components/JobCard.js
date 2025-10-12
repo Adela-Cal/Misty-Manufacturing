@@ -710,6 +710,58 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     }
   };
 
+  // Handle adding finished cores to stock for finishing stage
+  const handleAddToStockOnHand = async (core) => {
+    if (!jobData?.order || !productSpecs) {
+      toast.error('Missing job or product data for stock entry');
+      return false;
+    }
+
+    try {
+      // Create stock entry data for finished products
+      const stockData = {
+        client_id: jobData.order.client_id,
+        client_name: jobData.order.client_name || 'Unknown Client',
+        product_id: productSpecs.id,
+        product_code: productSpecs.product_code,
+        product_description: `${productSpecs.product_code} - Finished Cores (${core.width}mm)`,
+        quantity_on_hand: core.quantity,
+        unit_of_measure: 'pieces',
+        source_order_id: jobData.order.id,
+        source_job_id: jobId,
+        is_shared_product: false,
+        shared_with_clients: [],
+        created_from_excess: true,
+        material_specifications: {
+          core_width: core.width,
+          core_diameter: productSpecs.core_diameter || productSpecs.internal_diameter,
+          material_layers: productSpecs.material_layers
+        },
+        minimum_stock_level: 0
+      };
+
+      // Add to stock via API
+      const response = await apiHelpers.createRawSubstrate(stockData);
+      
+      if (response.data.success) {
+        toast.success(`${core.quantity} finished cores added to stock`);
+        
+        // Mark the core as added to stock
+        setMasterCores(prev => prev.map(c => 
+          c.id === core.id ? { ...c, addedToStock: true } : c
+        ));
+        
+        return true;
+      } else {
+        throw new Error(response.data.message || 'Failed to add to stock');
+      }
+    } catch (error) {
+      console.error('Failed to add finished cores to stock:', error);
+      toast.error('Failed to add finished cores to stock');
+      return false;
+    }
+  };
+
   const getCurrentStageTitle = () => {
     const stageNames = {
       paper_slitting: 'Paper Slitting Job Card',
