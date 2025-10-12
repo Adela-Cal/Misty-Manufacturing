@@ -43,7 +43,7 @@ const Layout = ({ children }) => {
     { name: 'Machinery Specifications', href: '/machinery-rates', icon: Cog8ToothIcon, permission: 'view_reports' },
     { name: 'Calculators', href: '/calculators', icon: CalculatorIcon, permission: 'view_reports' },
     { name: 'Stocktake', href: '/stocktake', icon: ClipboardDocumentListIcon, permission: 'view_reports' },
-    { name: 'Label Designer', href: '/label-designer', icon: ClipboardDocumentListIcon, permission: 'view_reports' },
+    { name: 'Label Designer', href: '/label-designer', icon: TagIcon, permission: 'view_reports' },
     { name: 'Staff & Security', href: '/staff-security', icon: ShieldCheckIcon, permission: 'admin' },
   ];
 
