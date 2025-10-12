@@ -878,6 +878,7 @@ class PaginatedResponse(BaseModel):
 
 # Label Designer Models
 class LabelField(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     field_name: str  # e.g., "customer", "order_number", "due_date", "product_item", etc.
     label: str  # Display label for the field
     x_position: float  # Position in mm from left
@@ -887,12 +888,34 @@ class LabelField(BaseModel):
     text_align: str = "left"  # "left", "center", "right"
     max_width: Optional[float] = None  # Max width in mm
 
+class LabelShape(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    shape_type: str  # "rectangle", "circle", "line"
+    x_position: float  # Position in mm from left
+    y_position: float  # Position in mm from top
+    width: float  # Width in mm
+    height: float  # Height in mm
+    border_width: int = 1  # Border width in pt
+    border_color: str = "#000000"  # Border color
+    fill_color: Optional[str] = None  # Fill color (None for transparent)
+
+class LabelLogo(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    x_position: float  # Position in mm from left
+    y_position: float  # Position in mm from top
+    width: float  # Width in mm
+    height: float  # Height in mm
+    image_data: str  # Base64 encoded image data
+    image_format: str  # "png", "jpg", "jpeg"
+
 class LabelTemplate(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     template_name: str
     width_mm: float = 100.0  # Default 100mm
     height_mm: float = 150.0  # Default 150mm
     fields: List[LabelField] = Field(default_factory=list)
+    shapes: List[LabelShape] = Field(default_factory=list)
+    logo: Optional[LabelLogo] = None
     include_qr_code: bool = False
     qr_code_x: Optional[float] = None  # QR code X position in mm
     qr_code_y: Optional[float] = None  # QR code Y position in mm
@@ -906,6 +929,8 @@ class LabelTemplateCreate(BaseModel):
     width_mm: float = 100.0
     height_mm: float = 150.0
     fields: List[LabelField] = Field(default_factory=list)
+    shapes: List[LabelShape] = Field(default_factory=list)
+    logo: Optional[LabelLogo] = None
     include_qr_code: bool = False
     qr_code_x: Optional[float] = None
     qr_code_y: Optional[float] = None
@@ -916,6 +941,8 @@ class LabelTemplateUpdate(BaseModel):
     width_mm: Optional[float] = None
     height_mm: Optional[float] = None
     fields: Optional[List[LabelField]] = None
+    shapes: Optional[List[LabelShape]] = None
+    logo: Optional[LabelLogo] = None
     include_qr_code: Optional[bool] = None
     qr_code_x: Optional[float] = None
     qr_code_y: Optional[float] = None
