@@ -573,7 +573,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
       setNewSlittingWidth({ width: '', meters: '' });
 
       // Save to database for slit width tracking
-      await saveslittingWidthToDatabase(slittingEntry);
+      await saveSlittingWidthToDatabase(slittingEntry);
     }
   };
 
