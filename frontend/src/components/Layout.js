@@ -122,12 +122,12 @@ const Layout = ({ children }) => {
         <div className="flex items-center h-16 px-4 border-b border-gray-700 flex-shrink-0">
           <div className="flex items-center">
             <img 
-              src="/logo.svg" 
+              src="/adela-logo.jpg" 
               alt="Adela Merchants" 
-              className="h-8 w-8 mr-3"
+              className="h-10 w-10 mr-3 rounded-lg object-cover"
             />
             <div>
-              <h1 className="text-lg font-bold text-yellow-400">Misty</h1>
+              <h1 className="text-lg font-bold text-yellow-400">Adela Merchants</h1>
               <p className="text-xs text-gray-400">Manufacturing</p>
             </div>
           </div>
