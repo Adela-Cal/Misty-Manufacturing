@@ -1763,29 +1763,29 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                           <div className="space-y-2">
                             {/* Material dropdown */}
                             <div>
-                              <label className="text-xs text-gray-300 block mb-1">Select Material:</label>
+                              <label className="text-xs text-gray-300 block mb-1">Select Material from Raw Materials:</label>
                               <select
                                 value={newSlittingWidth.material_id}
                                 onChange={(e) => {
                                   const selectedId = e.target.value;
-                                  const selectedMat = jobData?.materialLayers?.find(
-                                    m => (m.material_id || m.product_id) === selectedId
+                                  const selectedMat = rawMaterials.find(
+                                    m => m.id === selectedId || m.product_id === selectedId
                                   );
                                   setNewSlittingWidth(prev => ({ 
                                     ...prev, 
                                     material_id: selectedId,
-                                    material_name: selectedMat ? (selectedMat.material_name || selectedMat.product_name) : ''
+                                    material_name: selectedMat ? (selectedMat.product_name || selectedMat.product_code) : ''
                                   }));
                                 }}
                                 className="w-full px-2 py-1 text-xs bg-gray-600 border border-gray-500 rounded text-white"
                               >
-                                <option value="">-- Select Material --</option>
-                                {jobData?.materialLayers?.map((material, idx) => (
+                                <option value="">-- Select Raw Material --</option>
+                                {rawMaterials.map((material) => (
                                   <option 
-                                    key={idx} 
-                                    value={material.material_id || material.product_id}
+                                    key={material.id || material.product_id} 
+                                    value={material.id || material.product_id}
                                   >
-                                    {material.material_name || material.product_name || 'Unknown Material'}
+                                    {material.product_code} - {material.product_name || material.product_description || 'Unknown Material'}
                                   </option>
                                 ))}
                               </select>
