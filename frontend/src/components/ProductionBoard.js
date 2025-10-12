@@ -249,8 +249,8 @@ const ProductionBoard = () => {
         {/* Background Logo Watermark */}
         {job.client_logo && (
           <div 
-            className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none"
-            style={{ zIndex: 0 }}
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            style={{ zIndex: 0, opacity: 0.15 }}
           >
             <img
               src={job.client_logo}
