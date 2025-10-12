@@ -2190,36 +2190,45 @@ const Stocktake = () => {
                 </div>
               </div>
 
-              <div className="bg-gray-700 rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-gray-600">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Order Reference</th>
-                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-300">Allocated Qty</th>
-                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Allocated Date</th>
-                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-300">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-600">
-                    {archivedAllocations.map((allocation, index) => (
-                      <tr key={index} className="hover:bg-gray-600">
-                        <td className="px-4 py-2 text-sm text-white">{allocation.reference}</td>
-                        <td className="px-4 py-2 text-right text-sm text-blue-400 font-medium">
-                          {Math.abs(allocation.quantity)}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-300">
-                          {allocation.created_at ? new Date(allocation.created_at).toLocaleDateString() : 'N/A'}
-                        </td>
-                        <td className="px-4 py-2 text-center">
-                          <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded">
-                            Completed
-                          </span>
-                        </td>
+              {archivedAllocations && archivedAllocations.length > 0 ? (
+                <div className="bg-gray-700 rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-gray-600">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Order Reference</th>
+                        <th className="px-4 py-2 text-right text-sm font-medium text-gray-300">Allocated Qty</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Allocated Date</th>
+                        <th className="px-4 py-2 text-center text-sm font-medium text-gray-300">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-600">
+                      {archivedAllocations.map((allocation, index) => (
+                        <tr key={index} className="hover:bg-gray-600">
+                          <td className="px-4 py-2 text-sm text-white">{allocation.reference}</td>
+                          <td className="px-4 py-2 text-right text-sm text-blue-400 font-medium">
+                            {Math.abs(allocation.quantity)}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-300">
+                            {allocation.created_at ? new Date(allocation.created_at).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="px-4 py-2 text-center">
+                            <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded">
+                              Completed
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="bg-gray-700 rounded-lg p-8 text-center">
+                  <p className="text-gray-300 text-lg">No archived allocations found</p>
+                  <p className="text-gray-400 text-sm mt-2">
+                    Archived allocations will appear here once orders are completed and invoiced
+                  </p>
+                </div>
+              )}
 
               <div className="flex justify-end mt-6">
                 <button
