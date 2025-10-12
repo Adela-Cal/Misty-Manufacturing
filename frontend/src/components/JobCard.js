@@ -1882,8 +1882,8 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             </div>
           )}
 
-          {/* Operator Sign-off - Hidden for Core Winding Jobs and Slitting Jobs */}
-          {stage !== 'winding' && stage !== 'paper_slitting' && (
+          {/* Operator Sign-off - Show for Finishing Stage and other stages except winding and slitting */}
+          {(stage === 'finishing' || (stage !== 'winding' && stage !== 'paper_slitting')) && (
             <div className="border-t-2 border-gray-600 pt-4 mt-8">
               <h3 className="text-lg font-semibold text-white mb-4">
                 Operator Sign-off
