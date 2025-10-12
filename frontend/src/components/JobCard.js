@@ -1738,6 +1738,92 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
             </div>
           )}
 
+          {/* Order Products List - Show for Finishing Stage */}
+          {stage === 'finishing' && jobData?.order?.items && jobData.order.items.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-white mb-3 border-b border-gray-600 pb-2 flex items-center">
+                <DocumentTextIcon className="h-5 w-5 mr-2" />
+                Order Products Checklist
+              </h3>
+              <div className="bg-gray-700 p-4 rounded border border-gray-600">
+                <p className="text-sm text-gray-300 mb-3">
+                  Check off each product as it's completed and ready for packing:
+                </p>
+                <div className="space-y-2">
+                  {jobData.order.items.map((item, index) => (
+                    <div 
+                      key={index}
+                      className={`flex items-center p-3 rounded border transition-all ${
+                        completedProducts[index] 
+                          ? 'bg-green-900/30 border-green-500' 
+                          : 'bg-gray-600 border-gray-500'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        id={`product-${index}`}
+                        checked={completedProducts[index] || false}
+                        onChange={() => handleToggleProductCompletion(index)}
+                        className="w-5 h-5 text-green-600 bg-gray-700 border-gray-500 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
+                      />
+                      <label 
+                        htmlFor={`product-${index}`}
+                        className="ml-3 flex-1 cursor-pointer"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <span className={`font-medium ${completedProducts[index] ? 'text-green-300' : 'text-white'}`}>
+                              {item.product_name || item.product_code || 'Product'}
+                            </span>
+                            {item.allocated_stock && (
+                              <span className="ml-2 text-xs text-blue-300">
+                                (Stock Allocated: {item.allocated_stock.quantity})
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <span className={`text-sm ${completedProducts[index] ? 'text-green-300' : 'text-gray-300'}`}>
+                              Qty: {item.quantity}
+                            </span>
+                            {item.unit_price && (
+                              <span className="ml-3 text-xs text-gray-400">
+                                ${parseFloat(item.unit_price).toFixed(2)} ea
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </label>
+                      {completedProducts[index] && (
+                        <div className="ml-3">
+                          <span className="text-green-400 text-xl">✓</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Completion Summary */}
+                <div className="mt-4 pt-3 border-t border-gray-600">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-300">
+                      Completion Progress:
+                    </span>
+                    <span className="text-sm font-bold text-white">
+                      {Object.values(completedProducts).filter(Boolean).length} / {jobData.order.items.length} products completed
+                    </span>
+                  </div>
+                  {Object.values(completedProducts).filter(Boolean).length === jobData.order.items.length && (
+                    <div className="mt-2 p-2 bg-green-900/50 border border-green-500 rounded text-center">
+                      <span className="text-green-300 font-medium text-sm">
+                        ✓ All products completed and ready for packing!
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Packing & Delivery - Hidden for Core Winding Jobs and Slitting Jobs */}
           {stage !== 'winding' && stage !== 'paper_slitting' && stage !== 'finishing' && (
             <div className="mb-6">
