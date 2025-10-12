@@ -240,12 +240,25 @@ const ProductionBoard = () => {
     return (
       <div 
         className={`
-          bg-gray-800 border rounded-lg p-3 transition-all duration-200 hover:shadow-lg
+          relative bg-gray-800 border rounded-lg p-3 transition-all duration-200 hover:shadow-lg overflow-hidden
           ${stageColors[stageKey] || 'border-gray-600'}
           ${isOverdue ? 'border-red-500 bg-red-900/20' : ''}
         `}
         data-testid={`job-card-${job.id}`}
       >
+        {/* Background Logo Watermark */}
+        {job.client_logo && (
+          <div 
+            className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none"
+            style={{ zIndex: 0 }}
+          >
+            <img
+              src={job.client_logo}
+              alt=""
+              className="w-24 h-24 object-contain"
+            />
+          </div>
+        )}
         {/* Job Header */}
         <div className="mb-2">
           <div className="flex items-center mb-1">
