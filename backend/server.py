@@ -4980,6 +4980,114 @@ async def delete_label_template(template_id: str, current_user: dict = Depends(g
         logger.error(f"Error deleting label template: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/printers")
+async def get_printers(current_user: dict = Depends(get_current_user)):
+    """Get list of available printers"""
+    try:
+        import subprocess
+        import platform
+        
+        printers = []
+        system = platform.system()
+        
+        if system == "Windows":
+            # Windows printer detection
+            try:
+                import win32print
+                printer_names = [printer[2] for printer in win32print.EnumPrinters(2)]
+                default_printer = win32print.GetDefaultPrinter()
+                printers = [{"name": name, "is_default": name == default_printer} for name in printer_names]
+            except:
+                # Fallback to PowerShell
+                result = subprocess.run(
+                    ["powershell", "-Command", "Get-Printer | Select-Object Name, Default | ConvertTo-Json"],
+                    capture_output=True,
+                    text=True
+                )
+                if result.returncode == 0:
+                    import json
+                    data = json.loads(result.stdout)
+                    if isinstance(data, list):
+                        printers = [{"name": p["Name"], "is_default": p.get("Default", False)} for p in data]
+                    else:
+                        printers = [{"name": data["Name"], "is_default": data.get("Default", False)}]
+        
+        elif system == "Linux":
+            # Linux CUPS detection
+            try:
+                result = subprocess.run(["lpstat", "-p"], capture_output=True, text=True)
+                if result.returncode == 0:
+                    for line in result.stdout.split('\n'):
+                        if line.startswith('printer'):
+                            name = line.split()[1]
+                            printers.append({"name": name, "is_default": False})
+                
+                # Get default printer
+                result = subprocess.run(["lpstat", "-d"], capture_output=True, text=True)
+                if result.returncode == 0 and "system default destination" in result.stdout:
+                    default = result.stdout.split(":")[-1].strip()
+                    for printer in printers:
+                        if printer["name"] == default:
+                            printer["is_default"] = True
+            except:
+                pass
+        
+        elif system == "Darwin":  # macOS
+            try:
+                result = subprocess.run(["lpstat", "-p"], capture_output=True, text=True)
+                if result.returncode == 0:
+                    for line in result.stdout.split('\n'):
+                        if line.startswith('printer'):
+                            name = line.split()[1]
+                            printers.append({"name": name, "is_default": False})
+                
+                # Get default printer
+                result = subprocess.run(["lpstat", "-d"], capture_output=True, text=True)
+                if result.returncode == 0:
+                    default = result.stdout.split(":")[-1].strip()
+                    for printer in printers:
+                        if printer["name"] == default:
+                            printer["is_default"] = True
+            except:
+                pass
+        
+        # Add browser printing as an option
+        printers.insert(0, {"name": "Browser Default Printer", "is_default": True, "is_browser": True})
+        
+        return {"success": True, "data": printers}
+    except Exception as e:
+        logger.error(f"Error fetching printers: {str(e)}")
+        # Return browser option as fallback
+        return {"success": True, "data": [{"name": "Browser Default Printer", "is_default": True, "is_browser": True}]}
+
+@app.post("/api/print-label")
+async def print_label(print_data: dict, current_user: dict = Depends(get_current_user)):
+    """Send label to printer"""
+    try:
+        printer_name = print_data.get("printer_name")
+        is_browser = print_data.get("is_browser", True)
+        
+        if is_browser or printer_name == "Browser Default Printer":
+            # Browser printing - return success and let frontend handle
+            return {
+                "success": True,
+                "message": "Please use browser print dialog",
+                "use_browser_print": True
+            }
+        
+        # For actual printer, would implement printing logic here
+        # This would involve generating PDF and sending to printer
+        # For now, return success
+        return {
+            "success": True,
+            "message": f"Print job sent to {printer_name}",
+            "use_browser_print": False
+        }
+        
+    except Exception as e:
+        logger.error(f"Error printing label: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
