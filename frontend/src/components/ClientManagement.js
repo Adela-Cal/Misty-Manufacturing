@@ -139,7 +139,8 @@ const ClientManagement = () => {
                     <img
                       src={client.logo_path}
                       alt=""
-                      className="w-86 h-86 object-contain"
+                      className="object-contain"
+                      style={{ width: '345px', height: '345px' }}
                     />
                   </div>
                 )}
