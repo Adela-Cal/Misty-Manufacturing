@@ -4109,6 +4109,49 @@ async def get_stock_allocations(
         logger.error(f"Failed to get stock allocations: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve stock allocations")
 
+@api_router.get("/stock/allocations/archived", response_model=StandardResponse)
+async def get_archived_allocations(
+    product_id: str,
+    client_id: str,
+    current_user: dict = Depends(require_any_role)
+):
+    """Get archived stock allocations (from completed/invoiced orders) for a specific product and client"""
+    try:
+        # Get archived allocation movements
+        allocations = await db.stock_movements.find({
+            "product_id": product_id,
+            "client_id": client_id,
+            "movement_type": "allocation",
+            "quantity": {"$lt": 0},  # Negative quantities are allocations
+            "is_archived": True  # Only archived
+        }).sort("created_at", -1).to_list(length=None)
+        
+        # Remove MongoDB ObjectIds from allocations
+        for allocation in allocations:
+            if "_id" in allocation:
+                del allocation["_id"]
+        
+        # Calculate total allocated quantity
+        total_allocated = sum(abs(allocation.get("quantity", 0)) for allocation in allocations)
+        
+        allocation_data = {
+            "product_id": product_id,
+            "client_id": client_id,
+            "allocations": allocations,
+            "total_allocated": total_allocated,
+            "archived_orders": len(allocations)
+        }
+        
+        return StandardResponse(
+            success=True,
+            message="Archived stock allocations retrieved successfully",
+            data=allocation_data
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get archived stock allocations: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve archived stock allocations")
+
 # ============= STOCK AVAILABILITY & ALLOCATION ENDPOINTS =============
 
 @api_router.get("/stock/check-availability", response_model=StandardResponse)
