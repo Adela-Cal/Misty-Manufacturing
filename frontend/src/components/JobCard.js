@@ -558,23 +558,50 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   };
 
   // Additional slitting widths handlers
-  const handleAddSlittingWidth = async () => {
-    if (newSlittingWidth.width && newSlittingWidth.meters) {
+  const handleAddSlittingWidth = () => {
+    if (newSlittingWidth.material_id && newSlittingWidth.width && newSlittingWidth.meters) {
       const slittingEntry = {
+        material_id: newSlittingWidth.material_id,
+        material_name: newSlittingWidth.material_name,
         width: parseFloat(newSlittingWidth.width),
         meters: parseFloat(newSlittingWidth.meters),
         id: Date.now() // Simple ID for removal
       };
 
-      // Add to local state
+      // Add to pending list (not saved to DB yet)
+      setPendingSlitWidths(prev => [...prev, slittingEntry]);
+      
+      // Reset form
+      setNewSlittingWidth({ material_id: '', material_name: '', width: '', meters: '' });
+    }
+  };
+
+  // Submit all pending slit widths to database
+  const handleSubmitSlitWidths = async () => {
+    if (pendingSlitWidths.length === 0) {
+      toast.error('No slit widths to submit');
+      return;
+    }
+
+    try {
+      // Save each slit width to the database
+      for (const slittingEntry of pendingSlitWidths) {
+        await saveSlittingWidthToDatabase(slittingEntry);
+      }
+
+      // Add to job's additional production tracking
       setAdditionalProduction(prev => ({
         ...prev,
-        slittingWidths: [...prev.slittingWidths, slittingEntry]
+        slittingWidths: [...prev.slittingWidths, ...pendingSlitWidths]
       }));
-      setNewSlittingWidth({ width: '', meters: '' });
 
-      // Save to database for slit width tracking
-      await saveSlittingWidthToDatabase(slittingEntry);
+      // Clear pending list
+      setPendingSlitWidths([]);
+      
+      toast.success(`Successfully submitted ${pendingSlitWidths.length} slit width(s) to Raw Materials`);
+    } catch (error) {
+      console.error('Error submitting slit widths:', error);
+      toast.error('Failed to submit slit widths');
     }
   };
 
