@@ -258,20 +258,20 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
               core_width: clientProduct.core_width || 'N/A',
               core_thickness: specificationData?.specifications?.wall_thickness_required || clientProduct.core_thickness || 'N/A',
               material_layers: materialLayers,
-              makeready_allowance_percent: 10,
-              setup_time_minutes: 45,
-              waste_percentage: 5,
-              qc_tolerances: {
+              makeready_allowance_percent: clientProduct.makeready_allowance_percent || 10,
+              setup_time_minutes: clientProduct.setup_time_minutes || 45,
+              waste_percentage: clientProduct.waste_percentage || 5,
+              qc_tolerances: clientProduct.qc_tolerances || {
                 id_tolerance: 0.5,
                 od_tolerance: 0.5,
                 wall_tolerance: 0.1
               },
-              inspection_interval_minutes: 60,
-              tubes_per_carton: 50,
-              cartons_per_pallet: 20,
-              special_tooling_notes: specificationData?.manufacturing_notes || 'Standard processing',
-              packing_instructions: 'Handle with care',
-              consumables: []
+              inspection_interval_minutes: clientProduct.inspection_interval_minutes || 60,
+              tubes_per_carton: clientProduct.tubes_per_carton || 50,
+              cartons_per_pallet: clientProduct.cartons_per_pallet || 20,
+              special_tooling_notes: clientProduct.special_tooling_notes || specificationData?.manufacturing_notes || 'Standard processing',
+              packing_instructions: clientProduct.packing_instructions || 'Handle with care',
+              consumables: clientProduct.consumables || []
             };
           }
         } catch (error) {
