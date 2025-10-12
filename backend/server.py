@@ -144,6 +144,10 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
 async def get_clients(current_user: dict = Depends(require_any_role)):
     """Get all clients"""
     clients = await db.clients.find({"is_active": True}).to_list(1000)
+    # Transform logo_path to proper URL for frontend
+    for client in clients:
+        if client.get("logo_path"):
+            client["logo_path"] = get_file_url(client["logo_path"])
     return [Client(**client) for client in clients]
 
 @api_router.post("/clients", response_model=StandardResponse)
