@@ -122,9 +122,9 @@ const Layout = ({ children }) => {
         <div className="flex items-center h-16 px-4 border-b border-gray-700 flex-shrink-0">
           <div className="flex items-center">
             <img 
-              src="/adela-logo.jpg" 
+              src="/adela-logo.png" 
               alt="Adela Merchants" 
-              className="h-10 w-10 mr-3 rounded-lg object-cover"
+              className="h-10 w-10 mr-3 object-contain"
             />
             <div>
               <h1 className="text-lg font-bold text-yellow-400">Adela Merchants</h1>
