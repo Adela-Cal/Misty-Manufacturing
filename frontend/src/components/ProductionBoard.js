@@ -240,7 +240,7 @@ const ProductionBoard = () => {
     return (
       <div 
         className={`
-          bg-gray-800 border rounded-lg p-4 transition-all duration-200 hover:shadow-lg mb-3
+          bg-gray-800 border rounded-lg p-3 transition-all duration-200 hover:shadow-lg
           ${stageColors[stageKey] || 'border-gray-600'}
           ${isOverdue ? 'border-red-500 bg-red-900/20' : ''}
         `}
