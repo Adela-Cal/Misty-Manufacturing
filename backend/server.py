@@ -4943,6 +4943,9 @@ async def update_label_template(
         )
         
         updated_template = await db.label_templates.find_one({"id": template_id})
+        # Remove MongoDB's _id field
+        if updated_template and '_id' in updated_template:
+            del updated_template['_id']
         
         return {
             "success": True,
