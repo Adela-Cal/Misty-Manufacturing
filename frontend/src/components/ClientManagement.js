@@ -251,7 +251,7 @@ const ClientManagement = () => {
 
                 {/* Bank Details Indicator */}
                 {client.bank_details && client.bank_details.bank_name && (
-                  <div className="mt-3 pt-3 border-t border-gray-700">
+                  <div className="mt-3 pt-3 border-t border-gray-700 relative z-10">
                     <div className="flex items-center">
                       <div className="h-2 w-2 bg-green-400 rounded-full mr-2"></div>
                       <span className="text-xs text-gray-400">Bank details on file</span>
