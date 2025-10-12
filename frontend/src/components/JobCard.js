@@ -1806,8 +1806,8 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                       <td className="p-2 text-right font-medium text-white">As needed</td>
                     </tr>
                     <tr className="border-b border-gray-600">
-                      <td className="p-2 bg-gray-700 text-gray-300">Labels</td>
-                      <td className="p-2 text-right font-medium text-white">{jobData?.order?.quantity || 'N/A'}</td>
+                      <td className="p-2 bg-gray-700 text-gray-300">Labels (Carton Labels)</td>
+                      <td className="p-2 text-right font-medium text-white">{calculations.cartonsRequired || 'N/A'}</td>
                     </tr>
                     {productSpecs?.consumables && productSpecs.consumables.length > 0 && (
                       productSpecs.consumables.map((consumable, index) => (
@@ -1819,6 +1819,17 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                     )}
                   </tbody>
                 </table>
+                
+                {/* Print Carton Labels Button */}
+                <div className="mt-4">
+                  <button
+                    onClick={() => toast.info('Print Carton Labels functionality will be linked to database')}
+                    className="w-full px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 flex items-center justify-center space-x-2"
+                  >
+                    <PrinterIcon className="h-5 w-5" />
+                    <span>Print Carton Labels ({calculations.cartonsRequired || 0} labels)</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}
