@@ -104,6 +104,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     if (jobId && stage && orderId) {
       loadJobCardData();
       loadJobTiming();
+      loadRawMaterials(); // Load raw materials for slit width dropdown
     }
   }, [jobId, stage]);
 
