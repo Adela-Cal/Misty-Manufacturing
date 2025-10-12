@@ -2152,6 +2152,85 @@ const Stocktake = () => {
           </div>
         )}
 
+        {/* Archived Allocations Modal */}
+        {showArchivedAllocations && archivedAllocations && archivedAllocations.length > 0 && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-3xl max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">Archived Stock Allocations</h3>
+                <button
+                  onClick={() => {
+                    setShowArchivedAllocations(false);
+                    setArchivedAllocations([]);
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="mb-4 p-4 bg-gray-700 rounded-lg">
+                <h4 className="text-lg font-medium text-white mb-2">Archive Summary</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-300">Completed Orders:</span>
+                    <div className="font-medium text-white">{archivedAllocations.length}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-300">Total Historical Allocations:</span>
+                    <div className="font-medium text-blue-400">
+                      {archivedAllocations.reduce((sum, alloc) => sum + Math.abs(alloc.quantity), 0)} units
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-700 rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-600">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Order Reference</th>
+                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-300">Allocated Qty</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Allocated Date</th>
+                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-300">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-600">
+                    {archivedAllocations.map((allocation, index) => (
+                      <tr key={index} className="hover:bg-gray-600">
+                        <td className="px-4 py-2 text-sm text-white">{allocation.reference}</td>
+                        <td className="px-4 py-2 text-right text-sm text-blue-400 font-medium">
+                          {Math.abs(allocation.quantity)}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-300">
+                          {allocation.created_at ? new Date(allocation.created_at).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td className="px-4 py-2 text-center">
+                          <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded">
+                            Completed
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={() => {
+                    setShowArchivedAllocations(false);
+                    setArchivedAllocations([]);
+                  }}
+                  className="misty-button misty-button-secondary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Slit Widths Modal */}
         {showSlitWidthsModal && selectedMaterial && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
