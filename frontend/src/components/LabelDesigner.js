@@ -8,7 +8,9 @@ import {
   PrinterIcon,
   EyeIcon,
   DocumentDuplicateIcon,
-  QrCodeIcon
+  QrCodeIcon,
+  XMarkIcon,
+  ArrowsRightLeftIcon
 } from '@heroicons/react/24/outline';
 
 const LabelDesigner = () => {
