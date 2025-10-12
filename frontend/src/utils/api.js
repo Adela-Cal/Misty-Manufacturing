@@ -223,6 +223,10 @@ export const apiHelpers = {
   createLabelTemplate: (data) => api.post('/label-templates', data),
   updateLabelTemplate: (templateId, data) => api.put(`/label-templates/${templateId}`, data),
   deleteLabelTemplate: (templateId) => api.delete(`/label-templates/${templateId}`),
+  
+  // Printing
+  getPrinters: () => api.get('/printers'),
+  printLabel: (data) => api.post('/print-label', data),
 
   // Generic GET/POST/PUT methods for flexibility
   get: (url) => api.get(url),
