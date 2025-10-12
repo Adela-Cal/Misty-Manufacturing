@@ -129,20 +129,23 @@ const ClientManagement = () => {
         {filteredClients.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredClients.map((client) => (
-              <div key={client.id} className="misty-card p-6" data-testid={`client-card-${client.id}`}>
-                <div className="flex items-start justify-between mb-4">
+              <div key={client.id} className="misty-card p-6 relative overflow-hidden" data-testid={`client-card-${client.id}`}>
+                {/* Background Logo Watermark */}
+                {client.logo_path && (
+                  <div 
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                    style={{ zIndex: 0, opacity: 0.15 }}
+                  >
+                    <img
+                      src={client.logo_path}
+                      alt=""
+                      className="w-48 h-48 object-contain"
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-start justify-between mb-4 relative z-10">
                   <div className="flex items-center flex-1">
-                    {client.logo_path ? (
-                      <img
-                        src={client.logo_path}
-                        alt={`${client.company_name} logo`}
-                        className="h-12 w-12 rounded-lg object-cover mr-3 flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="h-12 w-12 bg-gray-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
-                        <PhotoIcon className="h-6 w-6 text-gray-400" />
-                      </div>
-                    )}
                     <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-white truncate">{client.company_name}</h3>
                       <p className="text-sm text-gray-400 truncate">{client.abn || 'No ABN'}</p>
