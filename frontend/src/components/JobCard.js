@@ -765,6 +765,14 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     }
   };
 
+  // Toggle product completion status
+  const handleToggleProductCompletion = (productIndex) => {
+    setCompletedProducts(prev => ({
+      ...prev,
+      [productIndex]: !prev[productIndex]
+    }));
+  };
+
   const getCurrentStageTitle = () => {
     const stageNames = {
       paper_slitting: 'Paper Slitting Job Card',
