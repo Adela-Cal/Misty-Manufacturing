@@ -1143,17 +1143,20 @@ frontend:
 
 metadata:
   created_by: "testing_agent"
-  version: "2.2"
-  test_sequence: 14
+  version: "2.3"
+  test_sequence: 15
 
 test_plan:
   current_focus:
+    - "Client Management Watermark Functionality"
     - "Enhanced Raw Materials Needed Functionality with Fallback Material Requirements"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "testing"
+    message: "✅ CLIENT MANAGEMENT WATERMARK TESTING COMPLETED SUCCESSFULLY: Comprehensive testing of the watermark functionality completed with 100% success rate. All requested verification criteria met: Label Makers card displays visible watermark, image loads with correct dimensions, uses proper /api/uploads/logos/ URL format, maintains 15% opacity for subtle effect, positioned correctly behind content, and creates professional branded appearance. No issues detected - functionality is production-ready."
   - agent: "testing"
     message: "🚨 CRITICAL BUG IDENTIFIED - RAW MATERIALS NEEDED BUTTON NOT APPEARING WHEN NO STOCK AVAILABLE: Comprehensive testing of the enhanced Raw Materials Needed functionality revealed a critical implementation bug that prevents the fallback material requirements workflow from functioning. ISSUE DETAILS: The Raw Materials Needed button only appears inside the green confirmation section when item.allocated_stock > 0 (line 1243 in OrderForm.js). However, when stock check returns 404 (no stock available), the allocated_stock field is never set, so the entire green confirmation section doesn't render, and consequently the Raw Materials Needed button doesn't appear. This contradicts the test requirement that the button should show fallback material requirements even when product specifications are missing. TESTING CONFIRMED: ✅ Login, navigation, client selection (Label Makers), product selection (LM Paper Core), and quantity setting (3135 units) all working correctly, ✅ Stock check API correctly returns 404 (no stock available), ❌ Raw Materials Needed button does NOT appear (Found 0 Raw Materials buttons), ❌ No green confirmation sections appear, ❌ No blue stock allocation sections appear. REQUIRED FIX: The Raw Materials Needed button should appear when there's no stock available to allow users to see available raw materials as fallback options. The button logic needs to be moved outside the green confirmation section or the green section needs to appear even when no stock is allocated. This is a blocking issue that prevents the fallback material requirements workflow from functioning as designed."
   - agent: "testing"
