@@ -1744,7 +1744,7 @@ const OrderForm = ({ order, onClose, onSuccess }) => {
           <div className="bg-gray-800 rounded-lg p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-white">
-                Material Requirements - {materialRequirements.productName}
+                Material Requirements - {selectedItem?.item?.product_name || materialRequirements.productName}
               </h3>
               <button
                 onClick={() => setShowMaterialRequirements(false)}
