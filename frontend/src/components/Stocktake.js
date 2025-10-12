@@ -2131,9 +2131,18 @@ const Stocktake = () => {
                 </table>
               </div>
 
-              <div className="flex justify-end mt-6">
+              <div className="flex justify-between mt-6">
                 <button
-                  onClick={() => setStockAllocations([])}
+                  onClick={loadArchivedAllocations}
+                  className="misty-button misty-button-primary"
+                >
+                  View Archived Allocations
+                </button>
+                <button
+                  onClick={() => {
+                    setStockAllocations([]);
+                    setCurrentAllocationProduct(null);
+                  }}
                   className="misty-button misty-button-secondary"
                 >
                   Close
