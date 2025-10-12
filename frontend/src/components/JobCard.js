@@ -1874,7 +1874,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
                 {/* Print Carton Labels Button */}
                 <div className="mt-4">
                   <button
-                    onClick={() => toast.info('Print Carton Labels functionality will be linked to database')}
+                    onClick={handlePrintCartonLabels}
                     className="w-full px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 flex items-center justify-center space-x-2"
                   >
                     <PrinterIcon className="h-5 w-5" />
