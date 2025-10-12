@@ -1002,24 +1002,29 @@ const LabelDesigner = () => {
                   onDrop={handleDrop}
                 >
                   {/* Render Shapes */}
-                  {templateForm.shapes.map((shape) => (
-                    <div
-                      key={shape.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, 'shape', shape.id, shape.x_position, shape.y_position)}
-                      className="absolute cursor-move hover:opacity-80"
-                      style={{
-                        left: `${shape.x_position * 3.779527559}px`,
-                        top: `${shape.y_position * 3.779527559}px`,
-                        width: `${shape.width * 3.779527559}px`,
-                        height: `${shape.height * 3.779527559}px`,
-                        border: `${shape.border_width}px solid ${shape.border_color}`,
-                        backgroundColor: shape.fill_color || 'transparent',
-                        borderRadius: shape.shape_type === 'circle' ? '50%' : '0'
-                      }}
-                      title="Drag to reposition"
-                    />
-                  ))}
+                  {templateForm.shapes.map((shape) => {
+                    // For lines, use solid background instead of border
+                    const isLine = shape.shape_type === 'line';
+                    
+                    return (
+                      <div
+                        key={shape.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, 'shape', shape.id, shape.x_position, shape.y_position)}
+                        className="absolute cursor-move hover:opacity-80"
+                        style={{
+                          left: `${shape.x_position * 3.779527559}px`,
+                          top: `${shape.y_position * 3.779527559}px`,
+                          width: `${shape.width * 3.779527559}px`,
+                          height: `${shape.height * 3.779527559}px`,
+                          border: isLine ? 'none' : `${shape.border_width}px solid ${shape.border_color}`,
+                          backgroundColor: isLine ? shape.border_color : (shape.fill_color || 'transparent'),
+                          borderRadius: shape.shape_type === 'circle' ? '50%' : '0'
+                        }}
+                        title="Drag to reposition"
+                      />
+                    );
+                  })}
 
                   {/* Render Logo */}
                   {templateForm.logo && (
