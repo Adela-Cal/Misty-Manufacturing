@@ -82,6 +82,9 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const [isEditingAdditionalProduction, setIsEditingAdditionalProduction] = useState(false);
   const [newSlittingWidth, setNewSlittingWidth] = useState({ width: '', meters: '' });
 
+  // Order products completion tracking (for finishing stage)
+  const [completedProducts, setCompletedProducts] = useState({});
+
   useEffect(() => {
     if (jobId && stage && orderId) {
       loadJobCardData();
