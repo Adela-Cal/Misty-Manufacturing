@@ -600,6 +600,147 @@ const LabelDesigner = () => {
                 </div>
               </div>
 
+              {/* Logo Import */}
+              <div className="border border-gray-700 rounded p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-medium text-gray-300">
+                    Company Logo
+                  </label>
+                  {templateForm.logo && (
+                    <button
+                      onClick={handleRemoveLogo}
+                      className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                      Remove Logo
+                    </button>
+                  )}
+                </div>
+                
+                {!templateForm.logo ? (
+                  <div>
+                    <p className="text-xs text-gray-400 mb-2">
+                      <strong>Accepted formats:</strong> PNG, JPEG, JPG<br />
+                      <strong>Maximum size:</strong> 2MB<br />
+                      <strong>Recommended:</strong> Transparent PNG for best results
+                    </p>
+                    <label className="block">
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                      />
+                      <div className="cursor-pointer px-4 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 text-center text-sm">
+                        Choose Logo File
+                      </div>
+                    </label>
+                  </div>
+                ) : (
+                  <div className="text-xs text-gray-300 space-y-1">
+                    <p>✓ Logo uploaded</p>
+                    <p>Position: {templateForm.logo.x_position.toFixed(1)}mm × {templateForm.logo.y_position.toFixed(1)}mm</p>
+                    <p>Size: {templateForm.logo.width.toFixed(1)}mm × {templateForm.logo.height.toFixed(1)}mm</p>
+                    <p className="text-gray-400 italic">Drag logo on preview to reposition</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Shapes */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-medium text-gray-300">
+                    Shapes
+                  </label>
+                  <div className="flex space-x-1">
+                    <button
+                      onClick={() => handleAddShape('rectangle')}
+                      className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      title="Add Rectangle"
+                    >
+                      □
+                    </button>
+                    <button
+                      onClick={() => handleAddShape('circle')}
+                      className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      title="Add Circle"
+                    >
+                      ○
+                    </button>
+                    <button
+                      onClick={() => handleAddShape('line')}
+                      className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      title="Add Line"
+                    >
+                      ―
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {templateForm.shapes.map((shape, index) => (
+                    <div key={shape.id} className="border border-gray-700 rounded p-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-white capitalize">{shape.shape_type}</span>
+                        <button
+                          onClick={() => handleRemoveShape(index)}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          <TrashIcon className="h-3 w-3" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-1 text-xs">
+                        <div>
+                          <label className="block text-xs text-gray-400">Width (mm)</label>
+                          <input
+                            type="number"
+                            value={shape.width}
+                            onChange={(e) => handleShapeChange(index, 'width', parseFloat(e.target.value))}
+                            className="misty-input w-full text-xs py-1"
+                            step="0.5"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400">Height (mm)</label>
+                          <input
+                            type="number"
+                            value={shape.height}
+                            onChange={(e) => handleShapeChange(index, 'height', parseFloat(e.target.value))}
+                            className="misty-input w-full text-xs py-1"
+                            step="0.5"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400">Border</label>
+                          <input
+                            type="number"
+                            value={shape.border_width}
+                            onChange={(e) => handleShapeChange(index, 'border_width', parseInt(e.target.value))}
+                            className="misty-input w-full text-xs py-1"
+                            min="0"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400">Border Color</label>
+                          <input
+                            type="color"
+                            value={shape.border_color}
+                            onChange={(e) => handleShapeChange(index, 'border_color', e.target.value)}
+                            className="w-full h-7 rounded cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {templateForm.shapes.length === 0 && (
+                    <p className="text-center text-gray-500 py-3 text-xs">
+                      No shapes added. Click icons above to add shapes.
+                    </p>
+                  )}
+                </div>
+              </div>
+
               {/* QR Code Settings */}
               <div className="border border-gray-700 rounded p-4">
                 <div className="flex items-center mb-3">
