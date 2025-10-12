@@ -83,6 +83,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
   const [isEditingAdditionalProduction, setIsEditingAdditionalProduction] = useState(false);
   const [newSlittingWidth, setNewSlittingWidth] = useState({ material_id: '', material_name: '', width: '', meters: '' });
   const [pendingSlitWidths, setPendingSlitWidths] = useState([]); // Store widths before submission
+  const [rawMaterials, setRawMaterials] = useState([]); // Available raw materials from inventory
 
   // Order products completion tracking (for finishing stage)
   const [completedProducts, setCompletedProducts] = useState({});
