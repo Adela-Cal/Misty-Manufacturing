@@ -609,6 +609,7 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     try {
       // Save each slit width to the database
       for (const slittingEntry of pendingSlitWidths) {
+        console.log('Submitting slit width:', slittingEntry);
         await saveSlittingWidthToDatabase(slittingEntry);
       }
 
@@ -624,7 +625,8 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
       toast.success(`Successfully submitted ${pendingSlitWidths.length} slit width(s) to Raw Materials`);
     } catch (error) {
       console.error('Error submitting slit widths:', error);
-      toast.error('Failed to submit slit widths');
+      console.error('Error details:', error.message, error.response?.data);
+      toast.error(`Failed to submit slit widths: ${error.message || 'Unknown error'}`);
     }
   };
 
