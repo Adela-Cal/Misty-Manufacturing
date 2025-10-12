@@ -260,15 +260,8 @@ const ProductionBoard = () => {
           </div>
         )}
         {/* Job Header */}
-        <div className="mb-2">
+        <div className="mb-2 relative z-10">
           <div className="flex items-center mb-1">
-            {job.client_logo && (
-              <img
-                src={job.client_logo}
-                alt={`${job.client_name} logo`}
-                className="h-6 w-6 rounded object-cover mr-2"
-              />
-            )}
             <div className="flex-1 min-w-0">
               <h4 className="font-semibold text-white text-sm truncate">{job.order_number}</h4>
             </div>
