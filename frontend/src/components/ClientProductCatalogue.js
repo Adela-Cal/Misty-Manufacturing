@@ -560,6 +560,16 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
     core_thickness: '',
     strength_quality_important: false,
     delivery_included: false,
+    // Services and Deliveries specific
+    service_delivery_subtype: 'services', // 'services' or 'deliveries'
+    service_job_description: '',
+    service_time_required: '',
+    service_price: '',
+    service_functions: [],
+    delivery_from_address: '',
+    delivery_to_address: '',
+    delivery_unit_type: 'Pallets',
+    delivery_price_per_unit: '',
     // Consumables
     consumables: [],
     // Shared Product functionality
