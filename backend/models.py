@@ -732,6 +732,19 @@ class ClientProduct(BaseModel):
     strength_quality_important: Optional[bool] = False
     delivery_included: Optional[bool] = False
     
+    # Services and Deliveries specific fields
+    service_delivery_subtype: Optional[str] = None  # "services" or "deliveries"
+    # Services subtype fields
+    service_job_description: Optional[str] = None
+    service_time_required: Optional[str] = None  # e.g., "2 hours", "3 days"
+    service_price: Optional[float] = None
+    service_functions: Optional[List[str]] = Field(default_factory=list)  # List of function descriptions
+    # Deliveries subtype fields
+    delivery_from_address: Optional[str] = None
+    delivery_to_address: Optional[str] = None
+    delivery_unit_type: Optional[str] = None  # Pallets, Cores, Voidfill, Blades, Other
+    delivery_price_per_unit: Optional[float] = None
+    
     # Production & Makeready Parameters
     makeready_allowance_percent: Optional[float] = 0.0
     setup_time_minutes: Optional[int] = 0
