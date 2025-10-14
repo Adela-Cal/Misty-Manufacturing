@@ -1714,7 +1714,7 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                   <label className="block text-sm font-medium text-gray-300 mb-3">
                     Product Type *
                   </label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <label className="flex items-center space-x-3 p-4 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors">
                       <input
                         type="radio"
@@ -1741,6 +1741,20 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                       <div>
                         <div className="font-medium text-white">Paper Cores</div>
                         <div className="text-sm text-gray-400">Paper core products with specifications</div>
+                      </div>
+                    </label>
+                    <label className="flex items-center space-x-3 p-4 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors">
+                      <input
+                        type="radio"
+                        name="product_type"
+                        value="services_and_deliveries"
+                        checked={formData.product_type === 'services_and_deliveries'}
+                        onChange={handleInputChange}
+                        className="text-yellow-400"
+                      />
+                      <div>
+                        <div className="font-medium text-white">Services & Deliveries</div>
+                        <div className="text-sm text-gray-400">Services or delivery charges</div>
                       </div>
                     </label>
                   </div>
