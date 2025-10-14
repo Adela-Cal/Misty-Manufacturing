@@ -477,6 +477,7 @@ const Dashboard = () => {
             icon={ClipboardDocumentListIcon}
             color=""
             testId="total-orders-card"
+            cardType="totalOrders"
           />
           
           {hasPermission('manage_clients') && (
@@ -486,6 +487,7 @@ const Dashboard = () => {
               icon={UsersIcon}
               color=""
               testId="total-clients-card"
+              cardType="totalClients"
             />
           )}
           
@@ -495,6 +497,7 @@ const Dashboard = () => {
             icon={ExclamationTriangleIcon}
             color={stats.overdueJobs > 0 ? "border-l-4 border-red-500" : ""}
             testId="overdue-jobs-card"
+            cardType="overdueJobs"
           />
           
           <StatCard
@@ -503,6 +506,7 @@ const Dashboard = () => {
             icon={CalendarDaysIcon}
             color={stats.jobsDueToday > 0 ? "border-l-4 border-yellow-500" : ""}
             testId="due-today-card"
+            cardType="dueToday"
           />
           
           <StatCard
@@ -511,6 +515,7 @@ const Dashboard = () => {
             icon={ClockIcon}
             color=""
             testId="due-week-card"
+            cardType="dueThisWeek"
           />
         </div>
 
