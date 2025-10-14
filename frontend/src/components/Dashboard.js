@@ -70,8 +70,127 @@ const Dashboard = () => {
     }
   };
 
-  const StatCard = ({ title, value, icon: Icon, color, testId }) => (
-    <div className={`misty-card p-6 ${color}`} data-testid={testId}>
+  const handleCardDoubleClick = async (cardType) => {
+    setModalOpen(cardType);
+    setModalLoading(true);
+    setModalData([]);
+    
+    try {
+      let data = [];
+      
+      switch (cardType) {
+        case 'totalOrders':
+          const ordersRes = await apiHelpers.getOrders();
+          data = ordersRes.data.map(order => ({
+            id: order.id,
+            orderNumber: order.order_number,
+            clientName: order.client_name,
+            dateCreated: formatDate(order.created_at),
+            status: order.current_stage || 'N/A',
+            dueDate: order.due_date ? formatDate(order.due_date) : 'N/A',
+            totalAmount: formatCurrency(order.total_amount)
+          }));
+          break;
+          
+        case 'totalClients':
+          const clientsRes = await apiHelpers.getClients();
+          data = clientsRes.data.map(client => ({
+            id: client.id,
+            name: client.name,
+            contactPerson: client.contact_person || 'N/A',
+            email: client.email || 'N/A',
+            phone: client.phone || 'N/A',
+            totalOrders: stats.recentOrders.filter(o => o.client_name === client.name).length
+          }));
+          break;
+          
+        case 'overdueJobs':
+          const boardRes = await apiHelpers.getProductionBoard();
+          const board = boardRes.data?.data || {};
+          data = [];
+          Object.entries(board).forEach(([stage, jobs]) => {
+            jobs.forEach(job => {
+              if (job.is_overdue) {
+                const dueDate = new Date(job.due_date);
+                const today = new Date();
+                const daysOverdue = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
+                data.push({
+                  id: job.order_id,
+                  jobNumber: job.order_number,
+                  clientName: job.client_name,
+                  dueDate: formatDate(job.due_date),
+                  daysOverdue: daysOverdue,
+                  status: stageDisplayNames[job.current_stage] || job.current_stage
+                });
+              }
+            });
+          });
+          break;
+          
+        case 'dueToday':
+          const boardTodayRes = await apiHelpers.getProductionBoard();
+          const boardToday = boardTodayRes.data?.data || {};
+          const today = new Date().toISOString().split('T')[0];
+          data = [];
+          Object.entries(boardToday).forEach(([stage, jobs]) => {
+            jobs.forEach(job => {
+              if (job.due_date && job.due_date.split('T')[0] === today) {
+                data.push({
+                  id: job.order_id,
+                  jobNumber: job.order_number,
+                  clientName: job.client_name,
+                  jobType: stageDisplayNames[job.current_stage] || job.current_stage,
+                  dueDate: formatDate(job.due_date),
+                  status: stageDisplayNames[job.current_stage] || job.current_stage
+                });
+              }
+            });
+          });
+          break;
+          
+        case 'dueThisWeek':
+          const boardWeekRes = await apiHelpers.getProductionBoard();
+          const boardWeek = boardWeekRes.data?.data || {};
+          const todayDate = new Date();
+          const weekFromNow = new Date(todayDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+          data = [];
+          Object.entries(boardWeek).forEach(([stage, jobs]) => {
+            jobs.forEach(job => {
+              if (job.due_date) {
+                const dueDate = new Date(job.due_date);
+                if (dueDate >= todayDate && dueDate <= weekFromNow) {
+                  const daysUntilDue = Math.ceil((dueDate - todayDate) / (1000 * 60 * 60 * 24));
+                  data.push({
+                    id: job.order_id,
+                    jobNumber: job.order_number,
+                    clientName: job.client_name,
+                    jobType: stageDisplayNames[job.current_stage] || job.current_stage,
+                    dueDate: formatDate(job.due_date),
+                    daysUntilDue: daysUntilDue,
+                    status: stageDisplayNames[job.current_stage] || job.current_stage
+                  });
+                }
+              }
+            });
+          });
+          break;
+      }
+      
+      setModalData(data);
+    } catch (error) {
+      console.error('Failed to load modal data:', error);
+      toast.error('Failed to load detailed information');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const StatCard = ({ title, value, icon: Icon, color, testId, cardType }) => (
+    <div 
+      className={`misty-card p-6 ${color} cursor-pointer hover:bg-gray-700 transition-colors duration-200`} 
+      data-testid={testId}
+      onDoubleClick={() => handleCardDoubleClick(cardType)}
+    >
       <div className="flex items-center">
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-300">{title}</p>
