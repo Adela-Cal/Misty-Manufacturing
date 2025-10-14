@@ -1511,6 +1511,7 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                   >
                     <option value="finished_goods">Finished Goods</option>
                     <option value="paper_cores">Paper Cores</option>
+                    <option value="services_and_deliveries">Services and Deliveries</option>
                   </select>
                 </div>
 
