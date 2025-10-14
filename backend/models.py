@@ -712,6 +712,7 @@ class MaterialCreate(BaseModel):
 class ClientProductType(str, Enum):
     FINISHED_GOODS = "finished_goods"
     PAPER_CORES = "paper_cores"
+    SERVICES_AND_DELIVERIES = "services_and_deliveries"
 
 class ClientProduct(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
