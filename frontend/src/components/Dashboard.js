@@ -225,6 +225,216 @@ const Dashboard = () => {
     );
   };
 
+  const DetailsModal = () => {
+    if (!modalOpen) return null;
+    
+    const getModalTitle = () => {
+      switch (modalOpen) {
+        case 'totalOrders': return 'All Orders';
+        case 'totalClients': return 'All Clients';
+        case 'overdueJobs': return 'Overdue Jobs';
+        case 'dueToday': return 'Jobs Due Today';
+        case 'dueThisWeek': return 'Jobs Due This Week';
+        default: return 'Details';
+      }
+    };
+    
+    const renderModalContent = () => {
+      if (modalLoading) {
+        return (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+          </div>
+        );
+      }
+      
+      if (modalData.length === 0) {
+        return (
+          <div className="text-center py-12">
+            <p className="text-gray-400">No data available</p>
+          </div>
+        );
+      }
+      
+      switch (modalOpen) {
+        case 'totalOrders':
+          return (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {modalData.map((order) => (
+                <div key={order.id} className="p-4 bg-gray-700 rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-semibold text-white">{order.orderNumber}</p>
+                      <p className="text-sm text-gray-300">{order.clientName}</p>
+                    </div>
+                    <p className="text-yellow-400 font-semibold">{order.totalAmount}</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs text-gray-400">
+                    <div>
+                      <span className="block text-gray-500">Created:</span>
+                      {order.dateCreated}
+                    </div>
+                    <div>
+                      <span className="block text-gray-500">Status:</span>
+                      {order.status}
+                    </div>
+                    <div>
+                      <span className="block text-gray-500">Due Date:</span>
+                      {order.dueDate}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+          
+        case 'totalClients':
+          return (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {modalData.map((client) => (
+                <div key={client.id} className="p-4 bg-gray-700 rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <p className="font-semibold text-white">{client.name}</p>
+                    <span className="text-xs bg-yellow-400 text-gray-900 px-2 py-1 rounded">
+                      {client.totalOrders} orders
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-400">
+                    <div>
+                      <span className="block text-gray-500">Contact:</span>
+                      {client.contactPerson}
+                    </div>
+                    <div>
+                      <span className="block text-gray-500">Email:</span>
+                      {client.email}
+                    </div>
+                    <div className="col-span-2">
+                      <span className="block text-gray-500">Phone:</span>
+                      {client.phone}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+          
+        case 'overdueJobs':
+          return (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {modalData.map((job) => (
+                <div key={job.id} className="p-4 bg-gray-700 rounded-lg border-l-4 border-red-500">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-semibold text-white">{job.jobNumber}</p>
+                      <p className="text-sm text-gray-300">{job.clientName}</p>
+                    </div>
+                    <span className="text-xs bg-red-500 text-white px-2 py-1 rounded">
+                      {job.daysOverdue} days overdue
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-400">
+                    <div>
+                      <span className="block text-gray-500">Due Date:</span>
+                      {job.dueDate}
+                    </div>
+                    <div>
+                      <span className="block text-gray-500">Status:</span>
+                      {job.status}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+          
+        case 'dueToday':
+          return (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {modalData.map((job) => (
+                <div key={job.id} className="p-4 bg-gray-700 rounded-lg border-l-4 border-yellow-500">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-semibold text-white">{job.jobNumber}</p>
+                      <p className="text-sm text-gray-300">{job.clientName}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs text-gray-400">
+                    <div>
+                      <span className="block text-gray-500">Type:</span>
+                      {job.jobType}
+                    </div>
+                    <div>
+                      <span className="block text-gray-500">Due:</span>
+                      {job.dueDate}
+                    </div>
+                    <div>
+                      <span className="block text-gray-500">Status:</span>
+                      {job.status}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+          
+        case 'dueThisWeek':
+          return (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {modalData.map((job) => (
+                <div key={job.id} className="p-4 bg-gray-700 rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-semibold text-white">{job.jobNumber}</p>
+                      <p className="text-sm text-gray-300">{job.clientName}</p>
+                    </div>
+                    <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">
+                      {job.daysUntilDue} days
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs text-gray-400">
+                    <div>
+                      <span className="block text-gray-500">Type:</span>
+                      {job.jobType}
+                    </div>
+                    <div>
+                      <span className="block text-gray-500">Due:</span>
+                      {job.dueDate}
+                    </div>
+                    <div>
+                      <span className="block text-gray-500">Status:</span>
+                      {job.status}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+          
+        default:
+          return null;
+      }
+    };
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+          <div className="flex items-center justify-between p-6 border-b border-gray-700">
+            <h2 className="text-xl font-bold text-white">{getModalTitle()}</h2>
+            <button
+              onClick={() => setModalOpen(null)}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <XMarkIcon className="h-6 w-6" />
+            </button>
+          </div>
+          <div className="p-6">
+            {renderModalContent()}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <Layout>
