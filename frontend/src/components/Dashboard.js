@@ -597,6 +597,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      <DetailsModal />
     </Layout>
   );
 };
