@@ -9,7 +9,8 @@ import {
   Cog8ToothIcon,
   ExclamationTriangleIcon,
   CalendarDaysIcon,
-  ClockIcon
+  ClockIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 const Dashboard = () => {
@@ -24,6 +25,9 @@ const Dashboard = () => {
     recentOrders: []
   });
   const [productionBoard, setProductionBoard] = useState({});
+  const [modalOpen, setModalOpen] = useState(null);
+  const [modalData, setModalData] = useState([]);
+  const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
