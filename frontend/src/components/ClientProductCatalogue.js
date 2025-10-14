@@ -1971,6 +1971,220 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                   </div>
                 )}
 
+                {/* Services and Deliveries Specifications */}
+                {formData.product_type === 'services_and_deliveries' && (
+                  <div className="mb-8">
+                    <h4 className="text-lg font-semibold text-white mb-4">Services and Deliveries Details</h4>
+                    
+                    {/* Subtype Selection */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-300 mb-3">
+                        Type *
+                      </label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <label className="flex items-center space-x-3 p-4 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors">
+                          <input
+                            type="radio"
+                            name="service_delivery_subtype"
+                            value="services"
+                            checked={formData.service_delivery_subtype === 'services'}
+                            onChange={handleInputChange}
+                            className="text-yellow-400"
+                          />
+                          <div>
+                            <div className="font-medium text-white">Services</div>
+                            <div className="text-sm text-gray-400">Service-based charges</div>
+                          </div>
+                        </label>
+                        <label className="flex items-center space-x-3 p-4 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors">
+                          <input
+                            type="radio"
+                            name="service_delivery_subtype"
+                            value="deliveries"
+                            checked={formData.service_delivery_subtype === 'deliveries'}
+                            onChange={handleInputChange}
+                            className="text-yellow-400"
+                          />
+                          <div>
+                            <div className="font-medium text-white">Deliveries</div>
+                            <div className="text-sm text-gray-400">Delivery and transport charges</div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Services Form */}
+                    {formData.service_delivery_subtype === 'services' && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Job Description *
+                          </label>
+                          <textarea
+                            name="service_job_description"
+                            value={formData.service_job_description}
+                            onChange={handleInputChange}
+                            className="misty-input w-full h-20"
+                            placeholder="E.g., Demurrage for shipping container"
+                            required
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Time Required *
+                            </label>
+                            <input
+                              type="text"
+                              name="service_time_required"
+                              value={formData.service_time_required}
+                              onChange={handleInputChange}
+                              className="misty-input w-full"
+                              placeholder="E.g., 2 hours, 3 days"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Price *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              name="service_price"
+                              value={formData.service_price}
+                              onChange={handleInputChange}
+                              className="misty-input w-full"
+                              placeholder="0.00"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Functions Involved
+                          </label>
+                          <div className="space-y-2 mb-2">
+                            {formData.service_functions.map((func, index) => (
+                              <div key={index} className="flex items-center space-x-2">
+                                <input
+                                  type="text"
+                                  value={func}
+                                  onChange={(e) => {
+                                    const newFunctions = [...formData.service_functions];
+                                    newFunctions[index] = e.target.value;
+                                    setFormData(prev => ({ ...prev, service_functions: newFunctions }));
+                                  }}
+                                  className="misty-input flex-1"
+                                  placeholder="Describe function"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newFunctions = formData.service_functions.filter((_, i) => i !== index);
+                                    setFormData(prev => ({ ...prev, service_functions: newFunctions }));
+                                  }}
+                                  className="text-red-400 hover:text-red-300 p-2"
+                                >
+                                  <TrashIcon className="h-4 w-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                service_functions: [...prev.service_functions, '']
+                              }));
+                            }}
+                            className="text-yellow-400 hover:text-yellow-300 text-sm flex items-center"
+                          >
+                            <PlusIcon className="h-4 w-4 mr-1" />
+                            Add Function
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Deliveries Form */}
+                    {formData.service_delivery_subtype === 'deliveries' && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">
+                            From Address *
+                          </label>
+                          <textarea
+                            name="delivery_from_address"
+                            value={formData.delivery_from_address}
+                            onChange={handleInputChange}
+                            className="misty-input w-full h-20"
+                            placeholder="Enter pickup address"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">
+                            To Address *
+                          </label>
+                          <textarea
+                            name="delivery_to_address"
+                            value={formData.delivery_to_address}
+                            onChange={handleInputChange}
+                            className="misty-input w-full h-20"
+                            placeholder="Enter delivery address"
+                            required
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                              Unit Type *
+                            </label>
+                            <select
+                              name="delivery_unit_type"
+                              value={formData.delivery_unit_type}
+                              onChange={handleInputChange}
+                              className="misty-select w-full"
+                              required
+                            >
+                              <option value="Pallets">Pallets</option>
+                              <option value="Cores">Cores</option>
+                              <option value="Voidfill">Voidfill</option>
+                              <option value="Blades">Blades</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text="sm font-medium text-gray-300 mb-1">
+                              Price Per Unit *
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              name="delivery_price_per_unit"
+                              value={formData.delivery_price_per_unit}
+                              onChange={handleInputChange}
+                              className="misty-input w-full"
+                              placeholder="0.00"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Consumables Section */}
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-4">
