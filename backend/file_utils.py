@@ -136,12 +136,15 @@ def delete_file(file_path: str) -> bool:
         return False
 
 def get_file_url(file_path: str) -> Optional[str]:
-    """Generate URL for accessing uploaded file"""
+    """Generate URL for accessing uploaded file - Cross-platform compatible"""
     if not file_path or not os.path.exists(file_path):
         return None
     
     # Convert absolute path to relative URL
-    relative_path = file_path.replace("/app/uploads/", "")
+    # Normalize path separators for cross-platform compatibility
+    normalized_upload_dir = os.path.normpath(UPLOAD_DIR)
+    normalized_file_path = os.path.normpath(file_path)
+    relative_path = normalized_file_path.replace(normalized_upload_dir + os.sep, "").replace(os.sep, "/")
     return f"/api/uploads/{relative_path}"
 
 def cleanup_old_files(days: int = 30):
