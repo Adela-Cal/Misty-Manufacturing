@@ -6,10 +6,11 @@ from PIL import Image
 import shutil
 from pathlib import Path
 
-# File upload configuration
-UPLOAD_DIR = "/app/uploads"
-LOGO_DIR = f"{UPLOAD_DIR}/logos"
-DOCUMENT_DIR = f"{UPLOAD_DIR}/documents"
+# File upload configuration - Cross-platform compatible
+# Use environment variable or default to relative path for flexibility
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "./uploads")
+LOGO_DIR = os.path.join(UPLOAD_DIR, "logos")
+DOCUMENT_DIR = os.path.join(UPLOAD_DIR, "documents")
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
 ALLOWED_DOCUMENT_EXTENSIONS = {".pdf", ".doc", ".docx", ".txt"}
