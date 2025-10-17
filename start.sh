@@ -51,8 +51,8 @@ if [ ! -f ".dependencies_installed" ]; then
 fi
 
 # Start backend in background
-echo -e "${GREEN}✓ Starting Backend on port 8001${NC}"
-uvicorn server:app --host 127.0.0.1 --port 8001 > "$SCRIPT_DIR/backend.log" 2>&1 &
+echo -e "${GREEN}✓ Starting Backend on port 8001 (accessible from network)${NC}"
+uvicorn server:app --host 0.0.0.0 --port 8001 > "$SCRIPT_DIR/backend.log" 2>&1 &
 BACKEND_PID=$!
 echo $BACKEND_PID > "$SCRIPT_DIR/.backend.pid"
 
