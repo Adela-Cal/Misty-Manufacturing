@@ -4710,8 +4710,8 @@ app.add_middleware(
 
 # Router already included above, removing duplicate registration
 
-# Mount static files for uploads
-app.mount("/uploads", StaticFiles(directory="/app/uploads"), name="uploads")
+# Mount static files for uploads - Cross-platform compatible
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # Direct Xero callback route (not under /api to avoid routing issues)
 @app.get("/xero-oauth-callback")
