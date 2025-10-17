@@ -3513,8 +3513,8 @@ async def generate_fast_report(
 
 @api_router.get("/uploads/{file_path:path}")
 async def serve_uploaded_file(file_path: str):
-    """Serve uploaded files"""
-    full_path = f"/app/uploads/{file_path}"
+    """Serve uploaded files - Cross-platform compatible"""
+    full_path = os.path.join(UPLOAD_DIR, file_path)
     if not os.path.exists(full_path):
         raise HTTPException(status_code=404, detail="File not found")
     
