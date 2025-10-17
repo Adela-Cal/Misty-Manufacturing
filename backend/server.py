@@ -35,6 +35,9 @@ from payroll_endpoints import payroll_router
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Get upload directory from environment or use default
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "./uploads")
+
 # Force correct environment values for current environment  
 os.environ['XERO_REDIRECT_URI'] = 'https://stock-wizard-6.preview.emergentagent.com/xero-oauth-callback'
 os.environ['FRONTEND_URL'] = 'https://stock-wizard-6.preview.emergentagent.com'
