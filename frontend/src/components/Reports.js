@@ -1134,7 +1134,7 @@ const Reports = () => {
         </ReportCard>
 
         {/* Consumable Usage Report */}
-        <ReportCard title="Consumable Usage Report by Width" icon={CubeIcon}>
+        <ReportCard title="Consumable Usage Report by Date" icon={CubeIcon}>
           <div className="space-y-4">
             <p className="text-sm text-gray-400 mb-2">
               Tracks usage of all consumables from Products & Specifications, excluding Spiral Paper Cores and Composite Cores
