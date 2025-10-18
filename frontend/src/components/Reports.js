@@ -55,6 +55,8 @@ const Reports = () => {
     const { start, end } = getDateRangeFromPreset('last_30_days');
     setStartDate(start);
     setEndDate(end);
+    setProductStartDate(start);
+    setProductEndDate(end);
   }, []);
 
   const loadReportsData = async () => {
