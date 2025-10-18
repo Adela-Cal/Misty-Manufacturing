@@ -811,7 +811,7 @@ class BackendAPITester:
         
         # First, get available materials to test with
         materials = self.get_available_materials()
-        if not materials:
+        if not materials or len(materials) == 0:
             self.log_result(
                 "Material Usage Detailed Report - Setup", 
                 False, 
