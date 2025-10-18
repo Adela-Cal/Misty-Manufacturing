@@ -4417,6 +4417,269 @@ async def get_stock_allocations(
         logger.error(f"Failed to get stock allocations: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve stock allocations")
 
+
+# ============= STOCK REPORTING ENDPOINTS =============
+
+@api_router.get("/stock/reports/material-usage", response_model=StandardResponse)
+async def get_material_usage_report(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    material_id: Optional[str] = None,
+    current_user: dict = Depends(require_any_role)
+):
+    """Generate material usage report with projections"""
+    try:
+        # Default to last 30 days if no dates provided
+        if not end_date:
+            end_date = datetime.now(timezone.utc).isoformat()
+        if not start_date:
+            start_date = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+        
+        # Build query for stock movements
+        query = {
+            "movement_type": {"$in": ["allocation", "usage", "consumption"]},
+            "created_at": {"$gte": start_date, "$lte": end_date}
+        }
+        
+        if material_id:
+            query["product_id"] = material_id
+        
+        # Get all relevant stock movements
+        movements = await db.stock_movements.find(query).to_list(length=None)
+        
+        # Group by material/product
+        material_usage = {}
+        for movement in movements:
+            prod_id = movement.get("product_id", "unknown")
+            if prod_id not in material_usage:
+                material_usage[prod_id] = {
+                    "product_id": prod_id,
+                    "product_name": movement.get("product_name", "Unknown"),
+                    "total_used": 0,
+                    "movements": []
+                }
+            
+            quantity = abs(movement.get("quantity", 0))
+            material_usage[prod_id]["total_used"] += quantity
+            material_usage[prod_id]["movements"].append({
+                "date": movement.get("created_at"),
+                "quantity": quantity,
+                "reference": movement.get("reference", ""),
+                "movement_type": movement.get("movement_type")
+            })
+        
+        # Calculate projections (usage rate per day * 30 days)
+        days_in_period = (datetime.fromisoformat(end_date.replace('Z', '+00:00')) - 
+                         datetime.fromisoformat(start_date.replace('Z', '+00:00'))).days or 1
+        
+        projections = []
+        for prod_id, data in material_usage.items():
+            daily_usage = data["total_used"] / days_in_period
+            projected_monthly = daily_usage * 30
+            projected_quarterly = daily_usage * 90
+            
+            # Get current stock level
+            stock = await db.raw_substrate_stock.find_one({"product_id": prod_id}) or \
+                   await db.raw_materials_stock.find_one({"material_id": prod_id})
+            
+            current_stock = stock.get("quantity_on_hand", 0) if stock else 0
+            days_until_depleted = (current_stock / daily_usage) if daily_usage > 0 else 999
+            
+            projections.append({
+                **data,
+                "current_stock": current_stock,
+                "daily_usage_rate": round(daily_usage, 2),
+                "projected_monthly_usage": round(projected_monthly, 2),
+                "projected_quarterly_usage": round(projected_quarterly, 2),
+                "days_until_depleted": round(days_until_depleted, 1),
+                "reorder_recommended": days_until_depleted < 30
+            })
+        
+        return StandardResponse(
+            success=True,
+            message="Material usage report generated successfully",
+            data={
+                "report_period": {
+                    "start_date": start_date,
+                    "end_date": end_date,
+                    "days": days_in_period
+                },
+                "materials": projections,
+                "total_materials": len(projections)
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to generate material usage report: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to generate report")
+
+@api_router.get("/stock/reports/low-stock", response_model=StandardResponse)
+async def get_low_stock_report(
+    threshold_days: int = 30,
+    current_user: dict = Depends(require_any_role)
+):
+    """Get report of items with low stock levels"""
+    try:
+        # Get all stock items
+        substrates = await db.raw_substrate_stock.find().to_list(length=None)
+        materials = await db.raw_materials_stock.find().to_list(length=None)
+        
+        low_stock_items = []
+        
+        # Check substrates
+        for stock in substrates:
+            min_level = stock.get("minimum_stock_level", 0)
+            current = stock.get("quantity_on_hand", 0)
+            
+            if current <= min_level:
+                # Calculate usage rate from recent movements
+                movements = await db.stock_movements.find({
+                    "product_id": stock.get("product_id"),
+                    "movement_type": {"$in": ["allocation", "usage"]},
+                    "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()}
+                }).to_list(length=None)
+                
+                total_used = sum(abs(m.get("quantity", 0)) for m in movements)
+                daily_usage = total_used / 30 if total_used > 0 else 0
+                days_remaining = (current / daily_usage) if daily_usage > 0 else 999
+                
+                low_stock_items.append({
+                    "type": "substrate",
+                    "id": stock.get("id"),
+                    "product_id": stock.get("product_id"),
+                    "product_description": stock.get("product_description", "Unknown"),
+                    "client_name": stock.get("client_name", "Unknown"),
+                    "current_stock": current,
+                    "minimum_level": min_level,
+                    "unit_of_measure": stock.get("unit_of_measure", "units"),
+                    "daily_usage_rate": round(daily_usage, 2),
+                    "days_remaining": round(days_remaining, 1),
+                    "status": "critical" if days_remaining < 7 else "low" if days_remaining < threshold_days else "warning"
+                })
+        
+        # Check raw materials
+        for material in materials:
+            min_level = material.get("minimum_stock_level", 0)
+            current = material.get("quantity_on_hand", 0)
+            
+            if current <= min_level:
+                # Calculate usage rate
+                usage_rate = material.get("usage_rate_per_month", 0)
+                daily_usage = usage_rate / 30 if usage_rate > 0 else 0
+                days_remaining = (current / daily_usage) if daily_usage > 0 else 999
+                
+                low_stock_items.append({
+                    "type": "raw_material",
+                    "id": material.get("id"),
+                    "material_id": material.get("material_id"),
+                    "material_name": material.get("material_name", "Unknown"),
+                    "current_stock": current,
+                    "minimum_level": min_level,
+                    "unit_of_measure": material.get("unit_of_measure", "kg"),
+                    "daily_usage_rate": round(daily_usage, 2),
+                    "days_remaining": round(days_remaining, 1),
+                    "status": "critical" if days_remaining < 7 else "low" if days_remaining < threshold_days else "warning"
+                })
+        
+        # Sort by days remaining (most critical first)
+        low_stock_items.sort(key=lambda x: x["days_remaining"])
+        
+        return StandardResponse(
+            success=True,
+            message=f"Found {len(low_stock_items)} low stock items",
+            data={
+                "low_stock_items": low_stock_items,
+                "total_items": len(low_stock_items),
+                "critical_items": len([item for item in low_stock_items if item["status"] == "critical"]),
+                "threshold_days": threshold_days
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to generate low stock report: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to generate low stock report")
+
+@api_router.get("/stock/reports/inventory-value", response_model=StandardResponse)
+async def get_inventory_value_report(
+    current_user: dict = Depends(require_any_role)
+):
+    """Calculate total inventory value"""
+    try:
+        # Get all stock with pricing information
+        substrates = await db.raw_substrate_stock.find().to_list(length=None)
+        materials = await db.raw_materials_stock.find().to_list(length=None)
+        
+        inventory_value = {
+            "substrates": [],
+            "materials": [],
+            "total_substrate_value": 0,
+            "total_material_value": 0,
+            "total_inventory_value": 0
+        }
+        
+        # Calculate substrate values
+        for stock in substrates:
+            quantity = stock.get("quantity_on_hand", 0)
+            # Try to get price from client product catalogue
+            product_id = stock.get("product_id")
+            client_id = stock.get("client_id")
+            
+            price_per_unit = 0
+            if product_id and client_id:
+                product = await db.client_products.find_one({
+                    "id": product_id,
+                    "client_id": client_id
+                })
+                if product:
+                    price_per_unit = product.get("price_per_unit", 0) or 0
+            
+            value = quantity * price_per_unit
+            inventory_value["substrates"].append({
+                "product_description": stock.get("product_description", "Unknown"),
+                "quantity": quantity,
+                "unit_of_measure": stock.get("unit_of_measure", "units"),
+                "price_per_unit": price_per_unit,
+                "total_value": round(value, 2)
+            })
+            inventory_value["total_substrate_value"] += value
+        
+        # Calculate material values (would need supplier pricing)
+        for material in materials:
+            quantity = material.get("quantity_on_hand", 0)
+            # Note: Price per unit would need to be added to raw_materials_stock model
+            price_per_unit = material.get("price_per_unit", 0) or 0
+            
+            value = quantity * price_per_unit
+            inventory_value["materials"].append({
+                "material_name": material.get("material_name", "Unknown"),
+                "quantity": quantity,
+                "unit_of_measure": material.get("unit_of_measure", "kg"),
+                "price_per_unit": price_per_unit,
+                "total_value": round(value, 2)
+            })
+            inventory_value["total_material_value"] += value
+        
+        inventory_value["total_inventory_value"] = (
+            inventory_value["total_substrate_value"] + 
+            inventory_value["total_material_value"]
+        )
+        
+        # Round totals
+        inventory_value["total_substrate_value"] = round(inventory_value["total_substrate_value"], 2)
+        inventory_value["total_material_value"] = round(inventory_value["total_material_value"], 2)
+        inventory_value["total_inventory_value"] = round(inventory_value["total_inventory_value"], 2)
+        
+        return StandardResponse(
+            success=True,
+            message="Inventory value report generated successfully",
+            data=inventory_value
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to generate inventory value report: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to generate inventory value report")
+
+
 # ============= SLIT WIDTH MANAGEMENT ENDPOINTS =============
 
 @api_router.get("/slit-widths/material/{material_id}", response_model=StandardResponse)
