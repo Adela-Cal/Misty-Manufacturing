@@ -660,72 +660,42 @@ const Reports = () => {
             }}
           >
             <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Material and Date Preset Selection */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Material Selection */}
-                <select
-                  className="misty-select"
-                  value={selectedMaterial}
-                  onChange={(e) => setSelectedMaterial(e.target.value)}
-                  data-testid="material-select"
-                >
-                  <option value="">Select a material...</option>
-                  {materials.map((material) => (
-                    <option key={material.id} value={material.id}>
-                      {material.material_description || material.supplier} ({material.product_code || 'N/A'})
-                    </option>
-                  ))}
-                </select>
-                
-                {/* Start Date */}
-                <div 
-                  onClick={(e) => e.stopPropagation()} 
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onMouseUp={(e) => e.stopPropagation()}
-                  style={{ position: 'relative', zIndex: 10 }}
-                >
-                  <label className="block text-sm text-gray-400 mb-1">Start Date</label>
-                  <input
-                    type="date"
-                    className="misty-input"
-                    value={startDate}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      setStartDate(e.target.value);
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onMouseUp={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    onFocus={(e) => e.stopPropagation()}
-                    data-testid="start-date"
-                    style={{ position: 'relative', zIndex: 10 }}
-                  />
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Material</label>
+                  <select
+                    className="misty-select"
+                    value={selectedMaterial}
+                    onChange={(e) => setSelectedMaterial(e.target.value)}
+                    data-testid="material-select"
+                  >
+                    <option value="">Select a material...</option>
+                    {materials.map((material) => (
+                      <option key={material.id} value={material.id}>
+                        {material.material_description || material.supplier} ({material.product_code || 'N/A'})
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 
-                {/* End Date */}
-                <div 
-                  onClick={(e) => e.stopPropagation()} 
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onMouseUp={(e) => e.stopPropagation()}
-                  style={{ position: 'relative', zIndex: 10 }}
-                >
-                  <label className="block text-sm text-gray-400 mb-1">End Date</label>
-                  <input
-                    type="date"
-                    className="misty-input"
-                    value={endDate}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      setEndDate(e.target.value);
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onMouseUp={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    onFocus={(e) => e.stopPropagation()}
-                    data-testid="end-date"
-                    style={{ position: 'relative', zIndex: 10 }}
-                  />
+                {/* Date Range Preset */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Date Range</label>
+                  <select
+                    className="misty-select"
+                    value={datePreset}
+                    onChange={(e) => handlePresetChange(e.target.value)}
+                  >
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="this_month">This Month</option>
+                    <option value="last_month">Last Month</option>
+                    <option value="this_year">This Year</option>
+                    <option value="last_year">Last Year</option>
+                    <option value="custom">Custom Range</option>
+                  </select>
                 </div>
                 
                 {/* Generate Button */}
@@ -739,6 +709,83 @@ const Reports = () => {
                     {loadingMaterialReport ? 'Loading...' : 'Generate Report'}
                   </button>
                 </div>
+              </div>
+              
+              {/* Custom Date Range Selectors (only show when Custom is selected) */}
+              {datePreset === 'custom' && (
+                <div className="bg-gray-700/30 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-white mb-3">Custom Date Range</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* Start Year */}
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Start Year</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customStartYear}
+                        onChange={(e) => setCustomStartYear(parseInt(e.target.value))}
+                      >
+                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Start Month */}
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Start Month</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customStartMonth}
+                        onChange={(e) => setCustomStartMonth(parseInt(e.target.value))}
+                      >
+                        {['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'].map((month, idx) => (
+                          <option key={idx} value={idx}>{month}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* End Year */}
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">End Year</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customEndYear}
+                        onChange={(e) => setCustomEndYear(parseInt(e.target.value))}
+                      >
+                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* End Month */}
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">End Month</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customEndMonth}
+                        onChange={(e) => setCustomEndMonth(parseInt(e.target.value))}
+                      >
+                        {['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'].map((month, idx) => (
+                          <option key={idx} value={idx}>{month}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Selected range: {new Date(customStartYear, customStartMonth, 1).toLocaleDateString()} - {new Date(customEndYear, customEndMonth + 1, 0).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+              
+              {/* Display selected date range */}
+              {datePreset !== 'custom' && startDate && endDate && (
+                <div className="text-sm text-gray-400">
+                  Period: {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
+                </div>
+              )}
               </div>
               
               {/* Order Breakdown Toggle */}
