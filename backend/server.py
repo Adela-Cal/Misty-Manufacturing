@@ -5728,6 +5728,129 @@ async def get_job_card_performance_report(
         raise HTTPException(status_code=500, detail=f"Failed to generate report: {str(e)}")
 
 
+
+@api_router.get("/stock/reports/job-card-performance/export-csv")
+async def export_job_card_performance_csv(
+    start_date: str = None,
+    end_date: str = None,
+    current_user: dict = Depends(require_any_role)
+):
+    """
+    Export job card performance report as CSV file for Excel/spreadsheet analysis
+    """
+    try:
+        import csv
+        from io import StringIO
+        from fastapi.responses import StreamingResponse
+        
+        # Get the report data using the same logic
+        report_response = await get_job_card_performance_report(start_date, end_date, current_user)
+        report_data = report_response.data
+        
+        # Create CSV in memory
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write summary section
+        writer.writerow(['Job Card Performance Report'])
+        writer.writerow(['Period', f"{report_data['report_period']['start_date']} to {report_data['report_period']['end_date']}"])
+        writer.writerow([])
+        
+        # Write averages/summary section
+        writer.writerow(['SUMMARY METRICS'])
+        averages = report_data['averages']
+        writer.writerow(['Total Jobs Completed', averages['total_jobs_completed']])
+        writer.writerow(['Jobs On Time', averages['jobs_on_time']])
+        writer.writerow(['Jobs Delayed', averages['jobs_delayed']])
+        writer.writerow(['Efficiency Score (%)', averages['efficiency_score_percentage']])
+        writer.writerow(['Total Time (hours)', averages['total_time_all_jobs_hours']])
+        writer.writerow(['Average Time Per Job (hours)', averages['average_time_per_job_hours']])
+        writer.writerow(['Total Material Used (kg)', averages['total_material_used_kg']])
+        writer.writerow(['Total Material Excess/Waste (kg)', averages['total_material_excess_kg']])
+        writer.writerow(['Overall Waste Percentage (%)', averages['overall_waste_percentage']])
+        writer.writerow(['Average Material Per Job (kg)', averages['average_material_used_per_job_kg']])
+        writer.writerow(['Average Waste Per Job (kg)', averages['average_waste_per_job_kg']])
+        writer.writerow(['Total Stock Produced', averages['total_stock_produced']])
+        writer.writerow(['Average Stock Entries Per Job', averages['average_stock_entries_per_job']])
+        writer.writerow([])
+        
+        # Write job type breakdown
+        writer.writerow(['JOB TYPE BREAKDOWN'])
+        writer.writerow(['Product Type', 'Job Count', 'Total Time (hrs)', 'Avg Time/Job', 'Material Used (kg)', 
+                        'Excess (kg)', 'Waste %', 'On Time', 'Delayed', 'Efficiency %'])
+        for breakdown in report_data.get('job_type_breakdown', []):
+            writer.writerow([
+                breakdown['product_type'],
+                breakdown['job_count'],
+                breakdown['total_time_hours'],
+                breakdown['average_time_per_job'],
+                breakdown['total_material_used_kg'],
+                breakdown['total_excess_kg'],
+                breakdown['waste_percentage'],
+                breakdown['jobs_on_time'],
+                breakdown['jobs_delayed'],
+                breakdown['efficiency_percentage']
+            ])
+        writer.writerow([])
+        
+        # Write client performance
+        writer.writerow(['CLIENT PERFORMANCE'])
+        writer.writerow(['Client Name', 'Job Count', 'Total Time (hrs)', 'Avg Time/Job', 'Material Used (kg)', 
+                        'Excess (kg)', 'Waste %', 'On Time', 'Delayed', 'Efficiency %'])
+        for client in report_data.get('client_performance', []):
+            writer.writerow([
+                client['client_name'],
+                client['job_count'],
+                client['total_time_hours'],
+                client['average_time_per_job'],
+                client['total_material_used_kg'],
+                client['total_excess_kg'],
+                client['waste_percentage'],
+                client['jobs_on_time'],
+                client['jobs_delayed'],
+                client['efficiency_percentage']
+            ])
+        writer.writerow([])
+        
+        # Write detailed job cards
+        writer.writerow(['DETAILED JOB CARDS'])
+        writer.writerow(['Order Number', 'Client', 'Product Types', 'Created', 'Due Date', 'Completed', 
+                        'On Time', 'Time (hrs)', 'Material Used (kg)', 'Expected (kg)', 'Excess (kg)', 
+                        'Waste %', 'Stock Produced', 'Ordered Qty'])
+        
+        for job in report_data.get('job_cards', []):
+            writer.writerow([
+                job['order_number'],
+                job['client_name'],
+                ', '.join(job.get('product_types', [])),
+                job.get('created_at', ''),
+                job.get('due_date', ''),
+                job.get('completed_at', ''),
+                'Yes' if job.get('is_on_time') else 'No',
+                job['total_time_hours'],
+                job['material_used_kg'],
+                job['expected_material_kg'],
+                job['material_excess_kg'],
+                job['waste_percentage'],
+                job['total_stock_produced'],
+                job['ordered_quantity']
+            ])
+        
+        # Prepare the response
+        output.seek(0)
+        filename = f"job_card_performance_{datetime.now().strftime('%Y%m%d')}.csv"
+        
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to export job card performance CSV: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to export CSV: {str(e)}")
+
+
 # ============= SLIT WIDTH MANAGEMENT ENDPOINTS =============
 
 
