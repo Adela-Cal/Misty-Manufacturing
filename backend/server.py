@@ -4774,8 +4774,11 @@ async def get_detailed_material_usage_report(
     Optionally includes order-by-order breakdown.
     """
     try:
-        # Get material information
-        material = await db.raw_materials.find_one({"id": material_id})
+        # Get material information - try both collections
+        material = await db.materials.find_one({"id": material_id})
+        if not material:
+            # Try raw_materials collection with material_id field
+            material = await db.raw_materials.find_one({"material_id": material_id})
         if not material:
             raise HTTPException(status_code=404, detail="Material not found")
         
