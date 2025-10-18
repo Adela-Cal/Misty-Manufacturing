@@ -702,6 +702,14 @@ const Reports = () => {
                         Period: {new Date(materialUsageReport.report_period.start_date).toLocaleDateString()} - {new Date(materialUsageReport.report_period.end_date).toLocaleDateString()}
                       </p>
                     </div>
+                    <button
+                      onClick={printMaterialUsageReport}
+                      className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded transition-colors"
+                      title="Print Report as PDF"
+                    >
+                      <PrinterIcon className="h-5 w-5" />
+                      <span>Print Report</span>
+                    </button>
                   </div>
                   
                   {/* Summary Stats */}
