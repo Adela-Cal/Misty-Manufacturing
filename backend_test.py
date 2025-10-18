@@ -786,7 +786,7 @@ class BackendAPITester:
                         "Verify Stock Allocation", 
                         True, 
                         f"Stock quantity correctly reduced to {current_quantity} units",
-                        f"Original: 100, Allocated: 25, Remaining: {current_quantity}"
+                        f"Stock reduced after allocation: {current_quantity} units (allocated 25 from original stock)"
                     )
                     return True
                 else:
