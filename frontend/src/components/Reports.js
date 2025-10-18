@@ -1384,9 +1384,9 @@ const Reports = () => {
                               </React.Fragment>
                             ))}
                             
-                            {/* Product Subtotal */}
+                            {/* Consumable Subtotal */}
                             <tr className="bg-gray-700/40 font-medium">
-                              <td className="py-2 px-3 text-white text-sm">Product Total</td>
+                              <td className="py-2 px-3 text-white text-sm">Consumable Total</td>
                               <td className="py-2 px-3 text-right text-white text-sm">{product.product_total_length_m.toLocaleString()} m</td>
                               <td className="py-2 px-3 text-right text-yellow-400 text-sm">{product.product_total_m2.toLocaleString()} m²</td>
                               {includeProductOrderBreakdown && <td></td>}
