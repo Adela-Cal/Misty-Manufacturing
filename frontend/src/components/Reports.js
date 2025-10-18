@@ -325,6 +325,189 @@ const Reports = () => {
             )}
           </div>
         </ReportCard>
+
+        {/* Material Usage Report */}
+        <ReportCard title="Material Usage Report by Width" icon={CubeIcon}>
+          <div className="space-y-4">
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Material Selection */}
+                <select
+                  className="misty-select"
+                  value={selectedMaterial}
+                  onChange={(e) => setSelectedMaterial(e.target.value)}
+                  data-testid="material-select"
+                >
+                  <option value="">Select a material...</option>
+                  {materials.map((material) => (
+                    <option key={material.id} value={material.id}>
+                      {material.material_name} ({material.material_code || 'N/A'})
+                    </option>
+                  ))}
+                </select>
+                
+                {/* Start Date */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    className="misty-input"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    data-testid="start-date"
+                  />
+                </div>
+                
+                {/* End Date */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">End Date</label>
+                  <input
+                    type="date"
+                    className="misty-input"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    data-testid="end-date"
+                  />
+                </div>
+                
+                {/* Generate Button */}
+                <div className="flex items-end">
+                  <button
+                    onClick={loadMaterialUsageReport}
+                    disabled={loadingMaterialReport}
+                    className="misty-button misty-button-primary w-full"
+                    data-testid="generate-material-report"
+                  >
+                    {loadingMaterialReport ? 'Loading...' : 'Generate Report'}
+                  </button>
+                </div>
+              </div>
+              
+              {/* Order Breakdown Toggle */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIncludeOrderBreakdown(!includeOrderBreakdown)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
+                    includeOrderBreakdown 
+                      ? 'bg-yellow-600 text-white' 
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  <div className={`w-5 h-5 border-2 rounded flex items-center justify-center ${
+                    includeOrderBreakdown ? 'border-white' : 'border-gray-400'
+                  }`}>
+                    {includeOrderBreakdown && <CheckIcon className="h-4 w-4" />}
+                  </div>
+                  <span>Show breakdown by order</span>
+                </button>
+              </div>
+            </div>
+
+            {materialUsageReport && (
+              <div className="mt-6 space-y-6">
+                {/* Report Header */}
+                <div className="border-t border-gray-700 pt-4">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="font-medium text-white text-lg mb-1">
+                        {materialUsageReport.material_name}
+                      </h4>
+                      <p className="text-sm text-gray-400">
+                        Code: {materialUsageReport.material_code} | 
+                        Period: {new Date(materialUsageReport.report_period.start_date).toLocaleDateString()} - {new Date(materialUsageReport.report_period.end_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Summary Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-yellow-400">
+                        {materialUsageReport.grand_total_m2} m²
+                      </p>
+                      <p className="text-sm text-gray-400">Total Area Used</p>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-green-400">
+                        {materialUsageReport.grand_total_length_m} m
+                      </p>
+                      <p className="text-sm text-gray-400">Total Length</p>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-blue-400">
+                        {materialUsageReport.total_widths_used}
+                      </p>
+                      <p className="text-sm text-gray-400">Different Widths Used</p>
+                    </div>
+                  </div>
+
+                  {/* Usage by Width Table */}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full">
+                      <thead>
+                        <tr className="border-b border-gray-700">
+                          <th className="text-left py-3 px-4 text-gray-300 font-medium">Width (mm)</th>
+                          <th className="text-right py-3 px-4 text-gray-300 font-medium">Total Length (m)</th>
+                          <th className="text-right py-3 px-4 text-gray-300 font-medium">Area (m²)</th>
+                          {includeOrderBreakdown && (
+                            <th className="text-center py-3 px-4 text-gray-300 font-medium">Orders</th>
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {materialUsageReport.usage_by_width.map((width, index) => (
+                          <React.Fragment key={index}>
+                            <tr className="border-b border-gray-700/50 hover:bg-gray-700/30">
+                              <td className="py-3 px-4 text-white font-medium">{width.width_mm} mm</td>
+                              <td className="py-3 px-4 text-right text-gray-300">{width.total_length_m.toLocaleString()} m</td>
+                              <td className="py-3 px-4 text-right text-yellow-400 font-medium">{width.m2.toLocaleString()} m²</td>
+                              {includeOrderBreakdown && (
+                                <td className="py-3 px-4 text-center text-gray-300">{width.order_count || 0}</td>
+                              )}
+                            </tr>
+                            
+                            {/* Order Breakdown */}
+                            {includeOrderBreakdown && width.orders && width.orders.length > 0 && (
+                              <tr>
+                                <td colSpan={includeOrderBreakdown ? 4 : 3} className="py-2 px-4 bg-gray-700/20">
+                                  <div className="pl-8 space-y-1">
+                                    <p className="text-sm font-medium text-gray-400 mb-2">Order Breakdown:</p>
+                                    {width.orders.map((order, orderIndex) => (
+                                      <div key={orderIndex} className="flex justify-between text-sm py-1">
+                                        <span className="text-gray-300">
+                                          {order.order_number} - {order.client_name}
+                                        </span>
+                                        <span className="text-gray-400">
+                                          {order.length_m} m
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        ))}
+                        
+                        {/* Grand Total Row */}
+                        <tr className="bg-gray-700/50 font-bold">
+                          <td className="py-4 px-4 text-white">GRAND TOTAL</td>
+                          <td className="py-4 px-4 text-right text-white">
+                            {materialUsageReport.grand_total_length_m.toLocaleString()} m
+                          </td>
+                          <td className="py-4 px-4 text-right text-yellow-400 text-lg">
+                            {materialUsageReport.grand_total_m2.toLocaleString()} m²
+                          </td>
+                          {includeOrderBreakdown && <td></td>}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </ReportCard>
       </div>
     </Layout>
   );
