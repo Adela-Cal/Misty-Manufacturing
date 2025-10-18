@@ -2070,6 +2070,481 @@ const Reports = () => {
             )}
           </div>
         </ReportModal>
+
+        
+        {/* Job Card Performance Report Modal */}
+        <ReportModal
+          isOpen={showJobPerformanceModal}
+          onClose={() => setShowJobPerformanceModal(false)}
+          title="Job Card Performance Report"
+        >
+          <div className="space-y-4">
+            <div className="flex flex-col gap-4">
+              {/* Date Range Selection */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Date Range Preset */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Date Range</label>
+                  <select
+                    className="misty-select"
+                    value={jobPerformanceDatePreset}
+                    onChange={(e) => {
+                      setJobPerformanceDatePreset(e.target.value);
+                      if (e.target.value !== 'custom') {
+                        const { start, end } = getDateRangeFromPreset(e.target.value);
+                        setJobPerformanceStartDate(start);
+                        setJobPerformanceEndDate(end);
+                      }
+                    }}
+                  >
+                    <option value="last_7_days">Last 7 Days</option>
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="last_6_months">Last 6 Months</option>
+                    <option value="last_12_months">Last 12 Months</option>
+                    <option value="custom">Custom Range</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Custom Date Range Selection */}
+              {jobPerformanceDatePreset === 'custom' && (
+                <div className="border border-gray-700 rounded-lg p-4 bg-gray-800/50">
+                  <h4 className="text-sm text-gray-300 mb-3">Custom Date Range</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-2">Start Date</label>
+                      <div className="flex gap-2">
+                        <select
+                          className="misty-select flex-1"
+                          value={customJobPerformanceStartMonth}
+                          onChange={(e) => setCustomJobPerformanceStartMonth(parseInt(e.target.value))}
+                        >
+                          {['January', 'February', 'March', 'April', 'May', 'June', 
+                            'July', 'August', 'September', 'October', 'November', 'December']
+                            .map((month, idx) => (
+                              <option key={idx} value={idx}>{month}</option>
+                            ))}
+                        </select>
+                        <select
+                          className="misty-select"
+                          value={customJobPerformanceStartYear}
+                          onChange={(e) => setCustomJobPerformanceStartYear(parseInt(e.target.value))}
+                        >
+                          {[...Array(5)].map((_, i) => {
+                            const year = new Date().getFullYear() - i;
+                            return <option key={year} value={year}>{year}</option>;
+                          })}
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-2">End Date</label>
+                      <div className="flex gap-2">
+                        <select
+                          className="misty-select flex-1"
+                          value={customJobPerformanceEndMonth}
+                          onChange={(e) => setCustomJobPerformanceEndMonth(parseInt(e.target.value))}
+                        >
+                          {['January', 'February', 'March', 'April', 'May', 'June', 
+                            'July', 'August', 'September', 'October', 'November', 'December']
+                            .map((month, idx) => (
+                              <option key={idx} value={idx}>{month}</option>
+                            ))}
+                        </select>
+                        <select
+                          className="misty-select"
+                          value={customJobPerformanceEndYear}
+                          onChange={(e) => setCustomJobPerformanceEndYear(parseInt(e.target.value))}
+                        >
+                          {[...Array(5)].map((_, i) => {
+                            const year = new Date().getFullYear() - i;
+                            return <option key={year} value={year}>{year}</option>;
+                          })}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <button
+                  onClick={loadJobPerformanceReport}
+                  disabled={loadingJobPerformance}
+                  className="misty-button misty-button-primary flex-1"
+                >
+                  {loadingJobPerformance ? 'Generating...' : 'Generate Report'}
+                </button>
+                
+                {jobPerformanceReport && (
+                  <>
+                    <button
+                      onClick={exportJobPerformanceCSV}
+                      className="misty-button misty-button-secondary"
+                      title="Export to CSV"
+                    >
+                      <DocumentArrowDownIcon className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => window.print()}
+                      className="misty-button misty-button-secondary"
+                      title="Print Report"
+                    >
+                      <PrinterIcon className="h-5 w-5" />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Report Results */}
+            {jobPerformanceReport && (
+              <div className="mt-6 space-y-6">
+                {/* Summary Metrics */}
+                <div className="border-t border-gray-700 pt-4">
+                  <h4 className="font-medium text-white mb-4">Summary Metrics</h4>
+                  
+                  {/* Key Performance Indicators */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div className="bg-blue-900/20 p-3 rounded-lg text-center">
+                      <p className="text-2xl font-bold text-blue-400">
+                        {jobPerformanceReport.averages?.total_jobs_completed || 0}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">Total Jobs</p>
+                    </div>
+                    
+                    <div className="bg-green-900/20 p-3 rounded-lg text-center">
+                      <p className="text-2xl font-bold text-green-400">
+                        {jobPerformanceReport.averages?.efficiency_score_percentage?.toFixed(1) || 0}%
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">Efficiency Score</p>
+                      <p className="text-xs text-gray-500">
+                        ({jobPerformanceReport.averages?.jobs_on_time || 0} on time, {jobPerformanceReport.averages?.jobs_delayed || 0} delayed)
+                      </p>
+                    </div>
+                    
+                    <div className="bg-yellow-900/20 p-3 rounded-lg text-center">
+                      <p className="text-2xl font-bold text-yellow-400">
+                        {jobPerformanceReport.averages?.total_time_all_jobs_hours?.toFixed(1) || 0}h
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">Total Time</p>
+                      <p className="text-xs text-gray-500">
+                        (Avg: {jobPerformanceReport.averages?.average_time_per_job_hours?.toFixed(1) || 0}h/job)
+                      </p>
+                    </div>
+                    
+                    <div className="bg-red-900/20 p-3 rounded-lg text-center">
+                      <p className="text-2xl font-bold text-red-400">
+                        {jobPerformanceReport.averages?.overall_waste_percentage?.toFixed(1) || 0}%
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">Waste Rate</p>
+                      <p className="text-xs text-gray-500">
+                        ({jobPerformanceReport.averages?.total_material_excess_kg?.toFixed(1) || 0} kg excess)
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Material & Stock Metrics */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-purple-400">
+                        {jobPerformanceReport.averages?.total_material_used_kg?.toFixed(1) || 0} kg
+                      </p>
+                      <p className="text-xs text-gray-400">Total Material Used</p>
+                      <p className="text-xs text-gray-500">
+                        (Avg: {jobPerformanceReport.averages?.average_material_used_per_job_kg?.toFixed(1) || 0} kg/job)
+                      </p>
+                    </div>
+                    
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-orange-400">
+                        {jobPerformanceReport.averages?.total_material_excess_kg?.toFixed(1) || 0} kg
+                      </p>
+                      <p className="text-xs text-gray-400">Total Waste</p>
+                      <p className="text-xs text-gray-500">
+                        (Avg: {jobPerformanceReport.averages?.average_waste_per_job_kg?.toFixed(1) || 0} kg/job)
+                      </p>
+                    </div>
+                    
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-teal-400">
+                        {jobPerformanceReport.averages?.total_stock_produced || 0}
+                      </p>
+                      <p className="text-xs text-gray-400">Stock Produced</p>
+                      <p className="text-xs text-gray-500">
+                        (Avg: {jobPerformanceReport.averages?.average_stock_quantity_per_job?.toFixed(1) || 0} units/job)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Job Type Breakdown */}
+                {jobPerformanceReport.job_type_breakdown && jobPerformanceReport.job_type_breakdown.length > 0 && (
+                  <div className="border-t border-gray-700 pt-4">
+                    <div 
+                      className="flex justify-between items-center cursor-pointer hover:bg-gray-800/50 p-2 rounded"
+                      onClick={() => setShowJobTypeBreakdown(!showJobTypeBreakdown)}
+                    >
+                      <h4 className="font-medium text-white">Job Type Breakdown ({jobPerformanceReport.job_type_breakdown.length} types)</h4>
+                      <span className="text-yellow-400">
+                        {showJobTypeBreakdown ? '▼' : '▶'}
+                      </span>
+                    </div>
+                    
+                    {showJobTypeBreakdown && (
+                      <div className="mt-3 space-y-3">
+                        {jobPerformanceReport.job_type_breakdown.map((type, index) => (
+                          <div key={index} className="bg-gray-800/50 p-4 rounded-lg">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <h5 className="font-medium text-white">{type.product_type}</h5>
+                                <p className="text-sm text-gray-400">{type.job_count} jobs</p>
+                              </div>
+                              <div className="text-right">
+                                <p className={`text-lg font-bold ${type.efficiency_percentage >= 80 ? 'text-green-400' : type.efficiency_percentage >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                  {type.efficiency_percentage?.toFixed(1)}%
+                                </p>
+                                <p className="text-xs text-gray-400">Efficiency</p>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                              <div>
+                                <p className="text-gray-400">Time</p>
+                                <p className="text-white font-medium">{type.total_time_hours?.toFixed(1)}h</p>
+                                <p className="text-xs text-gray-500">({type.average_time_per_job?.toFixed(1)}h avg)</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-400">Material Used</p>
+                                <p className="text-white font-medium">{type.total_material_used_kg?.toFixed(1)} kg</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-400">Waste</p>
+                                <p className="text-white font-medium">{type.total_excess_kg?.toFixed(1)} kg</p>
+                                <p className="text-xs text-gray-500">({type.waste_percentage?.toFixed(1)}%)</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-400">On-Time</p>
+                                <p className="text-white font-medium">{type.jobs_on_time}/{type.job_count}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Client Performance */}
+                {jobPerformanceReport.client_performance && jobPerformanceReport.client_performance.length > 0 && (
+                  <div className="border-t border-gray-700 pt-4">
+                    <div 
+                      className="flex justify-between items-center cursor-pointer hover:bg-gray-800/50 p-2 rounded"
+                      onClick={() => setShowClientPerformance(!showClientPerformance)}
+                    >
+                      <h4 className="font-medium text-white">Client Performance ({jobPerformanceReport.client_performance.length} clients)</h4>
+                      <span className="text-yellow-400">
+                        {showClientPerformance ? '▼' : '▶'}
+                      </span>
+                    </div>
+                    
+                    {showClientPerformance && (
+                      <div className="mt-3 space-y-3">
+                        {jobPerformanceReport.client_performance.map((client, index) => (
+                          <div key={index} className="bg-gray-800/50 p-4 rounded-lg">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <h5 className="font-medium text-white">{client.client_name}</h5>
+                                <p className="text-sm text-gray-400">{client.job_count} jobs</p>
+                              </div>
+                              <div className="text-right">
+                                <p className={`text-lg font-bold ${client.efficiency_percentage >= 80 ? 'text-green-400' : client.efficiency_percentage >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                  {client.efficiency_percentage?.toFixed(1)}%
+                                </p>
+                                <p className="text-xs text-gray-400">Efficiency</p>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                              <div>
+                                <p className="text-gray-400">Time</p>
+                                <p className="text-white font-medium">{client.total_time_hours?.toFixed(1)}h</p>
+                                <p className="text-xs text-gray-500">({client.average_time_per_job?.toFixed(1)}h avg)</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-400">Material Used</p>
+                                <p className="text-white font-medium">{client.total_material_used_kg?.toFixed(1)} kg</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-400">Waste</p>
+                                <p className="text-white font-medium">{client.total_excess_kg?.toFixed(1)} kg</p>
+                                <p className="text-xs text-gray-500">({client.waste_percentage?.toFixed(1)}%)</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-400">On-Time</p>
+                                <p className="text-white font-medium">{client.jobs_on_time}/{client.job_count}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Detailed Job Cards */}
+                <div className="border-t border-gray-700 pt-4">
+                  <h4 className="font-medium text-white mb-4">
+                    Detailed Job Cards ({jobPerformanceReport.job_cards?.length || 0})
+                  </h4>
+                  
+                  {jobPerformanceReport.job_cards && jobPerformanceReport.job_cards.length > 0 ? (
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {jobPerformanceReport.job_cards.map((job, index) => (
+                        <div key={index} className="bg-gray-800/50 p-4 rounded-lg">
+                          <div 
+                            className="flex justify-between items-start cursor-pointer"
+                            onClick={() => toggleJobDetails(job.order_id)}
+                          >
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h5 className="font-medium text-white">{job.order_number}</h5>
+                                {job.is_on_time ? (
+                                  <span className="px-2 py-0.5 bg-green-900/30 text-green-400 text-xs rounded">
+                                    On Time
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 bg-red-900/30 text-red-400 text-xs rounded">
+                                    Delayed
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-400">{job.client_name}</p>
+                              {job.product_types && job.product_types.length > 0 && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {job.product_types.join(', ')}
+                                </p>
+                              )}
+                            </div>
+                            
+                            <div className="text-right ml-4">
+                              <div className="flex gap-3 text-sm mb-1">
+                                <div>
+                                  <p className="text-yellow-400 font-medium">{job.total_time_hours}h</p>
+                                  <p className="text-xs text-gray-500">Time</p>
+                                </div>
+                                <div>
+                                  <p className="text-purple-400 font-medium">{job.material_used_kg} kg</p>
+                                  <p className="text-xs text-gray-500">Material</p>
+                                </div>
+                                {job.waste_percentage > 0 && (
+                                  <div>
+                                    <p className={`font-medium ${job.waste_percentage > 10 ? 'text-red-400' : 'text-orange-400'}`}>
+                                      {job.waste_percentage?.toFixed(1)}%
+                                    </p>
+                                    <p className="text-xs text-gray-500">Waste</p>
+                                  </div>
+                                )}
+                              </div>
+                              <span className="text-yellow-400 text-xs">
+                                {expandedJobDetails[job.order_id] ? '▼ Less' : '▶ More'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Expanded Job Details */}
+                          {expandedJobDetails[job.order_id] && (
+                            <div className="mt-4 pt-4 border-t border-gray-700 space-y-3">
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                                <div>
+                                  <p className="text-gray-400">Material Used</p>
+                                  <p className="text-white font-medium">{job.material_used_kg} kg</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-400">Expected</p>
+                                  <p className="text-white font-medium">{job.expected_material_kg} kg</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-400">Excess/Waste</p>
+                                  <p className="text-white font-medium">{job.material_excess_kg} kg ({job.waste_percentage?.toFixed(1)}%)</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-400">Stock Produced</p>
+                                  <p className="text-white font-medium">{job.total_stock_produced} units</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-400">Ordered Qty</p>
+                                  <p className="text-white font-medium">{job.ordered_quantity} units</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-400">Stock Entries</p>
+                                  <p className="text-white font-medium">{job.stock_entry_count}</p>
+                                </div>
+                              </div>
+
+                              {/* Time by Stage */}
+                              {job.time_by_stage && Object.keys(job.time_by_stage).length > 0 && (
+                                <div>
+                                  <p className="text-gray-400 text-sm mb-2">Time by Stage:</p>
+                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                                    {Object.entries(job.time_by_stage).map(([stage, time]) => (
+                                      <div key={stage} className="bg-gray-900/50 p-2 rounded">
+                                        <p className="text-gray-400">{stage.replace(/_/g, ' ')}</p>
+                                        <p className="text-white font-medium">{time}h</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Stock Entries */}
+                              {job.stock_entries && job.stock_entries.length > 0 && (
+                                <div>
+                                  <p className="text-gray-400 text-sm mb-2">Stock Entries:</p>
+                                  <div className="space-y-1 text-xs">
+                                    {job.stock_entries.map((stock, idx) => (
+                                      <div key={idx} className="flex justify-between bg-gray-900/50 p-2 rounded">
+                                        <span className="text-gray-300">{stock.product_description}</span>
+                                        <span className="text-white font-medium">
+                                          {stock.quantity} {stock.unit_of_measure}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Dates */}
+                              <div className="grid grid-cols-3 gap-2 text-xs">
+                                <div>
+                                  <p className="text-gray-400">Created</p>
+                                  <p className="text-white">{new Date(job.created_at).toLocaleDateString()}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-400">Due Date</p>
+                                  <p className="text-white">{new Date(job.due_date).toLocaleDateString()}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-400">Completed</p>
+                                  <p className="text-white">{new Date(job.completed_at).toLocaleDateString()}</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 text-center py-4">No completed jobs found in this period</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </ReportModal>
+
       </div>
     </Layout>
   );
