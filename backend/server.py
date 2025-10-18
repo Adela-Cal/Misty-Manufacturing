@@ -5350,8 +5350,10 @@ async def get_projected_order_analysis(
                 "historical_data": {
                     "total_quantity": data["total_quantity"],
                     "order_count": data["order_count"],
+                    "total_orders": data["order_count"],  # Alias for frontend compatibility
                     "average_per_day": round(avg_per_day, 2),
                     "average_per_month": round(avg_per_day * 30, 2),
+                    "avg_monthly_orders": round(avg_per_day * 30, 2),  # Alias for frontend compatibility
                     "orders": data["historical_orders"]
                 },
                 "projections": projections,
