@@ -6741,6 +6741,15 @@ def main_login_functionality_review():
     tester = BackendAPITester()
     tester.run_login_tests()
 
+def main_order_deletion_review():
+    """Main function to run enhanced order deletion with stock reallocation tests"""
+    print("🗑️ BACKEND API TESTING - ENHANCED ORDER DELETION WITH STOCK REALLOCATION")
+    print("Testing order deletion functionality with automatic stock return to inventory")
+    print("="*80)
+    
+    tester = BackendAPITester()
+    tester.run_order_deletion_tests()
+
 if __name__ == "__main__":
-    # Run the specific login functionality tests requested in the review
-    main_login_functionality_review()
+    # Run the specific order deletion tests requested in the review
+    main_order_deletion_review()
