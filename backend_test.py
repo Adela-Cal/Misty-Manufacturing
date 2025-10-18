@@ -823,8 +823,9 @@ class BackendAPITester:
         material = materials[0]
         # BACKEND BUG IDENTIFIED: The endpoint looks for raw_materials with id=material_id
         # but should look for raw_materials with material_id=material_id or materials with id=material_id
-        # For testing purposes, we'll use the raw material stock ID
-        material_id = material.get("id")  # Using stock ID due to backend bug
+        # Let's try both approaches to see which one works
+        material_id = material.get("id")  # Try stock ID first
+        material_actual_id = material.get("material_id")  # Backup: actual material ID
         
         # Test 1: Basic functionality with sample material and date range
         self.test_basic_material_usage_report(material_id)
