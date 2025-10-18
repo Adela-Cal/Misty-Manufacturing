@@ -175,6 +175,59 @@ const Reports = () => {
       setProductEndDate(end);
     }
   };
+  
+  // Handle projection report preset changes
+  const handleProjectionPresetChange = (preset) => {
+    setProjectionDatePreset(preset);
+    if (preset !== 'custom') {
+      const { start, end } = getDateRangeFromPreset(preset);
+      setProjectionStartDate(start);
+      setProjectionEndDate(end);
+    }
+  };
+  
+  const loadProjectionReport = async () => {
+    // Calculate dates based on current selection
+    let finalStartDate = projectionStartDate;
+    let finalEndDate = projectionEndDate;
+    
+    if (projectionDatePreset === 'custom') {
+      const start = new Date(customProjectionStartYear, customProjectionStartMonth, 1);
+      const end = new Date(customProjectionEndYear, customProjectionEndMonth + 1, 0);
+      finalStartDate = start.toISOString().split('T')[0];
+      finalEndDate = end.toISOString().split('T')[0];
+      setProjectionStartDate(finalStartDate);
+      setProjectionEndDate(finalEndDate);
+    }
+    
+    if (!finalStartDate || !finalEndDate) {
+      toast.error('Please select date range');
+      return;
+    }
+
+    try {
+      setLoadingProjectionReport(true);
+      const response = await apiHelpers.getProjectedOrderAnalysis(
+        selectedProjectionClient || null,
+        finalStartDate + 'T00:00:00Z',
+        finalEndDate + 'T23:59:59Z'
+      );
+      setProjectionReport(response.data?.data);
+      toast.success('Projected order analysis generated successfully');
+    } catch (error) {
+      console.error('Failed to load projection report:', error);
+      toast.error('Failed to load projection report');
+    } finally {
+      setLoadingProjectionReport(false);
+    }
+  };
+  
+  const toggleMaterialsView = (productId) => {
+    setExpandedMaterials(prev => ({
+      ...prev,
+      [productId]: !prev[productId]
+    }));
+  };
 
   const loadCustomerReport = async () => {
     if (!selectedClient) {
