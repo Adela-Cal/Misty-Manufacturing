@@ -355,32 +355,54 @@ const Reports = () => {
                 </select>
                 
                 {/* Start Date */}
-                <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+                <div 
+                  onClick={(e) => e.stopPropagation()} 
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onMouseUp={(e) => e.stopPropagation()}
+                  style={{ position: 'relative', zIndex: 10 }}
+                >
                   <label className="block text-sm text-gray-400 mb-1">Start Date</label>
                   <input
                     type="date"
                     className="misty-input"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      setStartDate(e.target.value);
+                    }}
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
+                    onMouseUp={(e) => e.stopPropagation()}
                     onKeyDown={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
                     data-testid="start-date"
+                    style={{ position: 'relative', zIndex: 10 }}
                   />
                 </div>
                 
                 {/* End Date */}
-                <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+                <div 
+                  onClick={(e) => e.stopPropagation()} 
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onMouseUp={(e) => e.stopPropagation()}
+                  style={{ position: 'relative', zIndex: 10 }}
+                >
                   <label className="block text-sm text-gray-400 mb-1">End Date</label>
                   <input
                     type="date"
                     className="misty-input"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      setEndDate(e.target.value);
+                    }}
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
+                    onMouseUp={(e) => e.stopPropagation()}
                     onKeyDown={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
                     data-testid="end-date"
+                    style={{ position: 'relative', zIndex: 10 }}
                   />
                 </div>
                 
