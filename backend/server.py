@@ -4559,7 +4559,7 @@ async def get_material_usage_report(
             
             # Get current stock level
             stock = await db.raw_substrate_stock.find_one({"product_id": prod_id}) or \
-                   await db.raw_materials_stock.find_one({"material_id": prod_id})
+                   await db.raw_material_stock.find_one({"material_id": prod_id})
             
             current_stock = stock.get("quantity_on_hand", 0) if stock else 0
             days_until_depleted = (current_stock / daily_usage) if daily_usage > 0 else 999
