@@ -621,6 +621,43 @@ class BackendAPITester:
         
         return None
 
+    def create_test_product_for_client(self, client_id):
+        """Create a test product for the client"""
+        try:
+            product_data = {
+                "product_name": "Test Product for Stock Deletion",
+                "product_type": "finished_goods",
+                "description": "Test product created for order deletion testing",
+                "unit_price": 10.50,
+                "quantity_available": 1000,
+                "is_active": True
+            }
+            
+            response = self.session.post(f"{API_BASE}/clients/{client_id}/catalog", json=product_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                product_id = result.get("data", {}).get("id")
+                
+                self.log_result(
+                    "Create Test Product", 
+                    True, 
+                    f"Successfully created test product with ID: {product_id}"
+                )
+                return product_id
+            else:
+                self.log_result(
+                    "Create Test Product", 
+                    False, 
+                    f"Failed to create test product: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Create Test Product", False, f"Error: {str(e)}")
+        
+        return None
+
     def create_test_order(self):
         """Create a test order for deletion testing"""
         print("\n=== CREATE TEST ORDER ===")
