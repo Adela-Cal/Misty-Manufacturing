@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """
-Projected Order Analysis Endpoint Testing
-Testing GET /api/stock/reports/projected-order-analysis to identify why it's returning 0 orders
+Projected Order Analysis Endpoint Testing - Material Requirements Focus
+Testing GET /api/stock/reports/projected-order-analysis endpoint specifically for material requirements data.
+
+SPECIFIC TEST REQUIREMENTS FROM REVIEW:
+1. Call GET /api/stock/reports/projected-order-analysis with default parameters
+2. Check the response structure for one of the products (e.g., LM Paper Core)
+3. Verify that material_requirements object exists and has data for each period (3_months, 6_months, 9_months, 12_months)
+4. Check if the materials_composition field exists in client_products
+5. Verify the material calculation logic is working
 
 Test Scenarios:
-1. Check if there are any orders in the database at all
-2. Check the date format of created_at field
-3. Check the status values
-4. Test the endpoint with default date range (last 90 days)
-5. Test with no client filter
-6. Debug the date comparison
-7. Test with a very wide date range
+1. Basic endpoint functionality test
+2. Material requirements structure verification
+3. Materials composition field existence check
+4. Material calculation logic verification
+5. Edge cases and error handling
 """
 
 import requests
