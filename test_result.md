@@ -1253,7 +1253,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Login Functionality with Newly Created Admin User"
+    - "Consumable Usage Report Endpoint Testing"
     - "Enhanced Raw Materials Needed Functionality with Fallback Material Requirements"
   stuck_tasks: []
   test_all: false
