@@ -4686,7 +4686,7 @@ async def get_inventory_value_report(
     try:
         # Get all stock with pricing information
         substrates = await db.raw_substrate_stock.find().to_list(length=None)
-        materials = await db.raw_materials_stock.find().to_list(length=None)
+        materials = await db.raw_material_stock.find().to_list(length=None)
         
         inventory_value = {
             "substrates": [],
