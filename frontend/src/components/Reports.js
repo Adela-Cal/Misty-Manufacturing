@@ -1327,7 +1327,7 @@ const Reports = () => {
                     </div>
                   </div>
 
-                  {/* Products Display */}
+                  {/* Consumables Display */}
                   {productUsageReport.products.map((product, productIndex) => (
                     <div key={productIndex} className="mb-6 border border-gray-700 rounded-lg p-4">
                       <div className="mb-3">
@@ -1337,7 +1337,7 @@ const Reports = () => {
                         </p>
                       </div>
                       
-                      {/* Usage by Width Table for this Product */}
+                      {/* Usage by Width Table for this Consumable */}
                       <div className="overflow-x-auto">
                         <table className="min-w-full">
                           <thead>
