@@ -72,6 +72,14 @@ const Reports = () => {
   const [showOutstandingJobsModal, setShowOutstandingJobsModal] = useState(false);
   const [showLateDeliveriesModal, setShowLateDeliveriesModal] = useState(false);
   const [showCustomerReportModal, setShowCustomerReportModal] = useState(false);
+  const [showJobPerformanceModal, setShowJobPerformanceModal] = useState(false);
+  
+  // Job Performance Report states
+  const [jobPerformanceStartDate, setJobPerformanceStartDate] = useState('');
+  const [jobPerformanceEndDate, setJobPerformanceEndDate] = useState('');
+  const [jobPerformanceReport, setJobPerformanceReport] = useState(null);
+  const [loadingJobPerformance, setLoadingJobPerformance] = useState(false);
+  const [expandedJobDetails, setExpandedJobDetails] = useState({});
 
   useEffect(() => {
     loadReportsData();
