@@ -880,7 +880,7 @@ class BackendAPITester:
                     self.log_result(
                         "Verify Stock Return to Inventory", 
                         False, 
-                        f"Stock quantity not restored: {current_quantity}, expected: {expected_quantity}",
+                        f"Stock quantity not properly restored: {current_quantity}, expected at least: {expected_quantity}",
                         "Stock was not properly returned to inventory"
                     )
             else:
