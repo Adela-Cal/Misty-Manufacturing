@@ -821,7 +821,8 @@ class BackendAPITester:
             return
         
         material = materials[0]
-        material_id = material.get("id")
+        # Use the material_id field from the raw material, not the stock id
+        material_id = material.get("material_id") or material.get("id")
         
         # Test 1: Basic functionality with sample material and date range
         self.test_basic_material_usage_report(material_id)
