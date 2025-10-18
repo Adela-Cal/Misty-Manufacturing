@@ -5,7 +5,9 @@ import { toast } from 'sonner';
 import { 
   ChartBarIcon,
   DocumentArrowDownIcon,
-  CalendarDaysIcon
+  CalendarDaysIcon,
+  CubeIcon,
+  CheckIcon
 } from '@heroicons/react/24/outline';
 
 const Reports = () => {
