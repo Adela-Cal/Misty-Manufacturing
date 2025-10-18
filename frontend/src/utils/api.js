@@ -145,6 +145,15 @@ export const apiHelpers = {
         include_order_breakdown: includeOrderBreakdown
       } 
     }),
+  getDetailedProductUsageReport: (clientId, startDate, endDate, includeOrderBreakdown) => 
+    api.get('/stock/reports/product-usage-detailed', { 
+      params: { 
+        client_id: clientId, 
+        start_date: startDate, 
+        end_date: endDate,
+        include_order_breakdown: includeOrderBreakdown
+      } 
+    }),
   
   // Documents
   generateAcknowledgment: (orderId) => api.get(`/documents/acknowledgment/${orderId}`, { responseType: 'blob' }),
