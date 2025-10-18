@@ -820,8 +820,9 @@ class BackendAPITester:
         # Step 3: Print comprehensive summary
         self.print_test_summary()
 
-    def test_login_functionality_comprehensive(self):
-        """Comprehensive test of login functionality with newly created admin user"""
+if __name__ == "__main__":
+    tester = BackendAPITester()
+    tester.run_comprehensive_tests()
         print("\n=== COMPREHENSIVE LOGIN FUNCTIONALITY TEST ===")
         
         # Test 1: Login with correct credentials
