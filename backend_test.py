@@ -530,16 +530,42 @@ class BackendAPITester:
             test_client = clients[0]
             client_id = test_client["id"]
             
-            # Get products for this client
-            products_response = self.session.get(f"{API_BASE}/clients/{client_id}/products")
+            # Get products for this client - try client catalog first
+            products_response = self.session.get(f"{API_BASE}/clients/{client_id}/catalog")
             if products_response.status_code != 200:
-                self.log_result("Get Products for Stock Test", False, f"Failed to get products: {products_response.status_code}")
-                return None
+                # Try general products endpoint
+                products_response = self.session.get(f"{API_BASE}/clients/{client_id}/products")
+                if products_response.status_code != 200:
+                    # Create a test product for this client
+                    test_product_id = self.create_test_product_for_client(client_id)
+                    if not test_product_id:
+                        self.log_result("Get Products for Stock Test", False, f"Failed to get or create products: {products_response.status_code}")
+                        return None
+                    
+                    # Use the created product
+                    test_product = {
+                        "id": test_product_id,
+                        "product_name": "Test Product for Stock Deletion"
+                    }
+                    products = [test_product]
+                else:
+                    products = products_response.json()
+            else:
+                products = products_response.json()
             
-            products = products_response.json()
             if not products:
-                self.log_result("Get Products for Stock Test", False, "No products available for testing")
-                return None
+                # Create a test product for this client
+                test_product_id = self.create_test_product_for_client(client_id)
+                if not test_product_id:
+                    self.log_result("Get Products for Stock Test", False, "No products available and failed to create test product")
+                    return None
+                
+                # Use the created product
+                test_product = {
+                    "id": test_product_id,
+                    "product_name": "Test Product for Stock Deletion"
+                }
+                products = [test_product]
             
             test_product = products[0]
             product_id = test_product["id"]
