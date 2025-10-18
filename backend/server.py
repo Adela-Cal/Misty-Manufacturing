@@ -4909,8 +4909,8 @@ async def get_detailed_material_usage_report(
         
         report_data = {
             "material_id": material_id,
-            "material_name": material.get("material_name", "Unknown"),
-            "material_code": material.get("material_code", "N/A"),
+            "material_name": material.get("material_description", material.get("supplier", "Unknown")),
+            "material_code": material.get("product_code", "N/A"),
             "report_period": {
                 "start_date": start_date,
                 "end_date": end_date,
