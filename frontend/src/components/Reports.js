@@ -25,6 +25,11 @@ const Reports = () => {
   const [selectedMaterial, setSelectedMaterial] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [datePreset, setDatePreset] = useState('last_30_days');
+  const [customStartYear, setCustomStartYear] = useState(new Date().getFullYear());
+  const [customStartMonth, setCustomStartMonth] = useState(new Date().getMonth());
+  const [customEndYear, setCustomEndYear] = useState(new Date().getFullYear());
+  const [customEndMonth, setCustomEndMonth] = useState(new Date().getMonth());
   const [includeOrderBreakdown, setIncludeOrderBreakdown] = useState(false);
   const [materialUsageReport, setMaterialUsageReport] = useState(null);
   const [loadingMaterialReport, setLoadingMaterialReport] = useState(false);
