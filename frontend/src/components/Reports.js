@@ -2306,9 +2306,10 @@ const Reports = () => {
                     </div>
                   </div>
                 </div>
+                )}
 
                 {/* Job Type Breakdown */}
-                {jobPerformanceReport.job_type_breakdown && jobPerformanceReport.job_type_breakdown.length > 0 && (
+                {jobPerformanceReport.averages?.total_jobs_completed > 0 && jobPerformanceReport.job_type_breakdown && jobPerformanceReport.job_type_breakdown.length > 0 && (
                   <div className="border-t border-gray-700 pt-4">
                     <div 
                       className="flex justify-between items-center cursor-pointer hover:bg-gray-800/50 p-2 rounded"
