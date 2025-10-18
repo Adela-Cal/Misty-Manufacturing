@@ -5225,7 +5225,11 @@ async def get_projected_order_analysis(
         # Calculate projections and material requirements
         products_list = []
         
+        logger.info(f"Processing {len(product_analysis)} products for projections")
+        
         for product_id, data in product_analysis.items():
+            logger.info(f"Analyzing product_id: {product_id} from product_analysis")
+            
             # Calculate average usage per day
             avg_per_day = data["total_quantity"] / days_in_period
             
