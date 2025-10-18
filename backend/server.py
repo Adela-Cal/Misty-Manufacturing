@@ -4682,6 +4682,169 @@ async def get_inventory_value_report(
 
 # ============= SLIT WIDTH MANAGEMENT ENDPOINTS =============
 
+
+@api_router.get("/stock/print/{stock_id}")
+async def print_stock_description(
+    stock_id: str,
+    stock_type: str = "substrate",  # substrate or material
+    current_user: dict = Depends(require_any_role)
+):
+    """Generate printable PDF description for a stock unit"""
+    try:
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.lib.units import inch
+        from reportlab.lib import colors
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT
+        from io import BytesIO
+        
+        # Fetch stock data
+        if stock_type == "substrate":
+            stock = await db.raw_substrate_stock.find_one({"id": stock_id})
+            if not stock:
+                raise HTTPException(status_code=404, detail="Stock item not found")
+        else:  # material
+            stock = await db.raw_materials_stock.find_one({"id": stock_id})
+            if not stock:
+                raise HTTPException(status_code=404, detail="Material not found")
+        
+        # Create PDF in memory
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
+        
+        # Container for PDF elements
+        elements = []
+        styles = getSampleStyleSheet()
+        
+        # Custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=colors.HexColor('#1e40af'),
+            spaceAfter=30,
+            alignment=TA_CENTER
+        )
+        
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=14,
+            textColor=colors.HexColor('#1e3a8a'),
+            spaceAfter=12,
+            spaceBefore=12
+        )
+        
+        # Title
+        title_text = "Adela Merchants - Stock Description"
+        elements.append(Paragraph(title_text, title_style))
+        elements.append(Spacer(1, 0.3*inch))
+        
+        # Stock Information
+        if stock_type == "substrate":
+            elements.append(Paragraph("Product on Hand", heading_style))
+            
+            data = [
+                ["Product Code:", stock.get("product_code", "N/A")],
+                ["Description:", stock.get("product_description", "N/A")],
+                ["Client:", stock.get("client_name", "N/A")],
+                ["Quantity on Hand:", f"{stock.get('quantity_on_hand', 0)} {stock.get('unit_of_measure', 'units')}"],
+                ["Minimum Stock Level:", f"{stock.get('minimum_stock_level', 0)} {stock.get('unit_of_measure', 'units')}"],
+                ["Source Order:", stock.get("source_order_id", "N/A")],
+                ["Location:", stock.get("location", "Main Warehouse")],
+                ["Last Updated:", datetime.fromisoformat(stock.get("created_at", "")).strftime("%Y-%m-%d") if stock.get("created_at") else "N/A"]
+            ]
+        else:
+            elements.append(Paragraph("Raw Material Stock", heading_style))
+            
+            data = [
+                ["Material Name:", stock.get("material_name", "N/A")],
+                ["Material ID:", stock.get("material_id", "N/A")],
+                ["Quantity on Hand:", f"{stock.get('quantity_on_hand', 0)} {stock.get('unit_of_measure', 'kg')}"],
+                ["Minimum Stock Level:", f"{stock.get('minimum_stock_level', 0)} {stock.get('unit_of_measure', 'kg')}"],
+                ["Usage Rate/Month:", f"{stock.get('usage_rate_per_month', 0)} {stock.get('unit_of_measure', 'kg')}"],
+                ["Alert Threshold:", f"{stock.get('alert_threshold_days', 7)} days"],
+                ["Supplier:", stock.get("supplier_name", "N/A")],
+                ["Last Updated:", datetime.fromisoformat(stock.get("created_at", "")).strftime("%Y-%m-%d") if stock.get("created_at") else "N/A"]
+            ]
+        
+        # Create table
+        table = Table(data, colWidths=[2.5*inch, 4*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#e5e7eb')),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+            ('TOPPADDING', (0, 0), (-1, -1), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        
+        elements.append(table)
+        elements.append(Spacer(1, 0.5*inch))
+        
+        # Get stock movements
+        query = {"stock_id": stock_id} if stock_type == "substrate" else {"product_id": stock.get("material_id")}
+        movements = await db.stock_movements.find(query).sort("created_at", -1).limit(10).to_list(length=None)
+        
+        if movements:
+            elements.append(Paragraph("Recent Stock Movements", heading_style))
+            
+            movement_data = [["Date", "Type", "Quantity", "Reference"]]
+            for movement in movements:
+                date_str = datetime.fromisoformat(movement.get("created_at", "")).strftime("%Y-%m-%d") if movement.get("created_at") else "N/A"
+                movement_data.append([
+                    date_str,
+                    movement.get("movement_type", "N/A").title(),
+                    f"{movement.get('quantity', 0)} {stock.get('unit_of_measure', 'units')}",
+                    movement.get("reference", "N/A")[:30]
+                ])
+            
+            movement_table = Table(movement_data, colWidths=[1.2*inch, 1.2*inch, 1.5*inch, 2.6*inch])
+            movement_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e40af')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ]))
+            
+            elements.append(movement_table)
+        
+        # Footer
+        elements.append(Spacer(1, 0.5*inch))
+        footer_text = f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
+        footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.grey, alignment=TA_CENTER)
+        elements.append(Paragraph(footer_text, footer_style))
+        
+        # Build PDF
+        doc.build(elements)
+        
+        # Return PDF
+        buffer.seek(0)
+        filename = f"stock_{stock_type}_{stock_id}.pdf"
+        
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate stock PDF: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
+
+
 @api_router.get("/slit-widths/material/{material_id}", response_model=StandardResponse)
 async def get_slit_widths_by_material(
     material_id: str,
