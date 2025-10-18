@@ -39,11 +39,9 @@ const Reports = () => {
     loadMaterials();
     
     // Set default dates (last 30 days)
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - 30);
-    setEndDate(end.toISOString().split('T')[0]);
-    setStartDate(start.toISOString().split('T')[0]);
+    const { start, end } = getDateRangeFromPreset('last_30_days');
+    setStartDate(start);
+    setEndDate(end);
   }, []);
 
   const loadReportsData = async () => {
