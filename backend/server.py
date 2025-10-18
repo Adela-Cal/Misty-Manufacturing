@@ -4601,7 +4601,7 @@ async def get_low_stock_report(
     try:
         # Get all stock items
         substrates = await db.raw_substrate_stock.find().to_list(length=None)
-        materials = await db.raw_materials_stock.find().to_list(length=None)
+        materials = await db.raw_material_stock.find().to_list(length=None)
         
         low_stock_items = []
         
