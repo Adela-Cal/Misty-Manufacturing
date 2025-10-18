@@ -154,6 +154,14 @@ export const apiHelpers = {
         include_order_breakdown: includeOrderBreakdown
       } 
     }),
+  getProjectedOrderAnalysis: (clientId, startDate, endDate) => 
+    api.get('/stock/reports/projected-order-analysis', { 
+      params: { 
+        client_id: clientId, 
+        start_date: startDate, 
+        end_date: endDate
+      } 
+    }),
   
   // Documents
   generateAcknowledgment: (orderId) => api.get(`/documents/acknowledgment/${orderId}`, { responseType: 'blob' }),
