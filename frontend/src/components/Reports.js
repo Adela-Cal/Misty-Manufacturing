@@ -1400,7 +1400,7 @@ const Reports = () => {
                   {/* Grand Total */}
                   <div className="bg-gray-700/50 rounded-lg p-4 mt-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-white font-bold">GRAND TOTAL (All Products)</span>
+                      <span className="text-white font-bold">GRAND TOTAL (All Consumables)</span>
                       <div className="flex gap-8">
                         <span className="text-white font-bold">{productUsageReport.grand_total_length_m.toLocaleString()} m</span>
                         <span className="text-yellow-400 font-bold text-lg">{productUsageReport.grand_total_m2.toLocaleString()} m²</span>
