@@ -1229,8 +1229,8 @@ class BackendAPITester:
         return False
 
     def verify_stock_quantity_after_deletion(self, stock_id):
-        """VERIFY: Stock quantity should increase back to 100 units (75 + 25 returned)"""
-        print("\n=== VERIFY: STOCK QUANTITY AFTER DELETION (SHOULD BE 100) ===")
+        """VERIFY: Stock quantity should increase back to original amount (stock returned)"""
+        print("\n=== VERIFY: STOCK QUANTITY AFTER DELETION ===")
         
         try:
             # Check stock availability again
@@ -1242,12 +1242,13 @@ class BackendAPITester:
             if response.status_code == 200:
                 result = response.json()
                 current_quantity = result.get("data", {}).get("quantity_on_hand", 0)
+                expected_quantity = self.initial_stock_quantity  # Should be back to original
                 
                 self.log_result(
                     "Verify Stock Quantity After Deletion", 
-                    current_quantity == 100, 
+                    current_quantity == expected_quantity, 
                     f"Stock quantity after deletion: {current_quantity} units",
-                    f"Expected: 100 units (75 + 25 returned), Actual: {current_quantity}"
+                    f"Expected: {expected_quantity} units (original quantity restored), Actual: {current_quantity}"
                 )
                 
                 return current_quantity
