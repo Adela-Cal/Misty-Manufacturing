@@ -873,7 +873,7 @@ class BackendAPITester:
                         "Verify Stock Return to Inventory", 
                         True, 
                         f"Stock quantity correctly restored to {current_quantity} units",
-                        f"After allocation: 75, After return: {current_quantity}, Original: 100"
+                        f"After allocation: {self.stock_after_allocation}, After return: {current_quantity}, Expected: {expected_quantity}"
                     )
                     return True
                 else:
