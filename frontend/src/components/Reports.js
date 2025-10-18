@@ -564,7 +564,7 @@ const Reports = () => {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Product Usage Report</title>
+        <title>Consumable Usage Report</title>
         <style>
           @page { margin: 1cm; size: A4; }
           body { font-family: Arial, sans-serif; color: #000; background: #fff; padding: 20px; }
