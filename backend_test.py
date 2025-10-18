@@ -589,17 +589,36 @@ class BackendAPITester:
             product_id = test_product["id"]
             product_name = test_product.get("product_name", test_product.get("name", "Test Product"))
             
+            # Check if there's existing stock for this product/client combination
+            existing_stock_response = self.session.get(f"{API_BASE}/stock/check-availability", params={
+                "product_id": product_id,
+                "client_id": client_id
+            })
+            
+            existing_quantity = 0
+            if existing_stock_response.status_code == 200:
+                existing_data = existing_stock_response.json()
+                existing_quantity = existing_data.get("data", {}).get("quantity_on_hand", 0)
+                self.log_result(
+                    "Check Existing Stock", 
+                    True, 
+                    f"Found existing stock: {existing_quantity} units",
+                    f"Will create additional stock entry for testing"
+                )
+            
             # Create stock entry with exactly 100 units as specified in test scenario
+            import uuid
+            unique_id = str(uuid.uuid4())[:8]
             stock_data = {
                 "client_id": client_id,
                 "client_name": test_client["company_name"],
                 "product_id": product_id,
-                "product_code": product_name,
-                "product_description": f"Fresh test stock for deletion testing - {product_name}",
+                "product_code": f"{product_name}-TEST-{unique_id}",
+                "product_description": f"Fresh test stock for deletion testing - {product_name} - {unique_id}",
                 "quantity_on_hand": 100.0,  # Exactly 100 units as per test scenario
                 "unit_of_measure": "units",
-                "source_order_id": "TEST-ORDER-DELETION-001",
-                "source_job_id": "TEST-JOB-DELETION-001",
+                "source_order_id": f"TEST-ORDER-DELETION-{unique_id}",
+                "source_job_id": f"TEST-JOB-DELETION-{unique_id}",
                 "is_shared_product": False,
                 "shared_with_clients": [],
                 "created_from_excess": False,
@@ -614,20 +633,39 @@ class BackendAPITester:
                 result = response.json()
                 stock_id = result.get("data", {}).get("id")
                 
-                self.log_result(
-                    "Create Fresh Test Stock Entry", 
-                    True, 
-                    f"Successfully created fresh test stock entry with ID: {stock_id}",
-                    f"Initial quantity: 100 units for {product_name} (as per test scenario)"
-                )
+                # Verify the stock was created with correct quantity
+                verify_response = self.session.get(f"{API_BASE}/stock/check-availability", params={
+                    "product_id": product_id,
+                    "client_id": client_id
+                })
                 
-                # Store test data for later use
-                self.test_client_id = client_id
-                self.test_product_id = product_id
-                self.test_stock_id = stock_id
-                self.initial_stock_quantity = 100.0
-                
-                return stock_id
+                if verify_response.status_code == 200:
+                    verify_data = verify_response.json()
+                    current_quantity = verify_data.get("data", {}).get("quantity_on_hand", 0)
+                    expected_quantity = existing_quantity + 100
+                    
+                    self.log_result(
+                        "Create Fresh Test Stock Entry", 
+                        True, 
+                        f"Successfully created fresh test stock entry with ID: {stock_id}",
+                        f"Total stock now: {current_quantity} units (was {existing_quantity}, added 100)"
+                    )
+                    
+                    # Store test data for later use
+                    self.test_client_id = client_id
+                    self.test_product_id = product_id
+                    self.test_stock_id = stock_id
+                    self.initial_stock_quantity = current_quantity  # Use actual current quantity
+                    self.baseline_stock_quantity = existing_quantity  # Store baseline for comparison
+                    
+                    return stock_id
+                else:
+                    self.log_result(
+                        "Verify Stock Creation", 
+                        False, 
+                        f"Failed to verify stock creation: {verify_response.status_code}",
+                        verify_response.text
+                    )
             else:
                 self.log_result(
                     "Create Fresh Test Stock Entry", 
