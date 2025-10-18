@@ -1351,6 +1351,42 @@ async def update_production_stage(order_id: str, stage_update: ProductionStageUp
         # Get the complete order data for archiving
         order = await db.orders.find_one({"id": order_id})
         if order:
+            order_number = order.get("order_number", "")
+            
+            # Archive stock allocations for this order
+            archived_stock_count = 0
+            try:
+                # Find all stock allocations for this order
+                stock_allocations = await db.stock_movements.find({
+                    "reference": order_number,
+                    "movement_type": "allocation",
+                    "is_archived": False
+                }).to_list(length=None)
+                
+                # Mark all allocations as archived
+                if stock_allocations:
+                    result = await db.stock_movements.update_many(
+                        {
+                            "reference": order_number,
+                            "movement_type": "allocation",
+                            "is_archived": False
+                        },
+                        {
+                            "$set": {
+                                "is_archived": True,
+                                "archived_at": datetime.now(timezone.utc).isoformat(),
+                                "archived_by": current_user["user_id"],
+                                "archived_reason": "Order completed and archived"
+                            }
+                        }
+                    )
+                    archived_stock_count = result.modified_count
+                    logger.info(f"Archived {archived_stock_count} stock allocation(s) for completed order {order_number}")
+                
+            except Exception as e:
+                logger.error(f"Failed to archive stock allocations for order {order_number}: {str(e)}")
+                # Don't fail the entire order archiving if stock archiving fails
+            
             # Create archived order
             archived_order = ArchivedOrder(
                 original_order_id=order["id"],
@@ -1375,6 +1411,8 @@ async def update_production_stage(order_id: str, stage_update: ProductionStageUp
             
             # Insert into archived orders collection
             await db.archived_orders.insert_one(archived_order.dict())
+            
+            logger.info(f"Order {order_number} archived successfully with {archived_stock_count} stock allocations")
             
             # Update order status to archived and keep in main collection for now
             # This allows for transition period and potential rollback
