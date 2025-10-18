@@ -464,7 +464,7 @@ class BackendAPITester:
                 data = result.get("data", {})
                 
                 # Check report structure
-                required_fields = ["report_period", "material_projections", "total_materials"]
+                required_fields = ["report_period", "materials", "total_materials"]
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if not missing_fields:
