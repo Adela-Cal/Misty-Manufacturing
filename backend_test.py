@@ -678,34 +678,34 @@ class BackendAPITester:
         
         return None
 
-    def create_test_order(self):
-        """Create a test order for deletion testing"""
-        print("\n=== CREATE TEST ORDER ===")
+    def create_test_order_for_deletion(self):
+        """Create a test order for deletion testing (25 units allocation)"""
+        print("\n=== CREATE TEST ORDER (25 UNITS ALLOCATION) ===")
         
         try:
             if not hasattr(self, 'test_client_id') or not hasattr(self, 'test_product_id'):
                 self.log_result("Create Test Order", False, "Missing test client or product data")
                 return None
             
-            # Create order data
+            # Create order data with exactly 25 units as per test scenario
             order_data = {
                 "client_id": self.test_client_id,
-                "purchase_order_number": "TEST-PO-DELETE-001",
+                "purchase_order_number": "TEST-PO-DELETE-FIXED-001",
                 "items": [
                     {
                         "product_id": self.test_product_id,
-                        "product_name": "Test Product for Deletion",
-                        "quantity": 25,  # Will allocate 25 units from our 100 unit stock
+                        "product_name": "Test Product for Fixed Deletion",
+                        "quantity": 25,  # Exactly 25 units as per test scenario
                         "unit_price": 10.50,
                         "total_price": 262.50
                     }
                 ],
                 "due_date": "2024-12-31",
                 "priority": "Normal/Low",
-                "delivery_address": "Test Delivery Address",
-                "delivery_instructions": "Test delivery for order deletion",
+                "delivery_address": "Test Delivery Address for Fixed Deletion",
+                "delivery_instructions": "Test delivery for FIXED order deletion with stock reallocation",
                 "runtime_estimate": "4.0 hours",
-                "notes": "Test order for deletion with stock reallocation testing"
+                "notes": "Test order for FIXED deletion with stock reallocation testing - 25 units allocation"
             }
             
             response = self.session.post(f"{API_BASE}/orders", json=order_data)
@@ -716,26 +716,27 @@ class BackendAPITester:
                 order_number = result.get("data", {}).get("order_number")
                 
                 self.log_result(
-                    "Create Test Order", 
+                    "Create Test Order for Deletion", 
                     True, 
                     f"Successfully created test order with ID: {order_id}",
-                    f"Order number: {order_number}, Items: 1 product, 25 units"
+                    f"Order number: {order_number}, Items: 1 product, 25 units (as per test scenario)"
                 )
                 
                 self.test_order_id = order_id
                 self.test_order_number = order_number
+                self.allocated_quantity = 25  # Store for verification
                 
                 return order_id
             else:
                 self.log_result(
-                    "Create Test Order", 
+                    "Create Test Order for Deletion", 
                     False, 
                     f"Failed to create order: {response.status_code}",
                     response.text
                 )
                 
         except Exception as e:
-            self.log_result("Create Test Order", False, f"Error: {str(e)}")
+            self.log_result("Create Test Order for Deletion", False, f"Error: {str(e)}")
         
         return None
 
