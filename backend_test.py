@@ -1048,6 +1048,15 @@ class BackendAPITester:
                     )
             else:
                 self.log_result(
+                    "Edge Case - Order Creation", 
+                    False, 
+                    f"Failed to create order for edge case test: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Edge Case - Order Deletion Without Stock", False, f"Error: {str(e)}")
+
     def allocate_stock_to_order_fixed(self, stock_id, order_id):
         """Allocate stock to the test order (25 units) for fixed deletion testing"""
         print("\n=== ALLOCATE STOCK TO ORDER (25 UNITS) ===")
