@@ -576,8 +576,8 @@ class BackendAPITester:
                 "client_id": client_id,
                 "client_name": test_client["company_name"],
                 "product_id": product_id,
-                "product_code": test_product["product_name"],
-                "product_description": f"Test stock for {test_product['product_name']}",
+                "product_code": product_name,
+                "product_description": f"Test stock for {product_name}",
                 "quantity_on_hand": 100.0,  # Initial quantity
                 "unit_of_measure": "units",
                 "source_order_id": None,
