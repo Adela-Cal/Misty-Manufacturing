@@ -7118,6 +7118,18 @@ def main_order_deletion_review():
     tester = BackendAPITester()
     tester.run_order_deletion_tests()
 
+def main_order_deletion_review():
+    """Main function to run FIXED order deletion with stock reallocation tests as requested in review"""
+    print("="*80)
+    print("BACKEND API TESTING - FIXED ORDER DELETION WITH STOCK REALLOCATION")
+    print("Testing Critical Fix: Stock movements archived instead of deleted")
+    print("Added detailed logging for stock return operations")
+    print("Fixed order of operations to prevent deletion of return movements")
+    print("="*80)
+    
+    tester = BackendAPITester()
+    tester.run_fixed_order_deletion_tests()
+
 if __name__ == "__main__":
     # Run the specific order deletion tests requested in the review
     main_order_deletion_review()
