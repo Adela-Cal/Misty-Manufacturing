@@ -1286,7 +1286,7 @@ const Reports = () => {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h4 className="font-medium text-white text-lg mb-1">
-                        Product Usage Report
+                        Consumable Usage Report
                       </h4>
                       <p className="text-sm text-gray-400">
                         Period: {new Date(productUsageReport.report_period.start_date).toLocaleDateString()} - {new Date(productUsageReport.report_period.end_date).toLocaleDateString()}
