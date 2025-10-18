@@ -1634,7 +1634,7 @@ const Reports = () => {
               )}
             </div>
 
-            {projectionReport && projectionReport.analysis_period && (
+            {projectionReport && projectionReport.report_period && (
               <div className="mt-6 space-y-6">
                 {/* Report Header */}
                 <div className="border-t border-gray-700 pt-4">
@@ -1643,7 +1643,7 @@ const Reports = () => {
                       Projected Order Analysis
                     </h4>
                     <p className="text-sm text-gray-400">
-                      Based on historical period: {new Date(projectionReport.analysis_period.start_date).toLocaleDateString()} - {new Date(projectionReport.analysis_period.end_date).toLocaleDateString()}
+                      Based on historical period: {new Date(projectionReport.report_period.start_date).toLocaleDateString()} - {new Date(projectionReport.report_period.end_date).toLocaleDateString()}
                     </p>
                   </div>
                   
