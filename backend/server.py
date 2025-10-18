@@ -5365,6 +5365,18 @@ async def get_projected_order_analysis(
         # Sort by total quantity (most used first)
         products_list.sort(key=lambda x: x["historical_data"]["total_quantity"], reverse=True)
         
+        # Calculate period-based summaries for frontend
+        period_summaries = {}
+        for period in ["3_months", "6_months", "9_months", "12_months"]:
+            total_projected_orders = sum(
+                p["projections"][period] for p in products_list
+            )
+            period_summaries[period] = {
+                "total_projected_orders": round(total_projected_orders, 2),
+                "total_projected_revenue": 0,  # Can be calculated if pricing info available
+                "products_analyzed": len(products_list)
+            }
+        
         report_data = {
             "report_period": {
                 "start_date": start_date,
@@ -5374,10 +5386,7 @@ async def get_projected_order_analysis(
             "client_filter": client_id,
             "products": products_list,
             "total_products": len(products_list),
-            "summary": {
-                "total_orders_analyzed": len(orders),
-                "total_unique_products": len(products_list)
-            }
+            "summary": period_summaries  # Period-based summaries
         }
         
         return StandardResponse(
