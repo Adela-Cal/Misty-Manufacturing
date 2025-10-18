@@ -1437,6 +1437,42 @@ async def update_production_stage(order_id: str, stage_update: ProductionStageUp
     
     return StandardResponse(success=True, message="Production stage updated successfully")
 
+
+@api_router.put("/orders/reorder", response_model=StandardResponse)
+async def reorder_jobs_in_stage(
+    reorder_data: dict,
+    current_user: dict = Depends(require_production_access)
+):
+    """Reorder jobs within a production stage for drag and drop functionality"""
+    try:
+        stage = reorder_data.get("stage")
+        job_order = reorder_data.get("job_order")  # List of order IDs in new order
+        
+        if not stage or not job_order:
+            raise HTTPException(status_code=400, detail="Stage and job_order are required")
+        
+        # Update display order for each job in the stage
+        for index, order_id in enumerate(job_order):
+            await db.orders.update_one(
+                {"id": order_id},
+                {"$set": {"display_order": index}}
+            )
+        
+        logger.info(f"Reordered {len(job_order)} jobs in stage {stage} by user {current_user['user_id']}")
+        
+        return StandardResponse(
+            success=True,
+            message=f"Successfully reordered {len(job_order)} jobs in {stage}",
+            data={"updated_count": len(job_order)}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to reorder jobs: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to reorder jobs")
+
+
 # ============= JOB SPECIFICATION ENDPOINTS =============
 
 @api_router.post("/job-specifications", response_model=StandardResponse)
