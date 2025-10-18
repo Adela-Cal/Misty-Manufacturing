@@ -244,8 +244,8 @@ const Reports = () => {
       setProductUsageReport(response.data?.data);
       toast.success('Consumable usage report generated successfully');
     } catch (error) {
-      console.error('Failed to load product usage report:', error);
-      toast.error('Failed to load product usage report');
+      console.error('Failed to load consumable usage report:', error);
+      toast.error('Failed to load consumable usage report');
     } finally {
       setLoadingProductReport(false);
     }
