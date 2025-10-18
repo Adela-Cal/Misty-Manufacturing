@@ -580,8 +580,8 @@ class BackendAPITester:
                 "product_description": f"Test stock for {product_name}",
                 "quantity_on_hand": 100.0,  # Initial quantity
                 "unit_of_measure": "units",
-                "source_order_id": None,
-                "source_job_id": None,
+                "source_order_id": "TEST-ORDER-STOCK-001",
+                "source_job_id": "TEST-JOB-STOCK-001",
                 "is_shared_product": False,
                 "shared_with_clients": [],
                 "created_from_excess": False,
