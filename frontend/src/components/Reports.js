@@ -1974,7 +1974,11 @@ const Reports = () => {
           </div>
         </ReportModal>
       </div>
-          <div className="space-y-4">
+    </Layout>
+  );
+};
+
+export default Reports;
             <div className="flex flex-col sm:flex-row gap-4">
               <select
                 className="misty-select flex-1"
