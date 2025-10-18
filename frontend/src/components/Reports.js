@@ -1634,7 +1634,7 @@ const Reports = () => {
               )}
             </div>
 
-            {projectionReport && (
+            {projectionReport && projectionReport.analysis_period && (
               <div className="mt-6 space-y-6">
                 {/* Report Header */}
                 <div className="border-t border-gray-700 pt-4">
