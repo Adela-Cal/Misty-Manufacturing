@@ -71,6 +71,11 @@ const Reports = () => {
     setEndDate(end);
     setProductStartDate(start);
     setProductEndDate(end);
+    
+    // Set default projection dates (last 90 days for better analysis)
+    const projectionDates = getDateRangeFromPreset('last_90_days');
+    setProjectionStartDate(projectionDates.start);
+    setProjectionEndDate(projectionDates.end);
   }, []);
 
   const loadReportsData = async () => {
