@@ -212,6 +212,43 @@ const Reports = () => {
     }
   };
   
+  const loadProductUsageReport = async () => {
+    // Calculate dates based on current selection
+    let finalStartDate = productStartDate;
+    let finalEndDate = productEndDate;
+    
+    if (productDatePreset === 'custom') {
+      const start = new Date(customProductStartYear, customProductStartMonth, 1);
+      const end = new Date(customProductEndYear, customProductEndMonth + 1, 0);
+      finalStartDate = start.toISOString().split('T')[0];
+      finalEndDate = end.toISOString().split('T')[0];
+      setProductStartDate(finalStartDate);
+      setProductEndDate(finalEndDate);
+    }
+    
+    if (!finalStartDate || !finalEndDate) {
+      toast.error('Please select date range');
+      return;
+    }
+
+    try {
+      setLoadingProductReport(true);
+      const response = await apiHelpers.getDetailedProductUsageReport(
+        selectedProductClient || null,
+        finalStartDate + 'T00:00:00Z',
+        finalEndDate + 'T23:59:59Z',
+        includeProductOrderBreakdown
+      );
+      setProductUsageReport(response.data?.data);
+      toast.success('Product usage report generated successfully');
+    } catch (error) {
+      console.error('Failed to load product usage report:', error);
+      toast.error('Failed to load product usage report');
+    } finally {
+      setLoadingProductReport(false);
+    }
+  };
+  
   const printMaterialUsageReport = () => {
     // Create a print-friendly window
     const printWindow = window.open('', '_blank');
