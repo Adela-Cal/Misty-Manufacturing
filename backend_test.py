@@ -7956,5 +7956,5 @@ def main_order_deletion_review():
     tester.run_fixed_order_deletion_tests()
 
 if __name__ == "__main__":
-    # Run the specific order deletion tests requested in the review
-    main_order_deletion_review()
+    tester = BackendAPITester()
+    tester.run_comprehensive_tests()
