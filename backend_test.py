@@ -682,7 +682,7 @@ class BackendAPITester:
                     }
                 ],
                 "due_date": "2024-12-31",
-                "priority": "medium",
+                "priority": "Normal/Low",
                 "delivery_address": "Test Delivery Address",
                 "delivery_instructions": "Test delivery for order deletion",
                 "runtime_estimate": 4.0,
