@@ -77,9 +77,16 @@ const Reports = () => {
   // Job Performance Report states
   const [jobPerformanceStartDate, setJobPerformanceStartDate] = useState('');
   const [jobPerformanceEndDate, setJobPerformanceEndDate] = useState('');
+  const [jobPerformanceDatePreset, setJobPerformanceDatePreset] = useState('last_30_days');
+  const [customJobPerformanceStartYear, setCustomJobPerformanceStartYear] = useState(new Date().getFullYear());
+  const [customJobPerformanceStartMonth, setCustomJobPerformanceStartMonth] = useState(new Date().getMonth());
+  const [customJobPerformanceEndYear, setCustomJobPerformanceEndYear] = useState(new Date().getFullYear());
+  const [customJobPerformanceEndMonth, setCustomJobPerformanceEndMonth] = useState(new Date().getMonth());
   const [jobPerformanceReport, setJobPerformanceReport] = useState(null);
   const [loadingJobPerformance, setLoadingJobPerformance] = useState(false);
   const [expandedJobDetails, setExpandedJobDetails] = useState({});
+  const [showJobTypeBreakdown, setShowJobTypeBreakdown] = useState(false);
+  const [showClientPerformance, setShowClientPerformance] = useState(false);
 
   useEffect(() => {
     loadReportsData();
