@@ -190,7 +190,7 @@ class BackendAPITester:
                 "minimum_stock_level": 5.0,
                 "usage_rate_per_month": 10.0,
                 "alert_threshold_days": 7,
-                "supplier_name": "Test Supplier"
+                "supplier_id": str(uuid.uuid4())
             }
             
             response = self.session.post(f"{API_BASE}/stock/raw-materials", json=stock_data)
