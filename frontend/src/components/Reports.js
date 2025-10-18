@@ -242,7 +242,7 @@ const Reports = () => {
         includeProductOrderBreakdown
       );
       setProductUsageReport(response.data?.data);
-      toast.success('Product usage report generated successfully');
+      toast.success('Consumable usage report generated successfully');
     } catch (error) {
       console.error('Failed to load product usage report:', error);
       toast.error('Failed to load product usage report');
