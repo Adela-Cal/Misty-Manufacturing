@@ -5134,10 +5134,14 @@ async def get_projected_order_analysis(
         days_in_period = (end - start).days or 1
         
         # Build query for orders in the date range
+        # Include all orders except cancelled/deleted to capture orders on hand
         order_query = {
-            "created_at": {"$gte": start.isoformat(), "$lte": end.isoformat()},
-            "status": {"$in": ["completed", "archived"]}
+            "created_at": {"$gte": start.isoformat(), "$lte": end.isoformat()}
         }
+        
+        # Exclude cancelled/deleted orders if such status exists
+        if await db.orders.find_one({"status": "cancelled"}):
+            order_query["status"] = {"$ne": "cancelled"}
         
         if client_id:
             order_query["client_id"] = client_id
