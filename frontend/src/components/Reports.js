@@ -2423,12 +2423,13 @@ const Reports = () => {
                 )}
 
                 {/* Detailed Job Cards */}
-                <div className="border-t border-gray-700 pt-4">
-                  <h4 className="font-medium text-white mb-4">
-                    Detailed Job Cards ({jobPerformanceReport.job_cards?.length || 0})
-                  </h4>
-                  
-                  {jobPerformanceReport.job_cards && jobPerformanceReport.job_cards.length > 0 ? (
+                {jobPerformanceReport.averages?.total_jobs_completed > 0 && (
+                  <div className="border-t border-gray-700 pt-4">
+                    <h4 className="font-medium text-white mb-4">
+                      Detailed Job Cards ({jobPerformanceReport.job_cards?.length || 0})
+                    </h4>
+                    
+                    {jobPerformanceReport.job_cards && jobPerformanceReport.job_cards.length > 0 ? (
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {jobPerformanceReport.job_cards.map((job, index) => (
                         <div key={index} className="bg-gray-800/50 p-4 rounded-lg">
