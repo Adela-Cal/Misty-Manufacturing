@@ -4759,6 +4759,181 @@ async def get_inventory_value_report(
         raise HTTPException(status_code=500, detail="Failed to generate inventory value report")
 
 
+
+@api_router.get("/stock/reports/material-usage-detailed", response_model=StandardResponse)
+async def get_detailed_material_usage_report(
+    material_id: str,
+    start_date: str,
+    end_date: str,
+    include_order_breakdown: bool = False,
+    current_user: dict = Depends(require_any_role)
+):
+    """
+    Generate detailed material usage report by width and length for a specific material.
+    Shows usage per width, total length, and grand total m² used.
+    Optionally includes order-by-order breakdown.
+    """
+    try:
+        # Get material information
+        material = await db.raw_materials.find_one({"id": material_id})
+        if not material:
+            raise HTTPException(status_code=404, detail="Material not found")
+        
+        # Parse dates
+        start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+        end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+        
+        # Find all orders in the date range that used this material
+        orders = await db.orders.find({
+            "created_at": {"$gte": start.isoformat(), "$lte": end.isoformat()},
+            "status": {"$in": ["completed", "archived"]}
+        }).to_list(length=None)
+        
+        # Track material usage by width
+        usage_by_width = {}  # {width_mm: {total_length_m: X, orders: [{order_number, length_m}]}}
+        total_m2 = 0.0
+        
+        for order in orders:
+            order_number = order.get("order_number", "Unknown")
+            
+            # Check job specifications for this order to find material usage
+            job_specs = await db.job_specifications.find({
+                "order_id": order["id"]
+            }).to_list(length=None)
+            
+            for job_spec in job_specs:
+                materials_composition = job_spec.get("materials_composition", [])
+                
+                for material_layer in materials_composition:
+                    # Check if this layer uses the requested material
+                    layer_material_id = material_layer.get("material_id")
+                    
+                    if layer_material_id == material_id:
+                        # Get width and quantity
+                        width_mm = material_layer.get("width", 0)
+                        quantity_meters = material_layer.get("quantity", 0)
+                        
+                        if width_mm > 0 and quantity_meters > 0:
+                            width_key = f"{width_mm}"
+                            
+                            # Initialize width entry if not exists
+                            if width_key not in usage_by_width:
+                                usage_by_width[width_key] = {
+                                    "width_mm": width_mm,
+                                    "total_length_m": 0.0,
+                                    "orders": []
+                                }
+                            
+                            # Add to width total
+                            usage_by_width[width_key]["total_length_m"] += quantity_meters
+                            
+                            # Track order detail if breakdown requested
+                            if include_order_breakdown:
+                                usage_by_width[width_key]["orders"].append({
+                                    "order_number": order_number,
+                                    "length_m": quantity_meters,
+                                    "order_date": order.get("created_at", ""),
+                                    "client_name": order.get("client_name", "Unknown")
+                                })
+                            
+                            # Calculate m² for this usage (width in mm / 1000 * length in m)
+                            m2 = (width_mm / 1000.0) * quantity_meters
+                            total_m2 += m2
+        
+        # Also check slit widths that might have been used
+        slit_widths = await db.slit_widths.find({
+            "raw_material_id": material_id,
+            "created_at": {"$gte": start.isoformat(), "$lte": end.isoformat()},
+            "is_allocated": True
+        }).to_list(length=None)
+        
+        for slit in slit_widths:
+            width_mm = slit.get("slit_width_mm", 0)
+            quantity_meters = slit.get("allocated_quantity", 0) or 0
+            order_id = slit.get("allocated_to_order_id")
+            
+            if width_mm > 0 and quantity_meters > 0:
+                width_key = f"{width_mm}"
+                
+                # Initialize width entry if not exists
+                if width_key not in usage_by_width:
+                    usage_by_width[width_key] = {
+                        "width_mm": width_mm,
+                        "total_length_m": 0.0,
+                        "orders": []
+                    }
+                
+                # Add to width total
+                usage_by_width[width_key]["total_length_m"] += quantity_meters
+                
+                # Get order details if breakdown requested
+                if include_order_breakdown and order_id:
+                    order = await db.orders.find_one({"id": order_id})
+                    if order:
+                        usage_by_width[width_key]["orders"].append({
+                            "order_number": order.get("order_number", "Unknown"),
+                            "length_m": quantity_meters,
+                            "order_date": order.get("created_at", ""),
+                            "client_name": order.get("client_name", "Unknown")
+                        })
+                
+                # Calculate m² for this usage
+                m2 = (width_mm / 1000.0) * quantity_meters
+                total_m2 += m2
+        
+        # Convert to sorted list
+        usage_list = []
+        for width_key, data in usage_by_width.items():
+            width_mm = data["width_mm"]
+            total_length_m = data["total_length_m"]
+            m2_for_width = (width_mm / 1000.0) * total_length_m
+            
+            width_data = {
+                "width_mm": width_mm,
+                "total_length_m": round(total_length_m, 2),
+                "m2": round(m2_for_width, 2)
+            }
+            
+            # Add order breakdown if requested
+            if include_order_breakdown:
+                width_data["orders"] = data["orders"]
+                width_data["order_count"] = len(data["orders"])
+            
+            usage_list.append(width_data)
+        
+        # Sort by width (ascending)
+        usage_list.sort(key=lambda x: x["width_mm"])
+        
+        report_data = {
+            "material_id": material_id,
+            "material_name": material.get("material_name", "Unknown"),
+            "material_code": material.get("material_code", "N/A"),
+            "report_period": {
+                "start_date": start_date,
+                "end_date": end_date,
+                "days": (end - start).days
+            },
+            "usage_by_width": usage_list,
+            "total_widths_used": len(usage_list),
+            "grand_total_m2": round(total_m2, 2),
+            "grand_total_length_m": round(sum(w["total_length_m"] for w in usage_list), 2),
+            "include_order_breakdown": include_order_breakdown
+        }
+        
+        return StandardResponse(
+            success=True,
+            message="Detailed material usage report generated successfully",
+            data=report_data
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate detailed material usage report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate report: {str(e)}")
+
+
+
 # ============= SLIT WIDTH MANAGEMENT ENDPOINTS =============
 
 
