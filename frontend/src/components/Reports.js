@@ -730,15 +730,22 @@ const Reports = () => {
   };
 
 
-  const ReportCard = ({ title, children, icon: Icon }) => (
-    <div className="misty-card p-6">
-      <div className="flex items-center mb-4">
-        <Icon className="h-6 w-6 text-yellow-400 mr-2" />
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
+  const ReportTile = ({ title, description, icon: Icon, onClick }) => {
+    return (
+      <div 
+        className="misty-card p-6 cursor-pointer hover:bg-gray-700/50 transition-all duration-200 hover:scale-105 hover:shadow-xl border-2 border-gray-700 hover:border-yellow-500"
+        onDoubleClick={onClick}
+        title="Double-click to open"
+      >
+        <div className="flex flex-col items-center text-center h-full justify-center">
+          <Icon className="h-12 w-12 text-yellow-400 mb-4" />
+          <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+          <p className="text-sm text-gray-400">{description}</p>
+          <p className="text-xs text-gray-500 mt-3 italic">Double-click to open</p>
+        </div>
       </div>
-      {children}
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (
