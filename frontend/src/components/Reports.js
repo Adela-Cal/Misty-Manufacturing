@@ -1979,7 +1979,6 @@ const Reports = () => {
 };
 
 export default Reports;
-            <div className="flex flex-col sm:flex-row gap-4">
               <select
                 className="misty-select flex-1"
                 value={selectedClient}
