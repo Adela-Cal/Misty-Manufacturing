@@ -4918,6 +4918,186 @@ async def get_detailed_material_usage_report(
             },
             "usage_by_width": usage_list,
             "total_widths_used": len(usage_list),
+
+
+@api_router.get("/stock/reports/product-usage-detailed", response_model=StandardResponse)
+async def get_detailed_product_usage_report(
+    client_id: Optional[str] = None,
+    start_date: str = None,
+    end_date: str = None,
+    include_order_breakdown: bool = False,
+    current_user: dict = Depends(require_any_role)
+):
+    """
+    Generate detailed product usage report by width and length for client products.
+    Excludes 'Spiral Paper Cores' and 'Composite Cores' product types.
+    Shows usage per width, total length, and grand total m² used.
+    Optionally includes order-by-order breakdown.
+    """
+    try:
+        # Parse dates
+        start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+        end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+        
+        # Build query for orders in the date range
+        order_query = {
+            "created_at": {"$gte": start.isoformat(), "$lte": end.isoformat()},
+            "status": {"$in": ["completed", "archived"]}
+        }
+        
+        if client_id:
+            order_query["client_id"] = client_id
+        
+        orders = await db.orders.find(order_query).to_list(length=None)
+        
+        # Track product usage by product and width
+        product_usage = {}  # {product_id: {widths: {width_mm: {data}}, product_info: {}}}
+        
+        for order in orders:
+            order_number = order.get("order_number", "Unknown")
+            order_items = order.get("items", [])
+            
+            for item in order_items:
+                product_id = item.get("product_id")
+                if not product_id:
+                    continue
+                
+                # Get product details
+                product = await db.client_products.find_one({"id": product_id})
+                if not product:
+                    continue
+                
+                # Skip excluded product types
+                product_type = product.get("product_type", "")
+                if product_type in ["Spiral Paper Cores", "Composite Cores"]:
+                    continue
+                
+                # Get dimensions
+                width_mm = item.get("width", 0) or product.get("width", 0)
+                quantity = item.get("quantity", 0)
+                length_m = item.get("length", 0) or product.get("length", 0)
+                
+                if width_mm <= 0 or quantity <= 0:
+                    continue
+                
+                # Calculate total length for this item (quantity * length per unit)
+                total_length = quantity * length_m
+                
+                # Initialize product entry if not exists
+                if product_id not in product_usage:
+                    product_usage[product_id] = {
+                        "product_info": {
+                            "product_id": product_id,
+                            "product_description": product.get("product_description", "Unknown"),
+                            "product_code": product.get("product_code", "N/A"),
+                            "product_type": product_type,
+                            "client_id": product.get("client_id"),
+                            "client_name": order.get("client_name", "Unknown")
+                        },
+                        "widths": {},
+                        "total_length_m": 0,
+                        "total_m2": 0
+                    }
+                
+                width_key = f"{width_mm}"
+                
+                # Initialize width entry if not exists
+                if width_key not in product_usage[product_id]["widths"]:
+                    product_usage[product_id]["widths"][width_key] = {
+                        "width_mm": width_mm,
+                        "total_length_m": 0.0,
+                        "orders": []
+                    }
+                
+                # Add to width total
+                product_usage[product_id]["widths"][width_key]["total_length_m"] += total_length
+                
+                # Track order detail if breakdown requested
+                if include_order_breakdown:
+                    product_usage[product_id]["widths"][width_key]["orders"].append({
+                        "order_number": order_number,
+                        "quantity": quantity,
+                        "length_per_unit": length_m,
+                        "total_length_m": total_length,
+                        "order_date": order.get("created_at", ""),
+                        "client_name": order.get("client_name", "Unknown")
+                    })
+        
+        # Calculate totals and format output
+        products_list = []
+        grand_total_m2 = 0.0
+        grand_total_length_m = 0.0
+        
+        for product_id, data in product_usage.items():
+            product_total_length = 0.0
+            product_total_m2 = 0.0
+            
+            widths_list = []
+            for width_key, width_data in data["widths"].items():
+                width_mm = width_data["width_mm"]
+                total_length_m = width_data["total_length_m"]
+                m2_for_width = (width_mm / 1000.0) * total_length_m
+                
+                width_info = {
+                    "width_mm": width_mm,
+                    "total_length_m": round(total_length_m, 2),
+                    "m2": round(m2_for_width, 2)
+                }
+                
+                # Add order breakdown if requested
+                if include_order_breakdown:
+                    width_info["orders"] = width_data["orders"]
+                    width_info["order_count"] = len(width_data["orders"])
+                
+                widths_list.append(width_info)
+                product_total_length += total_length_m
+                product_total_m2 += m2_for_width
+            
+            # Sort widths by width_mm
+            widths_list.sort(key=lambda x: x["width_mm"])
+            
+            products_list.append({
+                "product_info": data["product_info"],
+                "usage_by_width": widths_list,
+                "total_widths_used": len(widths_list),
+                "product_total_length_m": round(product_total_length, 2),
+                "product_total_m2": round(product_total_m2, 2)
+            })
+            
+            grand_total_length_m += product_total_length
+            grand_total_m2 += product_total_m2
+        
+        # Sort products by description
+        products_list.sort(key=lambda x: x["product_info"]["product_description"])
+        
+        report_data = {
+            "report_period": {
+                "start_date": start_date,
+                "end_date": end_date,
+                "days": (end - start).days
+            },
+            "client_filter": client_id,
+            "products": products_list,
+            "total_products": len(products_list),
+            "grand_total_m2": round(grand_total_m2, 2),
+            "grand_total_length_m": round(grand_total_length_m, 2),
+            "include_order_breakdown": include_order_breakdown,
+            "excluded_types": ["Spiral Paper Cores", "Composite Cores"]
+        }
+        
+        return StandardResponse(
+            success=True,
+            message="Detailed product usage report generated successfully",
+            data=report_data
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate detailed product usage report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate report: {str(e)}")
+
+
             "grand_total_m2": round(total_m2, 2),
             "grand_total_length_m": round(sum(w["total_length_m"] for w in usage_list), 2),
             "include_order_breakdown": include_order_breakdown
