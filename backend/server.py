@@ -1485,8 +1485,15 @@ async def delete_order(order_id: str, current_user: dict = Depends(require_admin
     # Remove order items status
     await db.order_items_status.delete_many({"order_id": order_id})
     
-    # Remove stock movements for this order
-    await db.stock_movements.delete_many({"reference": order_number})
+    # Mark stock movements as archived (don't delete for audit trail)
+    # Only archive allocation movements, keep return movements for audit
+    await db.stock_movements.update_many(
+        {
+            "reference": order_number,
+            "movement_type": "allocation"
+        },
+        {"$set": {"is_archived": True, "archived_at": datetime.now(timezone.utc).isoformat()}}
+    )
     
     # Perform hard delete - completely remove the order
     result = await db.orders.delete_one({"id": order_id})
@@ -1495,6 +1502,7 @@ async def delete_order(order_id: str, current_user: dict = Depends(require_admin
         raise HTTPException(status_code=404, detail="Order not found")
     
     message = f"Order deleted successfully. {returned_stock_count} stock allocation(s) returned to inventory."
+    logger.info(f"Deleted order {order_number} and returned {returned_stock_count} stock allocation(s)")
     return StandardResponse(success=True, message=message, data={"returned_stock_items": returned_stock_count})
 
 # ============= PRODUCTION BOARD ENDPOINTS =============
