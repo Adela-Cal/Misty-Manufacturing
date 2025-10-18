@@ -1129,6 +1129,852 @@ const Reports = () => {
           title="Consumable Usage Report by Date"
         >
           <div className="space-y-4">
+            <p className="text-sm text-gray-400 mb-2">
+              Tracks usage of all consumables from Products & Specifications, excluding Spiral Paper Cores and Composite Cores
+            </p>
+            
+            <div className="flex flex-col gap-4">
+              {/* Client and Date Preset Selection */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Client Selection (Optional) */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Client (Optional)</label>
+                  <select
+                    className="misty-select"
+                    value={selectedProductClient}
+                    onChange={(e) => setSelectedProductClient(e.target.value)}
+                  >
+                    <option value="">All Clients</option>
+                    {clients.map((client) => (
+                      <option key={client.id} value={client.id}>
+                        {client.company_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Date Range Preset */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Date Range</label>
+                  <select
+                    className="misty-select"
+                    value={productDatePreset}
+                    onChange={(e) => handleProductPresetChange(e.target.value)}
+                  >
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="this_month">This Month</option>
+                    <option value="last_month">Last Month</option>
+                    <option value="this_year">This Year</option>
+                    <option value="last_year">Last Year</option>
+                    <option value="custom">Custom Range</option>
+                  </select>
+                </div>
+                
+                {/* Generate Button */}
+                <div className="flex items-end">
+                  <button
+                    onClick={loadProductUsageReport}
+                    disabled={loadingProductReport}
+                    className="misty-button misty-button-primary w-full"
+                  >
+                    {loadingProductReport ? 'Loading...' : 'Generate Report'}
+                  </button>
+                </div>
+              </div>
+              
+              {/* Custom Date Range Selectors */}
+              {productDatePreset === 'custom' && (
+                <div className="bg-gray-700/30 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-white mb-3">Custom Date Range</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Start Year</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customProductStartYear}
+                        onChange={(e) => setCustomProductStartYear(parseInt(e.target.value))}
+                      >
+                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Start Month</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customProductStartMonth}
+                        onChange={(e) => setCustomProductStartMonth(parseInt(e.target.value))}
+                      >
+                        {['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'].map((month, idx) => (
+                          <option key={idx} value={idx}>{month}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">End Year</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customProductEndYear}
+                        onChange={(e) => setCustomProductEndYear(parseInt(e.target.value))}
+                      >
+                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">End Month</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customProductEndMonth}
+                        onChange={(e) => setCustomProductEndMonth(parseInt(e.target.value))}
+                      >
+                        {['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'].map((month, idx) => (
+                          <option key={idx} value={idx}>{month}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Selected range: {new Date(customProductStartYear, customProductStartMonth, 1).toLocaleDateString()} - {new Date(customProductEndYear, customProductEndMonth + 1, 0).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+              
+              {/* Display selected date range */}
+              {productDatePreset !== 'custom' && productStartDate && productEndDate && (
+                <div className="text-sm text-gray-400">
+                  Period: {new Date(productStartDate).toLocaleDateString()} - {new Date(productEndDate).toLocaleDateString()}
+                </div>
+              )}
+              
+              {/* Order Breakdown Toggle */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIncludeProductOrderBreakdown(!includeProductOrderBreakdown)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
+                    includeProductOrderBreakdown 
+                      ? 'bg-yellow-600 text-white' 
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  <div className={`w-5 h-5 border-2 rounded flex items-center justify-center ${
+                    includeProductOrderBreakdown ? 'border-white' : 'border-gray-400'
+                  }`}>
+                    {includeProductOrderBreakdown && <CheckIcon className="h-4 w-4" />}
+                  </div>
+                  <span>Show breakdown by order</span>
+                </button>
+              </div>
+            </div>
+
+            {productUsageReport && (
+              <div className="mt-6 space-y-6">
+                {/* Report Header */}
+                <div className="border-t border-gray-700 pt-4">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="font-medium text-white text-lg mb-1">
+                        Consumable Usage Report
+                      </h4>
+                      <p className="text-sm text-gray-400">
+                        Period: {new Date(productUsageReport.report_period.start_date).toLocaleDateString()} - {new Date(productUsageReport.report_period.end_date).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Excludes: {productUsageReport.excluded_types.join(', ')}
+                      </p>
+                    </div>
+                    <button
+                      onClick={printProductUsageReport}
+                      className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded transition-colors"
+                      title="Print Report as PDF"
+                    >
+                      <PrinterIcon className="h-5 w-5" />
+                      <span>Print Report</span>
+                    </button>
+                  </div>
+                  
+                  {/* Summary Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-yellow-400">
+                        {productUsageReport.grand_total_m2} m²
+                      </p>
+                      <p className="text-sm text-gray-400">Total Area Used</p>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-green-400">
+                        {productUsageReport.grand_total_length_m} m
+                      </p>
+                      <p className="text-sm text-gray-400">Total Length</p>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-blue-400">
+                        {productUsageReport.total_products}
+                      </p>
+                      <p className="text-sm text-gray-400">Consumables Used</p>
+                    </div>
+                  </div>
+
+                  {/* Consumables Display */}
+                  {productUsageReport.products.map((product, productIndex) => (
+                    <div key={productIndex} className="mb-6 border border-gray-700 rounded-lg p-4">
+                      <div className="mb-3">
+                        <h5 className="font-medium text-white">{product.product_info.product_description}</h5>
+                        <p className="text-xs text-gray-400">
+                          Code: {product.product_info.product_code} | Client: {product.product_info.client_name}
+                        </p>
+                      </div>
+                      
+                      {/* Usage by Width Table for this Consumable */}
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full">
+                          <thead>
+                            <tr className="border-b border-gray-700">
+                              <th className="text-left py-2 px-3 text-gray-300 font-medium text-sm">Width (mm)</th>
+                              <th className="text-right py-2 px-3 text-gray-300 font-medium text-sm">Length (m)</th>
+                              <th className="text-right py-2 px-3 text-gray-300 font-medium text-sm">Area (m²)</th>
+                              {includeProductOrderBreakdown && (
+                                <th className="text-center py-2 px-3 text-gray-300 font-medium text-sm">Orders</th>
+                              )}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {product.usage_by_width.map((width, widthIndex) => (
+                              <React.Fragment key={widthIndex}>
+                                <tr className="border-b border-gray-700/30 hover:bg-gray-700/20">
+                                  <td className="py-2 px-3 text-white text-sm">{width.width_mm} mm</td>
+                                  <td className="py-2 px-3 text-right text-gray-300 text-sm">{width.total_length_m.toLocaleString()} m</td>
+                                  <td className="py-2 px-3 text-right text-yellow-400 font-medium text-sm">{width.m2.toLocaleString()} m²</td>
+                                  {includeProductOrderBreakdown && (
+                                    <td className="py-2 px-3 text-center text-gray-300 text-sm">{width.order_count || 0}</td>
+                                  )}
+                                </tr>
+                                
+                                {/* Order Breakdown */}
+                                {includeProductOrderBreakdown && width.orders && width.orders.length > 0 && (
+                                  <tr>
+                                    <td colSpan={includeProductOrderBreakdown ? 4 : 3} className="py-2 px-3 bg-gray-700/20">
+                                      <div className="pl-8 space-y-1">
+                                        <p className="text-sm font-medium text-gray-400 mb-2">Order Breakdown:</p>
+                                        {width.orders.map((order, orderIndex) => (
+                                          <div key={orderIndex} className="flex justify-between text-sm py-1">
+                                            <span className="text-gray-300">
+                                              {order.order_number} - {order.client_name}
+                                            </span>
+                                            <span className="text-gray-400">
+                                              {order.total_length_m} m ({order.quantity} × {order.length_per_unit}m)
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
+                            ))}
+                            <tr className="bg-gray-700/30 font-bold">
+                              <td className="py-3 px-3 text-white">Product Total</td>
+                              <td className="py-3 px-3 text-right text-white">{product.product_total_length_m.toLocaleString()} m</td>
+                              <td className="py-3 px-3 text-right text-yellow-400">{product.product_total_m2.toLocaleString()} m²</td>
+                              {includeProductOrderBreakdown && <td></td>}
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Grand Total */}
+                  <div className="border-t-2 border-gray-600 pt-4">
+                    <div className="bg-gray-700/50 rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-bold text-white">GRAND TOTAL (All Consumables)</span>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-yellow-400">{productUsageReport.grand_total_m2} m²</div>
+                          <div className="text-sm text-gray-400">{productUsageReport.grand_total_length_m} m</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </ReportModal>
+
+        <ReportModal
+          isOpen={showProjectionModal}
+          onClose={() => setShowProjectionModal(false)}
+          title="Projected Order Analysis"
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-gray-400 mb-2">
+              Analyze all orders (including orders on hand) and project future requirements for 3, 6, 9, and 12 months with material breakdown
+            </p>
+            
+            <div className="flex flex-col gap-4">
+              {/* Client and Date Preset Selection */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Client Selection (Optional) */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Client (Optional)</label>
+                  <select
+                    className="misty-select"
+                    value={selectedProjectionClient}
+                    onChange={(e) => setSelectedProjectionClient(e.target.value)}
+                  >
+                    <option value="">All Clients</option>
+                    {clients.map((client) => (
+                      <option key={client.id} value={client.id}>
+                        {client.company_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Date Range Preset */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Historical Period</label>
+                  <select
+                    className="misty-select"
+                    value={projectionDatePreset}
+                    onChange={(e) => handleProjectionPresetChange(e.target.value)}
+                  >
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="this_month">This Month</option>
+                    <option value="last_month">Last Month</option>
+                    <option value="this_year">This Year</option>
+                    <option value="last_year">Last Year</option>
+                    <option value="custom">Custom Range</option>
+                  </select>
+                </div>
+                
+                {/* Generate Button */}
+                <div className="flex items-end">
+                  <button
+                    onClick={loadProjectionReport}
+                    disabled={loadingProjectionReport}
+                    className="misty-button misty-button-primary w-full"
+                  >
+                    {loadingProjectionReport ? 'Loading...' : 'Generate Analysis'}
+                  </button>
+                </div>
+              </div>
+              
+              {/* Custom Date Range Selectors */}
+              {projectionDatePreset === 'custom' && (
+                <div className="bg-gray-700/30 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-white mb-3">Custom Historical Period</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Start Year</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customProjectionStartYear}
+                        onChange={(e) => setCustomProjectionStartYear(parseInt(e.target.value))}
+                      >
+                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Start Month</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customProjectionStartMonth}
+                        onChange={(e) => setCustomProjectionStartMonth(parseInt(e.target.value))}
+                      >
+                        {['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'].map((month, idx) => (
+                          <option key={idx} value={idx}>{month}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">End Year</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customProjectionEndYear}
+                        onChange={(e) => setCustomProjectionEndYear(parseInt(e.target.value))}
+                      >
+                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">End Month</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customProjectionEndMonth}
+                        onChange={(e) => setCustomProjectionEndMonth(parseInt(e.target.value))}
+                      >
+                        {['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'].map((month, idx) => (
+                          <option key={idx} value={idx}>{month}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Selected range: {new Date(customProjectionStartYear, customProjectionStartMonth, 1).toLocaleDateString()} - {new Date(customProjectionEndYear, customProjectionEndMonth + 1, 0).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+              
+              {/* Display selected date range */}
+              {projectionDatePreset !== 'custom' && projectionStartDate && projectionEndDate && (
+                <div className="text-sm text-gray-400">
+                  Historical Period: {new Date(projectionStartDate).toLocaleDateString()} - {new Date(projectionEndDate).toLocaleDateString()}
+                </div>
+              )}
+            </div>
+
+            {projectionReport && (
+              <div className="mt-6 space-y-6">
+                {/* Report Header */}
+                <div className="border-t border-gray-700 pt-4">
+                  <div className="mb-4">
+                    <h4 className="font-medium text-white text-lg mb-1">
+                      Projected Order Analysis
+                    </h4>
+                    <p className="text-sm text-gray-400">
+                      Based on historical period: {new Date(projectionReport.analysis_period.start_date).toLocaleDateString()} - {new Date(projectionReport.analysis_period.end_date).toLocaleDateString()}
+                    </p>
+                  </div>
+                  
+                  {/* Projection Period Selector */}
+                  <div className="mb-6">
+                    <label className="block text-sm text-gray-400 mb-2">View Projections For:</label>
+                    <div className="flex flex-wrap gap-2">
+                      {['3_months', '6_months', '9_months', '12_months'].map((period) => (
+                        <button
+                          key={period}
+                          onClick={() => setSelectedProjectionPeriod(period)}
+                          className={`px-4 py-2 rounded transition-colors ${
+                            selectedProjectionPeriod === period
+                              ? 'bg-yellow-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          {period.replace('_', ' ').replace('months', 'Months')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Summary Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-yellow-400">
+                        {projectionReport.summary[selectedProjectionPeriod]?.total_projected_orders || 0}
+                      </p>
+                      <p className="text-sm text-gray-400">Projected Orders</p>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-green-400">
+                        {projectionReport.summary[selectedProjectionPeriod]?.total_projected_revenue ? formatCurrency(projectionReport.summary[selectedProjectionPeriod].total_projected_revenue) : '$0'}
+                      </p>
+                      <p className="text-sm text-gray-400">Projected Revenue</p>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-blue-400">
+                        {projectionReport.products?.length || 0}
+                      </p>
+                      <p className="text-sm text-gray-400">Products Analyzed</p>
+                    </div>
+                  </div>
+
+                  {/* Products List */}
+                  <div className="space-y-4">
+                    {projectionReport.products.map((product, index) => {
+                      const projectedQty = product.projections[selectedProjectionPeriod];
+                      const materialReqs = product.material_requirements[selectedProjectionPeriod];
+                      const isExpanded = expandedMaterials[product.product_info.product_id];
+                      
+                      return (
+                        <div key={index} className="border border-gray-700 rounded-lg p-4 bg-gray-800/50">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex-1">
+                              <h5 className="font-medium text-white text-lg">
+                                {product.product_info.product_description}
+                              </h5>
+                              <p className="text-xs text-gray-400">
+                                Code: {product.product_info.product_code} | Client: {product.product_info.client_name}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-xl font-bold text-yellow-400">
+                                {projectedQty} units
+                              </div>
+                              <div className="text-sm text-gray-400">
+                                Projected for {selectedProjectionPeriod.replace('_', ' ')}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div className="text-center bg-gray-700/30 rounded p-3">
+                              <p className="text-lg font-bold text-green-400">
+                                {product.historical_data.total_orders}
+                              </p>
+                              <p className="text-xs text-gray-400">Historical Orders</p>
+                            </div>
+                            <div className="text-center bg-gray-700/30 rounded p-3">
+                              <p className="text-lg font-bold text-blue-400">
+                                {product.historical_data.avg_monthly_orders}
+                              </p>
+                              <p className="text-xs text-gray-400">Avg Monthly Orders</p>
+                            </div>
+                          </div>
+                          
+                          {/* Material Requirements Toggle */}
+                          <div className="flex justify-between items-center mb-3">
+                            <button
+                              onClick={() => toggleMaterialsView(product.product_info.product_id)}
+                              className="flex items-center gap-2 text-sm text-yellow-400 hover:text-yellow-300"
+                            >
+                              <span>{isExpanded ? '▼' : '▶'}</span>
+                              <span>Material Requirements ({materialReqs?.length || 0} materials)</span>
+                            </button>
+                            <button
+                              onClick={() => toggleCustomersView(product.product_info.product_id)}
+                              className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300"
+                            >
+                              <span>{expandedCustomers[product.product_info.product_id] ? '▼' : '▶'}</span>
+                              <span>Customer Breakdown</span>
+                            </button>
+                          </div>
+                          
+                          {/* Material Requirements Table */}
+                          {isExpanded && materialReqs && (
+                            <div className="mt-4 border-t border-gray-700 pt-4">
+                              <div className="overflow-x-auto">
+                                <table className="min-w-full">
+                                  <thead>
+                                    <tr className="border-b border-gray-700">
+                                      <th className="text-left py-2 px-3 text-gray-300 text-xs">Layer</th>
+                                      <th className="text-left py-2 px-3 text-gray-300 text-xs">Material</th>
+                                      <th className="text-right py-2 px-3 text-gray-300 text-xs">Width (mm)</th>
+                                      <th className="text-right py-2 px-3 text-gray-300 text-xs">Thickness (mm)</th>
+                                      <th className="text-right py-2 px-3 text-gray-300 text-xs">Laps/Core</th>
+                                      <th className="text-right py-2 px-3 text-gray-300 text-xs">m/Unit</th>
+                                      <th className="text-right py-2 px-3 text-gray-300 text-xs font-medium">Total Meters</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {materialReqs.map((mat, matIndex) => {
+                                      if (mat.is_total) {
+                                        return (
+                                          <tr key={matIndex} className="bg-yellow-600/20 border-t-2 border-yellow-600">
+                                            <td colSpan="6" className="py-3 px-3 text-white font-bold text-sm">
+                                              TOTAL MATERIAL REQUIRED
+                                            </td>
+                                            <td className="py-3 px-3 text-right">
+                                              <span className="text-lg font-bold text-yellow-400">
+                                                {mat.total_meters_all_layers} m
+                                              </span>
+                                            </td>
+                                          </tr>
+                                        );
+                                      }
+                                      
+                                      return (
+                                        <tr key={matIndex} className="border-b border-gray-700/50 hover:bg-gray-700/20">
+                                          <td className="py-2 px-3 text-blue-400 text-xs font-medium">
+                                            Layer {mat.layer_order}
+                                          </td>
+                                          <td className="py-2 px-3 text-white text-xs">
+                                            {mat.material_name}
+                                          </td>
+                                          <td className="py-2 px-3 text-right text-gray-300 text-xs">
+                                            {mat.width_mm}
+                                          </td>
+                                          <td className="py-2 px-3 text-right text-gray-300 text-xs">
+                                            {mat.thickness_mm}
+                                          </td>
+                                          <td className="py-2 px-3 text-right text-gray-300 text-xs">
+                                            {mat.laps_per_core}
+                                          </td>
+                                          <td className="py-2 px-3 text-right text-gray-300 text-xs">
+                                            {mat.meters_per_unit}
+                                          </td>
+                                          <td className="py-2 px-3 text-right text-yellow-400 font-medium text-xs">
+                                            {mat.total_meters} m
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Customer Breakdown */}
+                          {expandedCustomers[product.product_info.product_id] && (
+                            <div className="mt-4 border-t border-gray-700 pt-4">
+                              <h6 className="text-sm font-medium text-white mb-3">
+                                Customer Breakdown for {selectedProjectionPeriod.replace('_', ' ')}
+                              </h6>
+                              {product.customer_projections && Object.keys(product.customer_projections).length > 0 ? (
+                                <div className="space-y-2">
+                                  {Object.entries(product.customer_projections).map(([customerName, customerData], custIndex) => {
+                                    const projectedQty = customerData[selectedProjectionPeriod];
+                                    
+                                    return (
+                                      <div key={custIndex} className="bg-gray-700/40 rounded p-3">
+                                        <div className="flex justify-between items-start mb-2">
+                                          <div className="flex-1">
+                                            <p className="text-sm font-medium text-white">
+                                              {customerName}
+                                            </p>
+                                            <p className="text-xs text-gray-400">
+                                              Historical: {customerData.historical_total} units ({customerData.order_count} orders)
+                                            </p>
+                                          </div>
+                                          <div className="text-right">
+                                            <div className="text-lg font-bold text-yellow-400">
+                                              {projectedQty} units
+                                            </div>
+                                            <div className="text-xs text-gray-400">
+                                              Projected
+                                            </div>
+                                          </div>
+                                        </div>
+                                        
+                                        {/* Projections for all periods */}
+                                        <div className="mt-4 bg-gray-700/20 rounded p-3">
+                                          <p className="text-xs font-medium text-gray-400 mb-2">All Projection Periods:</p>
+                                          <div className="grid grid-cols-4 gap-2 text-xs">
+                                            <div className="text-center">
+                                              <div className="text-yellow-400 font-medium">{customerData['3_months']}</div>
+                                              <div className="text-gray-500">3 months</div>
+                                            </div>
+                                            <div className="text-center">
+                                              <div className="text-yellow-400 font-medium">{customerData['6_months']}</div>
+                                              <div className="text-gray-500">6 months</div>
+                                            </div>
+                                            <div className="text-center">
+                                              <div className="text-yellow-400 font-medium">{customerData['9_months']}</div>
+                                              <div className="text-gray-500">9 months</div>
+                                            </div>
+                                            <div className="text-center">
+                                              <div className="text-yellow-400 font-medium">{customerData['12_months']}</div>
+                                              <div className="text-gray-500">12 months</div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-400">No customer breakdown available</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </ReportModal>
+
+        <ReportModal
+          isOpen={showOutstandingJobsModal}
+          onClose={() => setShowOutstandingJobsModal(false)}
+          title="Outstanding Jobs Report"
+        >
+          {outstandingJobs ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-yellow-400">{outstandingJobs.total_jobs}</p>
+                  <p className="text-sm text-gray-400">Total Jobs</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-red-400">{outstandingJobs.overdue_jobs}</p>
+                  <p className="text-sm text-gray-400">Overdue</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <p className="text-xl font-bold text-orange-400">{outstandingJobs.jobs_due_today}</p>
+                  <p className="text-sm text-gray-400">Due Today</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xl font-bold text-blue-400">{outstandingJobs.jobs_due_this_week}</p>
+                  <p className="text-sm text-gray-400">Due This Week</p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-white mb-2">Jobs by Stage:</h4>
+                <div className="space-y-1">
+                  {Object.entries(outstandingJobs.jobs_by_stage || {}).map(([stage, count]) => (
+                    <div key={stage} className="flex justify-between text-sm">
+                      <span className="text-gray-300 capitalize">{stage.replace('_', ' ')}</span>
+                      <span className="text-gray-400">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-400">No data available</p>
+          )}
+        </ReportModal>
+
+        <ReportModal
+          isOpen={showLateDeliveriesModal}
+          onClose={() => setShowLateDeliveriesModal(false)}
+          title="Late Deliveries Report"
+        >
+          {lateDeliveries ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-red-400">{lateDeliveries.total_late_deliveries}</p>
+                  <p className="text-sm text-gray-400">Late Deliveries</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-orange-400">{lateDeliveries.average_delay_days?.toFixed(1) || 0}</p>
+                  <p className="text-sm text-gray-400">Avg Delay (days)</p>
+                </div>
+              </div>
+
+              {Object.keys(lateDeliveries.late_deliveries_by_client || {}).length > 0 && (
+                <div>
+                  <h4 className="font-medium text-white mb-2">Late Deliveries by Client:</h4>
+                  <div className="space-y-1">
+                    {Object.entries(lateDeliveries.late_deliveries_by_client).map(([client, count]) => (
+                      <div key={client} className="flex justify-between text-sm">
+                        <span className="text-gray-300">{client}</span>
+                        <span className="text-red-400">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-gray-400">No data available</p>
+          )}
+        </ReportModal>
+
+        <ReportModal
+          isOpen={showCustomerReportModal}
+          onClose={() => setShowCustomerReportModal(false)}
+          title="Customer Annual Report"
+        >
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <select
+                className="misty-select flex-1"
+                value={selectedClient}
+                onChange={(e) => setSelectedClient(e.target.value)}
+                data-testid="client-select"
+              >
+                <option value="">Select a client...</option>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.company_name}
+                  </option>
+                ))}
+              </select>
+              
+              <select
+                className="misty-select"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                data-testid="year-select"
+              >
+                {[...Array(5)].map((_, i) => {
+                  const year = new Date().getFullYear() - i;
+                  return (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  );
+                })}
+              </select>
+              
+              <button
+                onClick={loadCustomerReport}
+                className="misty-button misty-button-primary"
+                data-testid="generate-customer-report"
+              >
+                Generate Report
+              </button>
+            </div>
+
+            {customerReport && (
+              <div className="mt-6 space-y-4">
+                <div className="border-t border-gray-700 pt-4">
+                  <h4 className="font-medium text-white mb-3">
+                    {customerReport.client_name} - {customerReport.year} Report
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="text-center">
+                      <p className="text-xl font-bold text-yellow-400">{customerReport.total_orders}</p>
+                      <p className="text-sm text-gray-400">Total Orders</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xl font-bold text-green-400">
+                        {formatCurrency(customerReport.total_revenue)}
+                      </p>
+                      <p className="text-sm text-gray-400">Total Revenue</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xl font-bold text-blue-400">
+                        {formatCurrency(customerReport.average_order_value)}
+                      </p>
+                      <p className="text-sm text-gray-400">Avg Order Value</p>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-teal-400">
+                      {customerReport.on_time_delivery_rate?.toFixed(1) || 0}%
+                    </p>
+                    <p className="text-sm text-gray-400">On-Time Delivery Rate</p>
+                  </div>
+
+                  {customerReport.top_products && customerReport.top_products.length > 0 && (
+                    <div className="mt-4">
+                      <h5 className="font-medium text-white mb-2">Top Products:</h5>
+                      <div className="space-y-1">
+                        {customerReport.top_products.slice(0, 5).map((product, index) => (
+                          <div key={index} className="flex justify-between text-sm">
+                            <span className="text-gray-300">{product.product}</span>
+                            <span className="text-yellow-400">
+                              {formatCurrency(product.revenue)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </ReportModal>
+      </div>
+          <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
               <select
                 className="misty-select flex-1"
