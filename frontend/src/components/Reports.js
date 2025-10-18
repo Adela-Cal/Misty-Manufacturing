@@ -59,6 +59,7 @@ const Reports = () => {
   const [projectionReport, setProjectionReport] = useState(null);
   const [loadingProjectionReport, setLoadingProjectionReport] = useState(false);
   const [expandedMaterials, setExpandedMaterials] = useState({});
+  const [expandedCustomers, setExpandedCustomers] = useState({});
   const [selectedProjectionPeriod, setSelectedProjectionPeriod] = useState('3_months');
 
   useEffect(() => {
