@@ -229,6 +229,13 @@ const Reports = () => {
       [productId]: !prev[productId]
     }));
   };
+  
+  const toggleCustomersView = (productId) => {
+    setExpandedCustomers(prev => ({
+      ...prev,
+      [productId]: !prev[productId]
+    }));
+  };
 
   const loadCustomerReport = async () => {
     if (!selectedClient) {
