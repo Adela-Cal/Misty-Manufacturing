@@ -162,6 +162,13 @@ export const apiHelpers = {
         end_date: endDate
       } 
     }),
+  getJobCardPerformance: (startDate, endDate) => 
+    api.get('/stock/reports/job-card-performance', { 
+      params: { 
+        start_date: startDate, 
+        end_date: endDate
+      } 
+    }),
   
   // Documents
   generateAcknowledgment: (orderId) => api.get(`/documents/acknowledgment/${orderId}`, { responseType: 'blob' }),
