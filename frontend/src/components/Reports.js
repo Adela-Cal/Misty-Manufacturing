@@ -1489,7 +1489,7 @@ const Reports = () => {
         <ReportCard title="Projected Order Analysis" icon={ChartBarIcon}>
           <div className="space-y-4">
             <p className="text-sm text-gray-400 mb-2">
-              Analyze historical orders and project future requirements for 3, 6, 9, and 12 months with material breakdown
+              Analyze all orders (including orders on hand) and project future requirements for 3, 6, 9, and 12 months with material breakdown
             </p>
             
             <div className="flex flex-col gap-4">
