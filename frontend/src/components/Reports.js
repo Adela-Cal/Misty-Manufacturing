@@ -2569,6 +2569,7 @@ const Reports = () => {
                     <p className="text-gray-400 text-center py-4">No completed jobs found in this period</p>
                   )}
                 </div>
+                )}
               </div>
             )}
           </div>
