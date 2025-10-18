@@ -328,7 +328,15 @@ const Reports = () => {
 
         {/* Material Usage Report */}
         <ReportCard title="Material Usage Report by Width" icon={CubeIcon}>
-          <div className="space-y-4">
+          <div 
+            className="space-y-4"
+            onClick={(e) => {
+              // Prevent any clicks within this card from bubbling up
+              if (e.target.tagName === 'INPUT' && e.target.type === 'date') {
+                e.stopPropagation();
+              }
+            }}
+          >
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Material Selection */}
