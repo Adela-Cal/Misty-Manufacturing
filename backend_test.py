@@ -482,10 +482,11 @@ class BackendAPITester:
             self.log_result("Order Deletion Test Setup", False, "Failed to allocate stock to order")
             return
         
-        # Step 4: VERIFY stock quantity decreased to 75 units
+        # Step 4: VERIFY stock quantity decreased by 25 units
         stock_after_allocation = self.verify_stock_quantity_after_allocation(test_stock_id)
-        if stock_after_allocation != 75:
-            self.log_result("Stock Allocation Verification", False, f"Stock quantity should be 75 after allocation, got {stock_after_allocation}")
+        expected_after_allocation = self.initial_stock_quantity - 25
+        if stock_after_allocation != expected_after_allocation:
+            self.log_result("Stock Allocation Verification", False, f"Stock quantity should be {expected_after_allocation} after allocation, got {stock_after_allocation}")
             return
         
         # Step 5: Delete the order using DELETE /api/orders/{order_id}
@@ -494,10 +495,10 @@ class BackendAPITester:
             self.log_result("Order Deletion", False, "Failed to delete order")
             return
         
-        # Step 6: VERIFY stock quantity increased back to 100 units (75 + 25 returned)
+        # Step 6: VERIFY stock quantity increased back to original amount
         stock_after_deletion = self.verify_stock_quantity_after_deletion(test_stock_id)
-        if stock_after_deletion != 100:
-            self.log_result("Stock Return Verification", False, f"Stock quantity should be 100 after deletion, got {stock_after_deletion}")
+        if stock_after_deletion != self.initial_stock_quantity:
+            self.log_result("Stock Return Verification", False, f"Stock quantity should be {self.initial_stock_quantity} after deletion, got {stock_after_deletion}")
             return
         
         # Step 7: VERIFY stock movements show archived allocation and new return movement
@@ -507,25 +508,25 @@ class BackendAPITester:
         self.check_backend_logs_for_stock_return()
         
         # Provide overall assessment
-        if stock_after_deletion == 100 and movement_verification:
+        if stock_after_deletion == self.initial_stock_quantity and movement_verification:
             self.log_result(
                 "FIXED Order Deletion with Stock Reallocation", 
                 True, 
                 "✅ COMPLETE SUCCESS - Stock quantity fully restored after order deletion",
-                f"Stock: 100 → 75 (allocation) → 100 (return). Return movements recorded correctly."
+                f"Stock: {self.initial_stock_quantity} → {expected_after_allocation} (allocation) → {self.initial_stock_quantity} (return). Return movements recorded correctly."
             )
-        elif stock_after_deletion == 100:
+        elif stock_after_deletion == self.initial_stock_quantity:
             self.log_result(
                 "FIXED Order Deletion with Stock Reallocation", 
                 True, 
-                "✅ STOCK RETURN SUCCESS - Stock quantity correctly restored to 100 units",
-                "Stock movements may need verification but core functionality working"
+                "✅ STOCK RETURN SUCCESS - Stock quantity correctly restored to original amount",
+                f"Stock: {self.initial_stock_quantity} → {expected_after_allocation} → {self.initial_stock_quantity}. Stock movements may need verification but core functionality working"
             )
         else:
             self.log_result(
                 "FIXED Order Deletion with Stock Reallocation", 
                 False, 
-                f"❌ STOCK RETURN FAILED - Expected 100 units, got {stock_after_deletion}",
+                f"❌ STOCK RETURN FAILED - Expected {self.initial_stock_quantity} units, got {stock_after_deletion}",
                 "Critical issue: Stock not properly returned to inventory"
             )
 
