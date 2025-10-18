@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 """
-Consumable Usage Report Endpoint Testing
-Focus on GET /api/stock/reports/product-usage-detailed endpoint
+FIXED Consumable Usage Report Endpoint Testing
+Testing GET /api/stock/reports/product-usage-detailed
 
-Testing based on review request:
-1. Check if there are orders in the database with items
-2. Test the endpoint with different date ranges
-3. Check the query structure for date comparison issues
-4. Debug the query and check what orders match
-5. Verify if it should include orders on hand (not just completed)
+SPECIFIC TEST REQUIREMENTS FROM REVIEW REQUEST:
+1. Call GET /api/stock/reports/product-usage-detailed with default date range
+2. Verify it now returns data with products
+3. Check that it includes orders with "active" status (orders on hand)
+4. Verify product type exclusions work correctly (should exclude Spiral Paper Cores and Composite Cores)
+
+Expected Results After Fix:
+- Should return products from orders
+- Should include active orders (orders on hand)
+- Should show usage by width
+- Should calculate m² correctly
+- Should exclude Spiral Paper Cores and Composite Cores
 """
 
 import requests
