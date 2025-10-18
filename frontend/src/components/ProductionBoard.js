@@ -3,6 +3,7 @@ import Layout from './Layout';
 import JobCard from './JobCard';
 import { apiHelpers, stageDisplayNames, stageColors, formatCurrency, formatDate } from '../utils/api';
 import { toast } from 'sonner';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { 
   ChevronDownIcon,
   ChevronRightIcon,
