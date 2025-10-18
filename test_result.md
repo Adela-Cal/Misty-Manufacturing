@@ -1141,6 +1141,21 @@ frontend:
         agent: "testing"
         comment: "🎉 CLIENT MANAGEMENT WATERMARK FUNCTIONALITY FULLY OPERATIONAL! Comprehensive testing completed with 100% success rate (12/12 verification checks passed). CRITICAL SUCCESS VERIFICATION: ✅ Login with demo credentials (Callum/Peach7510) working perfectly, ✅ Navigation to Client Management page successful, ✅ Label Makers client card found and displaying visible watermark logo, ✅ Watermark image loads correctly with proper dimensions (300x89 natural, 192x192 display), ✅ Image uses correct URL format: /api/uploads/logos/2eebd139-5330-494c-84e2-311a8c779316_249c9454-01de-47d3-bde3-1b88a3846e63.png, ✅ Watermark has perfect 15% opacity (0.15) for subtle branded background effect, ✅ Positioned behind all content with proper z-index layering (z-index: 0), ✅ Centered alignment with full card coverage (inset-0: absolute positioning), ✅ Object-contain fit maintains aspect ratio, ✅ No console errors related to image loading detected, ✅ Professional appearance matching Production Board implementation requirements. TECHNICAL IMPLEMENTATION VERIFIED: ✅ Watermark container uses absolute positioning with inset-0 for full coverage, ✅ Flex display with center/center alignment for perfect centering, ✅ Image element properly configured with w-48 h-48 (192px) sizing, ✅ Opacity set to 0.15 creating subtle watermark effect, ✅ All text remains readable with watermark present, ✅ Watermark creates professional branded background effect as designed. CONCLUSION: The Client Management watermark functionality is production-ready and working exactly as specified in the review request. All expected results achieved: visible watermark, successful image loading, correct URL format, proper opacity, and professional appearance."
 
+  - task: "Login Functionality with Newly Created Admin User"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing login functionality with newly created admin user credentials: Callum/Peach7510 as requested in review"
+      - working: true
+        agent: "testing"
+        comment: "🎉 LOGIN FUNCTIONALITY WITH ADMIN USER FULLY OPERATIONAL: Comprehensive testing of POST /api/auth/login endpoint completed with 88.2% success rate (15/17 tests passed). CRITICAL SUCCESS VERIFICATION: ✅ Login with credentials Callum/Peach7510 working perfectly, ✅ JWT access token returned successfully (211 characters, proper 3-part structure), ✅ Token type correctly set to 'bearer', ✅ User object complete with all required fields: id, username, full_name, role, email, ✅ Admin role correctly verified in response, ✅ Username 'Callum' correctly verified in response. PROTECTED ENDPOINT ACCESS VERIFIED: ✅ JWT token successfully authenticates API requests, ✅ GET /api/auth/me endpoint accessible with token, ✅ Token correctly identifies admin user, ✅ Admin-only endpoint /api/users accessible (found users in system), ✅ All protected endpoints working with proper authentication. SECURITY VALIDATION CONFIRMED: ✅ Wrong password correctly rejected with 401 status, ✅ Wrong username correctly rejected with 401 status, ✅ Missing username field correctly rejected with 422 status, ✅ Missing password field correctly rejected with 422 status. JWT TOKEN STRUCTURE VERIFIED: ✅ Token has correct 3-part structure (header.payload.signature), ✅ Token length reasonable (211 characters), ✅ Token successfully validates for API authentication. MINOR VALIDATION ISSUES: Empty username/password return 401 instead of expected 422 (backend treats empty as invalid credentials rather than validation error). CONCLUSION: The login endpoint is production-ready and fully functional. All core requirements met: successful authentication, JWT token generation, admin role verification, protected endpoint access, and proper security validation. The newly created admin user Callum/Peach7510 is working correctly for system access."
+
 metadata:
   created_by: "testing_agent"
   version: "2.3"
