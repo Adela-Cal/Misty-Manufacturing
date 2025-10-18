@@ -799,11 +799,415 @@ class BackendAPITester:
             print(f"⚠️  NEEDS IMPROVEMENT: {success_rate:.1f}% SUCCESS RATE")
         print("="*80)
 
+    def test_material_usage_detailed_report(self):
+        """
+        NEW TEST: Material Usage Report by Width Functionality
+        Test GET /api/stock/reports/material-usage-detailed endpoint
+        """
+        print("\n" + "="*80)
+        print("NEW TEST: MATERIAL USAGE REPORT BY WIDTH FUNCTIONALITY")
+        print("Testing GET /api/stock/reports/material-usage-detailed endpoint")
+        print("="*80)
+        
+        # First, get available materials to test with
+        materials = self.get_available_materials()
+        if not materials:
+            self.log_result(
+                "Material Usage Detailed Report - Setup", 
+                False, 
+                "No materials available for testing"
+            )
+            return
+        
+        material = materials[0]
+        material_id = material.get("id")
+        
+        # Test 1: Basic functionality with sample material and date range
+        self.test_basic_material_usage_report(material_id)
+        
+        # Test 2: Test with include_order_breakdown=true
+        self.test_material_usage_with_order_breakdown(material_id)
+        
+        # Test 3: Edge case - Non-existent material_id
+        self.test_material_usage_nonexistent_material()
+        
+        # Test 4: Edge case - Date range with no data
+        self.test_material_usage_no_data(material_id)
+        
+        # Test 5: Edge case - Invalid date formats
+        self.test_material_usage_invalid_dates(material_id)
+        
+        # Test 6: Verify response structure and calculations
+        self.test_material_usage_response_structure(material_id)
+
+    def get_available_materials(self):
+        """Get available materials for testing"""
+        try:
+            response = self.session.get(f"{API_BASE}/materials")
+            
+            if response.status_code == 200:
+                materials = response.json()
+                self.log_result(
+                    "Get Available Materials", 
+                    True, 
+                    f"Found {len(materials)} materials for testing"
+                )
+                return materials
+            else:
+                self.log_result(
+                    "Get Available Materials", 
+                    False, 
+                    f"Failed to get materials: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Get Available Materials", False, f"Error: {str(e)}")
+        
+        return []
+
+    def test_basic_material_usage_report(self, material_id):
+        """Test basic material usage report functionality"""
+        try:
+            # Use a date range that should capture some data
+            start_date = "2024-01-01T00:00:00Z"
+            end_date = "2024-12-31T23:59:59Z"
+            
+            response = self.session.get(
+                f"{API_BASE}/stock/reports/material-usage-detailed",
+                params={
+                    "material_id": material_id,
+                    "start_date": start_date,
+                    "end_date": end_date
+                }
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                data = result.get("data", {})
+                
+                # Check required fields
+                required_fields = [
+                    "material_id", "material_name", "material_code", 
+                    "report_period", "usage_by_width", "total_widths_used",
+                    "grand_total_m2", "grand_total_length_m"
+                ]
+                
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    # Check report period structure
+                    report_period = data.get("report_period", {})
+                    period_fields = ["start_date", "end_date", "days"]
+                    missing_period_fields = [field for field in period_fields if field not in report_period]
+                    
+                    if not missing_period_fields:
+                        self.log_result(
+                            "Basic Material Usage Report", 
+                            True, 
+                            f"Successfully generated material usage report",
+                            f"Material: {data.get('material_name')}, Widths: {data.get('total_widths_used')}, Total m²: {data.get('grand_total_m2')}"
+                        )
+                    else:
+                        self.log_result(
+                            "Basic Material Usage Report", 
+                            False, 
+                            f"Report period missing fields: {missing_period_fields}"
+                        )
+                else:
+                    self.log_result(
+                        "Basic Material Usage Report", 
+                        False, 
+                        f"Report missing required fields: {missing_fields}",
+                        f"Available fields: {list(data.keys())}"
+                    )
+            else:
+                self.log_result(
+                    "Basic Material Usage Report", 
+                    False, 
+                    f"Failed to generate report: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Basic Material Usage Report", False, f"Error: {str(e)}")
+
+    def test_material_usage_with_order_breakdown(self, material_id):
+        """Test material usage report with order breakdown"""
+        try:
+            start_date = "2024-01-01T00:00:00Z"
+            end_date = "2024-12-31T23:59:59Z"
+            
+            response = self.session.get(
+                f"{API_BASE}/stock/reports/material-usage-detailed",
+                params={
+                    "material_id": material_id,
+                    "start_date": start_date,
+                    "end_date": end_date,
+                    "include_order_breakdown": True
+                }
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                data = result.get("data", {})
+                
+                # Check that include_order_breakdown is true
+                if data.get("include_order_breakdown") == True:
+                    # Check usage_by_width structure with order breakdown
+                    usage_by_width = data.get("usage_by_width", [])
+                    
+                    # Verify each width entry has order breakdown fields
+                    breakdown_valid = True
+                    for width_entry in usage_by_width:
+                        required_breakdown_fields = ["width_mm", "total_length_m", "m2"]
+                        if data.get("include_order_breakdown"):
+                            required_breakdown_fields.extend(["orders", "order_count"])
+                        
+                        missing_breakdown_fields = [field for field in required_breakdown_fields if field not in width_entry]
+                        if missing_breakdown_fields:
+                            breakdown_valid = False
+                            break
+                    
+                    if breakdown_valid:
+                        self.log_result(
+                            "Material Usage Report with Order Breakdown", 
+                            True, 
+                            f"Successfully generated report with order breakdown",
+                            f"Widths with breakdown: {len(usage_by_width)}"
+                        )
+                    else:
+                        self.log_result(
+                            "Material Usage Report with Order Breakdown", 
+                            False, 
+                            "Order breakdown structure incomplete"
+                        )
+                else:
+                    self.log_result(
+                        "Material Usage Report with Order Breakdown", 
+                        False, 
+                        "include_order_breakdown flag not properly set"
+                    )
+            else:
+                self.log_result(
+                    "Material Usage Report with Order Breakdown", 
+                    False, 
+                    f"Failed to generate report: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Material Usage Report with Order Breakdown", False, f"Error: {str(e)}")
+
+    def test_material_usage_nonexistent_material(self):
+        """Test material usage report with non-existent material_id"""
+        try:
+            fake_material_id = str(uuid.uuid4())
+            start_date = "2024-01-01T00:00:00Z"
+            end_date = "2024-12-31T23:59:59Z"
+            
+            response = self.session.get(
+                f"{API_BASE}/stock/reports/material-usage-detailed",
+                params={
+                    "material_id": fake_material_id,
+                    "start_date": start_date,
+                    "end_date": end_date
+                }
+            )
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Material Usage Report - Non-existent Material", 
+                    True, 
+                    "Correctly returned 404 for non-existent material"
+                )
+            else:
+                self.log_result(
+                    "Material Usage Report - Non-existent Material", 
+                    False, 
+                    f"Expected 404, got {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Material Usage Report - Non-existent Material", False, f"Error: {str(e)}")
+
+    def test_material_usage_no_data(self, material_id):
+        """Test material usage report with date range that has no data"""
+        try:
+            # Use a future date range that should have no data
+            start_date = "2025-01-01T00:00:00Z"
+            end_date = "2025-01-31T23:59:59Z"
+            
+            response = self.session.get(
+                f"{API_BASE}/stock/reports/material-usage-detailed",
+                params={
+                    "material_id": material_id,
+                    "start_date": start_date,
+                    "end_date": end_date
+                }
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                data = result.get("data", {})
+                
+                # Should return valid structure but with empty arrays
+                usage_by_width = data.get("usage_by_width", [])
+                total_widths = data.get("total_widths_used", 0)
+                grand_total_m2 = data.get("grand_total_m2", 0)
+                
+                if len(usage_by_width) == 0 and total_widths == 0 and grand_total_m2 == 0:
+                    self.log_result(
+                        "Material Usage Report - No Data", 
+                        True, 
+                        "Correctly returned empty arrays with valid structure for no data period"
+                    )
+                else:
+                    self.log_result(
+                        "Material Usage Report - No Data", 
+                        False, 
+                        f"Expected empty data, got widths: {total_widths}, m²: {grand_total_m2}"
+                    )
+            else:
+                self.log_result(
+                    "Material Usage Report - No Data", 
+                    False, 
+                    f"Failed to generate report: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Material Usage Report - No Data", False, f"Error: {str(e)}")
+
+    def test_material_usage_invalid_dates(self, material_id):
+        """Test material usage report with invalid date formats"""
+        try:
+            # Test with invalid date format
+            invalid_start_date = "invalid-date"
+            end_date = "2024-12-31T23:59:59Z"
+            
+            response = self.session.get(
+                f"{API_BASE}/stock/reports/material-usage-detailed",
+                params={
+                    "material_id": material_id,
+                    "start_date": invalid_start_date,
+                    "end_date": end_date
+                }
+            )
+            
+            # Should return 400 or 422 for invalid date format
+            if response.status_code in [400, 422, 500]:
+                self.log_result(
+                    "Material Usage Report - Invalid Dates", 
+                    True, 
+                    f"Correctly handled invalid date format with status {response.status_code}"
+                )
+            else:
+                self.log_result(
+                    "Material Usage Report - Invalid Dates", 
+                    False, 
+                    f"Expected error status for invalid date, got {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Material Usage Report - Invalid Dates", False, f"Error: {str(e)}")
+
+    def test_material_usage_response_structure(self, material_id):
+        """Test material usage report response structure and calculations"""
+        try:
+            start_date = "2024-01-01T00:00:00Z"
+            end_date = "2024-12-31T23:59:59Z"
+            
+            response = self.session.get(
+                f"{API_BASE}/stock/reports/material-usage-detailed",
+                params={
+                    "material_id": material_id,
+                    "start_date": start_date,
+                    "end_date": end_date,
+                    "include_order_breakdown": True
+                }
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                data = result.get("data", {})
+                
+                usage_by_width = data.get("usage_by_width", [])
+                
+                # Verify calculations and sorting
+                calculations_correct = True
+                widths_sorted = True
+                previous_width = 0
+                
+                total_calculated_m2 = 0
+                total_calculated_length = 0
+                
+                for width_entry in usage_by_width:
+                    width_mm = width_entry.get("width_mm", 0)
+                    total_length_m = width_entry.get("total_length_m", 0)
+                    m2 = width_entry.get("m2", 0)
+                    
+                    # Check m² calculation: (width_mm / 1000) * length_m
+                    expected_m2 = (width_mm / 1000.0) * total_length_m
+                    if abs(m2 - expected_m2) > 0.01:  # Allow small rounding differences
+                        calculations_correct = False
+                    
+                    # Check sorting (widths should be in ascending order)
+                    if width_mm < previous_width:
+                        widths_sorted = False
+                    previous_width = width_mm
+                    
+                    total_calculated_m2 += m2
+                    total_calculated_length += total_length_m
+                
+                # Check grand totals match sum of individual widths
+                grand_total_m2 = data.get("grand_total_m2", 0)
+                grand_total_length = data.get("grand_total_length_m", 0)
+                
+                totals_match = (
+                    abs(grand_total_m2 - total_calculated_m2) < 0.01 and
+                    abs(grand_total_length - total_calculated_length) < 0.01
+                )
+                
+                if calculations_correct and widths_sorted and totals_match:
+                    self.log_result(
+                        "Material Usage Report - Structure & Calculations", 
+                        True, 
+                        f"All calculations correct and widths properly sorted",
+                        f"Verified {len(usage_by_width)} width entries, Total m²: {grand_total_m2}"
+                    )
+                else:
+                    issues = []
+                    if not calculations_correct:
+                        issues.append("m² calculations incorrect")
+                    if not widths_sorted:
+                        issues.append("widths not sorted")
+                    if not totals_match:
+                        issues.append("grand totals don't match")
+                    
+                    self.log_result(
+                        "Material Usage Report - Structure & Calculations", 
+                        False, 
+                        f"Issues found: {', '.join(issues)}"
+                    )
+            else:
+                self.log_result(
+                    "Material Usage Report - Structure & Calculations", 
+                    False, 
+                    f"Failed to generate report: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Material Usage Report - Structure & Calculations", False, f"Error: {str(e)}")
+
     def run_comprehensive_tests(self):
         """Run all comprehensive tests for final verification"""
         print("\n" + "="*80)
-        print("FINAL COMPREHENSIVE BACKEND TESTING")
-        print("Goal: Achieve 100% success rate after PDF date formatting fix")
+        print("COMPREHENSIVE BACKEND TESTING")
+        print("Including NEW Material Usage Report by Width functionality")
         print("="*80)
         
         # Step 1: Authenticate
@@ -817,7 +1221,10 @@ class BackendAPITester:
         self.test_stock_reporting_endpoints()
         self.test_production_board_reordering()
         
-        # Step 3: Print comprehensive summary
+        # Step 3: NEW TEST - Material Usage Report by Width
+        self.test_material_usage_detailed_report()
+        
+        # Step 4: Print comprehensive summary
         self.print_test_summary()
 
 if __name__ == "__main__":
