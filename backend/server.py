@@ -1420,7 +1420,7 @@ async def get_job_specification_by_order(order_id: str, current_user: dict = Dep
 
 @api_router.delete("/orders/{order_id}", response_model=StandardResponse)
 async def delete_order(order_id: str, current_user: dict = Depends(require_admin)):
-    """Delete order permanently (Admin only)"""
+    """Delete order permanently (Admin only) and return allocated stock to inventory"""
     # Check if order exists
     existing_order = await db.orders.find_one({"id": order_id})
     if not existing_order:
@@ -1432,7 +1432,50 @@ async def delete_order(order_id: str, current_user: dict = Depends(require_admin
     if current_stage in unsafe_stages:
         raise HTTPException(status_code=400, detail="Cannot delete order in production. Contact manager to halt production first.")
     
-    # Clean up related data first
+    # RETURN ALLOCATED STOCK TO INVENTORY
+    # Find all stock allocations for this order
+    order_number = existing_order.get("order_number", "")
+    stock_allocations = await db.stock_movements.find({
+        "reference": order_number,
+        "movement_type": "allocation",
+        "quantity": {"$lt": 0}  # Negative quantities are allocations
+    }).to_list(length=None)
+    
+    returned_stock_count = 0
+    for allocation in stock_allocations:
+        allocated_quantity = abs(allocation.get("quantity", 0))
+        stock_id = allocation.get("stock_id")
+        product_id = allocation.get("product_id")
+        client_id = allocation.get("client_id")
+        
+        if allocated_quantity > 0 and stock_id:
+            # Return stock to inventory
+            stock_entry = await db.raw_substrate_stock.find_one({"id": stock_id})
+            if stock_entry:
+                new_quantity = stock_entry.get("quantity_on_hand", 0) + allocated_quantity
+                await db.raw_substrate_stock.update_one(
+                    {"id": stock_id},
+                    {"$set": {"quantity_on_hand": new_quantity}}
+                )
+                
+                # Create return movement record
+                return_movement = {
+                    "id": str(uuid.uuid4()),
+                    "stock_id": stock_id,
+                    "product_id": product_id,
+                    "client_id": client_id,
+                    "movement_type": "return",
+                    "quantity": allocated_quantity,  # Positive for return
+                    "reference": f"Return from deleted order {order_number}",
+                    "created_by": current_user["user_id"],
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "is_archived": False
+                }
+                await db.stock_movements.insert_one(return_movement)
+                returned_stock_count += 1
+                logger.info(f"Returned {allocated_quantity} units to stock {stock_id} from order {order_number}")
+    
+    # Clean up related data
     # Remove job specifications
     await db.job_specifications.delete_many({"order_id": order_id})
     
@@ -1442,13 +1485,17 @@ async def delete_order(order_id: str, current_user: dict = Depends(require_admin
     # Remove order items status
     await db.order_items_status.delete_many({"order_id": order_id})
     
+    # Remove stock movements for this order
+    await db.stock_movements.delete_many({"reference": order_number})
+    
     # Perform hard delete - completely remove the order
     result = await db.orders.delete_one({"id": order_id})
     
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Order not found")
     
-    return StandardResponse(success=True, message="Order deleted successfully")
+    message = f"Order deleted successfully. {returned_stock_count} stock allocation(s) returned to inventory."
+    return StandardResponse(success=True, message=message, data={"returned_stock_items": returned_stock_count})
 
 # ============= PRODUCTION BOARD ENDPOINTS =============
 
