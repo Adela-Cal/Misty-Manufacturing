@@ -5393,6 +5393,157 @@ async def get_projected_order_analysis(
 
 
 
+
+
+@api_router.get("/stock/reports/job-card-performance", response_model=StandardResponse)
+async def get_job_card_performance_report(
+    start_date: str = None,
+    end_date: str = None,
+    current_user: dict = Depends(require_any_role)
+):
+    """
+    Generate job card performance report showing time spent on each job
+    and stock produced/entered for completed jobs within a date range.
+    """
+    try:
+        # Parse dates - handle if no dates provided, default to last 30 days
+        if not start_date or not end_date:
+            end = datetime.now()
+            start = end - timedelta(days=30)
+        else:
+            start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+            end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+        
+        # Remove timezone info for MongoDB comparison
+        start_dt = start.replace(tzinfo=None)
+        end_dt = end.replace(tzinfo=None)
+        
+        # Find completed orders in the date range
+        order_query = {
+            "completed_at": {"$gte": start_dt, "$lte": end_dt},
+            "status": {"$in": ["completed", "archived"]}
+        }
+        
+        completed_orders = await db.orders.find(order_query).to_list(length=None)
+        
+        job_cards = []
+        total_time_hours = 0
+        total_stock_entries = 0
+        total_stock_quantity = 0
+        
+        for order in completed_orders:
+            order_id = order.get("id")
+            order_number = order.get("order_number", "Unknown")
+            
+            # Get production logs for this order to calculate time spent
+            production_logs = await db.production_logs.find({
+                "order_id": order_id
+            }).sort("timestamp", 1).to_list(length=None)
+            
+            # Calculate time in each stage
+            time_by_stage = {}
+            stage_start_times = {}
+            
+            for log in production_logs:
+                timestamp = log.get("timestamp")
+                
+                if isinstance(timestamp, str):
+                    timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                
+                from_stage = log.get("from_stage")
+                to_stage = log.get("to_stage")
+                
+                # Mark end of previous stage
+                if from_stage and from_stage in stage_start_times:
+                    start_time = stage_start_times[from_stage]
+                    duration = (timestamp - start_time).total_seconds() / 3600  # hours
+                    time_by_stage[from_stage] = time_by_stage.get(from_stage, 0) + duration
+                    del stage_start_times[from_stage]
+                
+                # Mark start of new stage
+                if to_stage:
+                    stage_start_times[to_stage] = timestamp
+            
+            # Calculate total time for this job
+            total_job_time = sum(time_by_stage.values())
+            
+            # Get stock entries for this order
+            stock_entries = await db.raw_substrate_stock.find({
+                "source_order_id": order_id
+            }).to_list(length=None)
+            
+            stock_summary = []
+            job_stock_quantity = 0
+            
+            for stock in stock_entries:
+                qty = stock.get("quantity_on_hand", 0)
+                job_stock_quantity += qty
+                stock_summary.append({
+                    "product_description": stock.get("product_description", "Unknown"),
+                    "quantity": qty,
+                    "unit_of_measure": stock.get("unit_of_measure", "units"),
+                    "created_at": stock.get("created_at")
+                })
+            
+            # Calculate efficiency metrics
+            order_items = order.get("items", [])
+            total_ordered_qty = sum(item.get("quantity", 0) for item in order_items)
+            
+            job_cards.append({
+                "order_number": order_number,
+                "order_id": order_id,
+                "client_name": order.get("client_name", "Unknown"),
+                "created_at": order.get("created_at"),
+                "completed_at": order.get("completed_at"),
+                "total_time_hours": round(total_job_time, 2),
+                "time_by_stage": {k: round(v, 2) for k, v in time_by_stage.items()},
+                "stock_entries": stock_summary,
+                "total_stock_produced": job_stock_quantity,
+                "ordered_quantity": total_ordered_qty,
+                "stock_entry_count": len(stock_summary)
+            })
+            
+            total_time_hours += total_job_time
+            total_stock_entries += len(stock_summary)
+            total_stock_quantity += job_stock_quantity
+        
+        # Calculate averages
+        job_count = len(job_cards)
+        averages = {
+            "average_time_per_job_hours": round(total_time_hours / job_count, 2) if job_count > 0 else 0,
+            "average_stock_entries_per_job": round(total_stock_entries / job_count, 2) if job_count > 0 else 0,
+            "average_stock_quantity_per_job": round(total_stock_quantity / job_count, 2) if job_count > 0 else 0,
+            "total_jobs_completed": job_count,
+            "total_time_all_jobs_hours": round(total_time_hours, 2),
+            "total_stock_produced": total_stock_quantity
+        }
+        
+        # Sort by completion date (most recent first)
+        job_cards.sort(key=lambda x: x["completed_at"] if x["completed_at"] else "", reverse=True)
+        
+        report_data = {
+            "report_period": {
+                "start_date": start_date if start_date else start.isoformat() + 'Z',
+                "end_date": end_date if end_date else end.isoformat() + 'Z',
+                "days": (end_dt - start_dt).days
+            },
+            "job_cards": job_cards,
+            "averages": averages
+        }
+        
+        return StandardResponse(
+            success=True,
+            message="Job card performance report generated successfully",
+            data=report_data
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate job card performance report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate report: {str(e)}")
+
+
 # ============= SLIT WIDTH MANAGEMENT ENDPOINTS =============
 
 
