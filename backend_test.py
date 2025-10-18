@@ -843,28 +843,79 @@ class BackendAPITester:
     def get_available_materials(self):
         """Get available materials for testing"""
         try:
-            response = self.session.get(f"{API_BASE}/materials")
+            # First try to get raw materials (which the endpoint uses)
+            response = self.session.get(f"{API_BASE}/stock/raw-materials")
             
             if response.status_code == 200:
-                materials = response.json()
-                self.log_result(
-                    "Get Available Materials", 
-                    True, 
-                    f"Found {len(materials)} materials for testing"
-                )
-                return materials
-            else:
-                self.log_result(
-                    "Get Available Materials", 
-                    False, 
-                    f"Failed to get materials: {response.status_code}",
-                    response.text
-                )
+                raw_materials = response.json()
+                if raw_materials:
+                    self.log_result(
+                        "Get Available Raw Materials", 
+                        True, 
+                        f"Found {len(raw_materials)} raw materials for testing"
+                    )
+                    return raw_materials
+            
+            # If no raw materials, try regular materials and create a raw material
+            materials_response = self.session.get(f"{API_BASE}/materials")
+            if materials_response.status_code == 200:
+                materials = materials_response.json()
+                if materials:
+                    # Create a raw material stock entry for testing
+                    material = materials[0]
+                    raw_material_id = self.create_raw_material_for_testing(material)
+                    if raw_material_id:
+                        return [{"id": raw_material_id, "material_name": material.get("product_code", "Test Material")}]
+            
+            self.log_result(
+                "Get Available Materials", 
+                False, 
+                "No materials or raw materials found for testing"
+            )
                 
         except Exception as e:
             self.log_result("Get Available Materials", False, f"Error: {str(e)}")
         
         return []
+
+    def create_raw_material_for_testing(self, material):
+        """Create a raw material stock entry for testing"""
+        try:
+            stock_data = {
+                "material_id": str(uuid.uuid4()),
+                "material_name": f"Test Raw Material - {material.get('product_code', 'Unknown')}",
+                "material_code": material.get("product_code", "TEST-MAT"),
+                "quantity_on_hand": 100.0,
+                "unit_of_measure": "kg",
+                "minimum_stock_level": 10.0,
+                "usage_rate_per_month": 5.0,
+                "alert_threshold_days": 14,
+                "supplier_id": str(uuid.uuid4())
+            }
+            
+            response = self.session.post(f"{API_BASE}/stock/raw-materials", json=stock_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                material_id = result.get("data", {}).get("id")
+                self.log_result(
+                    "Create Raw Material for Testing", 
+                    True, 
+                    f"Created raw material with ID: {material_id}"
+                )
+                return material_id
+            else:
+                self.log_result(
+                    "Create Raw Material for Testing", 
+                    False, 
+                    f"Failed to create raw material: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Create Raw Material for Testing", False, f"Error: {str(e)}")
+        
+        return None
 
     def test_basic_material_usage_report(self, material_id):
         """Test basic material usage report functionality"""
