@@ -984,7 +984,7 @@ class BackendAPITester:
                     }
                 ],
                 "due_date": "2024-12-31",
-                "priority": "low",
+                "priority": "Normal/Low",
                 "notes": "Test order without stock allocation"
             }
             
