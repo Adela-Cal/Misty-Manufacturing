@@ -46,6 +46,20 @@ const Reports = () => {
   const [includeProductOrderBreakdown, setIncludeProductOrderBreakdown] = useState(false);
   const [productUsageReport, setProductUsageReport] = useState(null);
   const [loadingProductReport, setLoadingProductReport] = useState(false);
+  
+  // Projected Order Analysis states
+  const [selectedProjectionClient, setSelectedProjectionClient] = useState('');
+  const [projectionDatePreset, setProjectionDatePreset] = useState('last_90_days');
+  const [projectionStartDate, setProjectionStartDate] = useState('');
+  const [projectionEndDate, setProjectionEndDate] = useState('');
+  const [customProjectionStartYear, setCustomProjectionStartYear] = useState(new Date().getFullYear());
+  const [customProjectionStartMonth, setCustomProjectionStartMonth] = useState(new Date().getMonth());
+  const [customProjectionEndYear, setCustomProjectionEndYear] = useState(new Date().getFullYear());
+  const [customProjectionEndMonth, setCustomProjectionEndMonth] = useState(new Date().getMonth());
+  const [projectionReport, setProjectionReport] = useState(null);
+  const [loadingProjectionReport, setLoadingProjectionReport] = useState(false);
+  const [expandedMaterials, setExpandedMaterials] = useState({});
+  const [selectedProjectionPeriod, setSelectedProjectionPeriod] = useState('3_months');
 
   useEffect(() => {
     loadReportsData();
