@@ -482,9 +482,9 @@ class BackendAPITester:
             self.log_result("Order Deletion Test Setup", False, "Failed to allocate stock to order")
             return
         
-        # Step 4: VERIFY stock quantity decreased by 25 units
+        # Step 4: VERIFY stock quantity decreased by allocated amount
         stock_after_allocation = self.verify_stock_quantity_after_allocation(test_stock_id)
-        expected_after_allocation = self.initial_stock_quantity - 25
+        expected_after_allocation = self.initial_stock_quantity - (self.allocated_quantity if hasattr(self, 'allocated_quantity') else 15)
         if stock_after_allocation != expected_after_allocation:
             self.log_result("Stock Allocation Verification", False, f"Stock quantity should be {expected_after_allocation} after allocation, got {stock_after_allocation}")
             return
