@@ -598,7 +598,7 @@ const Reports = () => {
       <body>
         <div class="header">
           <h1>Adela Merchants</h1>
-          <h2>Product Usage Report by Width</h2>
+          <h2>Consumable Usage Report by Width</h2>
           <p>Period: ${new Date(report.report_period.start_date).toLocaleDateString()} - ${new Date(report.report_period.end_date).toLocaleDateString()}</p>
           <p style="color: #999; font-size: 10px;">Excludes: ${report.excluded_types.join(', ')}</p>
         </div>
@@ -614,7 +614,7 @@ const Reports = () => {
           </div>
           <div class="stat-box">
             <div class="stat-value">${report.total_products}</div>
-            <div class="stat-label">Products Used</div>
+            <div class="stat-label">Consumables Used</div>
           </div>
         </div>
         
