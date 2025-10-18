@@ -11740,7 +11740,7 @@ def main():
                 client_id = debug_data.get('client_id')
                 
                 # Expected environment-based URL (from .env file)
-                expected_callback_url = "https://product-pulse-12.preview.emergentagent.com/api/xero/callback"
+                expected_callback_url = "https://factory-sys-1.preview.emergentagent.com/api/xero/callback"
                 
                 checks = []
                 all_checks_passed = True
@@ -11804,7 +11804,7 @@ def main():
                 debug_info = auth_data.get('debug_info', {})
                 
                 # Expected callback URL from environment
-                expected_callback_url = "https://product-pulse-12.preview.emergentagent.com/api/xero/callback"
+                expected_callback_url = "https://factory-sys-1.preview.emergentagent.com/api/xero/callback"
                 
                 checks = []
                 all_checks_passed = True
