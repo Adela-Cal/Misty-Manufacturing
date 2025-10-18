@@ -793,7 +793,7 @@ class BackendAPITester:
                     self.log_result(
                         "Verify Stock Allocation", 
                         False, 
-                        f"Stock quantity incorrect: {current_quantity}, expected: {expected_quantity}"
+                        f"Stock quantity not reduced after allocation: {current_quantity} (should be less than 100)"
                     )
             else:
                 self.log_result(
