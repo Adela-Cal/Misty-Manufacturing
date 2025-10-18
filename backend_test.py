@@ -600,7 +600,7 @@ class BackendAPITester:
                     "Create Test Stock Entry", 
                     True, 
                     f"Successfully created test stock entry with ID: {stock_id}",
-                    f"Initial quantity: 100 units for {test_product['product_name']}"
+                    f"Initial quantity: 100 units for {product_name}"
                 )
                 
                 # Store test data for later use
