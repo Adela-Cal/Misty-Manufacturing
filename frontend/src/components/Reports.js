@@ -144,6 +144,16 @@ const Reports = () => {
       setEndDate(end);
     }
   };
+  
+  // Handle product report preset changes
+  const handleProductPresetChange = (preset) => {
+    setProductDatePreset(preset);
+    if (preset !== 'custom') {
+      const { start, end } = getDateRangeFromPreset(preset);
+      setProductStartDate(start);
+      setProductEndDate(end);
+    }
+  };
 
   const loadCustomerReport = async () => {
     if (!selectedClient) {
