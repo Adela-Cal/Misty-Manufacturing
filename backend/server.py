@@ -5135,8 +5135,9 @@ async def get_projected_order_analysis(
         
         # Build query for orders in the date range
         # Include all orders except cancelled/deleted to capture orders on hand
+        # FIX: Use timezone-naive dates to match the order date format in database
         order_query = {
-            "created_at": {"$gte": start.isoformat(), "$lte": end.isoformat()}
+            "created_at": {"$gte": start.replace(tzinfo=None).isoformat(), "$lte": end.replace(tzinfo=None).isoformat()}
         }
         
         # Exclude cancelled/deleted orders if such status exists
