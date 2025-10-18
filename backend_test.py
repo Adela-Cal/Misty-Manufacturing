@@ -1048,6 +1048,287 @@ class BackendAPITester:
                     )
             else:
                 self.log_result(
+    def allocate_stock_to_order_fixed(self, stock_id, order_id):
+        """Allocate stock to the test order (25 units) for fixed deletion testing"""
+        print("\n=== ALLOCATE STOCK TO ORDER (25 UNITS) ===")
+        
+        try:
+            allocation_data = {
+                "product_id": self.test_product_id,
+                "client_id": self.test_client_id,
+                "quantity": 25,  # Exactly 25 units as per test scenario
+                "order_reference": self.test_order_number
+            }
+            
+            response = self.session.post(f"{API_BASE}/stock/allocate", json=allocation_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                allocated_quantity = result.get("data", {}).get("allocated_quantity")
+                remaining_stock = result.get("data", {}).get("remaining_stock")
+                
+                self.log_result(
+                    "Allocate Stock to Order (Fixed)", 
+                    True, 
+                    f"Successfully allocated {allocated_quantity} units to order",
+                    f"Remaining stock: {remaining_stock} units (should be 75 from original 100)"
+                )
+                
+                self.allocated_quantity = allocated_quantity
+                self.remaining_stock_after_allocation = remaining_stock
+                
+                return True
+            else:
+                self.log_result(
+                    "Allocate Stock to Order (Fixed)", 
+                    False, 
+                    f"Failed to allocate stock: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Allocate Stock to Order (Fixed)", False, f"Error: {str(e)}")
+        
+        return False
+
+    def verify_stock_quantity_after_allocation(self, stock_id):
+        """VERIFY: Stock quantity should decrease to 75 units after 25 unit allocation"""
+        print("\n=== VERIFY: STOCK QUANTITY AFTER ALLOCATION (SHOULD BE 75) ===")
+        
+        try:
+            # Check stock availability
+            response = self.session.get(f"{API_BASE}/stock/check-availability", params={
+                "product_id": self.test_product_id,
+                "client_id": self.test_client_id
+            })
+            
+            if response.status_code == 200:
+                result = response.json()
+                current_quantity = result.get("data", {}).get("quantity_on_hand", 0)
+                
+                self.log_result(
+                    "Verify Stock Quantity After Allocation", 
+                    current_quantity == 75, 
+                    f"Stock quantity after allocation: {current_quantity} units",
+                    f"Expected: 75 units (100 - 25 allocated), Actual: {current_quantity}"
+                )
+                
+                return current_quantity
+            else:
+                self.log_result(
+                    "Verify Stock Quantity After Allocation", 
+                    False, 
+                    f"Failed to check stock availability: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Verify Stock Quantity After Allocation", False, f"Error: {str(e)}")
+        
+        return None
+
+    def delete_order_with_fixed_stock_return(self, order_id):
+        """Delete the order using DELETE /api/orders/{order_id} with fixed stock return"""
+        print("\n=== DELETE ORDER WITH FIXED STOCK RETURN ===")
+        
+        try:
+            response = self.session.delete(f"{API_BASE}/orders/{order_id}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                message = result.get("message", "")
+                data = result.get("data", {})
+                returned_stock_items = data.get("returned_stock_items", 0)
+                
+                # Verify response includes stock return information
+                success_indicators = [
+                    "stock allocation(s) returned to inventory" in message,
+                    returned_stock_items > 0,
+                    "successfully" in message.lower()
+                ]
+                
+                if any(success_indicators):
+                    self.log_result(
+                        "Delete Order with Fixed Stock Return", 
+                        True, 
+                        f"Order successfully deleted with stock return mechanism",
+                        f"Message: {message}, Returned items: {returned_stock_items}"
+                    )
+                    
+                    self.returned_stock_count = returned_stock_items
+                    return True
+                else:
+                    self.log_result(
+                        "Delete Order with Fixed Stock Return", 
+                        False, 
+                        "Order deleted but stock return not properly indicated",
+                        f"Message: {message}, Returned items: {returned_stock_items}"
+                    )
+            else:
+                self.log_result(
+                    "Delete Order with Fixed Stock Return", 
+                    False, 
+                    f"Failed to delete order: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Delete Order with Fixed Stock Return", False, f"Error: {str(e)}")
+        
+        return False
+
+    def verify_stock_quantity_after_deletion(self, stock_id):
+        """VERIFY: Stock quantity should increase back to 100 units (75 + 25 returned)"""
+        print("\n=== VERIFY: STOCK QUANTITY AFTER DELETION (SHOULD BE 100) ===")
+        
+        try:
+            # Check stock availability again
+            response = self.session.get(f"{API_BASE}/stock/check-availability", params={
+                "product_id": self.test_product_id,
+                "client_id": self.test_client_id
+            })
+            
+            if response.status_code == 200:
+                result = response.json()
+                current_quantity = result.get("data", {}).get("quantity_on_hand", 0)
+                
+                self.log_result(
+                    "Verify Stock Quantity After Deletion", 
+                    current_quantity == 100, 
+                    f"Stock quantity after deletion: {current_quantity} units",
+                    f"Expected: 100 units (75 + 25 returned), Actual: {current_quantity}"
+                )
+                
+                return current_quantity
+            else:
+                self.log_result(
+                    "Verify Stock Quantity After Deletion", 
+                    False, 
+                    f"Failed to check stock availability: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Verify Stock Quantity After Deletion", False, f"Error: {str(e)}")
+        
+        return None
+
+    def verify_fixed_stock_movements(self):
+        """VERIFY: Stock movements should show archived allocation and new return movement"""
+        print("\n=== VERIFY: STOCK MOVEMENTS (ARCHIVED ALLOCATION + RETURN) ===")
+        
+        try:
+            # Get stock history to verify movements
+            response = self.session.get(f"{API_BASE}/stock/history", params={
+                "product_id": self.test_product_id,
+                "client_id": self.test_client_id
+            })
+            
+            if response.status_code == 200:
+                result = response.json()
+                movements = result.get("data", {}).get("movements", [])
+                
+                # Look for allocation and return movements
+                allocation_movement = None
+                return_movement = None
+                archived_movements = 0
+                
+                for movement in movements:
+                    if movement.get("movement_type") == "allocation":
+                        allocation_movement = movement
+                        if movement.get("is_archived", False):
+                            archived_movements += 1
+                    elif movement.get("movement_type") == "return" and movement.get("quantity") > 0:
+                        return_movement = movement
+                
+                # Verify movements exist and are properly structured
+                movements_found = []
+                if allocation_movement:
+                    archived_status = "archived" if allocation_movement.get("is_archived", False) else "active"
+                    movements_found.append(f"Allocation: {abs(allocation_movement.get('quantity', 0))} units ({archived_status})")
+                if return_movement:
+                    movements_found.append(f"Return: {return_movement.get('quantity', 0)} units (active)")
+                
+                if allocation_movement and return_movement:
+                    self.log_result(
+                        "Verify Fixed Stock Movements", 
+                        True, 
+                        "Both allocation and return movements properly recorded",
+                        f"Movements found: {', '.join(movements_found)}, Archived movements: {archived_movements}"
+                    )
+                    return True
+                else:
+                    missing = []
+                    if not allocation_movement:
+                        missing.append("allocation")
+                    if not return_movement:
+                        missing.append("return")
+                    
+                    self.log_result(
+                        "Verify Fixed Stock Movements", 
+                        False, 
+                        f"Missing stock movements: {', '.join(missing)}",
+                        f"Found movements: {', '.join(movements_found) if movements_found else 'None'}"
+                    )
+            else:
+                self.log_result(
+                    "Verify Fixed Stock Movements", 
+                    False, 
+                    f"Failed to get stock history: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Verify Fixed Stock Movements", False, f"Error: {str(e)}")
+        
+        return False
+
+    def check_backend_logs_for_stock_return(self):
+        """Check backend logs for stock return messages"""
+        print("\n=== CHECK BACKEND LOGS FOR STOCK RETURN MESSAGES ===")
+        
+        try:
+            # Try to check supervisor logs for backend
+            import subprocess
+            result = subprocess.run(
+                ["tail", "-n", "50", "/var/log/supervisor/backend.err.log"], 
+                capture_output=True, 
+                text=True, 
+                timeout=10
+            )
+            
+            if result.returncode == 0:
+                log_content = result.stdout
+                
+                # Look for stock return messages
+                stock_return_messages = []
+                for line in log_content.split('\n'):
+                    if any(keyword in line.lower() for keyword in ['stock', 'return', 'quantity', 'updated']):
+                        stock_return_messages.append(line.strip())
+                
+                if stock_return_messages:
+                    self.log_result(
+                        "Check Backend Logs", 
+                        True, 
+                        f"Found {len(stock_return_messages)} stock-related log messages",
+                        f"Recent messages: {stock_return_messages[-3:] if len(stock_return_messages) > 3 else stock_return_messages}"
+                    )
+                else:
+                    self.log_result(
+                        "Check Backend Logs", 
+                        False, 
+                        "No stock return messages found in backend logs"
+                    )
+            else:
+                self.log_result(
+                    "Check Backend Logs", 
+                    False, 
+                    "Failed to read backend logs",
+                    f"Return code: {result.returncode}"
+                )
+                
+        except Exception as e:
+            self.log_result("Check Backend Logs", False, f"Error reading logs: {str(e)}")
                     "Edge Case - Order Creation", 
                     False, 
                     f"Failed to create order for edge case test: {response.status_code}",
