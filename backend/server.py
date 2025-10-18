@@ -4891,7 +4891,7 @@ async def print_stock_description(
             
             movement_data = [["Date", "Type", "Quantity", "Reference"]]
             for movement in movements:
-                date_str = datetime.fromisoformat(movement.get("created_at", "")).strftime("%Y-%m-%d") if movement.get("created_at") else "N/A"
+                date_str = format_date(movement.get("created_at"))
                 movement_data.append([
                     date_str,
                     movement.get("movement_type", "N/A").title(),
