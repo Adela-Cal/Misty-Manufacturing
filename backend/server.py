@@ -5256,6 +5256,41 @@ async def get_projected_order_analysis(
                             "unit_of_measure": material_layer.get("unit_of_measure", "m")
                         })
             
+            # Calculate customer breakdown for projections
+            customer_breakdown = {}
+            total_qty = data["total_quantity"]
+            
+            for order in data["historical_orders"]:
+                client_name = order.get("client_name", "Unknown")
+                qty = order.get("quantity", 0)
+                
+                if client_name not in customer_breakdown:
+                    customer_breakdown[client_name] = {
+                        "total_quantity": 0,
+                        "order_count": 0,
+                        "percentage": 0
+                    }
+                
+                customer_breakdown[client_name]["total_quantity"] += qty
+                customer_breakdown[client_name]["order_count"] += 1
+            
+            # Calculate percentages and project per customer
+            customer_projections = {}
+            for client_name, client_data in customer_breakdown.items():
+                percentage = (client_data["total_quantity"] / total_qty * 100) if total_qty > 0 else 0
+                customer_breakdown[client_name]["percentage"] = round(percentage, 1)
+                
+                # Project quantities for each period based on historical percentage
+                customer_projections[client_name] = {
+                    "3_months": round(projections["3_months"] * percentage / 100, 2),
+                    "6_months": round(projections["6_months"] * percentage / 100, 2),
+                    "9_months": round(projections["9_months"] * percentage / 100, 2),
+                    "12_months": round(projections["12_months"] * percentage / 100, 2),
+                    "percentage": round(percentage, 1),
+                    "historical_total": client_data["total_quantity"],
+                    "order_count": client_data["order_count"]
+                }
+            
             products_list.append({
                 "product_info": data["product_info"],
                 "historical_data": {
@@ -5266,7 +5301,9 @@ async def get_projected_order_analysis(
                     "orders": data["historical_orders"]
                 },
                 "projections": projections,
-                "material_requirements": material_requirements
+                "material_requirements": material_requirements,
+                "customer_breakdown": customer_breakdown,
+                "customer_projections": customer_projections
             })
         
         # Sort by total quantity (most used first)
