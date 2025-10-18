@@ -1633,9 +1633,14 @@ async def get_production_board(current_user: dict = Depends(require_any_role)):
                 "materials_ready": materials_ready,
                 "items": order["items"],
                 "delivery_address": order.get("delivery_address"),
-                "is_overdue": due_date < datetime.now(timezone.utc)
+                "is_overdue": due_date < datetime.now(timezone.utc),
+                "display_order": order.get("display_order", 999)  # Default to end if not set
             }
             board[stage].append(order_info)
+    
+    # Sort each stage by display_order
+    for stage in board:
+        board[stage].sort(key=lambda x: x.get("display_order", 999))
     
     return {"success": True, "data": board}
 
