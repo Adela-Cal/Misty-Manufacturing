@@ -5115,6 +5115,178 @@ async def get_detailed_product_usage_report(
 
 
 
+@api_router.get("/stock/reports/projected-order-analysis", response_model=StandardResponse)
+async def get_projected_order_analysis(
+    client_id: Optional[str] = None,
+    start_date: str = None,
+    end_date: str = None,
+    current_user: dict = Depends(require_any_role)
+):
+    """
+    Generate projected order analysis based on historical data.
+    Shows projections for 3, 6, 9, and 12 months with product-level detail
+    and raw material requirements.
+    """
+    try:
+        # Parse dates
+        start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+        end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+        days_in_period = (end - start).days or 1
+        
+        # Build query for orders in the date range
+        order_query = {
+            "created_at": {"$gte": start.isoformat(), "$lte": end.isoformat()},
+            "status": {"$in": ["completed", "archived"]}
+        }
+        
+        if client_id:
+            order_query["client_id"] = client_id
+        
+        orders = await db.orders.find(order_query).to_list(length=None)
+        
+        # Track product usage with details
+        product_analysis = {}  # {product_id: {usage_data, client_info, product_specs}}
+        
+        for order in orders:
+            order_items = order.get("items", [])
+            
+            for item in order_items:
+                product_id = item.get("product_id")
+                if not product_id:
+                    continue
+                
+                # Get product details
+                product = await db.client_products.find_one({"id": product_id})
+                if not product:
+                    continue
+                
+                quantity = item.get("quantity", 0)
+                if quantity <= 0:
+                    continue
+                
+                # Initialize product entry if not exists
+                if product_id not in product_analysis:
+                    product_analysis[product_id] = {
+                        "product_info": {
+                            "product_id": product_id,
+                            "product_description": product.get("product_description", "Unknown"),
+                            "product_code": product.get("product_code", "N/A"),
+                            "product_type": product.get("product_type", "Unknown"),
+                            "client_id": product.get("client_id"),
+                            "client_name": order.get("client_name", "Unknown"),
+                            "width": product.get("width", 0),
+                            "length": product.get("length", 0),
+                            "unit_of_measure": product.get("unit_of_measure", "units")
+                        },
+                        "historical_orders": [],
+                        "total_quantity": 0,
+                        "order_count": 0,
+                        "materials_composition": product.get("materials_composition", [])
+                    }
+                
+                # Track order
+                product_analysis[product_id]["historical_orders"].append({
+                    "order_number": order.get("order_number"),
+                    "order_date": order.get("created_at"),
+                    "quantity": quantity,
+                    "client_name": order.get("client_name")
+                })
+                
+                product_analysis[product_id]["total_quantity"] += quantity
+                product_analysis[product_id]["order_count"] += 1
+        
+        # Calculate projections and material requirements
+        products_list = []
+        
+        for product_id, data in product_analysis.items():
+            # Calculate average usage per day
+            avg_per_day = data["total_quantity"] / days_in_period
+            
+            # Project for 3, 6, 9, and 12 months
+            projections = {
+                "3_months": round(avg_per_day * 90, 2),
+                "6_months": round(avg_per_day * 180, 2),
+                "9_months": round(avg_per_day * 270, 2),
+                "12_months": round(avg_per_day * 365, 2)
+            }
+            
+            # Calculate material requirements for projections
+            materials_composition = data.get("materials_composition", [])
+            material_requirements = {}
+            
+            for period, projected_qty in projections.items():
+                material_requirements[period] = []
+                
+                for material_layer in materials_composition:
+                    material_id = material_layer.get("material_id")
+                    material_width = material_layer.get("width", 0)
+                    material_quantity_per_unit = material_layer.get("quantity", 0)
+                    
+                    if material_id and material_width > 0 and material_quantity_per_unit > 0:
+                        # Get material name
+                        material = await db.materials.find_one({"id": material_id})
+                        material_name = "Unknown"
+                        if material:
+                            material_name = material.get("material_description", material.get("supplier", "Unknown"))
+                        
+                        # Calculate total material needed
+                        total_material_needed = projected_qty * material_quantity_per_unit
+                        
+                        material_requirements[period].append({
+                            "material_id": material_id,
+                            "material_name": material_name,
+                            "width_mm": material_width,
+                            "quantity_per_unit": material_quantity_per_unit,
+                            "total_quantity_needed": round(total_material_needed, 2),
+                            "unit_of_measure": material_layer.get("unit_of_measure", "m")
+                        })
+            
+            products_list.append({
+                "product_info": data["product_info"],
+                "historical_data": {
+                    "total_quantity": data["total_quantity"],
+                    "order_count": data["order_count"],
+                    "average_per_day": round(avg_per_day, 2),
+                    "average_per_month": round(avg_per_day * 30, 2),
+                    "orders": data["historical_orders"]
+                },
+                "projections": projections,
+                "material_requirements": material_requirements
+            })
+        
+        # Sort by total quantity (most used first)
+        products_list.sort(key=lambda x: x["historical_data"]["total_quantity"], reverse=True)
+        
+        report_data = {
+            "report_period": {
+                "start_date": start_date,
+                "end_date": end_date,
+                "days": days_in_period
+            },
+            "client_filter": client_id,
+            "products": products_list,
+            "total_products": len(products_list),
+            "summary": {
+                "total_orders_analyzed": len(orders),
+                "total_unique_products": len(products_list)
+            }
+        }
+        
+        return StandardResponse(
+            success=True,
+            message="Projected order analysis generated successfully",
+            data=report_data
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate projected order analysis: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate report: {str(e)}")
+
+
+
+
 # ============= SLIT WIDTH MANAGEMENT ENDPOINTS =============
 
 
