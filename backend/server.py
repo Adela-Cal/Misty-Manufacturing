@@ -5128,6 +5128,12 @@ async def get_projected_order_analysis(
     and raw material requirements.
     """
     try:
+        # Handle default dates if not provided
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=90)).isoformat() + 'Z'
+        if not end_date:
+            end_date = datetime.now().isoformat() + 'Z'
+            
         # Parse dates
         start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
         end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
