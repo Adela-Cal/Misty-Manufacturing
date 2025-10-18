@@ -85,13 +85,46 @@ class ComprehensiveBackendTester:
         """Setup test data for comprehensive testing"""
         print("\n=== SETTING UP TEST DATA ===")
         
-        # Create test client
+        # Use existing clients first, create new one if needed
+        clients_response = self.session.get(f"{API_BASE}/clients")
+        if clients_response.status_code == 200:
+            clients = clients_response.json()
+            if clients:
+                # Use existing client
+                self.test_data['client_id'] = clients[0]['id']
+                self.log_result("Setup Test Client", True, f"Using existing client: {self.test_data['client_id']}")
+                
+                # Get existing products for this client
+                products_response = self.session.get(f"{API_BASE}/clients/{self.test_data['client_id']}/catalog")
+                if products_response.status_code == 200:
+                    products = products_response.json()
+                    if products:
+                        self.test_data['product_id'] = products[0]['id']
+                        self.log_result("Setup Test Product", True, f"Using existing product: {self.test_data['product_id']}")
+                        
+                        # Check for existing stock
+                        stock_response = self.session.get(f"{API_BASE}/stock/check-availability", params={
+                            "product_id": self.test_data['product_id'],
+                            "client_id": self.test_data['client_id']
+                        })
+                        
+                        if stock_response.status_code == 200:
+                            stock_data = stock_response.json().get('data', {})
+                            self.test_data['stock_id'] = stock_data.get('stock_id')
+                            self.test_data['initial_stock'] = stock_data.get('quantity_on_hand', 0)
+                            self.log_result("Setup Test Stock", True, f"Using existing stock: {self.test_data['initial_stock']} units")
+                            return True
+        
+        # Create test client with all required fields
         client_data = {
             "company_name": f"Test Client {uuid.uuid4().hex[:8]}",
             "contact_name": "Test Contact",
             "email": "test@example.com",
             "phone": "123-456-7890",
-            "address": "123 Test St"
+            "address": "123 Test St",
+            "city": "Test City",
+            "state": "Test State", 
+            "postal_code": "12345"
         }
         
         response = self.session.post(f"{API_BASE}/clients", json=client_data)
