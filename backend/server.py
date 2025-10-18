@@ -5402,8 +5402,11 @@ async def get_job_card_performance_report(
     current_user: dict = Depends(require_any_role)
 ):
     """
-    Generate job card performance report showing time spent on each job
-    and stock produced/entered for completed jobs within a date range.
+    Enhanced job card performance report with comprehensive metrics:
+    - Time spent on each job and by stage
+    - Material used, excess material (wastage), and material entered into stock
+    - Efficiency score (on-time vs delayed jobs)
+    - Job type breakdown and client performance analysis
     """
     try:
         # Parse dates - handle if no dates provided, default to last 30 days
@@ -5430,10 +5433,36 @@ async def get_job_card_performance_report(
         total_time_hours = 0
         total_stock_entries = 0
         total_stock_quantity = 0
+        total_material_used_kg = 0
+        total_material_excess_kg = 0
+        jobs_on_time = 0
+        jobs_delayed = 0
+        
+        # Collect data for breakdowns
+        job_type_metrics = {}  # product_type -> metrics
+        client_metrics = {}  # client_id -> metrics
         
         for order in completed_orders:
             order_id = order.get("id")
             order_number = order.get("order_number", "Unknown")
+            client_id = order.get("client_id", "unknown")
+            client_name = order.get("client_name", "Unknown")
+            due_date = order.get("due_date")
+            completed_at = order.get("completed_at")
+            
+            # Calculate if on time
+            is_on_time = False
+            if due_date and completed_at:
+                if isinstance(due_date, str):
+                    due_date = datetime.fromisoformat(due_date.replace('Z', '+00:00'))
+                if isinstance(completed_at, str):
+                    completed_at = datetime.fromisoformat(completed_at.replace('Z', '+00:00'))
+                is_on_time = completed_at <= due_date
+            
+            if is_on_time:
+                jobs_on_time += 1
+            else:
+                jobs_delayed += 1
             
             # Get production logs for this order to calculate time spent
             production_logs = await db.production_logs.find({
@@ -5467,7 +5496,54 @@ async def get_job_card_performance_report(
             # Calculate total time for this job
             total_job_time = sum(time_by_stage.values())
             
-            # Get stock entries for this order
+            # Get material consumption for this order from stock_movements
+            material_movements = await db.stock_movements.find({
+                "reference_id": order_id,
+                "reference_type": "order",
+                "movement_type": "consumption"
+            }).to_list(length=None)
+            
+            total_material_used = 0
+            material_details = []
+            
+            for movement in material_movements:
+                quantity = abs(movement.get("quantity_change", 0))  # Make positive
+                total_material_used += quantity
+                material_details.append({
+                    "stock_id": movement.get("stock_id"),
+                    "stock_type": movement.get("stock_type", "unknown"),
+                    "quantity": quantity,
+                    "notes": movement.get("notes", "")
+                })
+            
+            # Calculate expected material usage based on product specifications
+            order_items = order.get("items", [])
+            total_ordered_qty = sum(item.get("quantity", 0) for item in order_items)
+            expected_material = 0
+            product_types = []
+            
+            for item in order_items:
+                product_id = item.get("product_id")
+                quantity = item.get("quantity", 0)
+                
+                # Try to get product specifications
+                product_spec = await db.client_products.find_one({"id": product_id})
+                if product_spec:
+                    product_type = product_spec.get("product_type", "Unknown")
+                    if product_type not in product_types:
+                        product_types.append(product_type)
+                    
+                    # Try to calculate expected material from material_layers
+                    material_layers = product_spec.get("material_layers", [])
+                    for layer in material_layers:
+                        layer_quantity = layer.get("quantity", 0)
+                        expected_material += layer_quantity * quantity
+            
+            # Calculate excess material (wastage)
+            material_excess = max(0, total_material_used - expected_material) if expected_material > 0 else 0
+            waste_percentage = (material_excess / total_material_used * 100) if total_material_used > 0 else 0
+            
+            # Get stock entries for this order (finished goods entered into inventory)
             stock_entries = await db.raw_substrate_stock.find({
                 "source_order_id": order_id
             }).to_list(length=None)
@@ -5485,38 +5561,144 @@ async def get_job_card_performance_report(
                     "created_at": stock.get("created_at")
                 })
             
-            # Calculate efficiency metrics
-            order_items = order.get("items", [])
-            total_ordered_qty = sum(item.get("quantity", 0) for item in order_items)
-            
-            job_cards.append({
+            # Build job card data
+            job_card_data = {
                 "order_number": order_number,
                 "order_id": order_id,
-                "client_name": order.get("client_name", "Unknown"),
+                "client_id": client_id,
+                "client_name": client_name,
+                "product_types": product_types,
                 "created_at": order.get("created_at"),
+                "due_date": order.get("due_date"),
                 "completed_at": order.get("completed_at"),
+                "is_on_time": is_on_time,
                 "total_time_hours": round(total_job_time, 2),
                 "time_by_stage": {k: round(v, 2) for k, v in time_by_stage.items()},
+                "material_used_kg": round(total_material_used, 2),
+                "expected_material_kg": round(expected_material, 2),
+                "material_excess_kg": round(material_excess, 2),
+                "waste_percentage": round(waste_percentage, 2),
+                "material_details": material_details,
                 "stock_entries": stock_summary,
                 "total_stock_produced": job_stock_quantity,
                 "ordered_quantity": total_ordered_qty,
                 "stock_entry_count": len(stock_summary)
-            })
+            }
             
+            job_cards.append(job_card_data)
+            
+            # Update totals
             total_time_hours += total_job_time
             total_stock_entries += len(stock_summary)
             total_stock_quantity += job_stock_quantity
+            total_material_used_kg += total_material_used
+            total_material_excess_kg += material_excess
+            
+            # Update job type breakdown
+            for product_type in product_types:
+                if product_type not in job_type_metrics:
+                    job_type_metrics[product_type] = {
+                        "job_count": 0,
+                        "total_time_hours": 0,
+                        "total_material_used": 0,
+                        "total_excess": 0,
+                        "jobs_on_time": 0,
+                        "jobs_delayed": 0
+                    }
+                
+                job_type_metrics[product_type]["job_count"] += 1
+                job_type_metrics[product_type]["total_time_hours"] += total_job_time
+                job_type_metrics[product_type]["total_material_used"] += total_material_used
+                job_type_metrics[product_type]["total_excess"] += material_excess
+                if is_on_time:
+                    job_type_metrics[product_type]["jobs_on_time"] += 1
+                else:
+                    job_type_metrics[product_type]["jobs_delayed"] += 1
+            
+            # Update client performance metrics
+            if client_id not in client_metrics:
+                client_metrics[client_id] = {
+                    "client_name": client_name,
+                    "job_count": 0,
+                    "total_time_hours": 0,
+                    "total_material_used": 0,
+                    "total_excess": 0,
+                    "jobs_on_time": 0,
+                    "jobs_delayed": 0
+                }
+            
+            client_metrics[client_id]["job_count"] += 1
+            client_metrics[client_id]["total_time_hours"] += total_job_time
+            client_metrics[client_id]["total_material_used"] += total_material_used
+            client_metrics[client_id]["total_excess"] += material_excess
+            if is_on_time:
+                client_metrics[client_id]["jobs_on_time"] += 1
+            else:
+                client_metrics[client_id]["jobs_delayed"] += 1
         
-        # Calculate averages
+        # Calculate averages and efficiency metrics
         job_count = len(job_cards)
+        efficiency_score = (jobs_on_time / job_count * 100) if job_count > 0 else 0
+        overall_waste_percentage = (total_material_excess_kg / total_material_used_kg * 100) if total_material_used_kg > 0 else 0
+        
         averages = {
             "average_time_per_job_hours": round(total_time_hours / job_count, 2) if job_count > 0 else 0,
             "average_stock_entries_per_job": round(total_stock_entries / job_count, 2) if job_count > 0 else 0,
             "average_stock_quantity_per_job": round(total_stock_quantity / job_count, 2) if job_count > 0 else 0,
+            "average_material_used_per_job_kg": round(total_material_used_kg / job_count, 2) if job_count > 0 else 0,
+            "average_waste_per_job_kg": round(total_material_excess_kg / job_count, 2) if job_count > 0 else 0,
             "total_jobs_completed": job_count,
+            "jobs_on_time": jobs_on_time,
+            "jobs_delayed": jobs_delayed,
+            "efficiency_score_percentage": round(efficiency_score, 2),
             "total_time_all_jobs_hours": round(total_time_hours, 2),
-            "total_stock_produced": total_stock_quantity
+            "total_stock_produced": total_stock_quantity,
+            "total_material_used_kg": round(total_material_used_kg, 2),
+            "total_material_excess_kg": round(total_material_excess_kg, 2),
+            "overall_waste_percentage": round(overall_waste_percentage, 2)
         }
+        
+        # Format job type breakdown
+        job_type_breakdown = []
+        for product_type, metrics in job_type_metrics.items():
+            efficiency = (metrics["jobs_on_time"] / metrics["job_count"] * 100) if metrics["job_count"] > 0 else 0
+            waste_pct = (metrics["total_excess"] / metrics["total_material_used"] * 100) if metrics["total_material_used"] > 0 else 0
+            
+            job_type_breakdown.append({
+                "product_type": product_type,
+                "job_count": metrics["job_count"],
+                "total_time_hours": round(metrics["total_time_hours"], 2),
+                "average_time_per_job": round(metrics["total_time_hours"] / metrics["job_count"], 2),
+                "total_material_used_kg": round(metrics["total_material_used"], 2),
+                "total_excess_kg": round(metrics["total_excess"], 2),
+                "waste_percentage": round(waste_pct, 2),
+                "jobs_on_time": metrics["jobs_on_time"],
+                "jobs_delayed": metrics["jobs_delayed"],
+                "efficiency_percentage": round(efficiency, 2)
+            })
+        
+        # Format client performance
+        client_performance = []
+        for client_id, metrics in client_metrics.items():
+            efficiency = (metrics["jobs_on_time"] / metrics["job_count"] * 100) if metrics["job_count"] > 0 else 0
+            waste_pct = (metrics["total_excess"] / metrics["total_material_used"] * 100) if metrics["total_material_used"] > 0 else 0
+            
+            client_performance.append({
+                "client_id": client_id,
+                "client_name": metrics["client_name"],
+                "job_count": metrics["job_count"],
+                "total_time_hours": round(metrics["total_time_hours"], 2),
+                "average_time_per_job": round(metrics["total_time_hours"] / metrics["job_count"], 2),
+                "total_material_used_kg": round(metrics["total_material_used"], 2),
+                "total_excess_kg": round(metrics["total_excess"], 2),
+                "waste_percentage": round(waste_pct, 2),
+                "jobs_on_time": metrics["jobs_on_time"],
+                "jobs_delayed": metrics["jobs_delayed"],
+                "efficiency_percentage": round(efficiency, 2)
+            })
+        
+        # Sort client performance by efficiency (highest first)
+        client_performance.sort(key=lambda x: x["efficiency_percentage"], reverse=True)
         
         # Sort by completion date (most recent first)
         job_cards.sort(key=lambda x: x["completed_at"] if x["completed_at"] else "", reverse=True)
@@ -5528,7 +5710,9 @@ async def get_job_card_performance_report(
                 "days": (end_dt - start_dt).days
             },
             "job_cards": job_cards,
-            "averages": averages
+            "averages": averages,
+            "job_type_breakdown": job_type_breakdown,
+            "client_performance": client_performance
         }
         
         return StandardResponse(
