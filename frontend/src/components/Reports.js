@@ -1753,6 +1753,80 @@ const Reports = () => {
                             )}
                           </div>
                         )}
+                        
+                        {/* Customer Breakdown (Expandable) */}
+                        {expandedCustomers[product.product_info.product_id] && (
+                          <div className="mt-4 border-t border-gray-700 pt-4">
+                            <h6 className="text-sm font-medium text-white mb-3">
+                              Customer Breakdown for {selectedProjectionPeriod.replace('_', ' ')}
+                            </h6>
+                            {product.customer_projections && Object.keys(product.customer_projections).length > 0 ? (
+                              <div className="space-y-2">
+                                {Object.entries(product.customer_projections).map(([customerName, customerData], custIndex) => {
+                                  const projectedQty = customerData[selectedProjectionPeriod];
+                                  
+                                  return (
+                                    <div key={custIndex} className="bg-gray-700/40 rounded p-3">
+                                      <div className="flex justify-between items-start mb-2">
+                                        <div className="flex-1">
+                                          <p className="text-sm font-medium text-white">
+                                            {customerName}
+                                          </p>
+                                          <p className="text-xs text-gray-400">
+                                            Historical: {customerData.historical_total} units ({customerData.order_count} orders)
+                                          </p>
+                                        </div>
+                                        <div className="text-right">
+                                          <p className="text-lg font-bold text-green-400">
+                                            {projectedQty}
+                                          </p>
+                                          <p className="text-xs text-gray-400">{customerData.percentage}% of total</p>
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Progress bar showing percentage */}
+                                      <div className="w-full bg-gray-600 rounded-full h-2 mt-2">
+                                        <div 
+                                          className="bg-green-500 h-2 rounded-full transition-all"
+                                          style={{ width: `${customerData.percentage}%` }}
+                                        ></div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                
+                                {/* Projections for all periods */}
+                                <div className="mt-4 bg-gray-700/20 rounded p-3">
+                                  <p className="text-xs font-medium text-gray-400 mb-2">All Projection Periods:</p>
+                                  <div className="grid grid-cols-4 gap-2 text-xs">
+                                    <div className="text-center">
+                                      <p className="text-gray-400">3 Months</p>
+                                      <p className="text-white font-bold">{product.projections['3_months']}</p>
+                                    </div>
+                                    <div className="text-center">
+                                      <p className="text-gray-400">6 Months</p>
+                                      <p className="text-white font-bold">{product.projections['6_months']}</p>
+                                    </div>
+                                    <div className="text-center">
+                                      <p className="text-gray-400">9 Months</p>
+                                      <p className="text-white font-bold">{product.projections['9_months']}</p>
+                                    </div>
+                                    <div className="text-center">
+                                      <p className="text-gray-400">12 Months</p>
+                                      <p className="text-white font-bold">{product.projections['12_months']}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="bg-gray-700/20 rounded p-4">
+                                <p className="text-sm text-gray-400">
+                                  No customer breakdown data available
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
