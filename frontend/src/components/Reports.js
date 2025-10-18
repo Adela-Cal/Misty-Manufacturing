@@ -2366,7 +2366,7 @@ const Reports = () => {
                 )}
 
                 {/* Client Performance */}
-                {jobPerformanceReport.client_performance && jobPerformanceReport.client_performance.length > 0 && (
+                {jobPerformanceReport.averages?.total_jobs_completed > 0 && jobPerformanceReport.client_performance && jobPerformanceReport.client_performance.length > 0 && (
                   <div className="border-t border-gray-700 pt-4">
                     <div 
                       className="flex justify-between items-center cursor-pointer hover:bg-gray-800/50 p-2 rounded"
