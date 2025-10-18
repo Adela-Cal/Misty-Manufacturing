@@ -623,7 +623,7 @@ const Reports = () => {
         <table class="product-table">
           <tbody>
             <tr class="total-row">
-              <td>GRAND TOTAL (All Products)</td>
+              <td>GRAND TOTAL (All Consumables)</td>
               <td class="right">${report.grand_total_length_m.toLocaleString()} m</td>
               <td class="right">${report.grand_total_m2.toLocaleString()} m²</td>
               ${includeProductOrderBreakdown ? '<td></td>' : ''}
@@ -633,7 +633,7 @@ const Reports = () => {
         
         <div class="footer">
           <p>Generated: ${new Date().toLocaleString()}</p>
-          <p>Misty Manufacturing - Product Usage Report</p>
+          <p>Misty Manufacturing - Consumable Usage Report</p>
         </div>
       </body>
       </html>
