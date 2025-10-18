@@ -136,6 +136,15 @@ export const apiHelpers = {
   getOutstandingJobsReport: () => api.get('/reports/outstanding-jobs'),
   getLateDeliveriesReport: () => api.get('/reports/late-deliveries'),
   getCustomerAnnualReport: (clientId, year) => api.get(`/reports/customer-annual/${clientId}`, { params: { year } }),
+  getDetailedMaterialUsageReport: (materialId, startDate, endDate, includeOrderBreakdown) => 
+    api.get('/stock/reports/material-usage-detailed', { 
+      params: { 
+        material_id: materialId, 
+        start_date: startDate, 
+        end_date: endDate,
+        include_order_breakdown: includeOrderBreakdown
+      } 
+    }),
   
   // Documents
   generateAcknowledgment: (orderId) => api.get(`/documents/acknowledgment/${orderId}`, { responseType: 'blob' }),
