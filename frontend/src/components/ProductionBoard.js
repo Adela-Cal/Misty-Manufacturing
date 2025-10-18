@@ -566,17 +566,19 @@ const ProductionBoard = () => {
           </button>
         </div>
 
-        {/* Production Stages - Row Layout */}
-        <div className="space-y-4 pb-4">
-          {Object.entries(productionBoard).map(([stageKey, jobs]) => (
-            <ProductionStage
-              key={stageKey}
-              stageKey={stageKey}
-              jobs={jobs}
-              stageName={stageDisplayNames[stageKey] || stageKey}
-            />
-          ))}
-        </div>
+        {/* Production Stages - Row Layout with Drag & Drop */}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="space-y-4 pb-4">
+            {Object.entries(productionBoard).map(([stageKey, jobs]) => (
+              <ProductionStage
+                key={stageKey}
+                stageKey={stageKey}
+                jobs={jobs}
+                stageName={stageDisplayNames[stageKey] || stageKey}
+              />
+            ))}
+          </div>
+        </DragDropContext>
       </div>
 
       {/* Interactive Job Card Modal */}
