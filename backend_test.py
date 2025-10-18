@@ -455,6 +455,543 @@ class BackendAPITester:
         
         # Print summary
         self.print_test_summary()
+
+    def test_enhanced_order_deletion_with_stock_reallocation(self):
+        """Test enhanced order deletion functionality with stock reallocation as requested in review"""
+        print("\n" + "="*80)
+        print("ENHANCED ORDER DELETION WITH STOCK REALLOCATION TESTING")
+        print("Testing order deletion with automatic stock return to inventory")
+        print("="*80)
+        
+        # Step 1: Create test stock entry
+        test_stock_id = self.create_test_stock_entry()
+        if not test_stock_id:
+            self.log_result("Order Deletion Test Setup", False, "Failed to create test stock entry")
+            return
+        
+        # Step 2: Create test order
+        test_order_id = self.create_test_order()
+        if not test_order_id:
+            self.log_result("Order Deletion Test Setup", False, "Failed to create test order")
+            return
+        
+        # Step 3: Allocate stock to the order
+        allocation_success = self.allocate_stock_to_order(test_stock_id, test_order_id)
+        if not allocation_success:
+            self.log_result("Order Deletion Test Setup", False, "Failed to allocate stock to order")
+            return
+        
+        # Step 4: Verify stock allocation (quantity reduced)
+        initial_stock_check = self.verify_stock_allocation(test_stock_id)
+        if not initial_stock_check:
+            self.log_result("Stock Allocation Verification", False, "Stock allocation not properly recorded")
+            return
+        
+        # Step 5: Delete the order
+        deletion_result = self.delete_order_with_stock_return(test_order_id)
+        if not deletion_result:
+            self.log_result("Order Deletion", False, "Failed to delete order")
+            return
+        
+        # Step 6: Verify stock was returned to inventory
+        final_stock_check = self.verify_stock_return(test_stock_id)
+        if not final_stock_check:
+            self.log_result("Stock Return Verification", False, "Stock was not properly returned to inventory")
+            return
+        
+        # Step 7: Verify stock movements were recorded
+        movement_verification = self.verify_stock_movements()
+        if not movement_verification:
+            self.log_result("Stock Movement Verification", False, "Stock movements not properly recorded")
+            return
+        
+        self.log_result(
+            "Enhanced Order Deletion with Stock Reallocation", 
+            True, 
+            "✅ Complete workflow tested successfully - order deleted and stock returned to inventory"
+        )
+
+    def create_test_stock_entry(self):
+        """Create a test stock entry for order deletion testing"""
+        print("\n=== CREATE TEST STOCK ENTRY ===")
+        
+        try:
+            # First get a client and product for testing
+            clients_response = self.session.get(f"{API_BASE}/clients")
+            if clients_response.status_code != 200:
+                self.log_result("Get Clients for Stock Test", False, f"Failed to get clients: {clients_response.status_code}")
+                return None
+            
+            clients = clients_response.json()
+            if not clients:
+                self.log_result("Get Clients for Stock Test", False, "No clients available for testing")
+                return None
+            
+            test_client = clients[0]
+            client_id = test_client["id"]
+            
+            # Get products for this client
+            products_response = self.session.get(f"{API_BASE}/clients/{client_id}/products")
+            if products_response.status_code != 200:
+                self.log_result("Get Products for Stock Test", False, f"Failed to get products: {products_response.status_code}")
+                return None
+            
+            products = products_response.json()
+            if not products:
+                self.log_result("Get Products for Stock Test", False, "No products available for testing")
+                return None
+            
+            test_product = products[0]
+            product_id = test_product["id"]
+            
+            # Create stock entry with realistic data
+            stock_data = {
+                "client_id": client_id,
+                "client_name": test_client["company_name"],
+                "product_id": product_id,
+                "product_code": test_product["product_name"],
+                "product_description": f"Test stock for {test_product['product_name']}",
+                "quantity_on_hand": 100.0,  # Initial quantity
+                "unit_of_measure": "units",
+                "source_order_id": None,
+                "source_job_id": None,
+                "is_shared_product": False,
+                "shared_with_clients": [],
+                "created_from_excess": False,
+                "material_specifications": {},
+                "material_value_m2": 0.0,
+                "minimum_stock_level": 10.0
+            }
+            
+            response = self.session.post(f"{API_BASE}/stock/raw-substrates", json=stock_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                stock_id = result.get("data", {}).get("id")
+                
+                self.log_result(
+                    "Create Test Stock Entry", 
+                    True, 
+                    f"Successfully created test stock entry with ID: {stock_id}",
+                    f"Initial quantity: 100 units for {test_product['product_name']}"
+                )
+                
+                # Store test data for later use
+                self.test_client_id = client_id
+                self.test_product_id = product_id
+                self.test_stock_id = stock_id
+                
+                return stock_id
+            else:
+                self.log_result(
+                    "Create Test Stock Entry", 
+                    False, 
+                    f"Failed to create stock entry: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Create Test Stock Entry", False, f"Error: {str(e)}")
+        
+        return None
+
+    def create_test_order(self):
+        """Create a test order for deletion testing"""
+        print("\n=== CREATE TEST ORDER ===")
+        
+        try:
+            if not hasattr(self, 'test_client_id') or not hasattr(self, 'test_product_id'):
+                self.log_result("Create Test Order", False, "Missing test client or product data")
+                return None
+            
+            # Create order data
+            order_data = {
+                "client_id": self.test_client_id,
+                "purchase_order_number": "TEST-PO-DELETE-001",
+                "items": [
+                    {
+                        "product_id": self.test_product_id,
+                        "product_name": "Test Product for Deletion",
+                        "quantity": 25,  # Will allocate 25 units from our 100 unit stock
+                        "unit_price": 10.50,
+                        "total_price": 262.50
+                    }
+                ],
+                "due_date": "2024-12-31",
+                "priority": "medium",
+                "delivery_address": "Test Delivery Address",
+                "delivery_instructions": "Test delivery for order deletion",
+                "runtime_estimate": 4.0,
+                "notes": "Test order for deletion with stock reallocation testing"
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=order_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                order_id = result.get("data", {}).get("id")
+                order_number = result.get("data", {}).get("order_number")
+                
+                self.log_result(
+                    "Create Test Order", 
+                    True, 
+                    f"Successfully created test order with ID: {order_id}",
+                    f"Order number: {order_number}, Items: 1 product, 25 units"
+                )
+                
+                self.test_order_id = order_id
+                self.test_order_number = order_number
+                
+                return order_id
+            else:
+                self.log_result(
+                    "Create Test Order", 
+                    False, 
+                    f"Failed to create order: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Create Test Order", False, f"Error: {str(e)}")
+        
+        return None
+
+    def allocate_stock_to_order(self, stock_id, order_id):
+        """Allocate stock to the test order"""
+        print("\n=== ALLOCATE STOCK TO ORDER ===")
+        
+        try:
+            allocation_data = {
+                "product_id": self.test_product_id,
+                "client_id": self.test_client_id,
+                "quantity": 25,  # Allocate 25 units
+                "order_reference": self.test_order_number
+            }
+            
+            response = self.session.post(f"{API_BASE}/stock/allocate", json=allocation_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                allocated_quantity = result.get("data", {}).get("allocated_quantity")
+                remaining_stock = result.get("data", {}).get("remaining_stock")
+                
+                self.log_result(
+                    "Allocate Stock to Order", 
+                    True, 
+                    f"Successfully allocated {allocated_quantity} units to order",
+                    f"Remaining stock: {remaining_stock} units"
+                )
+                
+                self.allocated_quantity = allocated_quantity
+                self.remaining_stock_after_allocation = remaining_stock
+                
+                return True
+            else:
+                self.log_result(
+                    "Allocate Stock to Order", 
+                    False, 
+                    f"Failed to allocate stock: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Allocate Stock to Order", False, f"Error: {str(e)}")
+        
+        return False
+
+    def verify_stock_allocation(self, stock_id):
+        """Verify that stock quantity was reduced after allocation"""
+        print("\n=== VERIFY STOCK ALLOCATION ===")
+        
+        try:
+            # Check stock availability
+            response = self.session.get(f"{API_BASE}/stock/check-availability", params={
+                "product_id": self.test_product_id,
+                "client_id": self.test_client_id
+            })
+            
+            if response.status_code == 200:
+                result = response.json()
+                current_quantity = result.get("data", {}).get("quantity_on_hand", 0)
+                
+                # Should be 75 (100 - 25 allocated)
+                expected_quantity = 75
+                if current_quantity == expected_quantity:
+                    self.log_result(
+                        "Verify Stock Allocation", 
+                        True, 
+                        f"Stock quantity correctly reduced to {current_quantity} units",
+                        f"Original: 100, Allocated: 25, Remaining: {current_quantity}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Verify Stock Allocation", 
+                        False, 
+                        f"Stock quantity incorrect: {current_quantity}, expected: {expected_quantity}"
+                    )
+            else:
+                self.log_result(
+                    "Verify Stock Allocation", 
+                    False, 
+                    f"Failed to check stock availability: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Verify Stock Allocation", False, f"Error: {str(e)}")
+        
+        return False
+
+    def delete_order_with_stock_return(self, order_id):
+        """Delete the order and verify stock return response"""
+        print("\n=== DELETE ORDER WITH STOCK RETURN ===")
+        
+        try:
+            response = self.session.delete(f"{API_BASE}/orders/{order_id}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                message = result.get("message", "")
+                returned_stock_items = result.get("data", {}).get("returned_stock_items", 0)
+                
+                # Verify response includes stock return information
+                if "stock allocation(s) returned to inventory" in message and returned_stock_items > 0:
+                    self.log_result(
+                        "Delete Order with Stock Return", 
+                        True, 
+                        f"Order successfully deleted with stock return",
+                        f"Message: {message}, Returned items: {returned_stock_items}"
+                    )
+                    
+                    self.returned_stock_count = returned_stock_items
+                    return True
+                else:
+                    self.log_result(
+                        "Delete Order with Stock Return", 
+                        False, 
+                        "Order deleted but stock return not properly indicated",
+                        f"Message: {message}, Returned items: {returned_stock_items}"
+                    )
+            else:
+                self.log_result(
+                    "Delete Order with Stock Return", 
+                    False, 
+                    f"Failed to delete order: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Delete Order with Stock Return", False, f"Error: {str(e)}")
+        
+        return False
+
+    def verify_stock_return(self, stock_id):
+        """Verify that stock was returned to inventory after order deletion"""
+        print("\n=== VERIFY STOCK RETURN TO INVENTORY ===")
+        
+        try:
+            # Check stock availability again
+            response = self.session.get(f"{API_BASE}/stock/check-availability", params={
+                "product_id": self.test_product_id,
+                "client_id": self.test_client_id
+            })
+            
+            if response.status_code == 200:
+                result = response.json()
+                current_quantity = result.get("data", {}).get("quantity_on_hand", 0)
+                
+                # Should be back to 100 (75 + 25 returned)
+                expected_quantity = 100
+                if current_quantity == expected_quantity:
+                    self.log_result(
+                        "Verify Stock Return to Inventory", 
+                        True, 
+                        f"Stock quantity correctly restored to {current_quantity} units",
+                        f"After allocation: 75, After return: {current_quantity}, Original: 100"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Verify Stock Return to Inventory", 
+                        False, 
+                        f"Stock quantity not restored: {current_quantity}, expected: {expected_quantity}",
+                        "Stock was not properly returned to inventory"
+                    )
+            else:
+                self.log_result(
+                    "Verify Stock Return to Inventory", 
+                    False, 
+                    f"Failed to check stock availability: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Verify Stock Return to Inventory", False, f"Error: {str(e)}")
+        
+        return False
+
+    def verify_stock_movements(self):
+        """Verify that stock movements were properly recorded"""
+        print("\n=== VERIFY STOCK MOVEMENTS RECORDED ===")
+        
+        try:
+            # Get stock history to verify movements
+            response = self.session.get(f"{API_BASE}/stock/history", params={
+                "product_id": self.test_product_id,
+                "client_id": self.test_client_id
+            })
+            
+            if response.status_code == 200:
+                result = response.json()
+                movements = result.get("data", {}).get("movements", [])
+                
+                # Look for allocation and return movements
+                allocation_movement = None
+                return_movement = None
+                
+                for movement in movements:
+                    if movement.get("movement_type") == "allocation" and movement.get("quantity") < 0:
+                        allocation_movement = movement
+                    elif movement.get("movement_type") == "return" and movement.get("quantity") > 0:
+                        return_movement = movement
+                
+                # Verify both movements exist
+                movements_found = []
+                if allocation_movement:
+                    movements_found.append(f"Allocation: {abs(allocation_movement.get('quantity', 0))} units")
+                if return_movement:
+                    movements_found.append(f"Return: {return_movement.get('quantity', 0)} units")
+                
+                if allocation_movement and return_movement:
+                    self.log_result(
+                        "Verify Stock Movements Recorded", 
+                        True, 
+                        "Both allocation and return movements properly recorded",
+                        f"Movements found: {', '.join(movements_found)}"
+                    )
+                    return True
+                else:
+                    missing = []
+                    if not allocation_movement:
+                        missing.append("allocation")
+                    if not return_movement:
+                        missing.append("return")
+                    
+                    self.log_result(
+                        "Verify Stock Movements Recorded", 
+                        False, 
+                        f"Missing stock movements: {', '.join(missing)}",
+                        f"Found movements: {', '.join(movements_found) if movements_found else 'None'}"
+                    )
+            else:
+                self.log_result(
+                    "Verify Stock Movements Recorded", 
+                    False, 
+                    f"Failed to get stock history: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Verify Stock Movements Recorded", False, f"Error: {str(e)}")
+        
+        return False
+
+    def test_edge_case_order_deletion_without_stock(self):
+        """Test edge case: deletion of order without stock allocation"""
+        print("\n=== EDGE CASE: ORDER DELETION WITHOUT STOCK ALLOCATION ===")
+        
+        try:
+            if not hasattr(self, 'test_client_id'):
+                self.log_result("Edge Case Test Setup", False, "Missing test client data")
+                return
+            
+            # Create order without stock allocation
+            order_data = {
+                "client_id": self.test_client_id,
+                "purchase_order_number": "TEST-PO-NO-STOCK-001",
+                "items": [
+                    {
+                        "product_id": self.test_product_id,
+                        "product_name": "Test Product No Stock",
+                        "quantity": 5,
+                        "unit_price": 15.00,
+                        "total_price": 75.00
+                    }
+                ],
+                "due_date": "2024-12-31",
+                "priority": "low",
+                "notes": "Test order without stock allocation"
+            }
+            
+            # Create order
+            response = self.session.post(f"{API_BASE}/orders", json=order_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                order_id = result.get("data", {}).get("id")
+                
+                # Delete order immediately (no stock allocation)
+                delete_response = self.session.delete(f"{API_BASE}/orders/{order_id}")
+                
+                if delete_response.status_code == 200:
+                    delete_result = delete_response.json()
+                    message = delete_result.get("message", "")
+                    returned_stock_items = delete_result.get("data", {}).get("returned_stock_items", 0)
+                    
+                    # Should indicate 0 stock items returned
+                    if returned_stock_items == 0 and "0 stock allocation(s) returned" in message:
+                        self.log_result(
+                            "Edge Case - Order Deletion Without Stock", 
+                            True, 
+                            "Order without stock allocation deleted correctly",
+                            f"Message: {message}, Returned items: {returned_stock_items}"
+                        )
+                    else:
+                        self.log_result(
+                            "Edge Case - Order Deletion Without Stock", 
+                            False, 
+                            "Unexpected response for order without stock allocation",
+                            f"Message: {message}, Returned items: {returned_stock_items}"
+                        )
+                else:
+                    self.log_result(
+                        "Edge Case - Order Deletion Without Stock", 
+                        False, 
+                        f"Failed to delete order without stock: {delete_response.status_code}",
+                        delete_response.text
+                    )
+            else:
+                self.log_result(
+                    "Edge Case - Order Creation", 
+                    False, 
+                    f"Failed to create order for edge case test: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Edge Case - Order Deletion Without Stock", False, f"Error: {str(e)}")
+
+    def run_order_deletion_tests(self):
+        """Run comprehensive order deletion with stock reallocation tests"""
+        print("\n" + "="*80)
+        print("ENHANCED ORDER DELETION WITH STOCK REALLOCATION COMPREHENSIVE TESTING")
+        print("Testing order deletion functionality with automatic stock return to inventory")
+        print("="*80)
+        
+        # Step 1: Authenticate
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with tests")
+            return
+        
+        # Step 2: Run main test scenario
+        self.test_enhanced_order_deletion_with_stock_reallocation()
+        
+        # Step 3: Test edge case
+        self.test_edge_case_order_deletion_without_stock()
+        
+        # Print summary
+        self.print_test_summary()
     
     def create_test_employee(self):
         """Create a test employee for timesheet testing using the specific data from review request"""
