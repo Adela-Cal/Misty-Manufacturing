@@ -33,6 +33,19 @@ const Reports = () => {
   const [includeOrderBreakdown, setIncludeOrderBreakdown] = useState(false);
   const [materialUsageReport, setMaterialUsageReport] = useState(null);
   const [loadingMaterialReport, setLoadingMaterialReport] = useState(false);
+  
+  // Product Usage Report states
+  const [selectedProductClient, setSelectedProductClient] = useState('');
+  const [productDatePreset, setProductDatePreset] = useState('last_30_days');
+  const [productStartDate, setProductStartDate] = useState('');
+  const [productEndDate, setProductEndDate] = useState('');
+  const [customProductStartYear, setCustomProductStartYear] = useState(new Date().getFullYear());
+  const [customProductStartMonth, setCustomProductStartMonth] = useState(new Date().getMonth());
+  const [customProductEndYear, setCustomProductEndYear] = useState(new Date().getFullYear());
+  const [customProductEndMonth, setCustomProductEndMonth] = useState(new Date().getMonth());
+  const [includeProductOrderBreakdown, setIncludeProductOrderBreakdown] = useState(false);
+  const [productUsageReport, setProductUsageReport] = useState(null);
+  const [loadingProductReport, setLoadingProductReport] = useState(false);
 
   useEffect(() => {
     loadReportsData();
