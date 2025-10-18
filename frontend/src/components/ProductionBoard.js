@@ -494,17 +494,39 @@ const ProductionBoard = () => {
           </div>
         </div>
         
-        <div className="bg-gray-700/30 rounded-b-lg p-4 min-h-32">
-          {jobs.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
-              {jobs.map((job) => (
-                <JobTile key={job.id} job={job} stageKey={stageKey} />
-              ))}
+        <Droppable droppableId={stageKey} direction="horizontal">
+          {(provided, snapshot) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className={`bg-gray-700/30 rounded-b-lg p-4 min-h-32 transition-colors ${
+                snapshot.isDraggingOver ? 'bg-gray-600/50 border-2 border-yellow-400' : ''
+              }`}
+            >
+              {jobs.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+                  {jobs.map((job, index) => (
+                    <Draggable key={job.id} draggableId={job.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className={snapshot.isDragging ? 'opacity-75 rotate-2' : ''}
+                        >
+                          <JobTile job={job} stageKey={stageKey} isDragging={snapshot.isDragging} />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              ) : (
+                <p className="text-gray-400 text-center py-8">No jobs in this stage</p>
+              )}
             </div>
-          ) : (
-            <p className="text-gray-400 text-center py-8">No jobs in this stage</p>
           )}
-        </div>
+        </Droppable>
       </div>
     );
   };
