@@ -5322,18 +5322,26 @@ async def get_projected_order_analysis(
                             })
                 else:
                     # Simpler calculation for flat products (labels, films, tapes)
-                    product_width = product.get("width", 0) / 1000  # Convert mm to meters
-                    product_length = product.get("length", 0)  # Already in meters
+                    try:
+                        product_width = float(product.get("width") or 0) / 1000  # Convert mm to meters
+                        product_length = float(product.get("length") or 0)  # Already in meters
+                    except (TypeError, ValueError):
+                        product_width = 1.0  # Default 1 meter
+                        product_length = 100  # Default 100 meters
                     
                     for period, projected_qty in projections.items():
                         material_requirements[period] = []
                         total_meters_all_layers = 0
                         
                         for layer_index, layer in enumerate(material_layers):
-                            material_id = layer.get("material_id")
-                            thickness = float(layer.get("thickness", 0))  # mm
-                            width = float(layer.get("width", product_width * 1000))  # mm
-                            quantity_per_unit = int(layer.get("quantity", 1))
+                            try:
+                                material_id = layer.get("material_id")
+                                thickness = float(layer.get("thickness") or 0)  # mm
+                                width = float(layer.get("width") or (product_width * 1000))  # mm
+                                quantity_per_unit = int(layer.get("quantity") or 1)
+                            except (TypeError, ValueError) as e:
+                                logger.error(f"Error parsing flat product layer fields: {e}, layer: {layer}")
+                                continue
                             
                             # For flat products: meters needed = product length × quantity per unit × projected qty
                             meters_per_unit = product_length * quantity_per_unit
