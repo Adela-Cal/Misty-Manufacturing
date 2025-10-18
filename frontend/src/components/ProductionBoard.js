@@ -280,7 +280,7 @@ const ProductionBoard = () => {
 
   // Removed AustraliaMap component as requested
 
-  const JobTile = ({ job, stageKey }) => {
+  const JobTile = ({ job, stageKey, isDragging = false }) => {
     const isExpanded = expandedJobs[job.id];
     const isOverdue = job.is_overdue;
     const materialsStatus = getMaterialsStatus(job);
@@ -288,9 +288,10 @@ const ProductionBoard = () => {
     return (
       <div 
         className={`
-          relative bg-gray-800 border rounded-lg p-3 transition-all duration-200 hover:shadow-lg overflow-hidden
+          relative bg-gray-800 border rounded-lg p-3 transition-all duration-200 hover:shadow-lg overflow-hidden cursor-move
           ${stageColors[stageKey] || 'border-gray-600'}
           ${isOverdue ? 'border-red-500 bg-red-900/20' : ''}
+          ${isDragging ? 'shadow-2xl ring-2 ring-yellow-400' : ''}
         `}
         data-testid={`job-card-${job.id}`}
       >
