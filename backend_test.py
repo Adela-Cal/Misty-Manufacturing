@@ -1338,11 +1338,13 @@ class BackendAPITester:
         except Exception as e:
             self.log_result("Edge Case - Order Deletion Without Stock", False, f"Error: {str(e)}")
 
-    def run_order_deletion_tests(self):
-        """Run comprehensive order deletion with stock reallocation tests"""
+    def run_fixed_order_deletion_tests(self):
+        """Run FIXED order deletion with stock reallocation tests as requested in review"""
         print("\n" + "="*80)
-        print("ENHANCED ORDER DELETION WITH STOCK REALLOCATION COMPREHENSIVE TESTING")
-        print("Testing order deletion functionality with automatic stock return to inventory")
+        print("TESTING FIXED ORDER DELETION WITH STOCK REALLOCATION")
+        print("Critical Fix Applied: Stock movements archived instead of deleted")
+        print("Added detailed logging for stock return operations")
+        print("Fixed order of operations to prevent deletion of return movements")
         print("="*80)
         
         # Step 1: Authenticate
@@ -1350,10 +1352,10 @@ class BackendAPITester:
             print("❌ Authentication failed - cannot proceed with tests")
             return
         
-        # Step 2: Run main test scenario
+        # Step 2: Run main FIXED test scenario
         self.test_enhanced_order_deletion_with_stock_reallocation()
         
-        # Step 3: Test edge case
+        # Step 3: Test edge case (order without stock allocation)
         self.test_edge_case_order_deletion_without_stock()
         
         # Print summary
