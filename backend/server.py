@@ -5141,19 +5141,13 @@ async def get_projected_order_analysis(
         
         # Build query for orders in the date range
         # Include all orders except cancelled/deleted to capture orders on hand
-        # FIX: Use timezone-naive dates to match the order date format in database
-        # Ensure consistent microsecond format to match database format
-        start_str = start.replace(tzinfo=None).isoformat()
-        end_str = end.replace(tzinfo=None).isoformat()
-        
-        # Add microseconds if not present to match database format (e.g., 2025-10-18T10:33:43.316000)
-        if '.' not in start_str:
-            start_str += '.000000'
-        if '.' not in end_str:
-            end_str += '.999999'  # Use 999999 for end to ensure we capture all times
+        # FIX: MongoDB stores dates as datetime objects, not strings
+        # Use datetime objects for comparison instead of strings
+        start_dt = start.replace(tzinfo=None)
+        end_dt = end.replace(tzinfo=None)
             
         order_query = {
-            "created_at": {"$gte": start_str, "$lte": end_str}
+            "created_at": {"$gte": start_dt, "$lte": end_dt}
         }
         
         # DEBUG: Log the query
