@@ -1132,6 +1132,286 @@ const Reports = () => {
             )}
           </div>
         </ReportCard>
+
+        {/* Product Usage Report */}
+        <ReportCard title="Product Usage Report by Width" icon={CubeIcon}>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-400 mb-2">
+              Tracks usage of all products from Products & Specifications, excluding Spiral Paper Cores and Composite Cores
+            </p>
+            
+            <div className="flex flex-col gap-4">
+              {/* Client and Date Preset Selection */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Client Selection (Optional) */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Client (Optional)</label>
+                  <select
+                    className="misty-select"
+                    value={selectedProductClient}
+                    onChange={(e) => setSelectedProductClient(e.target.value)}
+                  >
+                    <option value="">All Clients</option>
+                    {clients.map((client) => (
+                      <option key={client.id} value={client.id}>
+                        {client.company_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Date Range Preset */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Date Range</label>
+                  <select
+                    className="misty-select"
+                    value={productDatePreset}
+                    onChange={(e) => handleProductPresetChange(e.target.value)}
+                  >
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="this_month">This Month</option>
+                    <option value="last_month">Last Month</option>
+                    <option value="this_year">This Year</option>
+                    <option value="last_year">Last Year</option>
+                    <option value="custom">Custom Range</option>
+                  </select>
+                </div>
+                
+                {/* Generate Button */}
+                <div className="flex items-end">
+                  <button
+                    onClick={loadProductUsageReport}
+                    disabled={loadingProductReport}
+                    className="misty-button misty-button-primary w-full"
+                  >
+                    {loadingProductReport ? 'Loading...' : 'Generate Report'}
+                  </button>
+                </div>
+              </div>
+              
+              {/* Custom Date Range Selectors */}
+              {productDatePreset === 'custom' && (
+                <div className="bg-gray-700/30 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-white mb-3">Custom Date Range</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Start Year</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customProductStartYear}
+                        onChange={(e) => setCustomProductStartYear(parseInt(e.target.value))}
+                      >
+                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Start Month</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customProductStartMonth}
+                        onChange={(e) => setCustomProductStartMonth(parseInt(e.target.value))}
+                      >
+                        {['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'].map((month, idx) => (
+                          <option key={idx} value={idx}>{month}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">End Year</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customProductEndYear}
+                        onChange={(e) => setCustomProductEndYear(parseInt(e.target.value))}
+                      >
+                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">End Month</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customProductEndMonth}
+                        onChange={(e) => setCustomProductEndMonth(parseInt(e.target.value))}
+                      >
+                        {['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'].map((month, idx) => (
+                          <option key={idx} value={idx}>{month}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Selected range: {new Date(customProductStartYear, customProductStartMonth, 1).toLocaleDateString()} - {new Date(customProductEndYear, customProductEndMonth + 1, 0).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+              
+              {/* Display selected date range */}
+              {productDatePreset !== 'custom' && productStartDate && productEndDate && (
+                <div className="text-sm text-gray-400">
+                  Period: {new Date(productStartDate).toLocaleDateString()} - {new Date(productEndDate).toLocaleDateString()}
+                </div>
+              )}
+              
+              {/* Order Breakdown Toggle */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIncludeProductOrderBreakdown(!includeProductOrderBreakdown)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
+                    includeProductOrderBreakdown 
+                      ? 'bg-yellow-600 text-white' 
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  <div className={`w-5 h-5 border-2 rounded flex items-center justify-center ${
+                    includeProductOrderBreakdown ? 'border-white' : 'border-gray-400'
+                  }`}>
+                    {includeProductOrderBreakdown && <CheckIcon className="h-4 w-4" />}
+                  </div>
+                  <span>Show breakdown by order</span>
+                </button>
+              </div>
+            </div>
+
+            {productUsageReport && (
+              <div className="mt-6 space-y-6">
+                {/* Report Header */}
+                <div className="border-t border-gray-700 pt-4">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="font-medium text-white text-lg mb-1">
+                        Product Usage Report
+                      </h4>
+                      <p className="text-sm text-gray-400">
+                        Period: {new Date(productUsageReport.report_period.start_date).toLocaleDateString()} - {new Date(productUsageReport.report_period.end_date).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Excludes: {productUsageReport.excluded_types.join(', ')}
+                      </p>
+                    </div>
+                    <button
+                      onClick={printProductUsageReport}
+                      className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded transition-colors"
+                      title="Print Report as PDF"
+                    >
+                      <PrinterIcon className="h-5 w-5" />
+                      <span>Print Report</span>
+                    </button>
+                  </div>
+                  
+                  {/* Summary Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-yellow-400">
+                        {productUsageReport.grand_total_m2} m²
+                      </p>
+                      <p className="text-sm text-gray-400">Total Area Used</p>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-green-400">
+                        {productUsageReport.grand_total_length_m} m
+                      </p>
+                      <p className="text-sm text-gray-400">Total Length</p>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-blue-400">
+                        {productUsageReport.total_products}
+                      </p>
+                      <p className="text-sm text-gray-400">Products Used</p>
+                    </div>
+                  </div>
+
+                  {/* Products Display */}
+                  {productUsageReport.products.map((product, productIndex) => (
+                    <div key={productIndex} className="mb-6 border border-gray-700 rounded-lg p-4">
+                      <div className="mb-3">
+                        <h5 className="font-medium text-white">{product.product_info.product_description}</h5>
+                        <p className="text-xs text-gray-400">
+                          Code: {product.product_info.product_code} | Client: {product.product_info.client_name}
+                        </p>
+                      </div>
+                      
+                      {/* Usage by Width Table for this Product */}
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full">
+                          <thead>
+                            <tr className="border-b border-gray-700">
+                              <th className="text-left py-2 px-3 text-gray-300 font-medium text-sm">Width (mm)</th>
+                              <th className="text-right py-2 px-3 text-gray-300 font-medium text-sm">Length (m)</th>
+                              <th className="text-right py-2 px-3 text-gray-300 font-medium text-sm">Area (m²)</th>
+                              {includeProductOrderBreakdown && (
+                                <th className="text-center py-2 px-3 text-gray-300 font-medium text-sm">Orders</th>
+                              )}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {product.usage_by_width.map((width, widthIndex) => (
+                              <React.Fragment key={widthIndex}>
+                                <tr className="border-b border-gray-700/30 hover:bg-gray-700/20">
+                                  <td className="py-2 px-3 text-white text-sm">{width.width_mm} mm</td>
+                                  <td className="py-2 px-3 text-right text-gray-300 text-sm">{width.total_length_m.toLocaleString()} m</td>
+                                  <td className="py-2 px-3 text-right text-yellow-400 font-medium text-sm">{width.m2.toLocaleString()} m²</td>
+                                  {includeProductOrderBreakdown && (
+                                    <td className="py-2 px-3 text-center text-gray-300 text-sm">{width.order_count || 0}</td>
+                                  )}
+                                </tr>
+                                
+                                {includeProductOrderBreakdown && width.orders && width.orders.length > 0 && (
+                                  <tr>
+                                    <td colSpan={includeProductOrderBreakdown ? 4 : 3} className="py-2 px-3 bg-gray-700/10">
+                                      <div className="pl-6 space-y-1">
+                                        <p className="text-xs font-medium text-gray-400 mb-1">Order Breakdown:</p>
+                                        {width.orders.map((order, orderIndex) => (
+                                          <div key={orderIndex} className="flex justify-between text-xs py-1">
+                                            <span className="text-gray-300">
+                                              {order.order_number} - {order.client_name}
+                                            </span>
+                                            <span className="text-gray-400">
+                                              {order.total_length_m} m ({order.quantity} × {order.length_per_unit}m)
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
+                            ))}
+                            
+                            {/* Product Subtotal */}
+                            <tr className="bg-gray-700/40 font-medium">
+                              <td className="py-2 px-3 text-white text-sm">Product Total</td>
+                              <td className="py-2 px-3 text-right text-white text-sm">{product.product_total_length_m.toLocaleString()} m</td>
+                              <td className="py-2 px-3 text-right text-yellow-400 text-sm">{product.product_total_m2.toLocaleString()} m²</td>
+                              {includeProductOrderBreakdown && <td></td>}
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Grand Total */}
+                  <div className="bg-gray-700/50 rounded-lg p-4 mt-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-white font-bold">GRAND TOTAL (All Products)</span>
+                      <div className="flex gap-8">
+                        <span className="text-white font-bold">{productUsageReport.grand_total_length_m.toLocaleString()} m</span>
+                        <span className="text-yellow-400 font-bold text-lg">{productUsageReport.grand_total_m2.toLocaleString()} m²</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </ReportCard>
       </div>
     </Layout>
   );
