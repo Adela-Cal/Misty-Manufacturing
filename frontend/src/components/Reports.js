@@ -154,7 +154,19 @@ const Reports = () => {
       return;
     }
     
-    if (!startDate || !endDate) {
+    // Calculate dates based on current selection
+    let finalStartDate = startDate;
+    let finalEndDate = endDate;
+    
+    if (datePreset === 'custom') {
+      const { start, end } = getDateRangeFromPreset('custom');
+      finalStartDate = start;
+      finalEndDate = end;
+      setStartDate(start);
+      setEndDate(end);
+    }
+    
+    if (!finalStartDate || !finalEndDate) {
       toast.error('Please select date range');
       return;
     }
@@ -163,8 +175,8 @@ const Reports = () => {
       setLoadingMaterialReport(true);
       const response = await apiHelpers.getDetailedMaterialUsageReport(
         selectedMaterial,
-        startDate + 'T00:00:00Z',
-        endDate + 'T23:59:59Z',
+        finalStartDate + 'T00:00:00Z',
+        finalEndDate + 'T23:59:59Z',
         includeOrderBreakdown
       );
       setMaterialUsageReport(response.data?.data);
