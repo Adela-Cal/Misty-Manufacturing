@@ -582,6 +582,406 @@ class ProjectedOrderAnalysisTester:
         print("3. If status filtering issue: Review order status values and filtering logic")
         print("4. Add default date range handling in endpoint for better UX")
 
+    def test_material_requirements_structure(self):
+        """Test material requirements structure in projected order analysis response"""
+        print("\n" + "="*80)
+        print("STEP 7: TESTING MATERIAL REQUIREMENTS STRUCTURE")
+        print("Testing material_requirements object structure for each period")
+        print("="*80)
+        
+        try:
+            # Call the endpoint with default parameters
+            response = self.session.get(f"{API_BASE}/stock/reports/projected-order-analysis")
+            
+            if response.status_code == 200:
+                result = response.json()
+                data = result.get("data", {})
+                products = data.get("products", [])
+                
+                if not products:
+                    self.log_result(
+                        "Material Requirements Structure", 
+                        False, 
+                        "No products found in response to test material requirements"
+                    )
+                    return
+                
+                # Test the first product (or look for LM Paper Core)
+                test_product = None
+                for product in products:
+                    product_info = product.get("product_info", {})
+                    if "LM Paper Core" in product_info.get("product_description", ""):
+                        test_product = product
+                        break
+                
+                if not test_product:
+                    test_product = products[0]  # Use first product if LM Paper Core not found
+                
+                product_name = test_product.get("product_info", {}).get("product_description", "Unknown")
+                print(f"🔍 Testing material requirements for: {product_name}")
+                
+                # Check if material_requirements exists
+                material_requirements = test_product.get("material_requirements", {})
+                
+                if not material_requirements:
+                    self.log_result(
+                        "Material Requirements - Field Existence", 
+                        False, 
+                        "material_requirements field missing from product response"
+                    )
+                    return
+                
+                # Check required periods
+                required_periods = ["3_months", "6_months", "9_months", "12_months"]
+                missing_periods = [period for period in required_periods if period not in material_requirements]
+                
+                if missing_periods:
+                    self.log_result(
+                        "Material Requirements - Periods", 
+                        False, 
+                        f"Missing required periods: {missing_periods}",
+                        f"Available periods: {list(material_requirements.keys())}"
+                    )
+                else:
+                    self.log_result(
+                        "Material Requirements - Periods", 
+                        True, 
+                        "All required periods present in material_requirements"
+                    )
+                
+                # Check structure of each period
+                materials_found = False
+                for period in required_periods:
+                    materials_list = material_requirements.get(period, [])
+                    
+                    if materials_list and len(materials_list) > 0:
+                        materials_found = True
+                        # Check structure of first material
+                        first_material = materials_list[0]
+                        required_fields = ["material_id", "material_name", "width_mm", "total_quantity_needed"]
+                        missing_fields = [field for field in required_fields if field not in first_material]
+                        
+                        if not missing_fields:
+                            self.log_result(
+                                f"Material Requirements - {period} Structure", 
+                                True, 
+                                f"Proper structure found with {len(materials_list)} materials"
+                            )
+                        else:
+                            self.log_result(
+                                f"Material Requirements - {period} Structure", 
+                                False, 
+                                f"Missing fields: {missing_fields}",
+                                f"Available fields: {list(first_material.keys())}"
+                            )
+                    else:
+                        print(f"   {period}: No materials (empty array)")
+                
+                if not materials_found:
+                    self.log_result(
+                        "Material Requirements - Data Population", 
+                        False, 
+                        "No materials found in any period - materials_composition may be missing from client products"
+                    )
+                else:
+                    self.log_result(
+                        "Material Requirements - Data Population", 
+                        True, 
+                        "Materials found in at least one period"
+                    )
+                    
+            else:
+                self.log_result(
+                    "Material Requirements Structure", 
+                    False, 
+                    f"Failed to get projected order analysis: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Material Requirements Structure", False, f"Error: {str(e)}")
+
+    def test_materials_composition_in_client_products(self):
+        """Test if materials_composition field exists in client_products"""
+        print("\n" + "="*80)
+        print("STEP 8: TESTING MATERIALS COMPOSITION IN CLIENT PRODUCTS")
+        print("Checking if materials_composition field exists in client_products")
+        print("="*80)
+        
+        try:
+            # Get clients first
+            clients_response = self.session.get(f"{API_BASE}/clients")
+            
+            if clients_response.status_code != 200:
+                self.log_result(
+                    "Materials Composition Check", 
+                    False, 
+                    f"Failed to get clients: {clients_response.status_code}"
+                )
+                return
+            
+            clients = clients_response.json()
+            if not clients:
+                self.log_result(
+                    "Materials Composition Check", 
+                    False, 
+                    "No clients found"
+                )
+                return
+            
+            # Check client products for materials_composition field
+            materials_composition_found = False
+            total_products_checked = 0
+            products_with_composition = 0
+            
+            for client in clients[:3]:  # Check first 3 clients
+                client_id = client.get("id")
+                client_name = client.get("company_name", "Unknown")
+                
+                print(f"🏢 Checking client: {client_name}")
+                
+                # Get client products
+                products_response = self.session.get(f"{API_BASE}/clients/{client_id}/catalog")
+                
+                if products_response.status_code == 200:
+                    products = products_response.json()
+                    total_products_checked += len(products)
+                    
+                    print(f"   Found {len(products)} products")
+                    
+                    for product in products:
+                        product_name = product.get("product_description", "Unknown")
+                        
+                        if "materials_composition" in product:
+                            materials_composition_found = True
+                            materials_composition = product.get("materials_composition")
+                            
+                            if materials_composition and len(materials_composition) > 0:
+                                products_with_composition += 1
+                                print(f"   ✅ {product_name}: Has materials_composition with {len(materials_composition)} materials")
+                                
+                                # Check structure of first material
+                                first_material = materials_composition[0]
+                                required_fields = ["material_id", "width", "quantity"]
+                                missing_fields = [field for field in required_fields if field not in first_material]
+                                
+                                if not missing_fields:
+                                    print(f"      Structure: ✅ All required fields present")
+                                else:
+                                    print(f"      Structure: ❌ Missing fields: {missing_fields}")
+                            else:
+                                print(f"   ⚠️  {product_name}: Has materials_composition but it's empty")
+                        else:
+                            print(f"   ❌ {product_name}: No materials_composition field")
+                else:
+                    print(f"   ❌ Failed to get products for {client_name}: {products_response.status_code}")
+            
+            if materials_composition_found:
+                self.log_result(
+                    "Materials Composition - Field Existence", 
+                    True, 
+                    f"materials_composition field found in client products",
+                    f"Products checked: {total_products_checked}, Products with composition: {products_with_composition}"
+                )
+            else:
+                self.log_result(
+                    "Materials Composition - Field Existence", 
+                    False, 
+                    f"materials_composition field not found in any client products",
+                    f"Products checked: {total_products_checked} - This explains why material_requirements are empty"
+                )
+                
+        except Exception as e:
+            self.log_result("Materials Composition Check", False, f"Error: {str(e)}")
+
+    def test_material_calculation_logic(self):
+        """Test the material calculation logic by creating a product with materials_composition"""
+        print("\n" + "="*80)
+        print("STEP 9: TESTING MATERIAL CALCULATION LOGIC")
+        print("Creating a test product with materials_composition to verify calculations")
+        print("="*80)
+        
+        try:
+            # Get a client to work with
+            clients_response = self.session.get(f"{API_BASE}/clients")
+            
+            if clients_response.status_code != 200:
+                self.log_result(
+                    "Material Calculation Logic", 
+                    False, 
+                    "Failed to get clients for testing"
+                )
+                return
+            
+            clients = clients_response.json()
+            if not clients:
+                self.log_result(
+                    "Material Calculation Logic", 
+                    False, 
+                    "No clients found for testing"
+                )
+                return
+            
+            client = clients[0]
+            client_id = client.get("id")
+            
+            # Create a test product with materials_composition
+            test_product_data = {
+                "product_description": "Test Product for Material Calculation",
+                "product_code": f"TEST-MAT-CALC-{str(uuid.uuid4())[:8]}",
+                "product_type": "paper_cores",
+                "unit_price": 10.0,
+                "unit_of_measure": "units",
+                "materials_composition": [
+                    {
+                        "material_id": str(uuid.uuid4()),
+                        "material_name": "Test Material 1",
+                        "width": 100.0,
+                        "quantity": 2.5,
+                        "unit_of_measure": "m"
+                    },
+                    {
+                        "material_id": str(uuid.uuid4()),
+                        "material_name": "Test Material 2", 
+                        "width": 50.0,
+                        "quantity": 1.0,
+                        "unit_of_measure": "kg"
+                    }
+                ]
+            }
+            
+            # Create the test product
+            create_response = self.session.post(
+                f"{API_BASE}/clients/{client_id}/catalog", 
+                json=test_product_data
+            )
+            
+            if create_response.status_code == 200:
+                result = create_response.json()
+                test_product_id = result.get("data", {}).get("id")
+                
+                print(f"✅ Created test product with ID: {test_product_id}")
+                
+                # Create a test order with this product
+                test_order_data = {
+                    "client_id": client_id,
+                    "purchase_order_number": f"TEST-MAT-ORDER-{str(uuid.uuid4())[:8]}",
+                    "items": [
+                        {
+                            "product_id": test_product_id,
+                            "product_name": "Test Product for Material Calculation",
+                            "quantity": 100,  # 100 units
+                            "unit_price": 10.0,
+                            "total_price": 1000.0
+                        }
+                    ],
+                    "due_date": "2024-12-31",
+                    "priority": "Normal/Low",
+                    "notes": "Test order for material calculation verification"
+                }
+                
+                order_response = self.session.post(f"{API_BASE}/orders", json=test_order_data)
+                
+                if order_response.status_code == 200:
+                    print(f"✅ Created test order")
+                    
+                    # Now test the projected order analysis
+                    analysis_response = self.session.get(f"{API_BASE}/stock/reports/projected-order-analysis")
+                    
+                    if analysis_response.status_code == 200:
+                        analysis_result = analysis_response.json()
+                        analysis_data = analysis_result.get("data", {})
+                        products = analysis_data.get("products", [])
+                        
+                        # Find our test product
+                        test_product_found = None
+                        for product in products:
+                            product_info = product.get("product_info", {})
+                            if product_info.get("product_id") == test_product_id:
+                                test_product_found = product
+                                break
+                        
+                        if test_product_found:
+                            print(f"✅ Found test product in analysis")
+                            
+                            # Check material requirements
+                            material_requirements = test_product_found.get("material_requirements", {})
+                            projections = test_product_found.get("projections", {})
+                            
+                            # Verify calculations for 3_months period
+                            if "3_months" in material_requirements and "3_months" in projections:
+                                projected_qty = projections["3_months"]
+                                materials_3m = material_requirements["3_months"]
+                                
+                                print(f"📊 3-month projection: {projected_qty} units")
+                                print(f"📊 Materials for 3 months: {len(materials_3m)} materials")
+                                
+                                calculation_correct = True
+                                for material in materials_3m:
+                                    material_name = material.get("material_name", "Unknown")
+                                    quantity_per_unit = material.get("quantity_per_unit", 0)
+                                    total_needed = material.get("total_quantity_needed", 0)
+                                    
+                                    expected_total = projected_qty * quantity_per_unit
+                                    
+                                    print(f"   Material: {material_name}")
+                                    print(f"   Quantity per unit: {quantity_per_unit}")
+                                    print(f"   Total needed: {total_needed}")
+                                    print(f"   Expected: {expected_total}")
+                                    
+                                    if abs(total_needed - expected_total) > 0.01:
+                                        calculation_correct = False
+                                        print(f"   ❌ Calculation mismatch!")
+                                    else:
+                                        print(f"   ✅ Calculation correct")
+                                
+                                if calculation_correct:
+                                    self.log_result(
+                                        "Material Calculation Logic", 
+                                        True, 
+                                        "Material calculations are working correctly",
+                                        f"Verified calculations for {len(materials_3m)} materials"
+                                    )
+                                else:
+                                    self.log_result(
+                                        "Material Calculation Logic", 
+                                        False, 
+                                        "Material calculation errors found"
+                                    )
+                            else:
+                                self.log_result(
+                                    "Material Calculation Logic", 
+                                    False, 
+                                    "No material requirements found for test product"
+                                )
+                        else:
+                            self.log_result(
+                                "Material Calculation Logic", 
+                                False, 
+                                "Test product not found in analysis results"
+                            )
+                    else:
+                        self.log_result(
+                            "Material Calculation Logic", 
+                            False, 
+                            f"Failed to get analysis: {analysis_response.status_code}"
+                        )
+                else:
+                    self.log_result(
+                        "Material Calculation Logic", 
+                        False, 
+                        f"Failed to create test order: {order_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Material Calculation Logic", 
+                    False, 
+                    f"Failed to create test product: {create_response.status_code}",
+                    create_response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Material Calculation Logic", False, f"Error: {str(e)}")
     def run_comprehensive_test(self):
         """Run all tests for projected order analysis debugging"""
         print("\n" + "="*80)
