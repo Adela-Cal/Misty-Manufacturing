@@ -9,7 +9,9 @@ import {
   CubeIcon,
   CheckIcon,
   PrinterIcon,
-  UserIcon
+  UserIcon,
+  ExclamationTriangleIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline';
 
 const Reports = () => {
