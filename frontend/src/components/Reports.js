@@ -8,7 +8,8 @@ import {
   CalendarDaysIcon,
   CubeIcon,
   CheckIcon,
-  PrinterIcon
+  PrinterIcon,
+  UserIcon
 } from '@heroicons/react/24/outline';
 
 const Reports = () => {
