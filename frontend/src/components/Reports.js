@@ -75,6 +75,64 @@ const Reports = () => {
       toast.error('Failed to load materials');
     }
   };
+  
+  // Helper function to get date range based on preset
+  const getDateRangeFromPreset = (preset) => {
+    const now = new Date();
+    let start, end;
+    
+    switch(preset) {
+      case 'last_30_days':
+        end = new Date();
+        start = new Date();
+        start.setDate(start.getDate() - 30);
+        break;
+      case 'last_90_days':
+        end = new Date();
+        start = new Date();
+        start.setDate(start.getDate() - 90);
+        break;
+      case 'this_month':
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        break;
+      case 'last_month':
+        start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        end = new Date(now.getFullYear(), now.getMonth(), 0);
+        break;
+      case 'this_year':
+        start = new Date(now.getFullYear(), 0, 1);
+        end = new Date(now.getFullYear(), 11, 31);
+        break;
+      case 'last_year':
+        start = new Date(now.getFullYear() - 1, 0, 1);
+        end = new Date(now.getFullYear() - 1, 11, 31);
+        break;
+      case 'custom':
+        start = new Date(customStartYear, customStartMonth, 1);
+        end = new Date(customEndYear, customEndMonth + 1, 0);
+        break;
+      default:
+        end = new Date();
+        start = new Date();
+        start.setDate(start.getDate() - 30);
+    }
+    
+    return {
+      start: start.toISOString().split('T')[0],
+      end: end.toISOString().split('T')[0]
+    };
+  };
+  
+  // Update dates when preset changes
+  const handlePresetChange = (preset) => {
+    setDatePreset(preset);
+    if (preset !== 'custom') {
+      const { start, end } = getDateRangeFromPreset(preset);
+      setStartDate(start);
+      setEndDate(end);
+    }
+  };
 
   const loadCustomerReport = async () => {
     if (!selectedClient) {
