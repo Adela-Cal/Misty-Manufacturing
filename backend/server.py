@@ -4951,15 +4951,27 @@ async def get_detailed_product_usage_report(
     Optionally includes order-by-order breakdown.
     """
     try:
-        # Parse dates
-        start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
-        end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+        # Parse dates - handle if no dates provided, default to last 30 days
+        if not start_date or not end_date:
+            end = datetime.now()
+            start = end - timedelta(days=30)
+        else:
+            start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+            end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+        
+        # Remove timezone info for MongoDB comparison
+        start_dt = start.replace(tzinfo=None)
+        end_dt = end.replace(tzinfo=None)
         
         # Build query for orders in the date range
+        # Include all orders (including orders on hand) except cancelled
         order_query = {
-            "created_at": {"$gte": start.isoformat(), "$lte": end.isoformat()},
-            "status": {"$in": ["completed", "archived"]}
+            "created_at": {"$gte": start_dt, "$lte": end_dt}
         }
+        
+        # Exclude cancelled orders if such status exists
+        if await db.orders.find_one({"status": "cancelled"}):
+            order_query["status"] = {"$ne": "cancelled"}
         
         if client_id:
             order_query["client_id"] = client_id
