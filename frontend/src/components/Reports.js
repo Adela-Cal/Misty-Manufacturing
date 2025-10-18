@@ -347,7 +347,7 @@ const Reports = () => {
                 </select>
                 
                 {/* Start Date */}
-                <div>
+                <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
                   <label className="block text-sm text-gray-400 mb-1">Start Date</label>
                   <input
                     type="date"
@@ -356,12 +356,13 @@ const Reports = () => {
                     onChange={(e) => setStartDate(e.target.value)}
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                     data-testid="start-date"
                   />
                 </div>
                 
                 {/* End Date */}
-                <div>
+                <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
                   <label className="block text-sm text-gray-400 mb-1">End Date</label>
                   <input
                     type="date"
@@ -370,6 +371,7 @@ const Reports = () => {
                     onChange={(e) => setEndDate(e.target.value)}
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                     data-testid="end-date"
                   />
                 </div>
