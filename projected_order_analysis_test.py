@@ -983,10 +983,10 @@ class ProjectedOrderAnalysisTester:
         except Exception as e:
             self.log_result("Material Calculation Logic", False, f"Error: {str(e)}")
     def run_comprehensive_test(self):
-        """Run all tests for projected order analysis debugging"""
+        """Run all tests for projected order analysis debugging and material requirements testing"""
         print("\n" + "="*80)
-        print("PROJECTED ORDER ANALYSIS ENDPOINT DEBUGGING")
-        print("Investigating why the endpoint returns 0 orders")
+        print("PROJECTED ORDER ANALYSIS ENDPOINT TESTING")
+        print("Testing material requirements data structure and calculations")
         print("="*80)
         
         # Step 1: Authenticate
@@ -1012,7 +1012,17 @@ class ProjectedOrderAnalysisTester:
         # Step 7: Test with specific client
         self.test_with_specific_client()
         
-        # Step 8: Print summary
+        # NEW TESTS FOR MATERIAL REQUIREMENTS (as requested in review)
+        # Step 8: Test material requirements structure
+        self.test_material_requirements_structure()
+        
+        # Step 9: Test materials composition in client products
+        self.test_materials_composition_in_client_products()
+        
+        # Step 10: Test material calculation logic
+        self.test_material_calculation_logic()
+        
+        # Step 11: Print summary
         self.print_test_summary()
 
 if __name__ == "__main__":
