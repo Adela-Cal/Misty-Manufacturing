@@ -140,6 +140,53 @@ const ProductionBoard = () => {
     }
   };
 
+
+  const handleDragEnd = async (result) => {
+    const { source, destination, draggableId } = result;
+
+    // Dropped outside the list
+    if (!destination) {
+      return;
+    }
+
+    // Dropped in the same position
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) {
+      return;
+    }
+
+    const stageKey = source.droppableId;
+    const jobs = [...productionBoard[stageKey]];
+
+    // Reorder the jobs array
+    const [removed] = jobs.splice(source.index, 1);
+    jobs.splice(destination.index, 0, removed);
+
+    // Update local state immediately for smooth UI
+    setProductionBoard(prev => ({
+      ...prev,
+      [stageKey]: jobs
+    }));
+
+    // Send update to backend
+    try {
+      const jobOrder = jobs.map(job => job.id);
+      await apiHelpers.reorderJobs({
+        stage: stageKey,
+        job_order: jobOrder
+      });
+      toast.success('Job order updated successfully');
+    } catch (error) {
+      console.error('Failed to reorder jobs:', error);
+      toast.error('Failed to save job order');
+      // Revert on error
+      loadProductionBoard();
+    }
+  };
+
+
   const handleOpenJobCard = (jobId, stage, orderId) => {
     console.log('Opening job card:', { jobId, stage, orderId });
     
