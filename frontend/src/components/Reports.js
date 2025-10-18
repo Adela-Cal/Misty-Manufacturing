@@ -786,7 +786,6 @@ const Reports = () => {
                   Period: {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
                 </div>
               )}
-              </div>
               
               {/* Order Breakdown Toggle */}
               <div className="flex items-center gap-2">
