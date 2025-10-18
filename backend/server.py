@@ -5146,14 +5146,20 @@ async def get_projected_order_analysis(
             "created_at": {"$gte": start.replace(tzinfo=None).isoformat(), "$lte": end.replace(tzinfo=None).isoformat()}
         }
         
+        # DEBUG: Log the query
+        logger.info(f"Projected Order Analysis Query: {order_query}")
+        
         # Exclude cancelled/deleted orders if such status exists
         if await db.orders.find_one({"status": "cancelled"}):
             order_query["status"] = {"$ne": "cancelled"}
+            logger.info(f"Added status filter: {order_query}")
         
         if client_id:
             order_query["client_id"] = client_id
+            logger.info(f"Added client filter: {order_query}")
         
         orders = await db.orders.find(order_query).to_list(length=None)
+        logger.info(f"Found {len(orders)} orders matching query")
         
         # Track product usage with details
         product_analysis = {}  # {product_id: {usage_data, client_info, product_specs}}
