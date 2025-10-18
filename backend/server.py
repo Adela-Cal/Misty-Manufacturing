@@ -4826,15 +4826,22 @@ async def print_stock_description(
             if not date_value:
                 return "N/A"
             try:
-                if isinstance(date_value, str):
+                # Handle datetime objects directly
+                if isinstance(date_value, datetime):
+                    return date_value.strftime("%Y-%m-%d")
+                # Handle string dates
+                elif isinstance(date_value, str):
                     # Parse ISO format string
                     dt = datetime.fromisoformat(date_value.replace('Z', '+00:00'))
                     return dt.strftime("%Y-%m-%d")
-                elif isinstance(date_value, datetime):
+                # Handle date objects
+                elif hasattr(date_value, 'strftime'):
                     return date_value.strftime("%Y-%m-%d")
                 else:
+                    # Convert to string as fallback
                     return str(date_value)
-            except Exception:
+            except Exception as e:
+                logger.warning(f"Date formatting error for value {date_value} (type: {type(date_value)}): {str(e)}")
                 return "N/A"
         
         # Stock Information
