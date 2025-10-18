@@ -30,6 +30,14 @@ const Reports = () => {
 
   useEffect(() => {
     loadReportsData();
+    loadMaterials();
+    
+    // Set default dates (last 30 days)
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
+    setEndDate(end.toISOString().split('T')[0]);
+    setStartDate(start.toISOString().split('T')[0]);
   }, []);
 
   const loadReportsData = async () => {
@@ -49,6 +57,16 @@ const Reports = () => {
       toast.error('Failed to load reports data');
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const loadMaterials = async () => {
+    try {
+      const response = await apiHelpers.getMaterials();
+      setMaterials(response.data || []);
+    } catch (error) {
+      console.error('Failed to load materials:', error);
+      toast.error('Failed to load materials');
     }
   };
 
