@@ -7,7 +7,8 @@ import {
   DocumentArrowDownIcon,
   CalendarDaysIcon,
   CubeIcon,
-  CheckIcon
+  CheckIcon,
+  PrinterIcon
 } from '@heroicons/react/24/outline';
 
 const Reports = () => {
