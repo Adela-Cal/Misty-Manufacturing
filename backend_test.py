@@ -529,9 +529,9 @@ class BackendAPITester:
                 "Critical issue: Stock not properly returned to inventory"
             )
 
-    def create_test_stock_entry(self):
-        """Create a test stock entry for order deletion testing"""
-        print("\n=== CREATE TEST STOCK ENTRY ===")
+    def create_test_stock_entry_with_known_quantity(self):
+        """Create a fresh test stock entry with known quantity (100 units) for deletion testing"""
+        print("\n=== CREATE FRESH TEST STOCK ENTRY (100 UNITS) ===")
         
         try:
             # First get a client and product for testing
@@ -589,17 +589,17 @@ class BackendAPITester:
             product_id = test_product["id"]
             product_name = test_product.get("product_name", test_product.get("name", "Test Product"))
             
-            # Create stock entry with realistic data
+            # Create stock entry with exactly 100 units as specified in test scenario
             stock_data = {
                 "client_id": client_id,
                 "client_name": test_client["company_name"],
                 "product_id": product_id,
                 "product_code": product_name,
-                "product_description": f"Test stock for {product_name}",
-                "quantity_on_hand": 100.0,  # Initial quantity
+                "product_description": f"Fresh test stock for deletion testing - {product_name}",
+                "quantity_on_hand": 100.0,  # Exactly 100 units as per test scenario
                 "unit_of_measure": "units",
-                "source_order_id": "TEST-ORDER-STOCK-001",
-                "source_job_id": "TEST-JOB-STOCK-001",
+                "source_order_id": "TEST-ORDER-DELETION-001",
+                "source_job_id": "TEST-JOB-DELETION-001",
                 "is_shared_product": False,
                 "shared_with_clients": [],
                 "created_from_excess": False,
@@ -615,28 +615,29 @@ class BackendAPITester:
                 stock_id = result.get("data", {}).get("id")
                 
                 self.log_result(
-                    "Create Test Stock Entry", 
+                    "Create Fresh Test Stock Entry", 
                     True, 
-                    f"Successfully created test stock entry with ID: {stock_id}",
-                    f"Initial quantity: 100 units for {product_name}"
+                    f"Successfully created fresh test stock entry with ID: {stock_id}",
+                    f"Initial quantity: 100 units for {product_name} (as per test scenario)"
                 )
                 
                 # Store test data for later use
                 self.test_client_id = client_id
                 self.test_product_id = product_id
                 self.test_stock_id = stock_id
+                self.initial_stock_quantity = 100.0
                 
                 return stock_id
             else:
                 self.log_result(
-                    "Create Test Stock Entry", 
+                    "Create Fresh Test Stock Entry", 
                     False, 
                     f"Failed to create stock entry: {response.status_code}",
                     response.text
                 )
                 
         except Exception as e:
-            self.log_result("Create Test Stock Entry", False, f"Error: {str(e)}")
+            self.log_result("Create Fresh Test Stock Entry", False, f"Error: {str(e)}")
         
         return None
 
