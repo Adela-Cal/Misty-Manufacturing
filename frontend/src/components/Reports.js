@@ -854,87 +854,280 @@ const Reports = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Outstanding Jobs Report */}
-          <ReportCard title="Outstanding Jobs" icon={ChartBarIcon}>
-            {outstandingJobs ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-yellow-400">{outstandingJobs.total_jobs}</p>
-                    <p className="text-sm text-gray-400">Total Jobs</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-red-400">{outstandingJobs.overdue_jobs}</p>
-                    <p className="text-sm text-gray-400">Overdue</p>
-                  </div>
+        {/* Report Modals */}
+        <ReportModal
+          isOpen={showMaterialUsageModal}
+          onClose={() => setShowMaterialUsageModal(false)}
+          title="Material Usage Report by Width"
+        >
+          <div className="space-y-4">
+            <div className="flex flex-col gap-4">
+              {/* Material and Date Preset Selection */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Material Selection */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Material</label>
+                  <select
+                    className="misty-select"
+                    value={selectedMaterial}
+                    onChange={(e) => setSelectedMaterial(e.target.value)}
+                    data-testid="material-select"
+                  >
+                    <option value="">Select a material...</option>
+                    {materials.map((material) => (
+                      <option key={material.id} value={material.id}>
+                        {material.material_description || material.supplier} ({material.product_code || 'N/A'})
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-orange-400">{outstandingJobs.jobs_due_today}</p>
-                    <p className="text-sm text-gray-400">Due Today</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-blue-400">{outstandingJobs.jobs_due_this_week}</p>
-                    <p className="text-sm text-gray-400">Due This Week</p>
-                  </div>
-                </div>
-
+                {/* Date Range Preset */}
                 <div>
-                  <h4 className="font-medium text-white mb-2">Jobs by Stage:</h4>
-                  <div className="space-y-1">
-                    {Object.entries(outstandingJobs.jobs_by_stage || {}).map(([stage, count]) => (
-                      <div key={stage} className="flex justify-between text-sm">
-                        <span className="text-gray-300 capitalize">{stage.replace('_', ' ')}</span>
-                        <span className="text-gray-400">{count}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <label className="block text-sm text-gray-400 mb-1">Date Range</label>
+                  <select
+                    className="misty-select"
+                    value={datePreset}
+                    onChange={(e) => handlePresetChange(e.target.value)}
+                  >
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="this_month">This Month</option>
+                    <option value="last_month">Last Month</option>
+                    <option value="this_year">This Year</option>
+                    <option value="last_year">Last Year</option>
+                    <option value="custom">Custom Range</option>
+                  </select>
+                </div>
+                
+                {/* Generate Button */}
+                <div className="flex items-end">
+                  <button
+                    onClick={loadMaterialUsageReport}
+                    disabled={loadingMaterialReport}
+                    className="misty-button misty-button-primary w-full"
+                    data-testid="generate-material-report"
+                  >
+                    {loadingMaterialReport ? 'Loading...' : 'Generate Report'}
+                  </button>
                 </div>
               </div>
-            ) : (
-              <p className="text-gray-400">No data available</p>
-            )}
-          </ReportCard>
-
-          {/* Late Deliveries Report */}
-          <ReportCard title="Late Deliveries" icon={DocumentArrowDownIcon}>
-            {lateDeliveries ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-red-400">{lateDeliveries.total_late_deliveries}</p>
-                    <p className="text-sm text-gray-400">Late Deliveries</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-orange-400">{lateDeliveries.average_delay_days?.toFixed(1) || 0}</p>
-                    <p className="text-sm text-gray-400">Avg Delay (days)</p>
-                  </div>
-                </div>
-
-                {Object.keys(lateDeliveries.late_deliveries_by_client || {}).length > 0 && (
-                  <div>
-                    <h4 className="font-medium text-white mb-2">Late Deliveries by Client:</h4>
-                    <div className="space-y-1">
-                      {Object.entries(lateDeliveries.late_deliveries_by_client).map(([client, count]) => (
-                        <div key={client} className="flex justify-between text-sm">
-                          <span className="text-gray-300">{client}</span>
-                          <span className="text-red-400">{count}</span>
-                        </div>
-                      ))}
+              
+              {/* Custom Date Range Selectors (only show when Custom is selected) */}
+              {datePreset === 'custom' && (
+                <div className="bg-gray-700/30 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-white mb-3">Custom Date Range</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* Start Year */}
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Start Year</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customStartYear}
+                        onChange={(e) => setCustomStartYear(parseInt(e.target.value))}
+                      >
+                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Start Month */}
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Start Month</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customStartMonth}
+                        onChange={(e) => setCustomStartMonth(parseInt(e.target.value))}
+                      >
+                        {['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'].map((month, idx) => (
+                          <option key={idx} value={idx}>{month}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* End Year */}
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">End Year</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customEndYear}
+                        onChange={(e) => setCustomEndYear(parseInt(e.target.value))}
+                      >
+                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* End Month */}
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">End Month</label>
+                      <select
+                        className="misty-select text-sm"
+                        value={customEndMonth}
+                        onChange={(e) => setCustomEndMonth(parseInt(e.target.value))}
+                      >
+                        {['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'].map((month, idx) => (
+                          <option key={idx} value={idx}>{month}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
-                )}
+                  <p className="text-xs text-gray-400 mt-2">
+                    Selected range: {new Date(customStartYear, customStartMonth, 1).toLocaleDateString()} - {new Date(customEndYear, customEndMonth + 1, 0).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+              
+              {/* Display selected date range */}
+              {datePreset !== 'custom' && startDate && endDate && (
+                <div className="text-sm text-gray-400">
+                  Period: {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
+                </div>
+              )}
+              
+              {/* Order Breakdown Toggle */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIncludeOrderBreakdown(!includeOrderBreakdown)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
+                    includeOrderBreakdown 
+                      ? 'bg-yellow-600 text-white' 
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  <div className={`w-5 h-5 border-2 rounded flex items-center justify-center ${
+                    includeOrderBreakdown ? 'border-white' : 'border-gray-400'
+                  }`}>
+                    {includeOrderBreakdown && <CheckIcon className="h-4 w-4" />}
+                  </div>
+                  <span>Show breakdown by order</span>
+                </button>
               </div>
-            ) : (
-              <p className="text-gray-400">No data available</p>
-            )}
-          </ReportCard>
-        </div>
+            </div>
 
-        {/* Customer Annual Report */}
-        <ReportCard title="Customer Annual Report" icon={CalendarDaysIcon}>
+            {materialUsageReport && (
+              <div className="mt-6 space-y-6">
+                {/* Report Header */}
+                <div className="border-t border-gray-700 pt-4">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="font-medium text-white text-lg mb-1">
+                        {materialUsageReport.material_name}
+                      </h4>
+                      <p className="text-sm text-gray-400">
+                        Code: {materialUsageReport.material_code} | 
+                        Period: {new Date(materialUsageReport.report_period.start_date).toLocaleDateString()} - {new Date(materialUsageReport.report_period.end_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <button
+                      onClick={printMaterialUsageReport}
+                      className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded transition-colors"
+                      title="Print Report as PDF"
+                    >
+                      <PrinterIcon className="h-5 w-5" />
+                      <span>Print Report</span>
+                    </button>
+                  </div>
+                  
+                  {/* Summary Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-yellow-400">
+                        {materialUsageReport.grand_total_m2} m²
+                      </p>
+                      <p className="text-sm text-gray-400">Total Area Used</p>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-green-400">
+                        {materialUsageReport.grand_total_length_m} m
+                      </p>
+                      <p className="text-sm text-gray-400">Total Length</p>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-blue-400">
+                        {materialUsageReport.total_widths_used}
+                      </p>
+                      <p className="text-sm text-gray-400">Different Widths Used</p>
+                    </div>
+                  </div>
+
+                  {/* Usage by Width Table */}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full">
+                      <thead>
+                        <tr className="border-b border-gray-700">
+                          <th className="text-left py-3 px-4 text-gray-300 font-medium">Width (mm)</th>
+                          <th className="text-right py-3 px-4 text-gray-300 font-medium">Total Length (m)</th>
+                          <th className="text-right py-3 px-4 text-gray-300 font-medium">Area (m²)</th>
+                          {includeOrderBreakdown && (
+                            <th className="text-center py-3 px-4 text-gray-300 font-medium">Orders</th>
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {materialUsageReport.usage_by_width.map((width, index) => (
+                          <React.Fragment key={index}>
+                            <tr className="border-b border-gray-700/50 hover:bg-gray-700/30">
+                              <td className="py-3 px-4 text-white font-medium">{width.width_mm} mm</td>
+                              <td className="py-3 px-4 text-right text-gray-300">{width.total_length_m.toLocaleString()} m</td>
+                              <td className="py-3 px-4 text-right text-yellow-400 font-medium">{width.m2.toLocaleString()} m²</td>
+                              {includeOrderBreakdown && (
+                                <td className="py-3 px-4 text-center text-gray-300">{width.order_count || 0}</td>
+                              )}
+                            </tr>
+                            
+                            {/* Order Breakdown */}
+                            {includeOrderBreakdown && width.orders && width.orders.length > 0 && (
+                              <tr>
+                                <td colSpan={includeOrderBreakdown ? 4 : 3} className="py-2 px-4 bg-gray-700/20">
+                                  <div className="pl-8 space-y-1">
+                                    <p className="text-sm font-medium text-gray-400 mb-2">Order Breakdown:</p>
+                                    {width.orders.map((order, orderIndex) => (
+                                      <div key={orderIndex} className="flex justify-between text-sm py-1">
+                                        <span className="text-gray-300">
+                                          {order.order_number} - {order.client_name}
+                                        </span>
+                                        <span className="text-gray-400">
+                                          {order.length_m} m
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        ))}
+                        
+                        {/* Grand Total Row */}
+                        <tr className="bg-gray-700/50 font-bold">
+                          <td className="py-4 px-4 text-white">GRAND TOTAL</td>
+                          <td className="py-4 px-4 text-right text-white">
+                            {materialUsageReport.grand_total_length_m.toLocaleString()} m
+                          </td>
+                          <td className="py-4 px-4 text-right text-yellow-400 text-lg">
+                            {materialUsageReport.grand_total_m2.toLocaleString()} m²
+                          </td>
+                          {includeOrderBreakdown && <td></td>}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </ReportModal>
+
+        <ReportModal
+          isOpen={showConsumableUsageModal}
+          onClose={() => setShowConsumableUsageModal(false)}
+          title="Consumable Usage Report by Date"
+        >
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
               <select
