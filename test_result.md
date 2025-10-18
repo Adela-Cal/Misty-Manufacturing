@@ -1163,7 +1163,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Client Management Watermark Functionality"
+    - "Login Functionality with Newly Created Admin User"
     - "Enhanced Raw Materials Needed Functionality with Fallback Material Requirements"
   stuck_tasks: []
   test_all: false
