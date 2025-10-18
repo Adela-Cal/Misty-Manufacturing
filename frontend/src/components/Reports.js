@@ -18,6 +18,15 @@ const Reports = () => {
   const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState('');
   const [customerReport, setCustomerReport] = useState(null);
+  
+  // Material Usage Report states
+  const [materials, setMaterials] = useState([]);
+  const [selectedMaterial, setSelectedMaterial] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [includeOrderBreakdown, setIncludeOrderBreakdown] = useState(false);
+  const [materialUsageReport, setMaterialUsageReport] = useState(null);
+  const [loadingMaterialReport, setLoadingMaterialReport] = useState(false);
 
   useEffect(() => {
     loadReportsData();
