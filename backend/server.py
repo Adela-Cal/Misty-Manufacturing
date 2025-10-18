@@ -5168,6 +5168,15 @@ async def get_projected_order_analysis(
             order_query["client_id"] = client_id
             logger.info(f"Added client filter: {order_query}")
         
+        # DEBUG: Check total orders in collection first
+        total_orders = await db.orders.count_documents({})
+        logger.info(f"Total orders in collection: {total_orders}")
+        
+        # DEBUG: Get a sample order to check date format
+        sample_order = await db.orders.find_one({})
+        if sample_order:
+            logger.info(f"Sample order date: {sample_order.get('created_at')}")
+        
         orders = await db.orders.find(order_query).to_list(length=None)
         logger.info(f"Found {len(orders)} orders matching query")
         
