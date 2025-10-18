@@ -5182,6 +5182,8 @@ async def get_projected_order_analysis(
                 if not product_id:
                     continue
                 
+                logger.info(f"Order {order.get('order_number')}: found product_id {product_id} ({item.get('product_name')})")
+                
                 # Get product details
                 product = await db.client_products.find_one({"id": product_id})
                 if not product:
