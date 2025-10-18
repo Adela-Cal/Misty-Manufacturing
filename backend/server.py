@@ -5226,34 +5226,76 @@ async def get_projected_order_analysis(
             }
             
             # Calculate material requirements for projections
-            materials_composition = data.get("materials_composition", [])
+            # Get product details including material_layers
+            product = await db.client_products.find_one({"id": product_id})
+            material_layers = product.get("material_layers", []) if product else []
+            
             material_requirements = {}
             
-            for period, projected_qty in projections.items():
-                material_requirements[period] = []
+            if material_layers and len(material_layers) > 0:
+                # Get core specifications for calculations
+                core_length = float(product.get("core_width", 1200)) / 1000  # Convert mm to meters
+                core_id = float(product.get("core_id", 76))  # Core inner diameter in mm
                 
-                for material_layer in materials_composition:
-                    material_id = material_layer.get("material_id")
-                    material_width = material_layer.get("width", 0)
-                    material_quantity_per_unit = material_layer.get("quantity", 0)
+                # Default length factor (from winding specifications)
+                length_factor = 2.366
+                
+                # Sort layers by width (narrower = inner, wider = outer)
+                sorted_layers = sorted(material_layers, key=lambda x: float(x.get("width", 0)))
+                
+                for period, projected_qty in projections.items():
+                    material_requirements[period] = []
                     
-                    if material_id and material_width > 0 and material_quantity_per_unit > 0:
-                        # Get material name
-                        material = await db.materials.find_one({"id": material_id})
-                        material_name = "Unknown"
-                        if material:
-                            material_name = material.get("material_description", material.get("supplier", "Unknown"))
+                    # Calculate initial core radius
+                    core_radius = core_id / 2  # mm
+                    current_radius = core_radius
+                    
+                    total_meters_all_layers = 0
+                    
+                    for layer_index, layer in enumerate(sorted_layers):
+                        material_id = layer.get("material_id")
+                        thickness = float(layer.get("thickness", 0))  # mm
+                        width = float(layer.get("width", 0))  # mm
+                        laps_per_core = int(layer.get("quantity", 1))  # Number of wraps
                         
-                        # Calculate total material needed
-                        total_material_needed = projected_qty * material_quantity_per_unit
-                        
+                        if width > 0 and laps_per_core > 0:
+                            # Calculate circumference at current radius level
+                            circumference_at_layer = (2 * 3.14159 * current_radius) / 1000  # Convert to meters
+                            
+                            # Material length per core = (circumference × length factor) × laps
+                            meters_per_core = (circumference_at_layer * length_factor) * laps_per_core
+                            
+                            # Total material needed for projected quantity
+                            total_meters = meters_per_core * projected_qty
+                            total_meters_all_layers += total_meters
+                            
+                            # Get material name
+                            material_name = layer.get("material_name", "Unknown")
+                            if material_id:
+                                material = await db.materials.find_one({"id": material_id})
+                                if material:
+                                    material_name = material.get("material_description", material.get("supplier", material_name))
+                            
+                            material_requirements[period].append({
+                                "layer_order": layer_index + 1,
+                                "material_id": material_id,
+                                "material_name": material_name,
+                                "width_mm": width,
+                                "thickness_mm": thickness,
+                                "laps_per_core": laps_per_core,
+                                "meters_per_unit": round(meters_per_core, 2),
+                                "total_meters_needed": round(total_meters, 2),
+                                "layer_radius": round(current_radius, 2)
+                            })
+                            
+                            # Update radius for next layer
+                            current_radius += (thickness * laps_per_core)
+                    
+                    # Add grand total for this period
+                    if material_requirements[period]:
                         material_requirements[period].append({
-                            "material_id": material_id,
-                            "material_name": material_name,
-                            "width_mm": material_width,
-                            "quantity_per_unit": material_quantity_per_unit,
-                            "total_quantity_needed": round(total_material_needed, 2),
-                            "unit_of_measure": material_layer.get("unit_of_measure", "m")
+                            "is_total": True,
+                            "total_meters_all_layers": round(total_meters_all_layers, 2)
                         })
             
             # Calculate customer breakdown for projections
