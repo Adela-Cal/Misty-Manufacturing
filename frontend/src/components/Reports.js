@@ -85,6 +85,35 @@ const Reports = () => {
       toast.error('Failed to load customer report');
     }
   };
+  
+  const loadMaterialUsageReport = async () => {
+    if (!selectedMaterial) {
+      toast.error('Please select a material');
+      return;
+    }
+    
+    if (!startDate || !endDate) {
+      toast.error('Please select date range');
+      return;
+    }
+
+    try {
+      setLoadingMaterialReport(true);
+      const response = await apiHelpers.getDetailedMaterialUsageReport(
+        selectedMaterial,
+        startDate + 'T00:00:00Z',
+        endDate + 'T23:59:59Z',
+        includeOrderBreakdown
+      );
+      setMaterialUsageReport(response.data?.data);
+      toast.success('Material usage report generated successfully');
+    } catch (error) {
+      console.error('Failed to load material usage report:', error);
+      toast.error('Failed to load material usage report');
+    } finally {
+      setLoadingMaterialReport(false);
+    }
+  };
 
   const ReportCard = ({ title, children, icon: Icon }) => (
     <div className="misty-card p-6">
