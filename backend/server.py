@@ -1452,11 +1452,20 @@ async def delete_order(order_id: str, current_user: dict = Depends(require_admin
             # Return stock to inventory
             stock_entry = await db.raw_substrate_stock.find_one({"id": stock_id})
             if stock_entry:
-                new_quantity = stock_entry.get("quantity_on_hand", 0) + allocated_quantity
-                await db.raw_substrate_stock.update_one(
+                old_quantity = stock_entry.get("quantity_on_hand", 0)
+                new_quantity = old_quantity + allocated_quantity
+                
+                logger.info(f"Returning stock: {stock_id}, old quantity: {old_quantity}, adding: {allocated_quantity}, new quantity: {new_quantity}")
+                
+                update_result = await db.raw_substrate_stock.update_one(
                     {"id": stock_id},
                     {"$set": {"quantity_on_hand": new_quantity}}
                 )
+                
+                if update_result.modified_count > 0:
+                    logger.info(f"Successfully updated stock {stock_id} quantity from {old_quantity} to {new_quantity}")
+                else:
+                    logger.warning(f"Failed to update stock {stock_id} - no rows modified")
                 
                 # Create return movement record
                 return_movement = {
@@ -1474,6 +1483,8 @@ async def delete_order(order_id: str, current_user: dict = Depends(require_admin
                 await db.stock_movements.insert_one(return_movement)
                 returned_stock_count += 1
                 logger.info(f"Returned {allocated_quantity} units to stock {stock_id} from order {order_number}")
+            else:
+                logger.warning(f"Stock entry {stock_id} not found for returning allocation")
     
     # Clean up related data
     # Remove job specifications
