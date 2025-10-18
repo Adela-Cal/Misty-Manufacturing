@@ -281,6 +281,79 @@ const Reports = () => {
     }
   };
   
+
+  const loadJobPerformanceReport = async () => {
+    // Calculate dates based on current selection
+    let finalStartDate = jobPerformanceStartDate;
+    let finalEndDate = jobPerformanceEndDate;
+    
+    if (jobPerformanceDatePreset === 'custom') {
+      const start = new Date(customJobPerformanceStartYear, customJobPerformanceStartMonth, 1);
+      const end = new Date(customJobPerformanceEndYear, customJobPerformanceEndMonth + 1, 0);
+      finalStartDate = start.toISOString().split('T')[0];
+      finalEndDate = end.toISOString().split('T')[0];
+      setJobPerformanceStartDate(finalStartDate);
+      setJobPerformanceEndDate(finalEndDate);
+    }
+    
+    if (!finalStartDate || !finalEndDate) {
+      toast.error('Please select date range');
+      return;
+    }
+
+    try {
+      setLoadingJobPerformance(true);
+      const response = await apiHelpers.getJobCardPerformance(
+        finalStartDate + 'T00:00:00Z',
+        finalEndDate + 'T23:59:59Z'
+      );
+      setJobPerformanceReport(response.data?.data);
+      toast.success('Job card performance report generated successfully');
+    } catch (error) {
+      console.error('Failed to load job performance report:', error);
+      toast.error('Failed to load job performance report');
+    } finally {
+      setLoadingJobPerformance(false);
+    }
+  };
+  
+  const exportJobPerformanceCSV = async () => {
+    if (!jobPerformanceReport) {
+      toast.error('Please generate the report first');
+      return;
+    }
+
+    try {
+      const response = await apiHelpers.exportJobCardPerformanceCSV(
+        jobPerformanceStartDate + 'T00:00:00Z',
+        jobPerformanceEndDate + 'T23:59:59Z'
+      );
+      
+      // Create blob and download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `job_card_performance_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('CSV exported successfully');
+    } catch (error) {
+      console.error('Failed to export CSV:', error);
+      toast.error('Failed to export CSV');
+    }
+  };
+  
+  const toggleJobDetails = (jobId) => {
+    setExpandedJobDetails(prev => ({
+      ...prev,
+      [jobId]: !prev[jobId]
+    }));
+  };
+  
+
   const loadMaterialUsageReport = async () => {
     if (!selectedMaterial) {
       toast.error('Please select a material');
