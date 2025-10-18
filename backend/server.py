@@ -4918,6 +4918,22 @@ async def get_detailed_material_usage_report(
             },
             "usage_by_width": usage_list,
             "total_widths_used": len(usage_list),
+            "grand_total_m2": round(total_m2, 2),
+            "grand_total_length_m": round(sum(w["total_length_m"] for w in usage_list), 2),
+            "include_order_breakdown": include_order_breakdown
+        }
+        
+        return StandardResponse(
+            success=True,
+            message="Detailed material usage report generated successfully",
+            data=report_data
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate detailed material usage report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate report: {str(e)}")
 
 
 @api_router.get("/stock/reports/product-usage-detailed", response_model=StandardResponse)
