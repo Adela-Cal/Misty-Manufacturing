@@ -354,6 +354,8 @@ const Reports = () => {
                     className="misty-input"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
                     data-testid="start-date"
                   />
                 </div>
@@ -366,6 +368,8 @@ const Reports = () => {
                     className="misty-input"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
                     data-testid="end-date"
                   />
                 </div>
