@@ -501,15 +501,27 @@ class BackendAPITester:
         
         # Step 7: Verify stock movements were recorded
         movement_verification = self.verify_stock_movements()
-        if not movement_verification:
-            self.log_result("Stock Movement Verification", False, "Stock movements not properly recorded")
-            return
         
-        self.log_result(
-            "Enhanced Order Deletion with Stock Reallocation", 
-            True, 
-            "✅ Complete workflow tested successfully - order deleted and stock returned to inventory"
-        )
+        # Provide overall assessment
+        if final_stock_check and movement_verification:
+            self.log_result(
+                "Enhanced Order Deletion with Stock Reallocation", 
+                True, 
+                "✅ Complete workflow tested successfully - order deleted and stock returned to inventory"
+            )
+        elif deletion_result:
+            self.log_result(
+                "Enhanced Order Deletion with Stock Reallocation", 
+                False, 
+                "⚠️ Order deletion API works correctly but stock return mechanism needs investigation",
+                "Order deletion returns correct response but stock quantity not restored in database"
+            )
+        else:
+            self.log_result(
+                "Enhanced Order Deletion with Stock Reallocation", 
+                False, 
+                "❌ Order deletion functionality has critical issues"
+            )
 
     def create_test_stock_entry(self):
         """Create a test stock entry for order deletion testing"""
