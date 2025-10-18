@@ -1101,6 +1101,23 @@ class BackendAPITester:
         print("\n=== ALLOCATE STOCK TO ORDER (25 UNITS) ===")
         
         try:
+            # First check current stock before allocation
+            pre_allocation_response = self.session.get(f"{API_BASE}/stock/check-availability", params={
+                "product_id": self.test_product_id,
+                "client_id": self.test_client_id
+            })
+            
+            pre_allocation_quantity = 0
+            if pre_allocation_response.status_code == 200:
+                pre_data = pre_allocation_response.json()
+                pre_allocation_quantity = pre_data.get("data", {}).get("quantity_on_hand", 0)
+                self.log_result(
+                    "Pre-Allocation Stock Check", 
+                    True, 
+                    f"Stock before allocation: {pre_allocation_quantity} units",
+                    f"Attempting to allocate 25 units"
+                )
+            
             allocation_data = {
                 "product_id": self.test_product_id,
                 "client_id": self.test_client_id,
@@ -1119,13 +1136,30 @@ class BackendAPITester:
                     "Allocate Stock to Order (Fixed)", 
                     True, 
                     f"Successfully allocated {allocated_quantity} units to order",
-                    f"Remaining stock: {remaining_stock} units (should be 75 from original 100)"
+                    f"Pre-allocation: {pre_allocation_quantity}, Allocated: {allocated_quantity}, Remaining: {remaining_stock}"
                 )
                 
                 self.allocated_quantity = allocated_quantity
                 self.remaining_stock_after_allocation = remaining_stock
                 
                 return True
+            elif response.status_code == 400:
+                # This might be expected if insufficient stock
+                error_detail = response.json().get("detail", "")
+                if "insufficient stock" in error_detail.lower():
+                    self.log_result(
+                        "Allocate Stock to Order (Fixed)", 
+                        False, 
+                        f"Insufficient stock for allocation: {error_detail}",
+                        f"Available: {pre_allocation_quantity}, Requested: 25"
+                    )
+                else:
+                    self.log_result(
+                        "Allocate Stock to Order (Fixed)", 
+                        False, 
+                        f"Stock allocation failed: {error_detail}",
+                        response.text
+                    )
             else:
                 self.log_result(
                     "Allocate Stock to Order (Fixed)", 
