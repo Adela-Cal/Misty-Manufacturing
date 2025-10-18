@@ -341,7 +341,7 @@ const Reports = () => {
                   <option value="">Select a material...</option>
                   {materials.map((material) => (
                     <option key={material.id} value={material.id}>
-                      {material.material_name} ({material.material_code || 'N/A'})
+                      {material.material_description || material.supplier} ({material.product_code || 'N/A'})
                     </option>
                   ))}
                 </select>
