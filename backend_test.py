@@ -1139,8 +1139,8 @@ class BackendAPITester:
         return False
 
     def verify_stock_quantity_after_allocation(self, stock_id):
-        """VERIFY: Stock quantity should decrease to 75 units after 25 unit allocation"""
-        print("\n=== VERIFY: STOCK QUANTITY AFTER ALLOCATION (SHOULD BE 75) ===")
+        """VERIFY: Stock quantity should decrease by 25 units after allocation"""
+        print("\n=== VERIFY: STOCK QUANTITY AFTER ALLOCATION ===")
         
         try:
             # Check stock availability
@@ -1152,13 +1152,17 @@ class BackendAPITester:
             if response.status_code == 200:
                 result = response.json()
                 current_quantity = result.get("data", {}).get("quantity_on_hand", 0)
+                expected_quantity = self.initial_stock_quantity - 25
                 
                 self.log_result(
                     "Verify Stock Quantity After Allocation", 
-                    current_quantity == 75, 
+                    current_quantity == expected_quantity, 
                     f"Stock quantity after allocation: {current_quantity} units",
-                    f"Expected: 75 units (100 - 25 allocated), Actual: {current_quantity}"
+                    f"Expected: {expected_quantity} units ({self.initial_stock_quantity} - 25 allocated), Actual: {current_quantity}"
                 )
+                
+                # Store for later verification
+                self.stock_after_allocation = current_quantity
                 
                 return current_quantity
             else:
