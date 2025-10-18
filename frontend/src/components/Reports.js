@@ -115,6 +115,254 @@ const Reports = () => {
       setLoadingMaterialReport(false);
     }
   };
+  
+  const printMaterialUsageReport = () => {
+    // Create a print-friendly window
+    const printWindow = window.open('', '_blank');
+    const report = materialUsageReport;
+    
+    if (!report) return;
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Material Usage Report - ${report.material_name}</title>
+        <style>
+          @page {
+            margin: 1cm;
+            size: A4;
+          }
+          
+          body {
+            font-family: Arial, sans-serif;
+            color: #000;
+            background: #fff;
+            padding: 20px;
+          }
+          
+          .header {
+            text-align: center;
+            border-bottom: 3px solid #000;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          
+          .header h1 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            color: #000;
+          }
+          
+          .header h2 {
+            font-size: 18px;
+            margin: 0 0 5px 0;
+            color: #333;
+          }
+          
+          .header p {
+            font-size: 12px;
+            color: #666;
+            margin: 5px 0;
+          }
+          
+          .summary-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+          }
+          
+          .stat-box {
+            text-align: center;
+          }
+          
+          .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #000;
+          }
+          
+          .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+          }
+          
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+          }
+          
+          th {
+            background: #333;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+          }
+          
+          th.right {
+            text-align: right;
+          }
+          
+          th.center {
+            text-align: center;
+          }
+          
+          td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ddd;
+          }
+          
+          td.right {
+            text-align: right;
+          }
+          
+          td.center {
+            text-align: center;
+          }
+          
+          tbody tr:nth-child(even) {
+            background: #f9f9f9;
+          }
+          
+          .order-breakdown {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 11px;
+          }
+          
+          .order-breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            margin-left: 30px;
+          }
+          
+          .total-row {
+            background: #333 !important;
+            color: white !important;
+            font-weight: bold;
+            font-size: 14px;
+          }
+          
+          .total-row td {
+            padding: 15px 12px;
+          }
+          
+          .highlight {
+            color: #d97706;
+            font-weight: bold;
+          }
+          
+          .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 10px;
+            color: #999;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+          }
+          
+          @media print {
+            body {
+              padding: 0;
+            }
+            
+            .no-print {
+              display: none;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Adela Merchants</h1>
+          <h2>Material Usage Report by Width</h2>
+          <p><strong>${report.material_name}</strong></p>
+          <p>Material Code: ${report.material_code}</p>
+          <p>Period: ${new Date(report.report_period.start_date).toLocaleDateString()} - ${new Date(report.report_period.end_date).toLocaleDateString()}</p>
+        </div>
+        
+        <div class="summary-stats">
+          <div class="stat-box">
+            <div class="stat-value highlight">${report.grand_total_m2.toLocaleString()} m²</div>
+            <div class="stat-label">Total Area Used</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">${report.grand_total_length_m.toLocaleString()} m</div>
+            <div class="stat-label">Total Length</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">${report.total_widths_used}</div>
+            <div class="stat-label">Different Widths Used</div>
+          </div>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Width (mm)</th>
+              <th class="right">Total Length (m)</th>
+              <th class="right">Area (m²)</th>
+              ${includeOrderBreakdown ? '<th class="center">Orders</th>' : ''}
+            </tr>
+          </thead>
+          <tbody>
+            ${report.usage_by_width.map(width => `
+              <tr>
+                <td><strong>${width.width_mm} mm</strong></td>
+                <td class="right">${width.total_length_m.toLocaleString()} m</td>
+                <td class="right highlight">${width.m2.toLocaleString()} m²</td>
+                ${includeOrderBreakdown ? `<td class="center">${width.order_count || 0}</td>` : ''}
+              </tr>
+              ${includeOrderBreakdown && width.orders && width.orders.length > 0 ? `
+                <tr>
+                  <td colspan="${includeOrderBreakdown ? 4 : 3}" style="padding: 0;">
+                    <div class="order-breakdown">
+                      <strong>Order Breakdown:</strong>
+                      ${width.orders.map(order => `
+                        <div class="order-breakdown-item">
+                          <span>${order.order_number} - ${order.client_name}</span>
+                          <span>${order.length_m} m</span>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </td>
+                </tr>
+              ` : ''}
+            `).join('')}
+            <tr class="total-row">
+              <td>GRAND TOTAL</td>
+              <td class="right">${report.grand_total_length_m.toLocaleString()} m</td>
+              <td class="right">${report.grand_total_m2.toLocaleString()} m²</td>
+              ${includeOrderBreakdown ? '<td></td>' : ''}
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="footer">
+          <p>Generated: ${new Date().toLocaleString()}</p>
+          <p>Misty Manufacturing - Material Usage Report</p>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    
+    // Wait for content to load then print
+    printWindow.onload = function() {
+      printWindow.focus();
+      printWindow.print();
+    };
+  };
 
   const ReportCard = ({ title, children, icon: Icon }) => (
     <div className="misty-card p-6">
