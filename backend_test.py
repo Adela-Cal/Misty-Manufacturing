@@ -81,6 +81,380 @@ class BackendAPITester:
         except Exception as e:
             self.log_result("Authentication", False, f"Authentication error: {str(e)}")
             return False
+
+    def test_login_functionality_comprehensive(self):
+        """Comprehensive test of login functionality with newly created admin user"""
+        print("\n=== COMPREHENSIVE LOGIN FUNCTIONALITY TEST ===")
+        
+        # Test 1: Login with correct credentials
+        try:
+            login_response = self.session.post(f"{API_BASE}/auth/login", json={
+                "username": "Callum",
+                "password": "Peach7510"
+            })
+            
+            if login_response.status_code == 200:
+                login_data = login_response.json()
+                
+                # Verify response structure
+                access_token = login_data.get('access_token')
+                token_type = login_data.get('token_type')
+                user_info = login_data.get('user', {})
+                
+                # Test 1.1: Check access_token presence
+                if access_token:
+                    self.log_result(
+                        "Login - Access Token", 
+                        True, 
+                        "JWT access token returned successfully",
+                        f"Token length: {len(access_token)} characters"
+                    )
+                else:
+                    self.log_result(
+                        "Login - Access Token", 
+                        False, 
+                        "No access token in response"
+                    )
+                
+                # Test 1.2: Check token_type
+                if token_type == "bearer":
+                    self.log_result(
+                        "Login - Token Type", 
+                        True, 
+                        f"Correct token type: {token_type}"
+                    )
+                else:
+                    self.log_result(
+                        "Login - Token Type", 
+                        False, 
+                        f"Incorrect token type: {token_type}",
+                        "Expected: bearer"
+                    )
+                
+                # Test 1.3: Check user object completeness
+                required_user_fields = ['id', 'username', 'full_name', 'role', 'email']
+                missing_fields = [field for field in required_user_fields if not user_info.get(field)]
+                
+                if not missing_fields:
+                    self.log_result(
+                        "Login - User Object Completeness", 
+                        True, 
+                        "All required user fields present",
+                        f"User: {user_info.get('username')} ({user_info.get('full_name')})"
+                    )
+                else:
+                    self.log_result(
+                        "Login - User Object Completeness", 
+                        False, 
+                        f"Missing user fields: {missing_fields}",
+                        f"Available fields: {list(user_info.keys())}"
+                    )
+                
+                # Test 1.4: Verify admin role
+                user_role = user_info.get('role')
+                if user_role == "admin":
+                    self.log_result(
+                        "Login - Admin Role Verification", 
+                        True, 
+                        f"User has correct admin role: {user_role}"
+                    )
+                else:
+                    self.log_result(
+                        "Login - Admin Role Verification", 
+                        False, 
+                        f"User role is not admin: {user_role}",
+                        "Expected: admin"
+                    )
+                
+                # Test 1.5: Verify specific user details
+                username = user_info.get('username')
+                if username == "Callum":
+                    self.log_result(
+                        "Login - Username Verification", 
+                        True, 
+                        f"Correct username: {username}"
+                    )
+                else:
+                    self.log_result(
+                        "Login - Username Verification", 
+                        False, 
+                        f"Incorrect username: {username}",
+                        "Expected: Callum"
+                    )
+                
+                # Store token for protected endpoint testing
+                if access_token:
+                    self.auth_token = access_token
+                    self.session.headers.update({
+                        'Authorization': f'Bearer {access_token}'
+                    })
+                    
+                    # Test 2: Validate token by accessing protected endpoint
+                    self.test_protected_endpoint_access()
+                
+            else:
+                self.log_result(
+                    "Login - Successful Authentication", 
+                    False, 
+                    f"Login failed with status {login_response.status_code}",
+                    login_response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Login - Comprehensive Test", False, f"Error: {str(e)}")
+        
+        # Test 3: Invalid credentials
+        self.test_invalid_login_scenarios()
+    
+    def test_protected_endpoint_access(self):
+        """Test accessing protected endpoints with the JWT token"""
+        print("\n=== PROTECTED ENDPOINT ACCESS TEST ===")
+        
+        if not self.auth_token:
+            self.log_result(
+                "Protected Endpoint - No Token", 
+                False, 
+                "No authentication token available for testing"
+            )
+            return
+        
+        # Test accessing /api/auth/me endpoint
+        try:
+            me_response = self.session.get(f"{API_BASE}/auth/me")
+            
+            if me_response.status_code == 200:
+                me_data = me_response.json()
+                
+                # Verify user data consistency
+                expected_fields = ['id', 'username', 'full_name', 'role', 'email']
+                all_fields_present = all(me_data.get(field) for field in expected_fields)
+                
+                if all_fields_present:
+                    self.log_result(
+                        "Protected Endpoint - /auth/me", 
+                        True, 
+                        "Successfully accessed protected endpoint with JWT token",
+                        f"User: {me_data.get('username')} ({me_data.get('role')})"
+                    )
+                    
+                    # Verify role is admin
+                    if me_data.get('role') == 'admin':
+                        self.log_result(
+                            "Protected Endpoint - Admin Access", 
+                            True, 
+                            "Token correctly identifies admin user"
+                        )
+                    else:
+                        self.log_result(
+                            "Protected Endpoint - Admin Access", 
+                            False, 
+                            f"Token shows role as {me_data.get('role')}, not admin"
+                        )
+                else:
+                    self.log_result(
+                        "Protected Endpoint - /auth/me", 
+                        False, 
+                        "Protected endpoint response missing required fields",
+                        f"Available fields: {list(me_data.keys())}"
+                    )
+            else:
+                self.log_result(
+                    "Protected Endpoint - /auth/me", 
+                    False, 
+                    f"Failed to access protected endpoint: {me_response.status_code}",
+                    me_response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Protected Endpoint Access", False, f"Error: {str(e)}")
+        
+        # Test admin-only endpoint
+        try:
+            users_response = self.session.get(f"{API_BASE}/users")
+            
+            if users_response.status_code == 200:
+                users_data = users_response.json()
+                user_count = len(users_data) if isinstance(users_data, list) else 0
+                
+                self.log_result(
+                    "Protected Endpoint - Admin Only (/users)", 
+                    True, 
+                    f"Successfully accessed admin-only endpoint",
+                    f"Found {user_count} users in system"
+                )
+            elif users_response.status_code == 403:
+                self.log_result(
+                    "Protected Endpoint - Admin Only (/users)", 
+                    False, 
+                    "Access denied to admin-only endpoint",
+                    "Token may not have admin privileges"
+                )
+            else:
+                self.log_result(
+                    "Protected Endpoint - Admin Only (/users)", 
+                    False, 
+                    f"Unexpected response from admin endpoint: {users_response.status_code}",
+                    users_response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Protected Endpoint - Admin Access", False, f"Error: {str(e)}")
+    
+    def test_invalid_login_scenarios(self):
+        """Test various invalid login scenarios"""
+        print("\n=== INVALID LOGIN SCENARIOS TEST ===")
+        
+        # Test cases for invalid login
+        test_cases = [
+            {
+                "name": "Wrong Password",
+                "username": "Callum",
+                "password": "WrongPassword",
+                "expected_status": 401
+            },
+            {
+                "name": "Wrong Username", 
+                "username": "WrongUser",
+                "password": "Peach7510",
+                "expected_status": 401
+            },
+            {
+                "name": "Empty Username",
+                "username": "",
+                "password": "Peach7510", 
+                "expected_status": 422
+            },
+            {
+                "name": "Empty Password",
+                "username": "Callum",
+                "password": "",
+                "expected_status": 422
+            },
+            {
+                "name": "Missing Username Field",
+                "data": {"password": "Peach7510"},
+                "expected_status": 422
+            },
+            {
+                "name": "Missing Password Field", 
+                "data": {"username": "Callum"},
+                "expected_status": 422
+            }
+        ]
+        
+        for test_case in test_cases:
+            try:
+                # Prepare request data
+                if "data" in test_case:
+                    request_data = test_case["data"]
+                else:
+                    request_data = {
+                        "username": test_case["username"],
+                        "password": test_case["password"]
+                    }
+                
+                # Make request without existing auth headers
+                temp_session = requests.Session()
+                response = temp_session.post(f"{API_BASE}/auth/login", json=request_data)
+                
+                expected_status = test_case["expected_status"]
+                actual_status = response.status_code
+                
+                if actual_status == expected_status:
+                    self.log_result(
+                        f"Invalid Login - {test_case['name']}", 
+                        True, 
+                        f"Correctly rejected with status {actual_status}"
+                    )
+                else:
+                    self.log_result(
+                        f"Invalid Login - {test_case['name']}", 
+                        False, 
+                        f"Expected status {expected_status}, got {actual_status}",
+                        response.text
+                    )
+                    
+            except Exception as e:
+                self.log_result(f"Invalid Login - {test_case['name']}", False, f"Error: {str(e)}")
+    
+    def test_jwt_token_structure(self):
+        """Test JWT token structure and validity"""
+        print("\n=== JWT TOKEN STRUCTURE TEST ===")
+        
+        if not self.auth_token:
+            self.log_result(
+                "JWT Token Structure", 
+                False, 
+                "No JWT token available for testing"
+            )
+            return
+        
+        try:
+            # Basic JWT structure check (should have 3 parts separated by dots)
+            token_parts = self.auth_token.split('.')
+            
+            if len(token_parts) == 3:
+                self.log_result(
+                    "JWT Token - Structure", 
+                    True, 
+                    "JWT token has correct 3-part structure (header.payload.signature)"
+                )
+                
+                # Test token length (should be reasonable)
+                if len(self.auth_token) > 100:
+                    self.log_result(
+                        "JWT Token - Length", 
+                        True, 
+                        f"JWT token has reasonable length: {len(self.auth_token)} characters"
+                    )
+                else:
+                    self.log_result(
+                        "JWT Token - Length", 
+                        False, 
+                        f"JWT token seems too short: {len(self.auth_token)} characters"
+                    )
+                
+                # Test that token works for authentication
+                test_response = self.session.get(f"{API_BASE}/auth/me")
+                if test_response.status_code == 200:
+                    self.log_result(
+                        "JWT Token - Validity", 
+                        True, 
+                        "JWT token successfully authenticates API requests"
+                    )
+                else:
+                    self.log_result(
+                        "JWT Token - Validity", 
+                        False, 
+                        f"JWT token failed authentication: {test_response.status_code}"
+                    )
+                    
+            else:
+                self.log_result(
+                    "JWT Token - Structure", 
+                    False, 
+                    f"JWT token has incorrect structure: {len(token_parts)} parts",
+                    "Expected: 3 parts (header.payload.signature)"
+                )
+                
+        except Exception as e:
+            self.log_result("JWT Token Structure", False, f"Error: {str(e)}")
+
+    def run_login_tests(self):
+        """Run comprehensive login functionality tests"""
+        print("\n" + "="*60)
+        print("LOGIN FUNCTIONALITY COMPREHENSIVE TESTING")
+        print("Testing newly created admin user: Callum/Peach7510")
+        print("="*60)
+        
+        # Test 1: Comprehensive login functionality
+        self.test_login_functionality_comprehensive()
+        
+        # Test 2: JWT token structure and validity
+        self.test_jwt_token_structure()
+        
+        # Print summary
+        self.print_test_summary()
     
     def create_test_employee(self):
         """Create a test employee for timesheet testing using the specific data from review request"""
