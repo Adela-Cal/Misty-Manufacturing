@@ -1699,31 +1699,42 @@ const Reports = () => {
                         </div>
                         
                         {/* Material Requirements (Expandable) */}
-                        {isExpanded && materialReqs && materialReqs.length > 0 && (
+                        {isExpanded && (
                           <div className="mt-4 border-t border-gray-700 pt-4">
                             <h6 className="text-sm font-medium text-white mb-3">
                               Raw Material Requirements for {selectedProjectionPeriod.replace('_', ' ')}
                             </h6>
-                            <div className="space-y-2">
-                              {materialReqs.map((mat, matIndex) => (
-                                <div key={matIndex} className="bg-gray-700/40 rounded p-3 flex justify-between items-center">
-                                  <div className="flex-1">
-                                    <p className="text-sm font-medium text-white">
-                                      {mat.material_name}
-                                    </p>
-                                    <p className="text-xs text-gray-400">
-                                      Width: {mat.width_mm} mm | Per Unit: {mat.quantity_per_unit} {mat.unit_of_measure}
-                                    </p>
+                            {materialReqs && materialReqs.length > 0 ? (
+                              <div className="space-y-2">
+                                {materialReqs.map((mat, matIndex) => (
+                                  <div key={matIndex} className="bg-gray-700/40 rounded p-3 flex justify-between items-center">
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium text-white">
+                                        {mat.material_name}
+                                      </p>
+                                      <p className="text-xs text-gray-400">
+                                        Width: {mat.width_mm} mm | Per Unit: {mat.quantity_per_unit} {mat.unit_of_measure}
+                                      </p>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="text-lg font-bold text-green-400">
+                                        {mat.total_quantity_needed} {mat.unit_of_measure}
+                                      </p>
+                                      <p className="text-xs text-gray-400">Total Required</p>
+                                    </div>
                                   </div>
-                                  <div className="text-right">
-                                    <p className="text-lg font-bold text-green-400">
-                                      {mat.total_quantity_needed} {mat.unit_of_measure}
-                                    </p>
-                                    <p className="text-xs text-gray-400">Total Required</p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="bg-yellow-900/20 border border-yellow-600/30 rounded p-4">
+                                <p className="text-sm text-yellow-400">
+                                  ⚠️ No material composition data available for this product.
+                                </p>
+                                <p className="text-xs text-gray-400 mt-2">
+                                  To see material requirements, add materials composition data to this product in the Products & Specifications section.
+                                </p>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
