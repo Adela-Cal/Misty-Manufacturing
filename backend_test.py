@@ -29,13 +29,9 @@ class BackendAPITester:
         self.session = requests.Session()
         self.auth_token = None
         self.test_results = []
-        self.test_user_id = None
-        self.test_employee_id = None
-        self.test_manager_id = None
-        self.test_timesheet_id = None
-        self.test_material_id = None
-        self.test_substrate_id = None
-        self.test_alert_id = None
+        self.test_stock_id = None
+        self.test_material_stock_id = None
+        self.test_order_id = None
         
     def log_result(self, test_name, success, message, details=None):
         """Log test result"""
