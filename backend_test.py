@@ -1338,11 +1338,6 @@ class BackendAPITester:
                 
         except Exception as e:
             self.log_result("Check Backend Logs", False, f"Error reading logs: {str(e)}")
-                    "Edge Case - Order Creation", 
-                    False, 
-                    f"Failed to create order for edge case test: {response.status_code}",
-                    response.text
-                )
                 
         except Exception as e:
             self.log_result("Edge Case - Order Deletion Without Stock", False, f"Error: {str(e)}")
