@@ -5242,6 +5242,11 @@ async def get_projected_order_analysis(
             product = await db.client_products.find_one({"id": product_id})
             material_layers = product.get("material_layers", []) if product else []
             
+            # Debug logging
+            logger.info(f"Product {product_id}: has {len(material_layers)} material layers")
+            if product:
+                logger.info(f"Product type: {product.get('product_type')}, width: {product.get('width')}, length: {product.get('length')}")
+            
             material_requirements = {}
             
             if material_layers and len(material_layers) > 0:
