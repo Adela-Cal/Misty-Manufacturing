@@ -2202,12 +2202,39 @@ const Reports = () => {
             {/* Report Results */}
             {jobPerformanceReport && (
               <div className="mt-6 space-y-6">
+                {/* No Data Message */}
+                {jobPerformanceReport.averages?.total_jobs_completed === 0 && (
+                  <div className="border-t border-gray-700 pt-4">
+                    <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-6 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <ExclamationTriangleIcon className="h-12 w-12 text-yellow-400" />
+                        <div>
+                          <h4 className="font-medium text-white mb-2">No Completed Orders Found</h4>
+                          <p className="text-gray-300 text-sm mb-3">
+                            No completed orders were found in the selected date range ({new Date(jobPerformanceReport.report_period.start_date).toLocaleDateString()} - {new Date(jobPerformanceReport.report_period.end_date).toLocaleDateString()}).
+                          </p>
+                          <div className="text-left bg-gray-900/50 p-4 rounded text-sm text-gray-400 max-w-xl mx-auto">
+                            <p className="font-medium text-gray-300 mb-2">To see performance data:</p>
+                            <ol className="list-decimal list-inside space-y-1">
+                              <li>Create orders in <span className="text-blue-400">Order Management</span></li>
+                              <li>Move orders through production stages on the <span className="text-blue-400">Production Board</span></li>
+                              <li>Complete orders by moving them to the final "Cleared" stage</li>
+                              <li>Come back here to analyze job performance metrics</li>
+                            </ol>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 {/* Summary Metrics */}
-                <div className="border-t border-gray-700 pt-4">
-                  <h4 className="font-medium text-white mb-4">Summary Metrics</h4>
-                  
-                  {/* Key Performance Indicators */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                {jobPerformanceReport.averages?.total_jobs_completed > 0 && (
+                  <div className="border-t border-gray-700 pt-4">
+                    <h4 className="font-medium text-white mb-4">Summary Metrics</h4>
+                    
+                    {/* Key Performance Indicators */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <div className="bg-blue-900/20 p-3 rounded-lg text-center">
                       <p className="text-2xl font-bold text-blue-400">
                         {jobPerformanceReport.averages?.total_jobs_completed || 0}
