@@ -685,7 +685,7 @@ class BackendAPITester:
                 "priority": "Normal/Low",
                 "delivery_address": "Test Delivery Address",
                 "delivery_instructions": "Test delivery for order deletion",
-                "runtime_estimate": 4.0,
+                "runtime_estimate": "4.0 hours",
                 "notes": "Test order for deletion with stock reallocation testing"
             }
             
