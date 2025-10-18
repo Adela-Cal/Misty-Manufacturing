@@ -30,6 +30,21 @@ frontend:
         comment: "🎉 SLIT WIDTH DELETE FUNCTIONALITY FULLY OPERATIONAL: Comprehensive end-to-end testing completed with 100% success rate. COMPLETE WORKFLOW VERIFIED: ✅ Login with demo credentials (Callum/Peach7510) working perfectly, ✅ Navigation to Stocktake → Raw Materials On Hand tab successful, ✅ Double-click on 'Jintian Paper - Paper.Jin01' successfully opens slit widths modal, ✅ Modal displays correctly with title 'Slit Widths - Jintian Paper - Paper.Jin01', ✅ Found 4 slit width entries with red trash icon delete buttons in Actions column, ✅ Delete button click triggers confirmation dialog: 'Are you sure you want to delete this slit width entry?', ✅ Confirmation dialog acceptance successfully processed, ✅ Success toast notification appears: 'Slit width deleted successfully', ✅ API call DELETE /api/slit-widths/{id} returns 200 status, ✅ Modal list refreshes automatically - delete button count reduced from 4 to 3, ✅ Entry successfully removed from the list. TECHNICAL VERIFICATION: ✅ Console logs show proper API call: 'Attempting to delete slit width: c7ec8fe2-2932-4638-a46f-d2441988e13e', ✅ Network monitoring confirms DELETE request to correct endpoint with 200 response, ✅ Modal automatically reloads slit widths data after successful deletion, ✅ All UI interactions working smoothly with proper visual feedback. CONCLUSION: The delete functionality in the Slit Widths modal is production-ready and working correctly. All requested test scenarios from the review have been successfully verified: confirmation dialog, API integration, success toast, and list refresh functionality."
 
 backend:
+  - task: "Consumable Usage Report Endpoint Testing"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing GET /api/stock/reports/product-usage-detailed endpoint to identify why it's returning no data as requested in review"
+      - working: false
+        agent: "testing"
+        comment: "🚨 CRITICAL ISSUES IDENTIFIED - CONSUMABLE USAGE REPORT RETURNING NO DATA: Comprehensive debugging of GET /api/stock/reports/product-usage-detailed endpoint revealed two critical issues preventing data retrieval. TESTING RESULTS: ✅ Endpoint accessible and returns proper response structure, ✅ Found 8 orders in database with items and product IDs, ✅ Found 7 client products across 2 clients, ✅ All orders have 'active' status with valid created_at timestamps, ✅ Product types (finished_goods, paper_cores) are not excluded by type filtering. CRITICAL ISSUES IDENTIFIED: ❌ STATUS FILTERING TOO RESTRICTIVE: Current filter {'status': {'$in': ['completed', 'archived']}} excludes all orders since all 8 orders have 'active' status, returning 0 matching orders, ❌ DATE FORMAT MISMATCH: Query uses start.isoformat() (ISO string) but should use datetime objects for MongoDB comparison like the fixed projected-order-analysis endpoint. ROOT CAUSE ANALYSIS: 1) Status filter excludes orders on hand - should include active orders or use {'status': {'$nin': ['cancelled', 'deleted']}}, 2) Date comparison fails due to format mismatch - needs same fix as projected-order-analysis endpoint (lines 5146-5147). TESTING METHODOLOGY: ✅ Tested with default date range (last 30 days) - 0 products returned, ✅ Tested with wide date range (2020-2030) - 0 products returned, ✅ Verified 8 orders exist with items and valid product IDs, ✅ Confirmed all orders have 'active' status (not completed/archived), ✅ Confirmed date format mismatch between query and database storage. RECOMMENDED FIXES: Apply same fixes as projected-order-analysis endpoint: 1) Use start_dt = start.replace(tzinfo=None) and end_dt = end.replace(tzinfo=None), 2) Change status filter to include active orders or exclude only cancelled/deleted orders. CONCLUSION: The endpoint logic is correct but two query issues prevent data retrieval. Same fixes applied to projected-order-analysis endpoint will resolve this issue."
+
   - task: "Projected Order Analysis Endpoint Material Requirements Testing"
     implemented: true
     working: false
