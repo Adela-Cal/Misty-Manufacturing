@@ -1323,7 +1323,7 @@ const Reports = () => {
                       <p className="text-2xl font-bold text-blue-400">
                         {productUsageReport.total_products}
                       </p>
-                      <p className="text-sm text-gray-400">Products Used</p>
+                      <p className="text-sm text-gray-400">Consumables Used</p>
                     </div>
                   </div>
 
