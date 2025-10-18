@@ -569,6 +569,7 @@ class BackendAPITester:
             
             test_product = products[0]
             product_id = test_product["id"]
+            product_name = test_product.get("product_name", test_product.get("name", "Test Product"))
             
             # Create stock entry with realistic data
             stock_data = {
