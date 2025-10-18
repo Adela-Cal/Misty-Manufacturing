@@ -4784,7 +4784,7 @@ async def print_stock_description(
             if not stock:
                 raise HTTPException(status_code=404, detail="Stock item not found")
         else:  # material
-            stock = await db.raw_materials_stock.find_one({"id": stock_id})
+            stock = await db.raw_material_stock.find_one({"id": stock_id})
             if not stock:
                 raise HTTPException(status_code=404, detail="Material not found")
         
