@@ -5261,11 +5261,17 @@ async def get_projected_order_analysis(
                 
                 if is_core_product:
                     # Complex calculation for cylindrical cores
-                    core_length = float(product.get("core_width", 1200)) / 1000  # Convert mm to meters
-                    core_id = float(product.get("core_id", 76))  # Core inner diameter in mm
+                    try:
+                        core_length = float(product.get("core_width") or product.get("width") or 1200) / 1000  # Convert mm to meters
+                        core_id = float(product.get("core_id") or 76)  # Core inner diameter in mm
+                    except (TypeError, ValueError):
+                        # If conversion fails, use defaults
+                        core_length = 1.2  # meters
+                        core_id = 76  # mm
+                    
                     length_factor = 2.366  # Default length factor
                     
-                    sorted_layers = sorted(material_layers, key=lambda x: float(x.get("width", 0)))
+                    sorted_layers = sorted(material_layers, key=lambda x: float(x.get("width") or 0))
                     
                     for period, projected_qty in projections.items():
                         material_requirements[period] = []
@@ -5274,10 +5280,14 @@ async def get_projected_order_analysis(
                         total_meters_all_layers = 0
                         
                         for layer_index, layer in enumerate(sorted_layers):
-                            material_id = layer.get("material_id")
-                            thickness = float(layer.get("thickness", 0))  # mm
-                            width = float(layer.get("width", 0))  # mm
-                            laps_per_core = int(layer.get("quantity", 1))  # Number of wraps
+                            try:
+                                material_id = layer.get("material_id")
+                                thickness = float(layer.get("thickness") or 0)  # mm
+                                width = float(layer.get("width") or 0)  # mm
+                                laps_per_core = int(layer.get("quantity") or 1)  # Number of wraps
+                            except (TypeError, ValueError) as e:
+                                logger.error(f"Error parsing layer fields: {e}, layer: {layer}")
+                                continue
                             
                             if width > 0 and laps_per_core > 0:
                                 circumference_at_layer = (2 * 3.14159 * current_radius) / 1000  # meters
