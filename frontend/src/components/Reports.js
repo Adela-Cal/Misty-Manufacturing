@@ -803,11 +803,55 @@ const Reports = () => {
 
   return (
     <Layout>
-      <div className="p-8" data-testid="reports">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Reports & Analytics</h1>
-          <p className="text-gray-400">Track performance and generate business insights</p>
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-white">Reports Dashboard</h2>
+          <p className="text-sm text-gray-400">Double-click any report to open</p>
+        </div>
+        
+        {/* Report Tiles Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          <ReportTile
+            title="Material Usage Report"
+            description="Track raw material usage by width across selected time periods"
+            icon={CubeIcon}
+            onClick={() => setShowMaterialUsageModal(true)}
+          />
+          
+          <ReportTile
+            title="Consumable Usage Report"
+            description="Analyze consumable product usage excluding cores, with order breakdowns"
+            icon={CubeIcon}
+            onClick={() => setShowConsumableUsageModal(true)}
+          />
+          
+          <ReportTile
+            title="Projected Order Analysis"
+            description="Forecast future orders for 3, 6, 9, and 12 months with material requirements"
+            icon={ChartBarIcon}
+            onClick={() => setShowProjectionModal(true)}
+          />
+          
+          <ReportTile
+            title="Outstanding Jobs"
+            description="View all active jobs currently in production"
+            icon={ClipboardDocumentListIcon}
+            onClick={() => setShowOutstandingJobsModal(true)}
+          />
+          
+          <ReportTile
+            title="Late Deliveries"
+            description="Track overdue orders and jobs that missed their delivery dates"
+            icon={ExclamationTriangleIcon}
+            onClick={() => setShowLateDeliveriesModal(true)}
+          />
+          
+          <ReportTile
+            title="Customer Annual Report"
+            description="Comprehensive yearly analysis of customer orders and spending"
+            icon={UserIcon}
+            onClick={() => setShowCustomerReportModal(true)}
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
