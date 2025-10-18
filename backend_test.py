@@ -848,8 +848,14 @@ class BackendAPITester:
             response = self.session.get(f"{API_BASE}/stock/raw-materials")
             
             if response.status_code == 200:
-                raw_materials = response.json()
-                if raw_materials:
+                result = response.json()
+                # Check if it's a StandardResponse format
+                if isinstance(result, dict) and "data" in result:
+                    raw_materials = result.get("data", [])
+                else:
+                    raw_materials = result
+                
+                if raw_materials and len(raw_materials) > 0:
                     self.log_result(
                         "Get Available Raw Materials", 
                         True, 
@@ -861,7 +867,7 @@ class BackendAPITester:
             materials_response = self.session.get(f"{API_BASE}/materials")
             if materials_response.status_code == 200:
                 materials = materials_response.json()
-                if materials:
+                if materials and len(materials) > 0:
                     # Create a raw material stock entry for testing
                     material = materials[0]
                     raw_material_id = self.create_raw_material_for_testing(material)
