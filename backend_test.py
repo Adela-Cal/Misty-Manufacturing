@@ -6195,6 +6195,15 @@ def main_slit_width_update_delete_review():
     tester = BackendAPITester()
     tester.run_slit_width_update_delete_tests()
 
+def main_login_functionality_review():
+    """Main function to run login functionality tests as requested in review"""
+    print("🔐 BACKEND API TESTING - LOGIN FUNCTIONALITY REVIEW")
+    print("Testing newly created admin user credentials: Callum/Peach7510")
+    print("="*80)
+    
+    tester = BackendAPITester()
+    tester.run_login_tests()
+
 if __name__ == "__main__":
-    # Run the specific slit width update and delete tests requested in the review
-    main_slit_width_update_delete_review()
+    # Run the specific login functionality tests requested in the review
+    main_login_functionality_review()
