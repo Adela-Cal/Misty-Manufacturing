@@ -497,6 +497,156 @@ const Reports = () => {
     };
   };
 
+
+  const printProductUsageReport = () => {
+    const report = productUsageReport;
+    
+    if (!report) return;
+    
+    const printWindow = window.open('', '_blank');
+    
+    // Build product tables HTML
+    let productsHTML = '';
+    report.products.forEach(product => {
+      productsHTML += `
+        <div class="product-section">
+          <h3>${product.product_info.product_description}</h3>
+          <p class="product-meta">Code: ${product.product_info.product_code} | Client: ${product.product_info.client_name}</p>
+          
+          <table class="product-table">
+            <thead>
+              <tr>
+                <th>Width (mm)</th>
+                <th class="right">Total Length (m)</th>
+                <th class="right">Area (m²)</th>
+                ${includeProductOrderBreakdown ? '<th class="center">Orders</th>' : ''}
+              </tr>
+            </thead>
+            <tbody>
+              ${product.usage_by_width.map(width => `
+                <tr>
+                  <td><strong>${width.width_mm} mm</strong></td>
+                  <td class="right">${width.total_length_m.toLocaleString()} m</td>
+                  <td class="right highlight">${width.m2.toLocaleString()} m²</td>
+                  ${includeProductOrderBreakdown ? `<td class="center">${width.order_count || 0}</td>` : ''}
+                </tr>
+                ${includeProductOrderBreakdown && width.orders && width.orders.length > 0 ? `
+                  <tr>
+                    <td colspan="${includeProductOrderBreakdown ? 4 : 3}" style="padding: 0;">
+                      <div class="order-breakdown">
+                        <strong>Order Breakdown:</strong>
+                        ${width.orders.map(order => `
+                          <div class="order-breakdown-item">
+                            <span>${order.order_number} - ${order.client_name}</span>
+                            <span>${order.total_length_m} m (${order.quantity} × ${order.length_per_unit}m)</span>
+                          </div>
+                        `).join('')}
+                      </div>
+                    </td>
+                  </tr>
+                ` : ''}
+              `).join('')}
+              <tr class="subtotal-row">
+                <td>Product Total</td>
+                <td class="right">${product.product_total_length_m.toLocaleString()} m</td>
+                <td class="right highlight">${product.product_total_m2.toLocaleString()} m²</td>
+                ${includeProductOrderBreakdown ? '<td></td>' : ''}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+    });
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Product Usage Report</title>
+        <style>
+          @page { margin: 1cm; size: A4; }
+          body { font-family: Arial, sans-serif; color: #000; background: #fff; padding: 20px; }
+          .header { text-align: center; border-bottom: 3px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+          .header h1 { font-size: 24px; margin: 0 0 10px 0; }
+          .header h2 { font-size: 18px; margin: 0 0 5px 0; color: #333; }
+          .header p { font-size: 12px; color: #666; margin: 5px 0; }
+          .summary-stats { display: flex; justify-content: space-around; margin: 30px 0; padding: 20px; background: #f5f5f5; border-radius: 8px; }
+          .stat-box { text-align: center; }
+          .stat-value { font-size: 28px; font-weight: bold; color: #000; }
+          .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
+          .product-section { margin: 30px 0; page-break-inside: avoid; }
+          .product-section h3 { margin: 15px 0 5px 0; color: #000; border-bottom: 2px solid #333; padding-bottom: 5px; }
+          .product-meta { font-size: 11px; color: #666; margin-bottom: 10px; }
+          table.product-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+          th { background: #555; color: white; padding: 10px; text-align: left; font-weight: bold; font-size: 11px; }
+          th.right, td.right { text-align: right; }
+          th.center, td.center { text-align: center; }
+          td { padding: 8px 10px; border-bottom: 1px solid #ddd; font-size: 11px; }
+          tbody tr:nth-child(even) { background: #f9f9f9; }
+          .order-breakdown { background: #f0f0f0; padding: 8px; margin: 3px 0; font-size: 10px; }
+          .order-breakdown-item { display: flex; justify-content: space-between; padding: 2px 0; margin-left: 20px; }
+          .subtotal-row { background: #e0e0e0 !important; font-weight: bold; }
+          .total-row { background: #333 !important; color: white !important; font-weight: bold; font-size: 13px; }
+          .total-row td { padding: 12px 10px; }
+          .highlight { color: #d97706; font-weight: bold; }
+          .footer { margin-top: 40px; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #ddd; padding-top: 10px; }
+          @media print { body { padding: 0; } .no-print { display: none; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Adela Merchants</h1>
+          <h2>Product Usage Report by Width</h2>
+          <p>Period: ${new Date(report.report_period.start_date).toLocaleDateString()} - ${new Date(report.report_period.end_date).toLocaleDateString()}</p>
+          <p style="color: #999; font-size: 10px;">Excludes: ${report.excluded_types.join(', ')}</p>
+        </div>
+        
+        <div class="summary-stats">
+          <div class="stat-box">
+            <div class="stat-value highlight">${report.grand_total_m2.toLocaleString()} m²</div>
+            <div class="stat-label">Total Area Used</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">${report.grand_total_length_m.toLocaleString()} m</div>
+            <div class="stat-label">Total Length</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">${report.total_products}</div>
+            <div class="stat-label">Products Used</div>
+          </div>
+        </div>
+        
+        ${productsHTML}
+        
+        <table class="product-table">
+          <tbody>
+            <tr class="total-row">
+              <td>GRAND TOTAL (All Products)</td>
+              <td class="right">${report.grand_total_length_m.toLocaleString()} m</td>
+              <td class="right">${report.grand_total_m2.toLocaleString()} m²</td>
+              ${includeProductOrderBreakdown ? '<td></td>' : ''}
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="footer">
+          <p>Generated: ${new Date().toLocaleString()}</p>
+          <p>Misty Manufacturing - Product Usage Report</p>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    
+    printWindow.onload = function() {
+      printWindow.focus();
+      printWindow.print();
+    };
+  };
+
+
   const ReportCard = ({ title, children, icon: Icon }) => (
     <div className="misty-card p-6">
       <div className="flex items-center mb-4">
