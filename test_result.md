@@ -30,6 +30,21 @@ frontend:
         comment: "🎉 SLIT WIDTH DELETE FUNCTIONALITY FULLY OPERATIONAL: Comprehensive end-to-end testing completed with 100% success rate. COMPLETE WORKFLOW VERIFIED: ✅ Login with demo credentials (Callum/Peach7510) working perfectly, ✅ Navigation to Stocktake → Raw Materials On Hand tab successful, ✅ Double-click on 'Jintian Paper - Paper.Jin01' successfully opens slit widths modal, ✅ Modal displays correctly with title 'Slit Widths - Jintian Paper - Paper.Jin01', ✅ Found 4 slit width entries with red trash icon delete buttons in Actions column, ✅ Delete button click triggers confirmation dialog: 'Are you sure you want to delete this slit width entry?', ✅ Confirmation dialog acceptance successfully processed, ✅ Success toast notification appears: 'Slit width deleted successfully', ✅ API call DELETE /api/slit-widths/{id} returns 200 status, ✅ Modal list refreshes automatically - delete button count reduced from 4 to 3, ✅ Entry successfully removed from the list. TECHNICAL VERIFICATION: ✅ Console logs show proper API call: 'Attempting to delete slit width: c7ec8fe2-2932-4638-a46f-d2441988e13e', ✅ Network monitoring confirms DELETE request to correct endpoint with 200 response, ✅ Modal automatically reloads slit widths data after successful deletion, ✅ All UI interactions working smoothly with proper visual feedback. CONCLUSION: The delete functionality in the Slit Widths modal is production-ready and working correctly. All requested test scenarios from the review have been successfully verified: confirmation dialog, API integration, success toast, and list refresh functionality."
 
 backend:
+  - task: "Enhanced Order Deletion Functionality with Stock Reallocation"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing enhanced order deletion functionality with stock reallocation as requested in review"
+      - working: false
+        agent: "testing"
+        comment: "⚠️ ORDER DELETION API PARTIALLY FUNCTIONAL - STOCK RETURN MECHANISM NEEDS INVESTIGATION: Comprehensive testing of enhanced order deletion with stock reallocation completed with 77.8% success rate (7/9 tests passed). CRITICAL FINDINGS: ✅ DELETE /api/orders/{order_id} endpoint accessible and working correctly, ✅ Order deletion returns proper success response with stock return count, ✅ Response message correctly indicates 'X stock allocation(s) returned to inventory', ✅ Edge case testing successful - orders without stock allocation delete correctly with '0 stock allocation(s) returned', ✅ Stock allocation workflow working - stock quantity properly reduced when allocated to orders, ✅ Authentication and authorization working correctly (admin-only access). CRITICAL ISSUE IDENTIFIED: ❌ Stock quantities NOT actually returned to inventory after order deletion, ❌ Stock availability check shows same reduced quantity before and after order deletion, ❌ Expected stock restoration from 23 units to 48 units (25 returned) but remained at 23 units. ROOT CAUSE ANALYSIS: The DELETE endpoint returns correct response messages indicating stock return, but the actual database stock quantity update is not occurring. The stock_movements collection may be recording return movements, but the raw_substrate_stock collection quantity_on_hand field is not being updated. TESTING METHODOLOGY: Created test stock entry (100 units) → Created test order → Allocated 25 units (stock reduced to 23) → Deleted order (API reports stock returned) → Verified stock quantity (still 23, should be 48). CONCLUSION: Order deletion API works correctly and reports stock return, but the actual stock return mechanism has a critical bug preventing stock quantities from being restored to inventory. This is a data integrity issue that needs immediate investigation."
+
   - task: "Slit Width Management Endpoints Testing"
     implemented: true
     working: true
