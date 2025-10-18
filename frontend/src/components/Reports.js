@@ -62,6 +62,14 @@ const Reports = () => {
   const [expandedMaterials, setExpandedMaterials] = useState({});
   const [expandedCustomers, setExpandedCustomers] = useState({});
   const [selectedProjectionPeriod, setSelectedProjectionPeriod] = useState('3_months');
+  
+  // Modal states for each report type
+  const [showMaterialUsageModal, setShowMaterialUsageModal] = useState(false);
+  const [showConsumableUsageModal, setShowConsumableUsageModal] = useState(false);
+  const [showProjectionModal, setShowProjectionModal] = useState(false);
+  const [showOutstandingJobsModal, setShowOutstandingJobsModal] = useState(false);
+  const [showLateDeliveriesModal, setShowLateDeliveriesModal] = useState(false);
+  const [showCustomerReportModal, setShowCustomerReportModal] = useState(false);
 
   useEffect(() => {
     loadReportsData();
