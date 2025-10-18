@@ -852,6 +852,13 @@ const Reports = () => {
             icon={UserIcon}
             onClick={() => setShowCustomerReportModal(true)}
           />
+          
+          <ReportTile
+            title="Job Card Performance"
+            description="Track time spent on each job and stock produced with averages"
+            icon={ClipboardDocumentListIcon}
+            onClick={() => setShowJobPerformanceModal(true)}
+          />
         </div>
 
         {/* Report Modals */}
