@@ -4820,6 +4820,23 @@ async def print_stock_description(
         elements.append(Paragraph(title_text, title_style))
         elements.append(Spacer(1, 0.3*inch))
         
+        # Helper function to format date
+        def format_date(date_value):
+            """Safely format date from various types"""
+            if not date_value:
+                return "N/A"
+            try:
+                if isinstance(date_value, str):
+                    # Parse ISO format string
+                    dt = datetime.fromisoformat(date_value.replace('Z', '+00:00'))
+                    return dt.strftime("%Y-%m-%d")
+                elif isinstance(date_value, datetime):
+                    return date_value.strftime("%Y-%m-%d")
+                else:
+                    return str(date_value)
+            except Exception:
+                return "N/A"
+        
         # Stock Information
         if stock_type == "substrate":
             elements.append(Paragraph("Product on Hand", heading_style))
@@ -4832,7 +4849,7 @@ async def print_stock_description(
                 ["Minimum Stock Level:", f"{stock.get('minimum_stock_level', 0)} {stock.get('unit_of_measure', 'units')}"],
                 ["Source Order:", stock.get("source_order_id", "N/A")],
                 ["Location:", stock.get("location", "Main Warehouse")],
-                ["Last Updated:", datetime.fromisoformat(stock.get("created_at", "")).strftime("%Y-%m-%d") if stock.get("created_at") else "N/A"]
+                ["Last Updated:", format_date(stock.get("created_at"))]
             ]
         else:
             elements.append(Paragraph("Raw Material Stock", heading_style))
@@ -4845,7 +4862,7 @@ async def print_stock_description(
                 ["Usage Rate/Month:", f"{stock.get('usage_rate_per_month', 0)} {stock.get('unit_of_measure', 'kg')}"],
                 ["Alert Threshold:", f"{stock.get('alert_threshold_days', 7)} days"],
                 ["Supplier:", stock.get("supplier_name", "N/A")],
-                ["Last Updated:", datetime.fromisoformat(stock.get("created_at", "")).strftime("%Y-%m-%d") if stock.get("created_at") else "N/A"]
+                ["Last Updated:", format_date(stock.get("created_at"))]
             ]
         
         # Create table
