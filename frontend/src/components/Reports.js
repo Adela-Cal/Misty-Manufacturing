@@ -1718,36 +1718,75 @@ const Reports = () => {
                         {isExpanded && (
                           <div className="mt-4 border-t border-gray-700 pt-4">
                             <h6 className="text-sm font-medium text-white mb-3">
-                              Raw Material Requirements for {selectedProjectionPeriod.replace('_', ' ')}
+                              Material Required for {projectedQty} units ({selectedProjectionPeriod.replace('_', ' ')})
                             </h6>
                             {materialReqs && materialReqs.length > 0 ? (
-                              <div className="space-y-2">
-                                {materialReqs.map((mat, matIndex) => (
-                                  <div key={matIndex} className="bg-gray-700/40 rounded p-3 flex justify-between items-center">
-                                    <div className="flex-1">
-                                      <p className="text-sm font-medium text-white">
-                                        {mat.material_name}
-                                      </p>
-                                      <p className="text-xs text-gray-400">
-                                        Width: {mat.width_mm} mm | Per Unit: {mat.quantity_per_unit} {mat.unit_of_measure}
-                                      </p>
-                                    </div>
-                                    <div className="text-right">
-                                      <p className="text-lg font-bold text-green-400">
-                                        {mat.total_quantity_needed} {mat.unit_of_measure}
-                                      </p>
-                                      <p className="text-xs text-gray-400">Total Required</p>
-                                    </div>
-                                  </div>
-                                ))}
+                              <div className="overflow-x-auto">
+                                <table className="min-w-full">
+                                  <thead>
+                                    <tr className="border-b border-gray-700">
+                                      <th className="text-left py-2 px-3 text-gray-300 text-xs">Layer</th>
+                                      <th className="text-left py-2 px-3 text-gray-300 text-xs">Material</th>
+                                      <th className="text-right py-2 px-3 text-gray-300 text-xs">Width (mm)</th>
+                                      <th className="text-right py-2 px-3 text-gray-300 text-xs">Thickness (mm)</th>
+                                      <th className="text-right py-2 px-3 text-gray-300 text-xs">Laps/Core</th>
+                                      <th className="text-right py-2 px-3 text-gray-300 text-xs">m/Unit</th>
+                                      <th className="text-right py-2 px-3 text-gray-300 text-xs font-medium">Total Meters</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {materialReqs.map((mat, matIndex) => {
+                                      if (mat.is_total) {
+                                        return (
+                                          <tr key={matIndex} className="bg-yellow-600/20 border-t-2 border-yellow-600">
+                                            <td colSpan="6" className="py-3 px-3 text-white font-bold text-sm">
+                                              TOTAL MATERIAL REQUIRED
+                                            </td>
+                                            <td className="py-3 px-3 text-right">
+                                              <span className="text-lg font-bold text-yellow-400">
+                                                {mat.total_meters_all_layers} m
+                                              </span>
+                                            </td>
+                                          </tr>
+                                        );
+                                      }
+                                      
+                                      return (
+                                        <tr key={matIndex} className="border-b border-gray-700/50 hover:bg-gray-700/20">
+                                          <td className="py-2 px-3 text-blue-400 text-xs font-medium">
+                                            Layer {mat.layer_order}
+                                          </td>
+                                          <td className="py-2 px-3 text-white text-xs">
+                                            {mat.material_name}
+                                          </td>
+                                          <td className="py-2 px-3 text-right text-gray-300 text-xs">
+                                            {mat.width_mm}
+                                          </td>
+                                          <td className="py-2 px-3 text-right text-gray-300 text-xs">
+                                            {mat.thickness_mm}
+                                          </td>
+                                          <td className="py-2 px-3 text-right text-gray-300 text-xs">
+                                            {mat.laps_per_core}
+                                          </td>
+                                          <td className="py-2 px-3 text-right text-gray-300 text-xs">
+                                            {mat.meters_per_unit}
+                                          </td>
+                                          <td className="py-2 px-3 text-right text-green-400 font-medium text-xs">
+                                            {mat.total_meters_needed} m
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
                               </div>
                             ) : (
                               <div className="bg-yellow-900/20 border border-yellow-600/30 rounded p-4">
                                 <p className="text-sm text-yellow-400">
-                                  ⚠️ No material composition data available for this product.
+                                  ⚠️ No material layers defined for this product.
                                 </p>
                                 <p className="text-xs text-gray-400 mt-2">
-                                  To see material requirements, add materials composition data to this product in the Products & Specifications section.
+                                  To see material requirements, add material layers to this product in the Products & Specifications section.
                                 </p>
                               </div>
                             )}
