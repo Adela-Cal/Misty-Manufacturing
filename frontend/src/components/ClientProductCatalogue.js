@@ -684,6 +684,7 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
       strength_quality_important: product.strength_quality_important || false,
       delivery_included: product.delivery_included || false,
       consumables: product.consumables || [],
+      material_layers: product.material_layers || [],
       is_shared_product: product.is_shared_product || false,
       shared_with_clients: product.shared_with_clients || [],
       makeready_allowance_percent: product.makeready_allowance_percent || 10,
