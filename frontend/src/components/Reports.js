@@ -1677,9 +1677,9 @@ const Reports = () => {
                     </div>
                     <div className="bg-gray-700/50 rounded-lg p-4 text-center">
                       <p className="text-2xl font-bold text-green-400">
-                        {projectionReport.summary[selectedProjectionPeriod]?.total_projected_revenue ? formatCurrency(projectionReport.summary[selectedProjectionPeriod].total_projected_revenue) : '$0'}
+                        {projectionReport.summary[selectedProjectionPeriod]?.total_projected_material_cost ? formatCurrency(projectionReport.summary[selectedProjectionPeriod].total_projected_material_cost) : '$0'}
                       </p>
-                      <p className="text-sm text-gray-400">Projected Revenue</p>
+                      <p className="text-sm text-gray-400">Projected Material Cost</p>
                     </div>
                     <div className="bg-gray-700/50 rounded-lg p-4 text-center">
                       <p className="text-2xl font-bold text-blue-400">
