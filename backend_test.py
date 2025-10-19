@@ -740,23 +740,23 @@ class BackendAPITester:
         
         # Group results by category
         categories = {
-            "Stock Print PDF Generation": [],
-            "Order Deletion": [],
-            "Stock Reporting": [],
-            "Production Board Reordering": [],
+            "Employee Auto-Sync": [],
+            "Manual Sync": [],
+            "Data Validation": [],
+            "Edge Cases": [],
             "Other": []
         }
         
         for result in self.test_results:
             test_name = result['test']
-            if 'PDF' in test_name or 'Print' in test_name:
-                categories["Stock Print PDF Generation"].append(result)
-            elif 'Order Deletion' in test_name or 'Delete' in test_name:
-                categories["Order Deletion"].append(result)
-            elif 'Report' in test_name or 'Stock' in test_name and 'Report' in test_name:
-                categories["Stock Reporting"].append(result)
-            elif 'Reorder' in test_name:
-                categories["Production Board Reordering"].append(result)
+            if 'Auto-Sync' in test_name or 'Get Employees' in test_name:
+                categories["Employee Auto-Sync"].append(result)
+            elif 'Manual' in test_name and 'Sync' in test_name:
+                categories["Manual Sync"].append(result)
+            elif any(keyword in test_name for keyword in ['Data Matches', 'Role to Position', 'Number Generation', 'Default Values', 'Enrichment', 'Structure']):
+                categories["Data Validation"].append(result)
+            elif 'Edge Cases' in test_name or 'Duplicates' in test_name:
+                categories["Edge Cases"].append(result)
             else:
                 categories["Other"].append(result)
         
