@@ -104,6 +104,10 @@ async def get_employees(current_user: dict = Depends(require_payroll_access)):
     # Enrich employee data with current user information from Staff and Security
     enriched_employees = []
     for emp in employees:
+        # Remove MongoDB _id field to avoid serialization issues
+        if "_id" in emp:
+            del emp["_id"]
+        
         user_id = emp.get("user_id")
         if user_id:
             user = await db.users.find_one({"id": user_id, "is_active": True})
@@ -120,10 +124,14 @@ async def get_employees(current_user: dict = Depends(require_payroll_access)):
                 emp["department"] = user.get("department", emp.get("department"))
                 emp["employment_type"] = user.get("employment_type", emp.get("employment_type"))
                 
-                # Add role information
+                # Add role information (not in EmployeeProfile model but useful)
                 emp["role"] = user.get("role", "production_staff")
         
-        enriched_employees.append(EmployeeProfile(**emp))
+        try:
+            enriched_employees.append(EmployeeProfile(**emp))
+        except Exception as e:
+            logger.error(f"Error creating EmployeeProfile for user {user_id}: {e}, emp data: {emp}")
+            continue
     
     return enriched_employees
 
