@@ -123,14 +123,11 @@ async def get_employees(current_user: dict = Depends(require_payroll_access)):
                 emp["phone"] = user.get("phone", emp.get("phone"))
                 emp["department"] = user.get("department", emp.get("department"))
                 emp["employment_type"] = user.get("employment_type", emp.get("employment_type"))
-                
-                # Add role information (not in EmployeeProfile model but useful)
-                emp["role"] = user.get("role", "production_staff")
         
         try:
             enriched_employees.append(EmployeeProfile(**emp))
         except Exception as e:
-            logger.error(f"Error creating EmployeeProfile for user {user_id}: {e}, emp data: {emp}")
+            logger.error(f"Error creating EmployeeProfile for user {user_id}: {e}, emp data keys: {emp.keys()}")
             continue
     
     return enriched_employees
