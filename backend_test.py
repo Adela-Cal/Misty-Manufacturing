@@ -1267,10 +1267,10 @@ class BackendAPITester:
             self.log_result("Material Usage Report - Structure & Calculations", False, f"Error: {str(e)}")
 
     def run_comprehensive_tests(self):
-        """Run all comprehensive tests for final verification"""
+        """Run all comprehensive tests for payroll employee synchronization"""
         print("\n" + "="*80)
-        print("COMPREHENSIVE BACKEND TESTING")
-        print("Including NEW Material Usage Report by Width functionality")
+        print("PAYROLL EMPLOYEE SYNCHRONIZATION TESTING")
+        print("Testing new employee synchronization with Staff and Security users")
         print("="*80)
         
         # Step 1: Authenticate
@@ -1278,16 +1278,10 @@ class BackendAPITester:
             print("❌ Authentication failed - cannot proceed with tests")
             return
         
-        # Step 2: Run priority tests
-        self.test_stock_print_pdf_generation()
-        self.test_order_deletion_with_stock_reallocation()
-        self.test_stock_reporting_endpoints()
-        self.test_production_board_reordering()
+        # Step 2: Run payroll synchronization tests
+        self.test_payroll_employee_synchronization()
         
-        # Step 3: NEW TEST - Material Usage Report by Width
-        self.test_material_usage_detailed_report()
-        
-        # Step 4: Print comprehensive summary
+        # Step 3: Print comprehensive summary
         self.print_test_summary()
 
 if __name__ == "__main__":
