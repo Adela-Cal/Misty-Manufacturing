@@ -335,6 +335,39 @@ async def restore_employee(employee_id: str, current_user: dict = Depends(requir
     
     return StandardResponse(success=True, message="Employee restored successfully")
 
+@payroll_router.delete("/employees/{employee_id}/permanent", response_model=StandardResponse)
+async def permanently_delete_employee(employee_id: str, current_user: dict = Depends(require_admin)):
+    """
+    Permanently delete archived employee profile (Admin only)
+    WARNING: This is irreversible and will delete ALL associated data including:
+    - Employee profile
+    - All timesheets
+    - All leave requests
+    - All payroll history
+    Only archived employees can be permanently deleted
+    """
+    # Check if employee is archived
+    employee = await db.employee_profiles.find_one({"id": employee_id, "is_active": False})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Archived employee not found. Only archived employees can be permanently deleted.")
+    
+    # Delete all associated data
+    # Delete timesheets
+    await db.timesheets.delete_many({"employee_id": employee_id})
+    
+    # Delete leave requests
+    await db.leave_requests.delete_many({"employee_id": employee_id})
+    
+    # Delete employee profile
+    result = await db.employee_profiles.delete_one({"id": employee_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to delete employee")
+    
+    logger.warning(f"PERMANENTLY DELETED employee {employee_id} and all associated data")
+    
+    return StandardResponse(success=True, message="Employee and all associated data permanently deleted")
+
 @payroll_router.get("/employees/{employee_id}/leave-balances", response_model=EmployeeLeaveBalance)
 async def get_employee_leave_balances(employee_id: str, current_user: dict = Depends(require_any_role)):
     """Get employee leave balances (Employee can view own, Managers can view all)"""
