@@ -86,45 +86,43 @@ class BackendAPITester:
             self.log_result("Authentication", False, f"Authentication error: {str(e)}")
             return False
 
-    def test_stock_print_pdf_generation(self):
+    def test_payroll_employee_synchronization(self):
         """
-        PRIORITY TEST 1: Stock Print PDF Generation - CRITICAL RETEST
-        Test GET /api/stock/print/{stock_id}?stock_type=substrate and material
-        Verify PDF generation succeeds without date formatting errors
+        PRIORITY TEST 1: Payroll Employee Synchronization
+        Test GET /api/payroll/employees and POST /api/payroll/employees/sync
+        Verify employee auto-sync with Staff and Security users
         """
         print("\n" + "="*80)
-        print("PRIORITY TEST 1: STOCK PRINT PDF GENERATION - CRITICAL RETEST")
-        print("Testing PDF generation with date formatting fixes")
+        print("PRIORITY TEST 1: PAYROLL EMPLOYEE SYNCHRONIZATION")
+        print("Testing employee synchronization with Staff and Security users")
         print("="*80)
         
-        # First, create test stock entries to ensure we have data to test with
-        substrate_stock_id = self.create_test_substrate_stock()
-        material_stock_id = self.create_test_material_stock()
+        # Test 1: Get current users from Staff and Security
+        self.test_get_staff_security_users()
         
-        if not substrate_stock_id and not material_stock_id:
-            self.log_result(
-                "Stock Print PDF - Setup", 
-                False, 
-                "Failed to create test stock entries for PDF testing"
-            )
-            return
+        # Test 2: Test GET /api/payroll/employees (auto-sync)
+        self.test_get_employees_with_auto_sync()
         
-        # Test 1: Substrate PDF Generation
-        if substrate_stock_id:
-            self.test_substrate_pdf_generation(substrate_stock_id)
+        # Test 3: Test POST /api/payroll/employees/sync (manual sync)
+        self.test_manual_employee_sync()
         
-        # Test 2: Material PDF Generation  
-        if material_stock_id:
-            self.test_material_pdf_generation(material_stock_id)
+        # Test 4: Verify employee data matches user data
+        self.test_employee_data_matches_user_data()
         
-        # Test 3: Edge cases - stock with no created_at field
-        self.test_pdf_generation_edge_cases()
+        # Test 5: Test role to position mapping
+        self.test_role_to_position_mapping()
         
-        # Test 4: Test with stock that has string created_at
-        self.test_pdf_with_string_date()
+        # Test 6: Test employee number generation
+        self.test_employee_number_generation()
         
-        # Test 5: Test with stock that has datetime created_at
-        self.test_pdf_with_datetime_date()
+        # Test 7: Test default values
+        self.test_employee_default_values()
+        
+        # Test 8: Test data enrichment
+        self.test_employee_data_enrichment()
+        
+        # Test 9: Test edge cases
+        self.test_employee_sync_edge_cases()
 
     def create_test_substrate_stock(self):
         """Create test substrate stock for PDF testing"""
