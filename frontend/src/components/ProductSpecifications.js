@@ -1121,9 +1121,33 @@ const ProductSpecifications = () => {
       if (selectedSpec) {
         await apiHelpers.updateProductSpecification(selectedSpec.id, submitData);
         toast.success('Product specification updated successfully');
+        
+        // Sync to client products
+        try {
+          const syncResponse = await apiHelpers.syncProductSpecToClientProducts(selectedSpec.id);
+          if (syncResponse.data?.data?.synced_count > 0) {
+            toast.success(`Synced material layers to ${syncResponse.data.data.synced_count} client product(s)`);
+          }
+        } catch (syncError) {
+          console.error('Sync warning:', syncError);
+          toast.warning('Product saved but sync to client products failed');
+        }
       } else {
-        await apiHelpers.createProductSpecification(submitData);
+        const createResponse = await apiHelpers.createProductSpecification(submitData);
         toast.success('Product specification created successfully');
+        
+        // Sync to client products if spec was created successfully
+        if (createResponse.data?.data?.spec_id) {
+          try {
+            const syncResponse = await apiHelpers.syncProductSpecToClientProducts(createResponse.data.data.spec_id);
+            if (syncResponse.data?.data?.synced_count > 0) {
+              toast.success(`Synced material layers to ${syncResponse.data.data.synced_count} client product(s)`);
+            }
+          } catch (syncError) {
+            console.error('Sync warning:', syncError);
+            toast.warning('Product created but sync to client products failed');
+          }
+        }
       }
       
       setShowModal(false);
