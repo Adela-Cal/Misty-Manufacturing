@@ -447,8 +447,12 @@ async def get_pending_timesheets(current_user: dict = Depends(require_payroll_ac
     
     pending_timesheets = await db.timesheets.find({"status": TimesheetStatus.SUBMITTED}).to_list(1000)
     
-    # Enrich with employee names
+    # Remove MongoDB ObjectId and enrich with employee names
     for timesheet in pending_timesheets:
+        # Remove MongoDB ObjectId to prevent serialization errors
+        if "_id" in timesheet:
+            del timesheet["_id"]
+            
         employee = await db.employee_profiles.find_one({"id": timesheet["employee_id"]})
         if employee:
             timesheet["employee_name"] = f"{employee['first_name']} {employee['last_name']}"
