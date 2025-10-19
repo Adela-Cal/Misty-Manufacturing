@@ -1025,7 +1025,12 @@ const ProductSpecifications = () => {
         gsm: layer.gsm ? (typeof layer.gsm === 'string' ? parseFloat(layer.gsm) : layer.gsm) : null,
         quantity: parseFloat(layer.quantity) || 1,
         width: layer.width ? parseFloat(layer.width) : null,
-        notes: layer.notes || ''
+        notes: layer.notes || '',
+        // Spiral Core Allocation fields
+        spiral_allocation_percent: layer.spiral_allocation_percent ? parseFloat(layer.spiral_allocation_percent) : null,
+        spiral_sequence: layer.spiral_sequence ? parseInt(layer.spiral_sequence) : null,
+        winding_direction: layer.winding_direction || null,
+        overlap_factor: layer.overlap_factor ? parseFloat(layer.overlap_factor) : null
       }));
 
       let submitData = {
