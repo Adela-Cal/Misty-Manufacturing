@@ -378,6 +378,255 @@ const ConsumablesSection = ({ formData, setFormData, handleAddConsumables, remov
   </div>
 );
 
+// Material Layers Section Component
+const MaterialLayersSection = ({ formData, setFormData, materials }) => {
+  const [newLayer, setNewLayer] = useState({
+    material_id: '',
+    material_name: '',
+    layer_type: '',
+    width: '',
+    width_range: '',
+    thickness: '',
+    quantity: '',
+    notes: ''
+  });
+
+  const layerTypes = ['Outer Most Layer', 'Central Layer', 'Inner Most Layer'];
+
+  const handleMaterialSelect = (materialId) => {
+    const material = materials.find(m => m.id === materialId);
+    if (material) {
+      setNewLayer(prev => ({
+        ...prev,
+        material_id: materialId,
+        material_name: material.product_name || '',
+        thickness: material.thickness_mm || '',
+      }));
+    }
+  };
+
+  const handleAddLayer = () => {
+    if (!newLayer.material_id || !newLayer.layer_type || !newLayer.thickness) {
+      toast.error('Please fill in Material, Layer Type, and Thickness fields');
+      return;
+    }
+
+    const layerToAdd = {
+      ...newLayer,
+      thickness: parseFloat(newLayer.thickness) || 0,
+      width: newLayer.width ? parseFloat(newLayer.width) : null,
+      quantity: newLayer.quantity ? parseFloat(newLayer.quantity) : null,
+    };
+
+    setFormData(prev => ({
+      ...prev,
+      material_layers: [...prev.material_layers, layerToAdd]
+    }));
+
+    // Reset form
+    setNewLayer({
+      material_id: '',
+      material_name: '',
+      layer_type: '',
+      width: '',
+      width_range: '',
+      thickness: '',
+      quantity: '',
+      notes: ''
+    });
+
+    toast.success('Material layer added');
+  };
+
+  const removeMaterialLayer = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      material_layers: prev.material_layers.filter((_, i) => i !== index)
+    }));
+    toast.success('Material layer removed');
+  };
+
+  return (
+    <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h4 className="text-lg font-semibold text-white">Material Layers</h4>
+          <p className="text-xs text-gray-400 mt-1">Define material composition for production planning and cost calculation</p>
+        </div>
+      </div>
+
+      {/* Existing Material Layers */}
+      {formData.material_layers && formData.material_layers.length > 0 && (
+        <div className="mb-4 space-y-2">
+          <p className="text-sm font-medium text-gray-300 mb-2">Current Layers:</p>
+          {formData.material_layers.map((layer, index) => (
+            <div key={index} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+              <div className="flex-1">
+                <div className="font-medium text-white">{layer.material_name}</div>
+                <div className="text-sm text-gray-400">
+                  {layer.layer_type} | Thickness: {layer.thickness}mm
+                  {layer.width && ` | Width: ${layer.width}mm`}
+                  {layer.width_range && ` | Width Range: ${layer.width_range}mm`}
+                  {layer.quantity && ` | Quantity: ${layer.quantity}`}
+                </div>
+                {layer.notes && (
+                  <div className="text-xs text-gray-500 mt-1">Note: {layer.notes}</div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => removeMaterialLayer(index)}
+                className="text-red-400 hover:text-red-300 ml-4"
+              >
+                <TrashIcon className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add New Material Layer Form */}
+      <div className="border-t border-gray-600 pt-4 space-y-3">
+        <p className="text-sm font-medium text-gray-300 mb-3">Add New Material Layer:</p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Material Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Material/Product <span className="text-red-400">*</span>
+            </label>
+            <select
+              value={newLayer.material_id}
+              onChange={(e) => handleMaterialSelect(e.target.value)}
+              className="misty-select w-full"
+            >
+              <option value="">Select material...</option>
+              {materials && materials.map((material) => (
+                <option key={material.id} value={material.id}>
+                  {material.product_name} 
+                  {material.thickness_mm && ` - ${material.thickness_mm}mm thick`}
+                  {material.gsm && ` - ${material.gsm} GSM`}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Layer Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Layer Position <span className="text-red-400">*</span>
+            </label>
+            <select
+              value={newLayer.layer_type}
+              onChange={(e) => setNewLayer(prev => ({ ...prev, layer_type: e.target.value }))}
+              className="misty-select w-full"
+            >
+              <option value="">Select position...</option>
+              {layerTypes.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Thickness */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Thickness (mm) <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="number"
+              step="0.001"
+              min="0"
+              value={newLayer.thickness}
+              onChange={(e) => setNewLayer(prev => ({ ...prev, thickness: e.target.value }))}
+              className="misty-input w-full"
+              placeholder="e.g., 0.15"
+            />
+          </div>
+
+          {/* Width (for Outer/Inner layers) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Width (mm) <span className="text-xs text-gray-500">(Optional - for Outer/Inner layers)</span>
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              value={newLayer.width}
+              onChange={(e) => setNewLayer(prev => ({ ...prev, width: e.target.value }))}
+              className="misty-input w-full"
+              placeholder="e.g., 50"
+            />
+          </div>
+
+          {/* Width Range (for Central layers) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Width Range (mm) <span className="text-xs text-gray-500">(Optional - for Central layers)</span>
+            </label>
+            <input
+              type="text"
+              value={newLayer.width_range}
+              onChange={(e) => setNewLayer(prev => ({ ...prev, width_range: e.target.value }))}
+              className="misty-input w-full"
+              placeholder="e.g., 61-68"
+            />
+          </div>
+
+          {/* Quantity */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Quantity/Usage <span className="text-xs text-gray-500">(Optional)</span>
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={newLayer.quantity}
+              onChange={(e) => setNewLayer(prev => ({ ...prev, quantity: e.target.value }))}
+              className="misty-input w-full"
+              placeholder="e.g., 1.5"
+            />
+          </div>
+
+          {/* Notes */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Notes <span className="text-xs text-gray-500">(Optional)</span>
+            </label>
+            <textarea
+              value={newLayer.notes}
+              onChange={(e) => setNewLayer(prev => ({ ...prev, notes: e.target.value }))}
+              className="misty-textarea w-full"
+              rows={2}
+              placeholder="Additional notes about this material layer..."
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleAddLayer}
+            className="misty-button misty-button-primary flex items-center text-sm"
+          >
+            <PlusIcon className="h-4 w-4 mr-2" />
+            Add Material Layer
+          </button>
+        </div>
+      </div>
+
+      {formData.material_layers && formData.material_layers.length === 0 && (
+        <div className="text-center py-6 text-gray-400">
+          <p className="text-sm">No material layers defined yet.</p>
+          <p className="text-xs">Add material layers to enable projected order analysis and material requirements calculations.</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Consumables Selector Component
 const ConsumablesSelector = ({ productSpecs, productSection, onAddConsumable, onCancel }) => {
   const [selectedSpec, setSelectedSpec] = useState(null);
