@@ -19,12 +19,15 @@ const PayrollManagement = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [employees, setEmployees] = useState([]);
+  const [archivedEmployees, setArchivedEmployees] = useState([]);
   const [pendingTimesheets, setPendingTimesheets] = useState([]);
   const [pendingLeaveRequests, setPendingLeaveRequests] = useState([]);
   const [timesheetReminder, setTimesheetReminder] = useState(null);
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
   const [showTimesheetModal, setShowTimesheetModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
   useEffect(() => {
     loadPayrollData();
