@@ -1328,7 +1328,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Spiral Core Allocation Data Persistence Fix in Product Specifications"
+    - "Projected Order Analysis GSM-Based Formula Implementation"
     - "Material Requirements Workflow After Stock Allocation"
   stuck_tasks: []
   test_all: false
