@@ -1754,14 +1754,24 @@ const ProductSpecifications = () => {
                                 className="misty-select w-full text-sm"
                               >
                                 <option value="">Select sequence</option>
-                                <option value="1">1st Layer (Core contact)</option>
-                                <option value="2">2nd Layer</option>
-                                <option value="3">3rd Layer</option>
-                                <option value="4">4th Layer</option>
-                                <option value="5">5th Layer (Outer)</option>
+                                {Array.from({ length: formData.material_layers.length }, (_, i) => {
+                                  const sequenceNumber = i + 1;
+                                  const ordinalSuffix = ['th', 'st', 'nd', 'rd'][sequenceNumber % 10 > 3 ? 0 : (sequenceNumber % 100 - sequenceNumber % 10 !== 10) * sequenceNumber % 10];
+                                  const label = sequenceNumber === 1 
+                                    ? '1st Layer (Core contact)' 
+                                    : sequenceNumber === formData.material_layers.length 
+                                    ? `${sequenceNumber}${ordinalSuffix} Layer (Outer)` 
+                                    : `${sequenceNumber}${ordinalSuffix} Layer`;
+                                  
+                                  return (
+                                    <option key={sequenceNumber} value={sequenceNumber}>
+                                      {label}
+                                    </option>
+                                  );
+                                })}
                               </select>
                               <div className="text-xs text-blue-300 mt-1">
-                                Order of application in spiral winding
+                                Order of application in spiral winding ({formData.material_layers.length} layer{formData.material_layers.length !== 1 ? 's' : ''} total)
                               </div>
                             </div>
 
