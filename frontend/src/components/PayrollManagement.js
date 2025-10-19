@@ -966,6 +966,166 @@ const PayrollManagement = () => {
         </div>
       )}
 
+      {/* Leave Request Modal */}
+      {showLeaveRequestModal && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowLeaveRequestModal(false)}>
+          <div className="modal-content max-w-2xl">
+            <div className="p-6">
+              <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+                <CalendarDaysIcon className="h-6 w-6 mr-2 text-yellow-400" />
+                Add Leave Request
+              </h3>
+
+              <form onSubmit={handleLeaveFormSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Employee Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Employee <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      value={leaveFormData.employee_id}
+                      onChange={(e) => setLeaveFormData({...leaveFormData, employee_id: e.target.value})}
+                      className="misty-select w-full"
+                      required
+                    >
+                      <option value="">Select employee...</option>
+                      {employees.map((emp) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.first_name} {emp.last_name} - {emp.employee_number}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Leave Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Leave Type <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      value={leaveFormData.leave_type}
+                      onChange={(e) => setLeaveFormData({...leaveFormData, leave_type: e.target.value})}
+                      className="misty-select w-full"
+                      required
+                    >
+                      <option value="annual_leave">Annual Leave</option>
+                      <option value="sick_leave">Sick Leave</option>
+                      <option value="personal_leave">Personal Leave</option>
+                      <option value="unpaid_leave">Unpaid Leave</option>
+                    </select>
+                  </div>
+
+                  {/* Start Date */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Start Date <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={leaveFormData.start_date}
+                      onChange={(e) => setLeaveFormData({...leaveFormData, start_date: e.target.value})}
+                      className="misty-input w-full"
+                      required
+                    />
+                  </div>
+
+                  {/* End Date */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      End Date <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={leaveFormData.end_date}
+                      onChange={(e) => setLeaveFormData({...leaveFormData, end_date: e.target.value})}
+                      className="misty-input w-full"
+                      required
+                    />
+                  </div>
+
+                  {/* Hours Requested */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Hours Requested <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      value={leaveFormData.hours_requested}
+                      onChange={(e) => setLeaveFormData({...leaveFormData, hours_requested: e.target.value})}
+                      className="misty-input w-full"
+                      placeholder="e.g., 8, 38, 76"
+                      required
+                    />
+                  </div>
+
+                  {/* Approver Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Assign Approver <span className="text-gray-500 text-xs">(Optional)</span>
+                    </label>
+                    <select
+                      value={leaveFormData.approver_id}
+                      onChange={(e) => setLeaveFormData({...leaveFormData, approver_id: e.target.value})}
+                      className="misty-select w-full"
+                    >
+                      <option value="">No specific approver</option>
+                      {employees.filter(emp => 
+                        emp.position && (
+                          emp.position.toLowerCase().includes('manager') || 
+                          emp.position.toLowerCase().includes('admin') ||
+                          emp.position.toLowerCase().includes('supervisor')
+                        )
+                      ).map((emp) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.first_name} {emp.last_name} - {emp.position}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Leave request will appear in this person's approval queue
+                    </p>
+                  </div>
+                </div>
+
+                {/* Reason */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Reason <span className="text-gray-500 text-xs">(Optional)</span>
+                  </label>
+                  <textarea
+                    value={leaveFormData.reason}
+                    onChange={(e) => setLeaveFormData({...leaveFormData, reason: e.target.value})}
+                    className="misty-textarea w-full"
+                    rows={3}
+                    placeholder="Enter reason for leave request..."
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-600">
+                  <button
+                    type="button"
+                    onClick={() => setShowLeaveRequestModal(false)}
+                    className="misty-button misty-button-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="misty-button misty-button-primary"
+                  >
+                    Create Leave Request
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Permanent Delete Confirmation Modal */}
       {showPermanentDeleteConfirm && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowPermanentDeleteConfirm(false)}>
