@@ -119,6 +119,7 @@ class LeaveRequest(BaseModel):
     reason: Optional[str] = None
     status: LeaveStatus = LeaveStatus.PENDING
     requested_by: str
+    approver_id: Optional[str] = None  # ID of the user who should approve this request
     approved_by: Optional[str] = None
     approved_at: Optional[datetime] = None
     rejection_reason: Optional[str] = None
@@ -132,6 +133,7 @@ class LeaveRequestCreate(BaseModel):
     end_date: date
     hours_requested: Decimal
     reason: Optional[str] = None
+    approver_id: Optional[str] = None  # Optional approver assignment
     
     @validator('end_date')
     def validate_end_date(cls, v, values):
