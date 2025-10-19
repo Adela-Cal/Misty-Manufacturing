@@ -1785,6 +1785,11 @@ const Reports = () => {
                                               {mat.gsm > 0 && <span>GSM: {mat.gsm}</span>}
                                               <span>{mat.laps_per_core} {mat.laps_per_core === 1 ? 'lap' : 'laps'}</span>
                                             </div>
+                                            {mat.cost_per_meter > 0 && (
+                                              <div className="text-yellow-400">
+                                                ${mat.cost_per_meter}/m × {mat.total_meters_needed?.toLocaleString()}m = ${mat.total_cost?.toLocaleString()}
+                                              </div>
+                                            )}
                                           </div>
                                         </div>
                                         <div className="text-right">
@@ -1794,6 +1799,11 @@ const Reports = () => {
                                           <div className="text-sm text-gray-400">
                                             {mat.meters_per_core}m/core
                                           </div>
+                                          {mat.total_cost > 0 && (
+                                            <div className="text-lg font-bold text-green-400 mt-1">
+                                              ${mat.total_cost?.toLocaleString()}
+                                            </div>
+                                          )}
                                         </div>
                                       </div>
                                     </div>
