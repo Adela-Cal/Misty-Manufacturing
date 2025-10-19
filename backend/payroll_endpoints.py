@@ -497,8 +497,12 @@ async def get_pending_leave_requests(current_user: dict = Depends(require_payrol
     
     pending_requests = await db.leave_requests.find({"status": LeaveStatus.PENDING}).to_list(1000)
     
-    # Enrich with employee names
+    # Remove MongoDB ObjectId and enrich with employee names
     for request in pending_requests:
+        # Remove MongoDB ObjectId to prevent serialization errors
+        if "_id" in request:
+            del request["_id"]
+            
         employee = await db.employee_profiles.find_one({"id": request["employee_id"]})
         if employee:
             request["employee_name"] = f"{employee['first_name']} {employee['last_name']}"
