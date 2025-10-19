@@ -2470,6 +2470,15 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
                   </div>
                 )}
 
+                {/* Material Layers Section */}
+                <div className="mb-8">
+                  <MaterialLayersSection 
+                    formData={formData}
+                    setFormData={setFormData}
+                    materials={materials}
+                  />
+                </div>
+
                 {/* Consumables Section */}
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-4">
