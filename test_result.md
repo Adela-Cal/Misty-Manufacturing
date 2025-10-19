@@ -1313,8 +1313,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Consumable Usage Report Endpoint Testing"
-    - "Enhanced Raw Materials Needed Functionality with Fallback Material Requirements"
+    - "Spiral Core Allocation Data Persistence Fix in Product Specifications"
+    - "Material Requirements Workflow After Stock Allocation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
