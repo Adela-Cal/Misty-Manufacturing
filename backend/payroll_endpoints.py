@@ -591,7 +591,8 @@ async def create_leave_request(leave_data: LeaveRequestCreate, current_user: dic
     # Create leave request
     leave_request = LeaveRequest(
         **leave_data.dict(),
-        requested_by=current_user["user_id"]
+        requested_by=current_user["user_id"],
+        approver_id=leave_data.approver_id  # Assign specified approver
     )
     
     leave_dict = prepare_for_mongo(leave_request.dict())
