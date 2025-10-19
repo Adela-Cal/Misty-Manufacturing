@@ -5564,16 +5564,25 @@ async def get_projected_order_analysis(
                         # Calculate outer diameter
                         outer_diameter_mm = core_id_mm + (2 * wall_thickness_mm)
                         
+                        # Calculate cost per core and per metre
+                        cost_per_core = total_cost / projected_qty if projected_qty > 0 else 0
+                        # Cost per metre of finished core (assuming core_length_m is the length of one core)
+                        cost_per_metre_of_core = cost_per_core / core_length_m if core_length_m > 0 else 0
+                        
                         # Add summary totals
                         if material_requirements[period]:
                             material_requirements[period].append({
                                 "is_total": True,
                                 "outer_diameter_mm": round(outer_diameter_mm, 2),
+                                "core_length_m": round(core_length_m, 3),
                                 "total_paper_mass_kg": round(total_paper_mass_kg, 2),
                                 "total_paper_area_m2": round(total_paper_area_m2, 2),
                                 "total_strip_length_m": round(total_strip_length_m, 2) if total_strip_length_m > 0 else None,
                                 "total_meters_all_layers": round(total_strip_length_m, 2) if total_strip_length_m > 0 else round(total_paper_area_m2, 2),
-                                "total_cost": round(total_cost, 2)
+                                "total_cost": round(total_cost, 2),
+                                "cost_per_core": round(cost_per_core, 4),
+                                "cost_per_metre_of_core": round(cost_per_metre_of_core, 4),
+                                "projected_quantity": int(projected_qty)
                             })
                 else:
                     # Simpler calculation for flat products (labels, films, tapes)
