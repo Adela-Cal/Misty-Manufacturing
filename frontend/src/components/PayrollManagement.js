@@ -149,6 +149,38 @@ const PayrollManagement = () => {
     }
   };
 
+  const handlePermanentDelete = (employee) => {
+    setEmployeeToPermanentlyDelete(employee);
+    setShowPermanentDeleteConfirm(true);
+  };
+
+  const confirmPermanentDelete = async () => {
+    if (!employeeToPermanentlyDelete) return;
+    
+    try {
+      const response = await fetch(`/api/payroll/employees/${employeeToPermanentlyDelete.id}/permanent`, {
+        method: 'DELETE',
+        headers: { 
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        toast.success('Employee and all associated data permanently deleted');
+        loadArchivedEmployees();
+        setShowPermanentDeleteConfirm(false);
+        setEmployeeToPermanentlyDelete(null);
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to permanently delete employee');
+      }
+    } catch (error) {
+      console.error('Failed to permanently delete employee:', error);
+      toast.error('Failed to permanently delete employee');
+    }
+  };
+
   const handleEmployeeCreate = () => {
     setSelectedEmployee(null);
     setShowEmployeeModal(true);
