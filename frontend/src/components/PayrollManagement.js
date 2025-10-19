@@ -575,6 +575,13 @@ const PayrollManagement = () => {
                               >
                                 View History
                               </button>
+                              <button
+                                onClick={() => handlePermanentDelete(employee)}
+                                className="text-gray-400 hover:text-red-500 transition-colors flex items-center"
+                              >
+                                <TrashIcon className="h-4 w-4 mr-1" />
+                                Delete Forever
+                              </button>
                             </div>
                           </td>
                         </tr>
