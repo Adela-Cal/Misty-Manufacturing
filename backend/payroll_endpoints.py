@@ -32,9 +32,175 @@ logger = logging.getLogger(__name__)
 
 @payroll_router.get("/employees", response_model=List[EmployeeProfile])
 async def get_employees(current_user: dict = Depends(require_payroll_access)):
-    """Get all employees (Admin/Manager only)"""
+    """
+    Get all employees synchronized with Staff and Security users.
+    Automatically creates employee profiles for users that don't have them yet.
+    """
+    # Get all active users from Staff and Security
+    all_users = await db.users.find({"is_active": True}).to_list(1000)
+    
+    # Get existing employee profiles
+    existing_employees = await db.employee_profiles.find({"is_active": True}).to_list(1000)
+    existing_employee_user_ids = {emp.get("user_id") for emp in existing_employees}
+    
+    # Auto-create employee profiles for users that don't have them
+    for user in all_users:
+        user_id = user.get("id") or user.get("_id")
+        if user_id and user_id not in existing_employee_user_ids:
+            # Create default employee profile from user data
+            employee_number = f"EMP{len(existing_employees) + 1:04d}"
+            
+            # Extract name parts
+            full_name = user.get("full_name", "")
+            name_parts = full_name.split(" ", 1) if full_name else ["", ""]
+            first_name = name_parts[0] or user.get("username", "Unknown")
+            last_name = name_parts[1] if len(name_parts) > 1 else ""
+            
+            # Determine position from role
+            role = user.get("role", "production_staff")
+            position_map = {
+                "admin": "Administrator",
+                "manager": "Manager",
+                "production_manager": "Production Manager",
+                "supervisor": "Supervisor",
+                "production_staff": "Production Staff",
+                "production_team": "Production Team Member"
+            }
+            position = position_map.get(role, "Staff Member")
+            
+            # Create new employee profile
+            new_employee = EmployeeProfile(
+                user_id=user_id,
+                employee_number=employee_number,
+                first_name=first_name,
+                last_name=last_name,
+                email=user.get("email", f"{user.get('username')}@example.com"),
+                phone=user.get("phone", ""),
+                department=user.get("department", "Production"),
+                position=position,
+                start_date=datetime.utcnow().date(),
+                employment_type=user.get("employment_type", "full_time"),
+                hourly_rate=Decimal("25.00"),  # Default hourly rate
+                weekly_hours=38,
+                annual_leave_entitlement=152,
+                sick_leave_entitlement=76,
+                personal_leave_entitlement=38,
+                annual_leave_balance=Decimal("0"),
+                sick_leave_balance=Decimal("0"),
+                personal_leave_balance=Decimal("0"),
+                is_active=True
+            )
+            
+            employee_dict = prepare_for_mongo(new_employee.dict())
+            await db.employee_profiles.insert_one(employee_dict)
+            existing_employees.append(employee_dict)
+            existing_employee_user_ids.add(user_id)
+            
+            logger.info(f"Auto-created employee profile for user {user_id}: {first_name} {last_name}")
+    
+    # Fetch updated employee profiles
     employees = await db.employee_profiles.find({"is_active": True}).to_list(1000)
-    return [EmployeeProfile(**emp) for emp in employees]
+    
+    # Enrich employee data with current user information from Staff and Security
+    enriched_employees = []
+    for emp in employees:
+        user_id = emp.get("user_id")
+        if user_id:
+            user = await db.users.find_one({"id": user_id, "is_active": True})
+            if user:
+                # Update employee data with latest user information
+                full_name = user.get("full_name", "")
+                if full_name:
+                    name_parts = full_name.split(" ", 1)
+                    emp["first_name"] = name_parts[0]
+                    emp["last_name"] = name_parts[1] if len(name_parts) > 1 else ""
+                
+                emp["email"] = user.get("email", emp.get("email"))
+                emp["phone"] = user.get("phone", emp.get("phone"))
+                emp["department"] = user.get("department", emp.get("department"))
+                emp["employment_type"] = user.get("employment_type", emp.get("employment_type"))
+                
+                # Add role information
+                emp["role"] = user.get("role", "production_staff")
+        
+        enriched_employees.append(EmployeeProfile(**emp))
+    
+    return enriched_employees
+
+@payroll_router.post("/employees/sync", response_model=StandardResponse)
+async def sync_employees_from_users(current_user: dict = Depends(require_admin)):
+    """
+    Manually trigger synchronization of employee profiles with Staff and Security users.
+    This creates employee profiles for any users that don't have them yet.
+    """
+    # Get all active users
+    all_users = await db.users.find({"is_active": True}).to_list(1000)
+    
+    # Get existing employee profiles
+    existing_employees = await db.employee_profiles.find({"is_active": True}).to_list(1000)
+    existing_employee_user_ids = {emp.get("user_id") for emp in existing_employees}
+    
+    created_count = 0
+    
+    # Create employee profiles for users that don't have them
+    for user in all_users:
+        user_id = user.get("id") or user.get("_id")
+        if user_id and user_id not in existing_employee_user_ids:
+            # Create default employee profile from user data
+            employee_number = f"EMP{len(existing_employees) + created_count + 1:04d}"
+            
+            # Extract name parts
+            full_name = user.get("full_name", "")
+            name_parts = full_name.split(" ", 1) if full_name else ["", ""]
+            first_name = name_parts[0] or user.get("username", "Unknown")
+            last_name = name_parts[1] if len(name_parts) > 1 else ""
+            
+            # Determine position from role
+            role = user.get("role", "production_staff")
+            position_map = {
+                "admin": "Administrator",
+                "manager": "Manager",
+                "production_manager": "Production Manager",
+                "supervisor": "Supervisor",
+                "production_staff": "Production Staff",
+                "production_team": "Production Team Member"
+            }
+            position = position_map.get(role, "Staff Member")
+            
+            # Create new employee profile
+            new_employee = EmployeeProfile(
+                user_id=user_id,
+                employee_number=employee_number,
+                first_name=first_name,
+                last_name=last_name,
+                email=user.get("email", f"{user.get('username')}@example.com"),
+                phone=user.get("phone", ""),
+                department=user.get("department", "Production"),
+                position=position,
+                start_date=datetime.utcnow().date(),
+                employment_type=user.get("employment_type", "full_time"),
+                hourly_rate=Decimal("25.00"),  # Default hourly rate
+                weekly_hours=38,
+                annual_leave_entitlement=152,
+                sick_leave_entitlement=76,
+                personal_leave_entitlement=38,
+                annual_leave_balance=Decimal("0"),
+                sick_leave_balance=Decimal("0"),
+                personal_leave_balance=Decimal("0"),
+                is_active=True
+            )
+            
+            employee_dict = prepare_for_mongo(new_employee.dict())
+            await db.employee_profiles.insert_one(employee_dict)
+            created_count += 1
+            
+            logger.info(f"Synced employee profile for user {user_id}: {first_name} {last_name}")
+    
+    return StandardResponse(
+        success=True,
+        message=f"Successfully synchronized {created_count} employee profiles from Staff and Security users",
+        data={"created_count": created_count, "total_employees": len(existing_employees) + created_count}
+    )
 
 @payroll_router.post("/employees", response_model=StandardResponse)
 async def create_employee(employee_data: EmployeeProfileCreate, current_user: dict = Depends(require_admin)):
