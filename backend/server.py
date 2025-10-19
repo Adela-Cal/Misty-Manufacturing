@@ -5354,6 +5354,9 @@ async def get_projected_order_analysis(
                             total_meters_all_layers += total_meters
                             
                             material_name = layer.get("material_name", "Unknown")
+                            layer_type = layer.get("layer_type", f"Layer {layer_index + 1}")
+                            gsm = layer.get("gsm", 0)
+                            
                             if material_id:
                                 material = await db.materials.find_one({"id": material_id})
                                 if material:
@@ -5361,12 +5364,14 @@ async def get_projected_order_analysis(
                             
                             material_requirements[period].append({
                                 "layer_order": layer_index + 1,
+                                "layer_type": layer_type,
                                 "material_id": material_id,
                                 "material_name": material_name,
                                 "width_mm": width,
                                 "thickness_mm": thickness,
+                                "gsm": gsm,
                                 "laps_per_core": quantity_per_unit,
-                                "meters_per_unit": round(meters_per_unit, 2),
+                                "meters_per_core": round(meters_per_unit, 2),
                                 "total_meters_needed": round(total_meters, 2)
                             })
                         
