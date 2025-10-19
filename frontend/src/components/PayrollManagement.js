@@ -31,6 +31,8 @@ const PayrollManagement = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
+  const [showPermanentDeleteConfirm, setShowPermanentDeleteConfirm] = useState(false);
+  const [employeeToPermanentlyDelete, setEmployeeToPermanentlyDelete] = useState(null);
 
   useEffect(() => {
     loadPayrollData();
