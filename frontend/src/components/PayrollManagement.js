@@ -748,14 +748,108 @@ const PayrollManagement = () => {
           )}
 
           {activeTab === 'leave' && hasPermission('manage_payroll') && (
-            <div className="misty-card p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">Leave Requests</h3>
-              <p className="text-gray-400 mb-4">Manage employee leave requests and approvals</p>
-              
-              <div className="text-center py-8">
-                <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-400">Leave request management will be implemented here</p>
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-white flex items-center">
+                    <CalendarDaysIcon className="h-6 w-6 mr-2 text-yellow-400" />
+                    Leave Requests Management
+                  </h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Create and manage employee leave requests
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    loadAllLeaveRequests();
+                    handleAddLeaveRequest();
+                  }}
+                  className="misty-button misty-button-primary flex items-center"
+                >
+                  <UserPlusIcon className="h-4 w-4 mr-2" />
+                  Add Leave Request
+                </button>
               </div>
+
+              {allLeaveRequests.length > 0 ? (
+                <div className="misty-table">
+                  <table className="w-full">
+                    <thead>
+                      <tr>
+                        <th>Employee</th>
+                        <th>Leave Type</th>
+                        <th>Dates</th>
+                        <th>Hours</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allLeaveRequests.map((request) => (
+                        <tr key={request.id}>
+                          <td>
+                            <p className="font-medium">{request.employee_name}</p>
+                          </td>
+                          <td>
+                            <span className="text-sm bg-blue-900 px-2 py-1 rounded capitalize">
+                              {request.leave_type.replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td className="text-sm">
+                            <p>{new Date(request.start_date).toLocaleDateString()}</p>
+                            <p className="text-gray-400">to {new Date(request.end_date).toLocaleDateString()}</p>
+                          </td>
+                          <td className="font-medium text-yellow-400">
+                            {request.hours_requested}h
+                          </td>
+                          <td className="text-sm text-gray-400">
+                            {request.reason || 'No reason provided'}
+                          </td>
+                          <td>
+                            <span className={`text-sm px-2 py-1 rounded ${
+                              request.status === 'pending' ? 'bg-yellow-900 text-yellow-200' :
+                              request.status === 'approved' ? 'bg-green-900 text-green-200' :
+                              'bg-red-900 text-red-200'
+                            }`}>
+                              {request.status}
+                            </span>
+                          </td>
+                          <td>
+                            {request.status === 'pending' && (
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => handleApproveLeave(request.id)}
+                                  className="text-green-400 hover:text-green-300 transition-colors text-sm"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    const reason = prompt('Reason for rejection:');
+                                    if (reason) handleRejectLeave(request.id, reason);
+                                  }}
+                                  className="text-red-400 hover:text-red-300 transition-colors text-sm"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-800 rounded-lg">
+                  <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-300">No leave requests</h3>
+                  <p className="mt-1 text-sm text-gray-400">
+                    Click "Add Leave Request" to create a new leave request for an employee.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
