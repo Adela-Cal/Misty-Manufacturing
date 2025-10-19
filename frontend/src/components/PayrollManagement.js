@@ -480,6 +480,86 @@ const PayrollManagement = () => {
             </div>
           )}
 
+          {activeTab === 'archived' && hasPermission('manage_payroll') && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-white flex items-center">
+                    <ArchiveBoxIcon className="h-6 w-6 mr-2 text-gray-400" />
+                    Archived Staff
+                  </h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    View and restore archived employees. All historic data is preserved.
+                  </p>
+                </div>
+              </div>
+
+              {archivedEmployees.length > 0 ? (
+                <div className="misty-table">
+                  <table className="w-full">
+                    <thead>
+                      <tr>
+                        <th>Employee</th>
+                        <th>Position</th>
+                        <th>Department</th>
+                        <th>Hourly Rate</th>
+                        <th>Employment Type</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {archivedEmployees.map((employee) => (
+                        <tr key={employee.id} className="opacity-75">
+                          <td>
+                            <div>
+                              <p className="font-medium">{employee.first_name} {employee.last_name}</p>
+                              <p className="text-sm text-gray-400">{employee.employee_number}</p>
+                            </div>
+                          </td>
+                          <td>{employee.position}</td>
+                          <td>{employee.department || 'N/A'}</td>
+                          <td className="font-medium text-yellow-400">
+                            {formatCurrency(employee.hourly_rate)}/hr
+                          </td>
+                          <td>
+                            <span className="text-sm bg-gray-600 px-2 py-1 rounded capitalize">
+                              {employee.employment_type.replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => handleRestoreEmployee(employee)}
+                                className="text-gray-400 hover:text-green-400 transition-colors flex items-center"
+                              >
+                                <ArrowPathIcon className="h-4 w-4 mr-1" />
+                                Restore
+                              </button>
+                              <button
+                                onClick={() => handleTimesheetView(employee)}
+                                className="text-gray-400 hover:text-blue-400 transition-colors"
+                              >
+                                View History
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-800 rounded-lg">
+                  <ArchiveBoxIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-300">No archived employees</h3>
+                  <p className="mt-1 text-sm text-gray-400">
+                    Archived staff members will appear here with their historic data preserved.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'my-timesheet' && (
             <div className="misty-card p-6">
               <h3 className="text-xl font-semibold text-white mb-4">My Timesheet</h3>
