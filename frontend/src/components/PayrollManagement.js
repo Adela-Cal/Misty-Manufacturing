@@ -756,6 +756,75 @@ const PayrollManagement = () => {
           </div>
         </div>
       )}
+
+      {/* Permanent Delete Confirmation Modal */}
+      {showPermanentDeleteConfirm && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowPermanentDeleteConfirm(false)}>
+          <div className="modal-content max-w-md">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-900">
+                  <ExclamationTriangleIcon className="h-7 w-7 text-red-300" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-white">Permanent Delete</h3>
+                  <p className="text-sm text-red-400 font-semibold">This action CANNOT be reversed!</p>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-300 mb-3">
+                  Are you absolutely sure you want to <span className="text-red-400 font-semibold">permanently delete</span> all data for{' '}
+                  <span className="font-semibold text-white">
+                    {employeeToPermanentlyDelete?.first_name} {employeeToPermanentlyDelete?.last_name}
+                  </span>?
+                </p>
+                
+                <div className="bg-red-900 bg-opacity-30 border border-red-500 rounded-lg p-4 mb-3">
+                  <p className="text-sm text-red-200 font-semibold mb-2 flex items-center">
+                    <ExclamationTriangleIcon className="h-5 w-5 inline mr-2" />
+                    WARNING: All data will be permanently deleted:
+                  </p>
+                  <ul className="text-xs text-red-300 ml-6 space-y-1">
+                    <li>• Employee profile and personal information</li>
+                    <li>• All timesheets and attendance records</li>
+                    <li>• All leave requests and history</li>
+                    <li>• Complete payroll history</li>
+                    <li>• All employment records</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-800 border border-gray-600 rounded-lg p-3">
+                  <p className="text-xs text-gray-300">
+                    <strong className="text-white">Note:</strong> This action should only be used for compliance reasons 
+                    or when absolutely certain data should not be retained. Consider archiving instead if you may 
+                    need this information in the future.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowPermanentDeleteConfirm(false);
+                    setEmployeeToPermanentlyDelete(null);
+                  }}
+                  className="misty-button misty-button-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmPermanentDelete}
+                  className="px-4 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition-colors duration-200 flex items-center font-semibold"
+                >
+                  <TrashIcon className="h-4 w-4 mr-2" />
+                  Delete Permanently
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
