@@ -375,6 +375,11 @@ class MaterialLayerAssignment(BaseModel):
     thickness: float  # mm - thickness of this material
     quantity: Optional[float] = None  # quantity/percentage if applicable
     notes: Optional[str] = None
+    # Spiral Core Allocation fields
+    spiral_allocation_percent: Optional[float] = None  # Percentage of this layer in spiral formation
+    spiral_sequence: Optional[int] = None  # Order of application in spiral winding (1, 2, 3, etc.)
+    winding_direction: Optional[str] = None  # "clockwise", "counterclockwise", "alternating"
+    overlap_factor: Optional[float] = None  # Material overlap multiplier (1.0 = no overlap)
 
 # Machinery Models for Product Specifications
 class MachineryRate(BaseModel):
