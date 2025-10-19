@@ -11,7 +11,10 @@ import {
   BanknotesIcon,
   DocumentChartBarIcon,
   ExclamationTriangleIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  TrashIcon,
+  ArchiveBoxIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
 const PayrollManagement = () => {
