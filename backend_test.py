@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Final Comprehensive Testing
-Focus on achieving 100% success rate after fixing PDF date formatting issue
+Backend API Testing Suite for Payroll Employee Synchronization
+Testing new employee synchronization with Staff and Security users
 
 PRIORITY TESTS:
-1. Stock Print PDF Generation - CRITICAL RETEST
-2. Order Deletion with Stock Reallocation - VERIFICATION  
-3. Stock Reporting Endpoints - VERIFICATION
-4. Production Board Reordering - VERIFICATION
+1. Employee Auto-Sync with Staff and Security Users
+2. Manual Sync Endpoint Testing
+3. Employee Data Enrichment Verification
+4. Employee Profile Creation with Default Values
+5. Role to Position Mapping Verification
 """
 
 import requests
