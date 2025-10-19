@@ -572,6 +572,8 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
     delivery_price_per_unit: '',
     // Consumables
     consumables: [],
+    // Material Layers (for material requirements in projections)
+    material_layers: [],
     // Shared Product functionality
     is_shared_product: false,
     shared_with_clients: [],
