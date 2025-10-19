@@ -543,15 +543,62 @@ const PayrollManagement = () => {
           {activeTab === 'employees' && hasPermission('manage_payroll') && (
             <div>
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-white">Employee Management</h3>
-                <button
-                  onClick={handleEmployeeCreate}
-                  className="misty-button misty-button-primary flex items-center"
-                  data-testid="add-employee-button"
-                >
-                  <UserPlusIcon className="h-5 w-5 mr-2" />
-                  Add Employee
-                </button>
+                <div>
+                  <h3 className="text-xl font-semibold text-white">Employee Management</h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    {employees.length} active employees synced from Staff & Security
+                  </p>
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/payroll/employees/sync', {
+                          method: 'POST',
+                          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                        });
+                        if (response.ok) {
+                          const result = await response.json();
+                          toast.success(result.message || 'Employees synced successfully');
+                          loadPayrollData();
+                        } else {
+                          toast.error('Failed to sync employees');
+                        }
+                      } catch (error) {
+                        toast.error('Failed to sync employees');
+                      }
+                    }}
+                    className="misty-button misty-button-secondary flex items-center"
+                  >
+                    <ArrowPathIcon className="h-5 w-5 mr-2" />
+                    Sync from Staff & Security
+                  </button>
+                  <button
+                    onClick={handleEmployeeCreate}
+                    className="misty-button misty-button-primary flex items-center"
+                    data-testid="add-employee-button"
+                  >
+                    <UserPlusIcon className="h-5 w-5 mr-2" />
+                    Add Employee
+                  </button>
+                </div>
+              </div>
+
+              {/* Info box about sync */}
+              <div className="bg-blue-900 bg-opacity-20 border border-blue-500 border-opacity-30 rounded-lg p-4 mb-6">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <CheckCircleIcon className="h-5 w-5 text-blue-400 mt-0.5" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-blue-200">
+                      <strong>Auto-Sync Enabled:</strong> All active users from Staff & Security automatically appear here.
+                    </p>
+                    <p className="text-xs text-blue-300 mt-1">
+                      Missing someone? Check that they are marked as "Active" in Staff & Security, or click "Sync from Staff & Security" to manually refresh.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {employees.length > 0 ? (
