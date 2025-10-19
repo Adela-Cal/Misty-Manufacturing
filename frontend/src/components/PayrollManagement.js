@@ -440,11 +440,12 @@ const PayrollManagement = () => {
                           <td>
                             <div className="flex items-center space-x-2">
                               <button
-                                onClick={() => handleEmployeeEdit(employee)}
-                                className="text-gray-400 hover:text-yellow-400 transition-colors"
-                                data-testid={`edit-employee-${employee.id}`}
+                                onClick={() => handleEmployeeDelete(employee)}
+                                className="text-gray-400 hover:text-red-400 transition-colors flex items-center"
+                                data-testid={`delete-employee-${employee.id}`}
                               >
-                                Edit
+                                <TrashIcon className="h-4 w-4 mr-1" />
+                                Delete
                               </button>
                               <button
                                 onClick={() => handleTimesheetView(employee)}
