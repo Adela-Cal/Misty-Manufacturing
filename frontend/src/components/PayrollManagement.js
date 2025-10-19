@@ -192,6 +192,110 @@ const PayrollManagement = () => {
     }
   };
 
+  const loadAllLeaveRequests = async () => {
+    try {
+      const response = await fetch('/api/payroll/leave-requests/pending', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAllLeaveRequests(data.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to load leave requests:', error);
+    }
+  };
+
+  const handleAddLeaveRequest = () => {
+    setLeaveFormData({
+      employee_id: '',
+      leave_type: 'annual_leave',
+      start_date: '',
+      end_date: '',
+      hours_requested: '',
+      reason: '',
+      approver_id: ''
+    });
+    setShowLeaveRequestModal(true);
+  };
+
+  const handleLeaveFormSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch('/api/payroll/leave-requests', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(leaveFormData)
+      });
+
+      if (response.ok) {
+        toast.success('Leave request created successfully');
+        setShowLeaveRequestModal(false);
+        loadAllLeaveRequests();
+        loadPayrollData();
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to create leave request');
+      }
+    } catch (error) {
+      console.error('Failed to create leave request:', error);
+      toast.error('Failed to create leave request');
+    }
+  };
+
+  const handleApproveLeave = async (requestId) => {
+    try {
+      const response = await fetch(`/api/payroll/leave-requests/${requestId}/approve`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        toast.success('Leave request approved');
+        loadAllLeaveRequests();
+        loadPayrollData();
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to approve leave request');
+      }
+    } catch (error) {
+      console.error('Failed to approve leave request:', error);
+      toast.error('Failed to approve leave request');
+    }
+  };
+
+  const handleRejectLeave = async (requestId, reason) => {
+    try {
+      const response = await fetch(`/api/payroll/leave-requests/${requestId}/reject?rejection_reason=${encodeURIComponent(reason)}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        toast.success('Leave request rejected');
+        loadAllLeaveRequests();
+        loadPayrollData();
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to reject leave request');
+      }
+    } catch (error) {
+      console.error('Failed to reject leave request:', error);
+      toast.error('Failed to reject leave request');
+    }
+  };
+
   const handleEmployeeCreate = () => {
     setSelectedEmployee(null);
     setShowEmployeeModal(true);
