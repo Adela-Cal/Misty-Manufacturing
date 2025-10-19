@@ -10,6 +10,8 @@ class UserRole(str, Enum):
     PRODUCTION_MANAGER = "production_manager"
     SALES = "sales"
     PRODUCTION_TEAM = "production_team"
+    PRODUCTION_STAFF = "production_staff"  # Added for frontend compatibility
+    SUPERVISOR = "supervisor"              # Added for frontend compatibility
     MANAGER = "manager"          # Department/Team managers
     EMPLOYEE = "employee"        # Regular employees
 
