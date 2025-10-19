@@ -5393,80 +5393,166 @@ async def get_projected_order_analysis(
                 is_core_product = product.get("product_type") == "paper_cores"
                 
                 if is_core_product:
-                    # Complex calculation for cylindrical cores
+                    # Spiral-wound paper core calculation using cylinder shell formula
                     try:
-                        core_length = float(product.get("core_width") or product.get("width") or 1200) / 1000  # Convert mm to meters
-                        core_id = float(product.get("core_id") or 76)  # Core inner diameter in mm
+                        # Get core specifications in mm
+                        core_id_mm = float(product.get("core_id") or 76)  # Inner diameter in mm
+                        core_length_mm = float(product.get("core_width") or product.get("width") or 1200)  # Core length in mm
+                        wall_thickness_mm = float(product.get("core_thickness") or 3)  # Wall thickness in mm
+                        
+                        # Convert to meters
+                        core_id_m = core_id_mm / 1000
+                        core_length_m = core_length_mm / 1000
+                        wall_thickness_m = wall_thickness_mm / 1000
+                        
+                        # Calculate inner radius
+                        inner_radius_m = core_id_m / 2
+                        
                     except (TypeError, ValueError):
                         # If conversion fails, use defaults
-                        core_length = 1.2  # meters
-                        core_id = 76  # mm
-                    
-                    length_factor = 2.366  # Default length factor
-                    
-                    sorted_layers = sorted(material_layers, key=lambda x: float(x.get("width") or 0))
+                        core_id_mm = 76
+                        core_length_mm = 1200
+                        wall_thickness_mm = 3
+                        core_id_m = 0.076
+                        core_length_m = 1.2
+                        wall_thickness_m = 0.003
+                        inner_radius_m = 0.038
                     
                     for period, projected_qty in projections.items():
                         material_requirements[period] = []
-                        core_radius = core_id / 2  # mm
-                        current_radius = core_radius
-                        total_meters_all_layers = 0
                         
-                        for layer_index, layer in enumerate(sorted_layers):
+                        # Track current radius position as we build layers
+                        current_inner_radius = inner_radius_m
+                        total_paper_mass_kg = 0
+                        total_paper_area_m2 = 0
+                        total_strip_length_m = 0
+                        total_cost = 0
+                        
+                        # Process each material layer
+                        for layer_index, layer in enumerate(material_layers):
                             try:
                                 material_id = layer.get("material_id")
-                                thickness = float(layer.get("thickness") or 0)  # mm
-                                width = float(layer.get("width") or 0)  # mm
-                                laps_per_core = int(layer.get("quantity") or 1)  # Number of wraps
+                                thickness_mm = float(layer.get("thickness") or 0)  # Thickness per single layer in mm
+                                gsm = float(layer.get("gsm") or 0)  # Grams per square metre
+                                num_layers = int(layer.get("quantity") or 1)  # How many layers of this material
+                                layer_width_mm = float(layer.get("width") or 0)  # Width in mm (if material is cut into strips)
                             except (TypeError, ValueError) as e:
                                 logger.error(f"Error parsing layer fields: {e}, layer: {layer}")
                                 continue
                             
-                            if width > 0 and laps_per_core > 0:
-                                circumference_at_layer = (2 * 3.14159 * current_radius) / 1000  # meters
-                                meters_per_core = (circumference_at_layer * length_factor) * laps_per_core
-                                total_meters = meters_per_core * projected_qty
-                                total_meters_all_layers += total_meters
-                                
-                                material_name = layer.get("material_name", "Unknown")
-                                layer_type = layer.get("layer_type", f"Layer {layer_index + 1}")
-                                gsm = layer.get("gsm", 0)
-                                
-                                # Calculate material cost
-                                material_cost = 0
-                                cost_per_meter = 0
-                                
-                                if material_id:
-                                    material = await db.materials.find_one({"id": material_id})
-                                    if material:
-                                        material_name = material.get("material_description", material.get("supplier", material_name))
-                                        # Get cost per unit (usually per meter or per kg)
-                                        cost_per_unit = float(material.get("cost_per_unit", 0))
-                                        cost_per_meter = cost_per_unit
-                                        material_cost = total_meters * cost_per_meter
-                                
-                                material_requirements[period].append({
-                                    "layer_order": layer_index + 1,
-                                    "layer_type": layer_type,
-                                    "material_id": material_id,
-                                    "material_name": material_name,
-                                    "width_mm": width,
-                                    "thickness_mm": thickness,
-                                    "gsm": gsm,
-                                    "laps_per_core": laps_per_core,
-                                    "meters_per_core": round(meters_per_core, 2),
-                                    "total_meters_needed": round(total_meters, 2),
-                                    "layer_radius": round(current_radius, 2),
-                                    "cost_per_meter": round(cost_per_meter, 4),
-                                    "total_cost": round(material_cost, 2)
-                                })
-                                
-                                current_radius += (thickness * laps_per_core)
+                            if thickness_mm <= 0 or num_layers <= 0:
+                                continue
+                            
+                            # Convert to meters
+                            thickness_m = thickness_mm / 1000
+                            layer_width_m = layer_width_mm / 1000 if layer_width_mm > 0 else None
+                            
+                            # Calculate total thickness for this material stream
+                            total_stream_thickness_m = thickness_m * num_layers
+                            
+                            # Calculate inner and outer radius for this material stream
+                            stream_inner_radius = current_inner_radius
+                            stream_outer_radius = current_inner_radius + total_stream_thickness_m
+                            
+                            # Calculate volume using cylinder shell formula
+                            # Volume = π × core_length × (outer_radius² - inner_radius²)
+                            volume_m3 = 3.14159 * core_length_m * (
+                                (stream_outer_radius ** 2) - (stream_inner_radius ** 2)
+                            )
+                            
+                            # Calculate density from GSM and thickness
+                            # density = GSM ÷ thickness(mm) gives kg/m³
+                            if thickness_mm > 0 and gsm > 0:
+                                density_kg_m3 = gsm / thickness_mm
+                            else:
+                                density_kg_m3 = 0
+                            
+                            # Calculate mass: mass = volume × density
+                            stream_mass_kg = volume_m3 * density_kg_m3
+                            
+                            # Calculate surface area: area = volume ÷ thickness
+                            if total_stream_thickness_m > 0:
+                                stream_area_m2 = volume_m3 / total_stream_thickness_m
+                            else:
+                                stream_area_m2 = 0
+                            
+                            # Calculate strip length if layer width is provided
+                            if layer_width_m and layer_width_m > 0:
+                                stream_strip_length_m = stream_area_m2 / layer_width_m
+                            else:
+                                stream_strip_length_m = 0
+                            
+                            # Calculate total for projected quantity
+                            total_mass_kg = stream_mass_kg * projected_qty
+                            total_area_m2 = stream_area_m2 * projected_qty
+                            total_length_m = stream_strip_length_m * projected_qty
+                            
+                            # Get material information and cost
+                            material_name = layer.get("material_name", "Unknown")
+                            layer_type = layer.get("layer_type", f"Layer {layer_index + 1}")
+                            material_cost = 0
+                            cost_per_meter = 0
+                            
+                            if material_id:
+                                material = await db.materials.find_one({"id": material_id})
+                                if material:
+                                    material_name = material.get("material_description", material.get("supplier", material_name))
+                                    cost_per_unit = float(material.get("cost_per_unit", 0))
+                                    cost_per_meter = cost_per_unit
+                                    # Cost calculation: if we have strip length, use that; otherwise use area
+                                    if stream_strip_length_m > 0:
+                                        material_cost = total_length_m * cost_per_meter
+                                    else:
+                                        material_cost = total_area_m2 * cost_per_meter
+                            
+                            # Add to totals
+                            total_paper_mass_kg += total_mass_kg
+                            total_paper_area_m2 += total_area_m2
+                            if stream_strip_length_m > 0:
+                                total_strip_length_m += total_length_m
+                            total_cost += material_cost
+                            
+                            material_requirements[period].append({
+                                "layer_order": layer_index + 1,
+                                "layer_type": layer_type,
+                                "material_id": material_id,
+                                "material_name": material_name,
+                                "width_mm": layer_width_mm,
+                                "thickness_mm": thickness_mm,
+                                "gsm": gsm,
+                                "num_layers": num_layers,
+                                "stream_inner_radius_mm": round(stream_inner_radius * 1000, 2),
+                                "stream_outer_radius_mm": round(stream_outer_radius * 1000, 2),
+                                "volume_m3_per_core": round(volume_m3, 6),
+                                "density_kg_m3": round(density_kg_m3, 2),
+                                "mass_kg_per_core": round(stream_mass_kg, 4),
+                                "area_m2_per_core": round(stream_area_m2, 4),
+                                "strip_length_m_per_core": round(stream_strip_length_m, 2) if stream_strip_length_m > 0 else None,
+                                "total_mass_kg": round(total_mass_kg, 2),
+                                "total_area_m2": round(total_area_m2, 2),
+                                "total_strip_length_m": round(total_length_m, 2) if stream_strip_length_m > 0 else None,
+                                "meters_per_core": round(stream_strip_length_m, 2) if stream_strip_length_m > 0 else round(stream_area_m2, 2),
+                                "total_meters_needed": round(total_length_m, 2) if stream_strip_length_m > 0 else round(total_area_m2, 2),
+                                "cost_per_meter": round(cost_per_meter, 4),
+                                "total_cost": round(material_cost, 2)
+                            })
+                            
+                            # Update current radius for next layer
+                            current_inner_radius = stream_outer_radius
                         
+                        # Calculate outer diameter
+                        outer_diameter_mm = core_id_mm + (2 * wall_thickness_mm)
+                        
+                        # Add summary totals
                         if material_requirements[period]:
                             material_requirements[period].append({
                                 "is_total": True,
-                                "total_meters_all_layers": round(total_meters_all_layers, 2)
+                                "outer_diameter_mm": round(outer_diameter_mm, 2),
+                                "total_paper_mass_kg": round(total_paper_mass_kg, 2),
+                                "total_paper_area_m2": round(total_paper_area_m2, 2),
+                                "total_strip_length_m": round(total_strip_length_m, 2) if total_strip_length_m > 0 else None,
+                                "total_meters_all_layers": round(total_strip_length_m, 2) if total_strip_length_m > 0 else round(total_paper_area_m2, 2),
+                                "total_cost": round(total_cost, 2)
                             })
                 else:
                     # Simpler calculation for flat products (labels, films, tapes)
