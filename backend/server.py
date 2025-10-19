@@ -476,6 +476,139 @@ async def delete_product_specification(spec_id: str, current_user: dict = Depend
     
     return StandardResponse(success=True, message="Product specification deleted successfully")
 
+
+@api_router.post("/sync/product-spec-to-client-products", response_model=StandardResponse)
+async def sync_product_spec_to_client_products(spec_id: str, current_user: dict = Depends(require_admin_or_manager)):
+    """
+    Sync material_layers from product_specifications to all matching client_products
+    Matches products by product_name (case-insensitive partial match)
+    """
+    try:
+        # Get the product specification
+        spec = await db.product_specifications.find_one({"id": spec_id, "is_active": True})
+        
+        if not spec:
+            raise HTTPException(status_code=404, detail="Product specification not found")
+        
+        material_layers = spec.get("material_layers", [])
+        product_name = spec.get("product_name", "")
+        
+        if not material_layers:
+            return StandardResponse(success=True, message="No material layers to sync", data={"synced_count": 0})
+        
+        # Find matching client_products (by product_name or product_description)
+        matching_products = await db.client_products.find({
+            "$or": [
+                {"product_name": {"$regex": product_name, "$options": "i"}},
+                {"product_description": {"$regex": product_name, "$options": "i"}},
+                {"product_code": spec.get("product_code")}
+            ],
+            "is_active": True
+        }).to_list(length=None)
+        
+        synced_count = 0
+        for product in matching_products:
+            result = await db.client_products.update_one(
+                {"id": product["id"]},
+                {"$set": {
+                    "material_layers": material_layers,
+                    "updated_at": datetime.now(timezone.utc)
+                }}
+            )
+            if result.modified_count > 0:
+                synced_count += 1
+        
+        return StandardResponse(
+            success=True,
+            message=f"Synced material layers to {synced_count} client product(s)",
+            data={"synced_count": synced_count, "products_found": len(matching_products)}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to sync product spec to client products: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
+
+
+@api_router.post("/sync/client-product-to-spec", response_model=StandardResponse)
+async def sync_client_product_to_spec(client_id: str, product_id: str, current_user: dict = Depends(require_admin_or_manager)):
+    """
+    Sync material_layers from client_product to matching product_specification
+    Creates a new spec if none exists with matching name
+    """
+    try:
+        # Get the client product
+        product = await db.client_products.find_one({
+            "id": product_id,
+            "client_id": client_id,
+            "is_active": True
+        })
+        
+        if not product:
+            raise HTTPException(status_code=404, detail="Client product not found")
+        
+        material_layers = product.get("material_layers", [])
+        product_name = product.get("product_name") or product.get("product_description", "")
+        
+        if not material_layers:
+            return StandardResponse(success=True, message="No material layers to sync", data={"synced_count": 0})
+        
+        # Try to find matching product specification
+        spec = await db.product_specifications.find_one({
+            "$or": [
+                {"product_name": {"$regex": product_name, "$options": "i"}},
+                {"product_code": product.get("product_code")}
+            ],
+            "is_active": True
+        })
+        
+        if spec:
+            # Update existing spec
+            result = await db.product_specifications.update_one(
+                {"id": spec["id"]},
+                {"$set": {
+                    "material_layers": material_layers,
+                    "updated_at": datetime.now(timezone.utc)
+                }}
+            )
+            return StandardResponse(
+                success=True,
+                message="Synced material layers to product specification",
+                data={"spec_id": spec["id"], "action": "updated"}
+            )
+        else:
+            # Create new spec
+            new_spec_id = str(uuid.uuid4())
+            new_spec = {
+                "id": new_spec_id,
+                "product_name": product_name,
+                "product_type": product.get("product_type", "Other"),
+                "specifications": {},
+                "material_layers": material_layers,
+                "materials_composition": [],
+                "machinery": [],
+                "manufacturing_notes": f"Auto-created from client product: {product_name}",
+                "is_active": True,
+                "created_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc)
+            }
+            
+            await db.product_specifications.insert_one(new_spec)
+            
+            return StandardResponse(
+                success=True,
+                message="Created new product specification with material layers",
+                data={"spec_id": new_spec_id, "action": "created"}
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to sync client product to spec: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
+
+
 # ============= MACHINERY RATES ENDPOINTS =============
 
 @api_router.get("/machinery-rates", response_model=List[MachineryRate])
