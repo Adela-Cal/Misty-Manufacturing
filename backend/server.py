@@ -5432,10 +5432,18 @@ async def get_projected_order_analysis(
                                 layer_type = layer.get("layer_type", f"Layer {layer_index + 1}")
                                 gsm = layer.get("gsm", 0)
                                 
+                                # Calculate material cost
+                                material_cost = 0
+                                cost_per_meter = 0
+                                
                                 if material_id:
                                     material = await db.materials.find_one({"id": material_id})
                                     if material:
                                         material_name = material.get("material_description", material.get("supplier", material_name))
+                                        # Get cost per unit (usually per meter or per kg)
+                                        cost_per_unit = float(material.get("cost_per_unit", 0))
+                                        cost_per_meter = cost_per_unit
+                                        material_cost = total_meters * cost_per_meter
                                 
                                 material_requirements[period].append({
                                     "layer_order": layer_index + 1,
@@ -5448,7 +5456,9 @@ async def get_projected_order_analysis(
                                     "laps_per_core": laps_per_core,
                                     "meters_per_core": round(meters_per_core, 2),
                                     "total_meters_needed": round(total_meters, 2),
-                                    "layer_radius": round(current_radius, 2)
+                                    "layer_radius": round(current_radius, 2),
+                                    "cost_per_meter": round(cost_per_meter, 4),
+                                    "total_cost": round(material_cost, 2)
                                 })
                                 
                                 current_radius += (thickness * laps_per_core)
