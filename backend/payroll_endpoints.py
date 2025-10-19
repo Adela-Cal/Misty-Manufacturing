@@ -618,6 +618,27 @@ async def get_pending_leave_requests(current_user: dict = Depends(require_payrol
     
     return {"success": True, "data": pending_requests}
 
+@payroll_router.get("/leave-requests/my-approvals")
+async def get_my_approval_requests(current_user: dict = Depends(require_any_role)):
+    """Get leave requests assigned to current user for approval"""
+    
+    # Get requests where current user is the assigned approver
+    my_requests = await db.leave_requests.find({
+        "approver_id": current_user["user_id"],
+        "status": LeaveStatus.PENDING
+    }).to_list(1000)
+    
+    # Remove MongoDB ObjectId and enrich with employee names
+    for request in my_requests:
+        if "_id" in request:
+            del request["_id"]
+            
+        employee = await db.employee_profiles.find_one({"id": request["employee_id"]})
+        if employee:
+            request["employee_name"] = f"{employee['first_name']} {employee['last_name']}"
+    
+    return {"success": True, "data": my_requests}
+
 @payroll_router.post("/leave-requests/{request_id}/approve", response_model=StandardResponse)
 async def approve_leave_request(request_id: str, current_user: dict = Depends(require_payroll_access)):
     """Approve leave request"""
