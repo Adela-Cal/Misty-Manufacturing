@@ -468,11 +468,21 @@ class PayrollObjectIdTester:
                             employee_issues.append(f"{field} is empty")
                     
                     # Check numeric fields are valid
-                    if "hourly_rate" in emp and (emp["hourly_rate"] is None or emp["hourly_rate"] <= 0):
-                        employee_issues.append("hourly_rate is invalid")
+                    if "hourly_rate" in emp:
+                        try:
+                            rate = float(emp["hourly_rate"]) if emp["hourly_rate"] is not None else 0
+                            if rate <= 0:
+                                employee_issues.append("hourly_rate is invalid")
+                        except (ValueError, TypeError):
+                            employee_issues.append("hourly_rate is not numeric")
                     
-                    if "weekly_hours" in emp and (emp["weekly_hours"] is None or emp["weekly_hours"] <= 0):
-                        employee_issues.append("weekly_hours is invalid")
+                    if "weekly_hours" in emp:
+                        try:
+                            hours = float(emp["weekly_hours"]) if emp["weekly_hours"] is not None else 0
+                            if hours <= 0:
+                                employee_issues.append("weekly_hours is invalid")
+                        except (ValueError, TypeError):
+                            employee_issues.append("weekly_hours is not numeric")
                     
                     # Check UUID format for id fields
                     uuid_fields = ["id", "user_id"]
