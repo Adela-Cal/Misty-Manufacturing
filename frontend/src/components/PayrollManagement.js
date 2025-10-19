@@ -70,6 +70,80 @@ const PayrollManagement = () => {
     }
   };
 
+  const loadArchivedEmployees = async () => {
+    try {
+      const response = await fetch('/api/payroll/employees/archived/list', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setArchivedEmployees(Array.isArray(data) ? data : []);
+      } else {
+        toast.error('Failed to load archived employees');
+      }
+    } catch (error) {
+      console.error('Failed to load archived employees:', error);
+      toast.error('Failed to load archived employees');
+    }
+  };
+
+  const handleEmployeeDelete = (employee) => {
+    setEmployeeToDelete(employee);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!employeeToDelete) return;
+    
+    try {
+      const response = await fetch(`/api/payroll/employees/${employeeToDelete.id}`, {
+        method: 'DELETE',
+        headers: { 
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        toast.success('Employee archived successfully. Data preserved for historic review.');
+        loadPayrollData();
+        setShowDeleteConfirm(false);
+        setEmployeeToDelete(null);
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to archive employee');
+      }
+    } catch (error) {
+      console.error('Failed to archive employee:', error);
+      toast.error('Failed to archive employee');
+    }
+  };
+
+  const handleRestoreEmployee = async (employee) => {
+    try {
+      const response = await fetch(`/api/payroll/employees/${employee.id}/restore`, {
+        method: 'POST',
+        headers: { 
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        toast.success('Employee restored successfully');
+        loadArchivedEmployees();
+        loadPayrollData();
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to restore employee');
+      }
+    } catch (error) {
+      console.error('Failed to restore employee:', error);
+      toast.error('Failed to restore employee');
+    }
+  };
+
   const handleEmployeeCreate = () => {
     setSelectedEmployee(null);
     setShowEmployeeModal(true);
