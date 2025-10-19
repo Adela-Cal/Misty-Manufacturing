@@ -1069,62 +1069,85 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
       return [];
     }
 
-    // Get core specifications
-    const coreLength = parseFloat(productSpecs.core_width) / 1000 || 1.2; // Convert mm to meters, default 1.2m
+    // Get core specifications in mm
+    const coreIdMm = parseFloat(productSpecs.core_id) || 76; // Inner diameter in mm
+    const coreLengthMm = parseFloat(productSpecs.core_width) || parseFloat(productSpecs.width) || 1200; // Core length in mm
     const orderQuantity = jobData?.order?.quantity || 1;
     
-    // Get length factor from core winding specification (predefined manufacturing values)
-    let lengthFactor = 2.366; // Default length factor
-    let windingAngle = 65; // Default angle for display
+    // Convert to meters
+    const coreIdM = coreIdMm / 1000;
+    const coreLengthM = coreLengthMm / 1000;
     
-    if (coreWindingSpec) {
-      // Use the predefined length factor from machinery specifications
-      lengthFactor = parseFloat(coreWindingSpec.lengthFactor) || 2.366;
+    // Calculate inner radius
+    const innerRadiusM = coreIdM / 2;
+    
+    // Track current radius position as we build layers
+    let currentInnerRadius = innerRadiusM;
+    
+    const materialRequirements = productSpecs.material_layers.map((layer, index) => {
+      const thicknessMm = parseFloat(layer.thickness) || 0; // Thickness per single layer in mm
+      const gsm = parseFloat(layer.gsm) || 0; // Grams per square metre
+      const numLayers = parseInt(layer.quantity) || 1; // How many layers of this material
+      const layerWidthMm = parseFloat(layer.width) || 0; // Width in mm (if material is cut into strips)
       
-      // Extract angle for display purposes
-      if (coreWindingSpec.recommendedAngle) {
-        const angleMatch = coreWindingSpec.recommendedAngle.match(/(\d+)/);
-        if (angleMatch) {
-          windingAngle = parseInt(angleMatch[1]);
-        }
-      }
-    }
-
-    // Sort layers by width to determine proper layering order (narrower = inner, wider = outer)
-    const sortedLayers = [...productSpecs.material_layers].sort((a, b) => {
-      const widthA = parseFloat(a.width) || 0;
-      const widthB = parseFloat(b.width) || 0;
-      return widthA - widthB;
-    });
-
-    // Calculate initial core radius (diameter / 2)
-    const coreRadius = (parseFloat(productSpecs.core_id) || 76) / 2; // mm
-    let currentRadius = coreRadius;
-
-    const materialRequirements = sortedLayers.map((layer, index) => {
-      const thickness = parseFloat(layer.thickness) || 0; // mm
-      const lapsPerCore = layer.quantity || 1;
+      // Convert to meters
+      const thicknessM = thicknessMm / 1000;
+      const layerWidthM = layerWidthMm / 1000;
       
-      // Calculate circumference at current radius level
-      const circumferenceAtLayer = (2 * Math.PI * currentRadius) / 1000; // Convert mm to meters
+      // Calculate total thickness for this material stream
+      const totalStreamThicknessM = thicknessM * numLayers;
       
-      // Material length per core = (circumference at this layer × length factor) × laps
-      const metersPerCore = (circumferenceAtLayer * lengthFactor) * lapsPerCore;
+      // Calculate inner and outer radius for this material stream
+      const streamInnerRadius = currentInnerRadius;
+      const streamOuterRadius = currentInnerRadius + totalStreamThicknessM;
       
-      // Total material needed for entire order
+      // Calculate volume using cylinder shell formula
+      // Volume = π × core_length × (outer_radius² - inner_radius²)
+      const volumeM3 = Math.PI * coreLengthM * (
+        (streamOuterRadius ** 2) - (streamInnerRadius ** 2)
+      );
+      
+      // Calculate density from GSM and thickness
+      // density = GSM ÷ thickness(mm) gives kg/m³
+      const densityKgM3 = (thicknessMm > 0 && gsm > 0) ? (gsm / thicknessMm) : 0;
+      
+      // Calculate mass: mass = volume × density
+      const massKgPerCore = volumeM3 * densityKgM3;
+      
+      // Calculate surface area: area = volume ÷ thickness
+      const areaM2PerCore = (totalStreamThicknessM > 0) ? (volumeM3 / totalStreamThicknessM) : 0;
+      
+      // Calculate strip length if layer width is provided
+      const stripLengthMPerCore = (layerWidthM > 0) ? (areaM2PerCore / layerWidthM) : 0;
+      
+      // Calculate totals for entire order
+      const totalMassKg = massKgPerCore * orderQuantity;
+      const totalAreaM2 = areaM2PerCore * orderQuantity;
+      const totalStripLengthM = stripLengthMPerCore * orderQuantity;
+      
+      // Use strip length if available, otherwise use area
+      const metersPerCore = stripLengthMPerCore > 0 ? stripLengthMPerCore : areaM2PerCore;
       const totalMeters = metersPerCore * orderQuantity;
       
-      // Update radius for next layer (add thickness for each lap)
-      currentRadius += (thickness * lapsPerCore);
+      // Update current radius for next layer
+      currentInnerRadius = streamOuterRadius;
 
       return {
         ...layer,
         metersPerCore: metersPerCore,
         totalMeters: totalMeters,
-        lapsPerCore: lapsPerCore,
-        lengthFactor: lengthFactor.toFixed(3),
-        layerRadius: currentRadius - (thickness * lapsPerCore), // Radius at start of this layer
-        layerOrder: index + 1 // Order from inner to outer
+        massKgPerCore: massKgPerCore,
+        totalMassKg: totalMassKg,
+        areaM2PerCore: areaM2PerCore,
+        totalAreaM2: totalAreaM2,
+        stripLengthMPerCore: stripLengthMPerCore,
+        totalStripLengthM: totalStripLengthM,
+        lapsPerCore: numLayers,
+        streamInnerRadiusMm: streamInnerRadius * 1000,
+        streamOuterRadiusMm: streamOuterRadius * 1000,
+        volumeM3PerCore: volumeM3,
+        densityKgM3: densityKgM3,
+        layerOrder: index + 1
       };
     });
 
