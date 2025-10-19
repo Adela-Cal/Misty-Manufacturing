@@ -5493,14 +5493,6 @@ async def get_projected_order_analysis(
                                     else:
                                         # Fallback: if GSM or width not available, use price directly
                                         cost_per_meter = price_per_tonne
-                                    
-                                    # Cost calculation: use strip length (linear metres)
-                                    if stream_strip_length_m > 0:
-                                        # Material cost = linear metres × cost per metre × projected quantity
-                                        material_cost = stream_strip_length_m * cost_per_meter * projected_qty
-                                    else:
-                                        # Fallback to area-based calculation if strip length unavailable
-                                        material_cost = total_area_m2 * cost_per_meter
                             
                             # Calculate density from GSM and thickness
                             # density = GSM ÷ thickness(mm) gives kg/m³
