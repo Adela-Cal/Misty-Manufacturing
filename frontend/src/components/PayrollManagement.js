@@ -291,6 +291,15 @@ const PayrollManagement = () => {
                   onClick={setActiveTab} 
                 />
                 <TabButton 
+                  id="archived" 
+                  label="Archived Staff" 
+                  isActive={activeTab === 'archived'} 
+                  onClick={(id) => {
+                    setActiveTab(id);
+                    loadArchivedEmployees();
+                  }} 
+                />
+                <TabButton 
                   id="timesheets" 
                   label="Timesheets" 
                   isActive={activeTab === 'timesheets'} 
