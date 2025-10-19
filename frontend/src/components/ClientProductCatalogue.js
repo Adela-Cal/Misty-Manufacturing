@@ -1264,6 +1264,7 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
         delivery_unit_type: formData.product_type === 'services_and_deliveries' ? formData.delivery_unit_type || null : null,
         delivery_price_per_unit: formData.product_type === 'services_and_deliveries' ? (formData.delivery_price_per_unit ? parseFloat(formData.delivery_price_per_unit) : null) : null,
         consumables: formData.consumables,
+        material_layers: formData.material_layers || [],
         is_shared_product: formData.is_shared_product,
         shared_with_clients: formData.shared_with_clients,
         makeready_allowance_percent: formData.makeready_allowance_percent,
@@ -1280,9 +1281,29 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
       if (selectedProduct) {
         await apiHelpers.updateClientProduct(clientId, selectedProduct.id, submitData);
         toast.success('Product updated successfully');
+        
+        // Sync to product specifications
+        try {
+          await apiHelpers.syncClientProductToSpec(clientId, selectedProduct.id);
+          toast.success('Synced material layers to product specifications');
+        } catch (syncError) {
+          console.error('Sync warning:', syncError);
+          toast.warning('Product saved but sync to specifications failed');
+        }
       } else {
-        await apiHelpers.createClientProduct(clientId, submitData);
+        const createResponse = await apiHelpers.createClientProduct(clientId, submitData);
         toast.success('Product created successfully');
+        
+        // Sync to product specifications if product was created
+        if (createResponse.data?.data?.product_id) {
+          try {
+            await apiHelpers.syncClientProductToSpec(clientId, createResponse.data.data.product_id);
+            toast.success('Synced material layers to product specifications');
+          } catch (syncError) {
+            console.error('Sync warning:', syncError);
+            toast.warning('Product created but sync to specifications failed');
+          }
+        }
       }
       
       setShowModal(false);
