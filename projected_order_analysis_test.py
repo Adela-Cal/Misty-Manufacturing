@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
 """
-Projected Order Analysis Endpoint Testing - Material Requirements Focus
-Testing GET /api/stock/reports/projected-order-analysis endpoint specifically for material requirements data.
+Projected Order Analysis GSM-Based Formula Testing Suite
+
+Testing the updated Projected Material Cost calculation using the new GSM-based formula:
+1. Convert 1 tonne to linear metres: linear_metres_per_tonne = 1,000,000 / (GSM × width_metres)
+2. Calculate price per linear metre: price_per_metre = price_per_tonne / linear_metres_per_tonne  
+3. Calculate material cost: material_cost = strip_length_m × price_per_metre × projected_qty
+
+Test Objectives:
+- Verify new cost calculation formula is working correctly
+- Check that price_per_tonne, linear_metres_per_tonne, cost_per_meter are included in response
+- Verify cost_per_core and cost_per_metre_of_core are calculated in summary
+- Ensure the formula uses GSM and layer width correctly
+- Test edge cases (missing GSM, missing width, zero price, etc.)
 
 SPECIFIC TEST REQUIREMENTS FROM REVIEW:
-1. Call GET /api/stock/reports/projected-order-analysis with default parameters
-2. Check the response structure for one of the products (e.g., LM Paper Core)
-3. Verify that material_requirements object exists and has data for each period (3_months, 6_months, 9_months, 12_months)
-4. Check if the materials_composition field exists in client_products
-5. Verify the material calculation logic is working
-
-Test Scenarios:
-1. Basic endpoint functionality test
-2. Material requirements structure verification
-3. Materials composition field existence check
-4. Material calculation logic verification
-5. Edge cases and error handling
+1. API Response Structure Verification - Check new fields are present
+2. Formula Calculation Verification - Verify GSM-based calculations
+3. Multiple Layers Cost Breakdown - Test with products having 3+ material layers
+4. Edge Cases - Test missing GSM, width, zero price, very small width, very high GSM
+5. Summary Totals - Verify cost_per_core and cost_per_metre_of_core in summary
 """
 
 import requests
