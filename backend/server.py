@@ -5492,17 +5492,34 @@ async def get_projected_order_analysis(
                             layer_type = layer.get("layer_type", f"Layer {layer_index + 1}")
                             material_cost = 0
                             cost_per_meter = 0
+                            price_per_tonne = 0
+                            linear_metres_per_tonne = 0
                             
                             if material_id:
                                 material = await db.materials.find_one({"id": material_id})
                                 if material:
                                     material_name = material.get("material_description", material.get("supplier", material_name))
-                                    cost_per_unit = float(material.get("cost_per_unit", 0))
-                                    cost_per_meter = cost_per_unit
-                                    # Cost calculation: if we have strip length, use that; otherwise use area
-                                    if stream_strip_length_m > 0:
-                                        material_cost = total_length_m * cost_per_meter
+                                    price_per_tonne = float(material.get("price", 0))
+                                    
+                                    # Calculate cost per linear metre using the correct formula
+                                    # Formula: Convert 1 tonne (1,000 kg = 1,000,000 grams) to linear metres
+                                    # linear_metres_per_tonne = 1,000,000 / (GSM × width_metres)
+                                    if gsm > 0 and layer_width_m and layer_width_m > 0:
+                                        # 1 tonne = 1,000,000 grams
+                                        # linear metres per tonne = 1,000,000 grams / (GSM × width_metres)
+                                        linear_metres_per_tonne = 1000000 / (gsm * layer_width_m)
+                                        # price per metre = price per tonne / linear metres per tonne
+                                        cost_per_meter = price_per_tonne / linear_metres_per_tonne
                                     else:
+                                        # Fallback: if GSM or width not available, use price directly
+                                        cost_per_meter = price_per_tonne
+                                    
+                                    # Cost calculation: use strip length (linear metres)
+                                    if stream_strip_length_m > 0:
+                                        # Material cost = linear metres × cost per metre × projected quantity
+                                        material_cost = stream_strip_length_m * cost_per_meter * projected_qty
+                                    else:
+                                        # Fallback to area-based calculation if strip length unavailable
                                         material_cost = total_area_m2 * cost_per_meter
                             
                             # Add to totals
