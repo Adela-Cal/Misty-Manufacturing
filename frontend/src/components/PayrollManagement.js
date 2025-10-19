@@ -25,14 +25,25 @@ const PayrollManagement = () => {
   const [archivedEmployees, setArchivedEmployees] = useState([]);
   const [pendingTimesheets, setPendingTimesheets] = useState([]);
   const [pendingLeaveRequests, setPendingLeaveRequests] = useState([]);
+  const [allLeaveRequests, setAllLeaveRequests] = useState([]);
   const [timesheetReminder, setTimesheetReminder] = useState(null);
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
   const [showTimesheetModal, setShowTimesheetModal] = useState(false);
+  const [showLeaveRequestModal, setShowLeaveRequestModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
   const [showPermanentDeleteConfirm, setShowPermanentDeleteConfirm] = useState(false);
   const [employeeToPermanentlyDelete, setEmployeeToPermanentlyDelete] = useState(null);
+  const [leaveFormData, setLeaveFormData] = useState({
+    employee_id: '',
+    leave_type: 'annual_leave',
+    start_date: '',
+    end_date: '',
+    hours_requested: '',
+    reason: '',
+    approver_id: ''
+  });
 
   useEffect(() => {
     loadPayrollData();
