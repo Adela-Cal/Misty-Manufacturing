@@ -84,6 +84,8 @@ export const apiHelpers = {
   updateProductSpecification: (id, data) => api.put(`/product-specifications/${id}`, data),
   getProductSpecification: (id) => api.get(`/product-specifications/${id}`),
   deleteProductSpecification: (id) => api.delete(`/product-specifications/${id}`),
+  syncProductSpecToClientProducts: (specId) => api.post('/sync/product-spec-to-client-products', null, { params: { spec_id: specId } }),
+  syncClientProductToSpec: (clientId, productId) => api.post('/sync/client-product-to-spec', null, { params: { client_id: clientId, product_id: productId } }),
   
   // Calculators
   calculateMaterialConsumptionByClient: (data) => api.post('/calculators/material-consumption-by-client', data),
