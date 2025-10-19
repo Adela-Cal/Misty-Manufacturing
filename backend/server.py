@@ -5521,6 +5521,14 @@ async def get_projected_order_analysis(
                             total_area_m2 = stream_area_m2 * projected_qty
                             total_length_m = stream_strip_length_m * projected_qty
                             
+                            # Cost calculation: use strip length (linear metres) - moved here after strip length is calculated
+                            if stream_strip_length_m > 0:
+                                # Material cost = linear metres × cost per metre × projected quantity
+                                material_cost = stream_strip_length_m * cost_per_meter * projected_qty
+                            else:
+                                # Fallback to area-based calculation if strip length unavailable
+                                material_cost = stream_area_m2 * cost_per_meter
+                            
                             # Add to totals
                             total_paper_mass_kg += total_mass_kg
                             total_paper_area_m2 += total_area_m2
