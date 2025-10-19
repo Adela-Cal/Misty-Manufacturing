@@ -1750,67 +1750,55 @@ const Reports = () => {
                             </button>
                           </div>
                           
-                          {/* Material Requirements Table */}
+                          {/* Material Requirements */}
                           {isExpanded && materialReqs && (
                             <div className="mt-4 border-t border-gray-700 pt-4">
-                              <div className="overflow-x-auto">
-                                <table className="min-w-full">
-                                  <thead>
-                                    <tr className="border-b border-gray-700">
-                                      <th className="text-left py-2 px-3 text-gray-300 text-xs">Layer</th>
-                                      <th className="text-left py-2 px-3 text-gray-300 text-xs">Material</th>
-                                      <th className="text-right py-2 px-3 text-gray-300 text-xs">Width (mm)</th>
-                                      <th className="text-right py-2 px-3 text-gray-300 text-xs">Thickness (mm)</th>
-                                      <th className="text-right py-2 px-3 text-gray-300 text-xs">Laps/Core</th>
-                                      <th className="text-right py-2 px-3 text-gray-300 text-xs">m/Unit</th>
-                                      <th className="text-right py-2 px-3 text-gray-300 text-xs font-medium">Total Meters</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {materialReqs.map((mat, matIndex) => {
-                                      if (mat.is_total) {
-                                        return (
-                                          <tr key={matIndex} className="bg-yellow-600/20 border-t-2 border-yellow-600">
-                                            <td colSpan="6" className="py-3 px-3 text-white font-bold text-sm">
-                                              TOTAL MATERIAL REQUIRED
-                                            </td>
-                                            <td className="py-3 px-3 text-right">
-                                              <span className="text-lg font-bold text-yellow-400">
-                                                {mat.total_meters_all_layers} m
-                                              </span>
-                                            </td>
-                                          </tr>
-                                        );
-                                      }
-                                      
-                                      return (
-                                        <tr key={matIndex} className="border-b border-gray-700/50 hover:bg-gray-700/20">
-                                          <td className="py-2 px-3 text-blue-400 text-xs font-medium">
-                                            Layer {mat.layer_order}
-                                          </td>
-                                          <td className="py-2 px-3 text-white text-xs">
-                                            {mat.material_name}
-                                          </td>
-                                          <td className="py-2 px-3 text-right text-gray-300 text-xs">
-                                            {mat.width_mm}
-                                          </td>
-                                          <td className="py-2 px-3 text-right text-gray-300 text-xs">
-                                            {mat.thickness_mm}
-                                          </td>
-                                          <td className="py-2 px-3 text-right text-gray-300 text-xs">
-                                            {mat.laps_per_core}
-                                          </td>
-                                          <td className="py-2 px-3 text-right text-gray-300 text-xs">
-                                            {mat.meters_per_unit}
-                                          </td>
-                                          <td className="py-2 px-3 text-right text-yellow-400 font-medium text-xs">
-                                            {mat.total_meters} m
-                                          </td>
-                                        </tr>
-                                      );
-                                    })}
-                                  </tbody>
-                                </table>
+                              <h6 className="text-xs text-gray-400 mb-3">
+                                Formula: Layer Circumference × Angle Factor 2.366 × Laps × Units
+                              </h6>
+                              <div className="space-y-3">
+                                {materialReqs.map((mat, matIndex) => {
+                                  if (mat.is_total) {
+                                    return (
+                                      <div key={matIndex} className="bg-yellow-600/20 border border-yellow-600 rounded-lg p-4">
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-white font-bold">TOTAL MATERIAL REQUIRED</span>
+                                          <span className="text-2xl font-bold text-yellow-400">
+                                            {mat.total_meters_all_layers?.toLocaleString()}m
+                                          </span>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                  
+                                  return (
+                                    <div key={matIndex} className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+                                      <div className="flex justify-between items-start gap-4">
+                                        <div className="flex-1">
+                                          <div className="mb-2">
+                                            <p className="text-sm font-medium text-white">{mat.material_name}</p>
+                                            <p className="text-xs text-blue-400">{mat.layer_type}</p>
+                                          </div>
+                                          <div className="text-xs text-gray-400 space-y-1">
+                                            <div className="flex gap-4">
+                                              <span>{mat.width_mm}mm x {mat.thickness_mm}mm</span>
+                                              {mat.gsm > 0 && <span>GSM: {mat.gsm}</span>}
+                                              <span>{mat.laps_per_core} {mat.laps_per_core === 1 ? 'lap' : 'laps'}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="text-2xl font-bold text-yellow-400">
+                                            {mat.total_meters_needed?.toLocaleString()}m
+                                          </div>
+                                          <div className="text-sm text-gray-400">
+                                            {mat.meters_per_core}m/core
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                           )}
