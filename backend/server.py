@@ -5589,15 +5589,24 @@ async def get_projected_order_analysis(
         # Sort by total quantity (most used first)
         products_list.sort(key=lambda x: x["historical_data"]["total_quantity"], reverse=True)
         
-        # Calculate period-based summaries for frontend
+        # Calculate period-based summaries for frontend including material costs
         period_summaries = {}
         for period in ["3_months", "6_months", "9_months", "12_months"]:
             total_projected_orders = sum(
                 p["projections"][period] for p in products_list
             )
+            
+            # Calculate total material cost across all products
+            total_material_cost = 0
+            for product in products_list:
+                mat_reqs = product.get("material_requirements", {}).get(period, [])
+                for mat in mat_reqs:
+                    if not mat.get("is_total"):  # Skip total rows
+                        total_material_cost += mat.get("total_cost", 0)
+            
             period_summaries[period] = {
                 "total_projected_orders": round(total_projected_orders, 2),
-                "total_projected_revenue": 0,  # Can be calculated if pricing info available
+                "total_projected_material_cost": round(total_material_cost, 2),
                 "products_analyzed": len(products_list)
             }
         
