@@ -5550,7 +5550,11 @@ async def get_projected_order_analysis(
                                 "total_strip_length_m": round(total_length_m, 2) if stream_strip_length_m > 0 else None,
                                 "meters_per_core": round(stream_strip_length_m, 2) if stream_strip_length_m > 0 else round(stream_area_m2, 2),
                                 "total_meters_needed": round(total_length_m, 2) if stream_strip_length_m > 0 else round(total_area_m2, 2),
+                                # New cost calculation fields
+                                "price_per_tonne": round(price_per_tonne, 2),
+                                "linear_metres_per_tonne": round(linear_metres_per_tonne, 2) if linear_metres_per_tonne > 0 else None,
                                 "cost_per_meter": round(cost_per_meter, 4),
+                                "cost_per_core": round(stream_strip_length_m * cost_per_meter, 4) if stream_strip_length_m > 0 else round(stream_area_m2 * cost_per_meter, 4),
                                 "total_cost": round(material_cost, 2)
                             })
                             
