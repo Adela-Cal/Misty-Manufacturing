@@ -654,6 +654,67 @@ const PayrollManagement = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowDeleteConfirm(false)}>
+          <div className="modal-content max-w-md">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-900 bg-opacity-30">
+                  <TrashIcon className="h-6 w-6 text-red-400" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-white">Archive Employee</h3>
+                  <p className="text-sm text-gray-400">This action can be reversed</p>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-300 mb-2">
+                  Are you sure you want to archive <span className="font-semibold text-white">
+                    {employeeToDelete?.first_name} {employeeToDelete?.last_name}
+                  </span>?
+                </p>
+                <div className="bg-blue-900 bg-opacity-30 border border-blue-500 border-opacity-30 rounded-lg p-3 mt-3">
+                  <p className="text-sm text-blue-200">
+                    <CheckCircleIcon className="h-4 w-4 inline mr-1" />
+                    All historic data will be preserved including:
+                  </p>
+                  <ul className="text-xs text-blue-300 mt-2 ml-6 space-y-1">
+                    <li>• Timesheets and attendance records</li>
+                    <li>• Leave requests and balances</li>
+                    <li>• Payroll history</li>
+                    <li>• Employment details</li>
+                  </ul>
+                  <p className="text-xs text-blue-300 mt-2">
+                    You can restore this employee from the "Archived Staff" tab at any time.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setEmployeeToDelete(null);
+                  }}
+                  className="misty-button misty-button-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200 flex items-center"
+                >
+                  <TrashIcon className="h-4 w-4 mr-2" />
+                  Archive Employee
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
