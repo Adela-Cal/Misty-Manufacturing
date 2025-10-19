@@ -647,6 +647,7 @@ const ClientProductCatalogue = ({ clientId, onClose }) => {
       delivery_unit_type: 'Pallets',
       delivery_price_per_unit: '',
       consumables: [],
+      material_layers: [],
       is_shared_product: false,
       shared_with_clients: [],
       makeready_allowance_percent: 10,
