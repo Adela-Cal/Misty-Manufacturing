@@ -1754,18 +1754,39 @@ const Reports = () => {
                           {isExpanded && materialReqs && (
                             <div className="mt-4 border-t border-gray-700 pt-4">
                               <h6 className="text-xs text-gray-400 mb-3">
-                                Formula: Layer Circumference × Angle Factor 2.366 × Laps × Units
+                                Formula: Volume = π × core_length × (outer_radius² − inner_radius²); Mass = Volume × Density; Area = Volume ÷ Thickness
                               </h6>
                               <div className="space-y-3">
                                 {materialReqs.map((mat, matIndex) => {
                                   if (mat.is_total) {
                                     return (
-                                      <div key={matIndex} className="bg-yellow-600/20 border border-yellow-600 rounded-lg p-4">
-                                        <div className="flex justify-between items-center">
-                                          <span className="text-white font-bold">TOTAL MATERIAL REQUIRED</span>
-                                          <span className="text-2xl font-bold text-yellow-400">
-                                            {mat.total_meters_all_layers?.toLocaleString()}m
-                                          </span>
+                                      <div key={matIndex} className="bg-yellow-900/20 border border-yellow-600 rounded-lg p-4">
+                                        <div className="text-sm font-bold text-white mb-2">TOTALS FOR CORE</div>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                          <div>
+                                            <p className="text-gray-400">Outer Diameter</p>
+                                            <p className="text-white font-medium">{mat.outer_diameter_mm}mm</p>
+                                          </div>
+                                          <div>
+                                            <p className="text-gray-400">Total Mass</p>
+                                            <p className="text-green-400 font-medium">{mat.total_paper_mass_kg}kg</p>
+                                          </div>
+                                          <div>
+                                            <p className="text-gray-400">Total Area</p>
+                                            <p className="text-blue-400 font-medium">{mat.total_paper_area_m2}m²</p>
+                                          </div>
+                                          {mat.total_strip_length_m && (
+                                            <div>
+                                              <p className="text-gray-400">Total Strip Length</p>
+                                              <p className="text-purple-400 font-medium">{mat.total_strip_length_m?.toLocaleString()}m</p>
+                                            </div>
+                                          )}
+                                          {mat.total_cost > 0 && (
+                                            <div>
+                                              <p className="text-gray-400">Total Cost</p>
+                                              <p className="text-yellow-400 font-bold text-lg">${mat.total_cost?.toLocaleString()}</p>
+                                            </div>
+                                          )}
                                         </div>
                                       </div>
                                     );
@@ -1780,30 +1801,59 @@ const Reports = () => {
                                             <p className="text-xs text-blue-400">{mat.layer_type}</p>
                                           </div>
                                           <div className="text-xs text-gray-400 space-y-1">
-                                            <div className="flex gap-4">
-                                              <span>{mat.width_mm}mm x {mat.thickness_mm}mm</span>
-                                              {mat.gsm > 0 && <span>GSM: {mat.gsm}</span>}
-                                              <span>{mat.laps_per_core} {mat.laps_per_core === 1 ? 'lap' : 'laps'}</span>
+                                            <div className="grid grid-cols-2 gap-2">
+                                              <div>
+                                                <span className="text-gray-500">Width:</span> {mat.width_mm}mm
+                                              </div>
+                                              <div>
+                                                <span className="text-gray-500">Thickness:</span> {mat.thickness_mm}mm
+                                              </div>
+                                              <div>
+                                                <span className="text-gray-500">GSM:</span> {mat.gsm}
+                                              </div>
+                                              <div>
+                                                <span className="text-gray-500">Layers:</span> {mat.num_layers}
+                                              </div>
                                             </div>
-                                            {mat.cost_per_meter > 0 && (
-                                              <div className="text-yellow-400">
+                                            <div className="mt-2 text-xs">
+                                              <div className="text-purple-400">
+                                                Radius: {mat.stream_inner_radius_mm}mm → {mat.stream_outer_radius_mm}mm
+                                              </div>
+                                              <div className="text-blue-400">
+                                                Density: {mat.density_kg_m3} kg/m³ | Volume: {mat.volume_m3_per_core} m³
+                                              </div>
+                                            </div>
+                                            {mat.cost_per_meter > 0 && mat.total_meters_needed > 0 && (
+                                              <div className="text-yellow-400 mt-1">
                                                 ${mat.cost_per_meter}/m × {mat.total_meters_needed?.toLocaleString()}m = ${mat.total_cost?.toLocaleString()}
                                               </div>
                                             )}
                                           </div>
                                         </div>
                                         <div className="text-right">
-                                          <div className="text-2xl font-bold text-yellow-400">
-                                            {mat.total_meters_needed?.toLocaleString()}m
-                                          </div>
-                                          <div className="text-sm text-gray-400">
-                                            {mat.meters_per_core}m/core
-                                          </div>
-                                          {mat.total_cost > 0 && (
-                                            <div className="text-lg font-bold text-green-400 mt-1">
-                                              ${mat.total_cost?.toLocaleString()}
+                                          <div className="space-y-1">
+                                            <div>
+                                              <div className="text-lg font-bold text-yellow-400">
+                                                {mat.total_meters_needed?.toLocaleString()}m
+                                              </div>
+                                              <div className="text-xs text-gray-400">
+                                                ({mat.meters_per_core}m/core)
+                                              </div>
                                             </div>
-                                          )}
+                                            <div>
+                                              <div className="text-sm font-medium text-green-400">
+                                                {mat.total_mass_kg?.toLocaleString()}kg
+                                              </div>
+                                              <div className="text-xs text-gray-400">
+                                                ({mat.mass_kg_per_core}kg/core)
+                                              </div>
+                                            </div>
+                                            {mat.total_cost > 0 && (
+                                              <div className="text-lg font-bold text-green-400 mt-2">
+                                                ${mat.total_cost?.toLocaleString()}
+                                              </div>
+                                            )}
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
