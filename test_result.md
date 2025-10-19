@@ -1,4 +1,16 @@
 frontend:
+  - task: "Material Layers UI in Client Product Catalogue"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/ClientProductCatalogue.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented comprehensive Material Layers section in Client Product Catalogue with full CRUD functionality. Added MaterialLayersSection component with: 1) Material/Product dropdown populated from materials collection with thickness and GSM info, 2) Layer Position dropdown (Outer Most Layer, Central Layer, Inner Most Layer), 3) Required fields: Material, Layer Type, Thickness; Optional fields: Width, Width Range, Quantity, Notes, 4) Real-time validation ensuring material_id, layer_type, and thickness are provided, 5) Display of existing material layers with full details and delete functionality, 6) Integration into modal form before Consumables section, 7) Data structure matches MaterialLayerAssignment model (material_id, material_name, layer_type, width, width_range, thickness, quantity, notes). This UI enables users to define material composition for projected order analysis and material requirements calculations. The section is properly integrated into both create and edit workflows."
+
   - task: "Enhanced Raw Materials Needed Functionality with Fallback Material Requirements"
     implemented: true
     working: false
