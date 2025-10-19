@@ -260,6 +260,81 @@ async def update_employee(employee_id: str, employee_data: EmployeeProfileCreate
     
     return StandardResponse(success=True, message="Employee updated successfully")
 
+@payroll_router.delete("/employees/{employee_id}", response_model=StandardResponse)
+async def archive_employee(employee_id: str, current_user: dict = Depends(require_admin)):
+    """
+    Archive (soft delete) employee profile (Admin only)
+    Sets is_active=False to preserve historic data while hiding from active employee list
+    """
+    result = await db.employee_profiles.update_one(
+        {"id": employee_id, "is_active": True},
+        {"$set": {"is_active": False, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Employee not found or already archived")
+    
+    logger.info(f"Archived employee {employee_id}")
+    
+    return StandardResponse(success=True, message="Employee archived successfully")
+
+@payroll_router.get("/employees/archived/list", response_model=List[EmployeeProfile])
+async def get_archived_employees(current_user: dict = Depends(require_payroll_access)):
+    """
+    Get all archived employees (Admin/Manager only)
+    Returns employees that have been soft-deleted but their data is preserved for historic review
+    """
+    employees = await db.employee_profiles.find({"is_active": False}).to_list(1000)
+    
+    # Enrich employee data with current user information from Staff and Security
+    enriched_employees = []
+    for emp in employees:
+        # Remove MongoDB _id field to avoid serialization issues
+        if "_id" in emp:
+            del emp["_id"]
+        
+        user_id = emp.get("user_id")
+        if user_id:
+            user = await db.users.find_one({"id": user_id})
+            if user:
+                # Update employee data with latest user information
+                full_name = user.get("full_name", "")
+                if full_name:
+                    name_parts = full_name.split(" ", 1)
+                    emp["first_name"] = name_parts[0]
+                    emp["last_name"] = name_parts[1] if len(name_parts) > 1 else ""
+                
+                emp["email"] = user.get("email", emp.get("email"))
+                emp["phone"] = user.get("phone", emp.get("phone"))
+                emp["department"] = user.get("department", emp.get("department"))
+                emp["employment_type"] = user.get("employment_type", emp.get("employment_type"))
+        
+        try:
+            enriched_employees.append(EmployeeProfile(**emp))
+        except Exception as e:
+            logger.error(f"Error creating EmployeeProfile for user {user_id}: {e}, emp data keys: {emp.keys()}")
+            continue
+    
+    return enriched_employees
+
+@payroll_router.post("/employees/{employee_id}/restore", response_model=StandardResponse)
+async def restore_employee(employee_id: str, current_user: dict = Depends(require_admin)):
+    """
+    Restore archived employee profile (Admin only)
+    Sets is_active=True to re-activate an archived employee
+    """
+    result = await db.employee_profiles.update_one(
+        {"id": employee_id, "is_active": False},
+        {"$set": {"is_active": True, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Archived employee not found")
+    
+    logger.info(f"Restored archived employee {employee_id}")
+    
+    return StandardResponse(success=True, message="Employee restored successfully")
+
 @payroll_router.get("/employees/{employee_id}/leave-balances", response_model=EmployeeLeaveBalance)
 async def get_employee_leave_balances(employee_id: str, current_user: dict = Depends(require_any_role)):
     """Get employee leave balances (Employee can view own, Managers can view all)"""
