@@ -32,6 +32,7 @@ class ProductionStage(str, Enum):
     CLEARED = "cleared"
 
 class OrderStatus(str, Enum):
+    PENDING = "pending"
     ACTIVE = "active"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
