@@ -2686,78 +2686,127 @@ const Reports = () => {
                 <label className="flex items-center">
                   <input
                     type="radio"
-                    value="single"
-                    checked={profitabilityMode === 'single'}
+                    value="all"
+                    checked={profitabilityMode === 'all'}
                     onChange={(e) => setProfitabilityMode(e.target.value)}
                     className="mr-2"
                   />
-                  <span className="text-white">Single Job</span>
+                  <span className="text-white">All Jobs (All Clients)</span>
                 </label>
                 <label className="flex items-center">
                   <input
                     type="radio"
-                    value="multiple"
-                    checked={profitabilityMode === 'multiple'}
+                    value="filtered"
+                    checked={profitabilityMode === 'filtered'}
                     onChange={(e) => setProfitabilityMode(e.target.value)}
                     className="mr-2"
                   />
-                  <span className="text-white">Multiple Jobs (with filters)</span>
+                  <span className="text-white">Filtered (Select Clients & Products)</span>
                 </label>
               </div>
             </div>
 
-            {/* Single Job Mode */}
-            {profitabilityMode === 'single' && (
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Select Completed Job</label>
-                {completedOrders.length === 0 ? (
-                  <div className="text-gray-400 text-sm mb-2">
-                    Loading completed orders... If no orders appear, there may be no completed/archived jobs in the system.
-                  </div>
-                ) : (
-                  <div className="text-gray-400 text-xs mb-2">
-                    {completedOrders.length} completed/archived job(s) available
-                  </div>
-                )}
-                <select
-                  className="misty-select w-full"
-                  onChange={(e) => setSelectedOrders([e.target.value])}
-                  value={selectedOrders[0] || ''}
-                >
-                  <option value="">Select a job...</option>
-                  {completedOrders.map(order => (
-                    <option key={order.id} value={order.id}>
-                      {order.order_number} - {order.client_name}
-                    </option>
-                  ))}
-                </select>
+            {/* All Jobs Mode - Simple Date Range */}
+            {profitabilityMode === 'all' && (
+              <div className="bg-blue-900 bg-opacity-20 border border-blue-500 border-opacity-30 rounded-lg p-4">
+                <p className="text-blue-300 text-sm mb-3">
+                  📊 This will analyze ALL completed/archived jobs from ALL clients
+                </p>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Date Range (Optional)</label>
+                  <select
+                    className="misty-select w-full"
+                    value={profitabilityDatePreset}
+                    onChange={(e) => {
+                      const preset = e.target.value;
+                      setProfitabilityDatePreset(preset);
+                      if (preset !== 'all_time') {
+                        const { start, end } = getDateRangeFromPreset(preset);
+                        setProfitabilityStartDate(start);
+                        setProfitabilityEndDate(end);
+                      }
+                    }}
+                  >
+                    <option value="last_7_days">Last 7 Days</option>
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="this_year">This Year</option>
+                    <option value="all_time">All Time</option>
+                  </select>
+                </div>
               </div>
             )}
 
-            {/* Multiple Jobs Mode */}
-            {profitabilityMode === 'multiple' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Filtered Mode - Multiple Clients & Products */}
+            {profitabilityMode === 'filtered' && (
+              <div className="space-y-4">
+                <div className="bg-yellow-900 bg-opacity-20 border border-yellow-500 border-opacity-30 rounded-lg p-4">
+                  <p className="text-yellow-300 text-sm">
+                    🔍 Select specific clients and/or products to analyze
+                  </p>
+                </div>
+
+                {/* Multiple Clients Selection */}
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Filter by Client (Optional)</label>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Select Clients (Hold Ctrl/Cmd for multiple)
+                  </label>
                   {clients.length > 0 && (
                     <div className="text-gray-400 text-xs mb-2">
-                      {clients.length} client(s) available
+                      {clients.length} client(s) available | {selectedProfitClients.length} selected
                     </div>
                   )}
                   <select
-                    className="misty-select w-full"
-                    value={profitabilityClient}
-                    onChange={(e) => setProfitabilityClient(e.target.value)}
+                    multiple
+                    className="misty-select w-full h-32"
+                    value={selectedProfitClients}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions, option => option.value);
+                      setSelectedProfitClients(selected);
+                    }}
                   >
-                    <option value="">All Clients</option>
                     {clients.map(client => (
                       <option key={client.id} value={client.id}>
                         {client.name}
                       </option>
                     ))}
                   </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Leave empty to include all clients
+                  </p>
                 </div>
 
+                {/* Multiple Products Selection */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Select Products (Hold Ctrl/Cmd for multiple)
+                  </label>
+                  {clientProducts.length > 0 && (
+                    <div className="text-gray-400 text-xs mb-2">
+                      {clientProducts.length} product(s) available | {selectedProfitProducts.length} selected
+                    </div>
+                  )}
+                  <select
+                    multiple
+                    className="misty-select w-full h-32"
+                    value={selectedProfitProducts}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions, option => option.value);
+                      setSelectedProfitProducts(selected);
+                    }}
+                  >
+                    {clientProducts.map(product => (
+                      <option key={product.id} value={product.id}>
+                        {product.product_name} ({product.client_name})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Leave empty to include all products
+                  </p>
+                </div>
+
+                {/* Date Range for Filtered Mode */}
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">Date Range</label>
                   <select
@@ -2804,7 +2853,7 @@ const Reports = () => {
             {/* Generate Button */}
             <button
               onClick={loadProfitabilityReport}
-              disabled={loadingProfitability || (profitabilityMode === 'single' && !selectedOrders.length)}
+              disabled={loadingProfitability}
               className="misty-button misty-button-primary w-full md:w-auto"
             >
               {loadingProfitability ? 'Generating...' : '📊 Generate Profitability Report'}
