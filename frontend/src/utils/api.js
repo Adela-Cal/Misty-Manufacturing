@@ -133,6 +133,10 @@ export const apiHelpers = {
   getJob: (jobId) => api.get(`/jobs/${jobId}`),
   getClientArchivedJobs: (clientId) => api.get(`/clients/${clientId}/archived-jobs`),
   getClientJobCards: (clientId) => api.get(`/clients/${clientId}/job-cards`),
+  saveJobCard: (data) => api.post('/production/job-cards', data),
+  getJobCardsByOrder: (orderId) => api.get(`/production/job-cards/order/${orderId}`),
+  updateJobCard: (jobCardId, data) => api.put(`/production/job-cards/${jobCardId}`, data),
+  searchJobCards: (params) => api.get('/production/job-cards/search', { params }),
   
   // Reports
   getOutstandingJobsReport: () => api.get('/reports/outstanding-jobs'),
