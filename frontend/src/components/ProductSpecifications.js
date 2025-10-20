@@ -1054,7 +1054,8 @@ const ProductSpecifications = () => {
           wall_thickness_required: formData.wall_thickness_required ? parseFloat(formData.wall_thickness_required) : null,
           selected_material_id: formData.selected_material_id || null,
           layers_required: formData.layers_required || null,
-          layer_specifications: formData.layer_specifications || null
+          layer_specifications: formData.layer_specifications || null,
+          grams_of_glue_per_layer_meter: formData.grams_of_glue_per_layer_meter ? parseFloat(formData.grams_of_glue_per_layer_meter) : null
         };
       }
 
