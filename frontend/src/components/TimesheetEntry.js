@@ -125,6 +125,43 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
     }
   };
 
+  const loadPreviousTimesheets = async () => {
+    try {
+      setLoadingPrevious(true);
+      const response = await payrollApi.getEmployeeTimesheets(actualEmployeeId);
+      if (response.data && response.data.data) {
+        setPreviousTimesheets(response.data.data);
+      }
+    } catch (error) {
+      console.error('Failed to load previous timesheets:', error);
+      toast.error('Failed to load previous timesheets');
+    } finally {
+      setLoadingPrevious(false);
+    }
+  };
+
+  const handleViewPreviousTimesheets = () => {
+    loadPreviousTimesheets();
+    setShowPreviousTimesheets(true);
+  };
+
+  const loadPreviousTimesheet = async (timesheetId) => {
+    try {
+      const timesheets = await payrollApi.getEmployeeTimesheets(actualEmployeeId);
+      const selectedTimesheet = timesheets.data.data.find(ts => ts.id === timesheetId);
+      
+      if (selectedTimesheet) {
+        setTimesheet(selectedTimesheet);
+        setEntries(selectedTimesheet.entries || generateEmptyWeek());
+        setShowPreviousTimesheets(false);
+        toast.info('Loaded previous timesheet');
+      }
+    } catch (error) {
+      console.error('Failed to load previous timesheet:', error);
+      toast.error('Failed to load previous timesheet');
+    }
+  };
+
   const getWeekOptions = () => {
     const options = [];
     const today = new Date();
