@@ -16,11 +16,13 @@ import {
 // Production Stage Enum (matches backend)
 const ProductionStage = {
   ORDER_ENTERED: 'order_entered',
+  PENDING_MATERIAL: 'pending_material',
   PAPER_SLITTING: 'paper_slitting',
-  CORE_WINDING: 'core_winding',
-  FINISHING_PACKING: 'finishing_packing',
+  WINDING: 'winding',  // NOT 'core_winding'
+  FINISHING: 'finishing',  // NOT 'finishing_packing'
   DELIVERY: 'delivery',
   INVOICING: 'invoicing',
+  ACCOUNTING_TRANSACTION: 'accounting_transaction',
   CLEARED: 'cleared'
 };
 
