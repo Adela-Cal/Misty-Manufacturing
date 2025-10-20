@@ -1965,6 +1965,149 @@ async def update_materials_status(
     
     return {"success": True, "message": "Materials status updated"}
 
+
+
+# ============= JOB CARD ARCHIVING ENDPOINTS =============
+
+@api_router.post("/production/job-cards", response_model=StandardResponse)
+async def save_job_card(job_card_data: dict, current_user: dict = Depends(require_any_role)):
+    """Save completed job card to archive"""
+    
+    # Add metadata
+    job_card_record = {
+        "id": str(uuid.uuid4()),
+        **job_card_data,
+        "saved_at": datetime.now(timezone.utc).isoformat(),
+        "saved_by": current_user.get("user_id") or current_user.get("sub")
+    }
+    
+    # Insert into job_cards collection
+    await db.job_cards.insert_one(job_card_record)
+    
+    return StandardResponse(
+        success=True, 
+        message="Job card archived successfully",
+        data={"job_card_id": job_card_record["id"]}
+    )
+
+@api_router.get("/production/job-cards/order/{order_id}")
+async def get_job_cards_by_order(order_id: str, current_user: dict = Depends(require_any_role)):
+    """Get all job cards for a specific order"""
+    
+    job_cards = await db.job_cards.find({"order_id": order_id}).sort("completed_at", 1).to_list(100)
+    
+    # Remove MongoDB _id
+    for card in job_cards:
+        if "_id" in card:
+            del card["_id"]
+    
+    return {
+        "success": True,
+        "data": job_cards
+    }
+
+@api_router.put("/production/job-cards/{job_card_id}", response_model=StandardResponse)
+async def update_job_card(job_card_id: str, update_data: dict, current_user: dict = Depends(require_any_role)):
+    """Update an archived job card"""
+    
+    # Check if job card exists
+    job_card = await db.job_cards.find_one({"id": job_card_id})
+    if not job_card:
+        raise HTTPException(status_code=404, detail="Job card not found")
+    
+    # Add update metadata
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    update_data["updated_by"] = current_user.get("user_id") or current_user.get("sub")
+    
+    # Update the job card
+    await db.job_cards.update_one(
+        {"id": job_card_id},
+        {"$set": update_data}
+    )
+    
+    return StandardResponse(success=True, message="Job card updated successfully")
+
+@api_router.get("/production/job-cards/search")
+async def search_job_cards(
+    customer: Optional[str] = None,
+    invoice_number: Optional[str] = None,
+    product: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    current_user: dict = Depends(require_any_role)
+):
+    """Search job cards by customer, invoice number, or product"""
+    
+    # Build query
+    query = {}
+    
+    # If searching by customer, get matching orders first
+    if customer:
+        orders = await db.orders.find({
+            "client_name": {"$regex": customer, "$options": "i"}
+        }).to_list(1000)
+        order_ids = [o["id"] for o in orders]
+        query["order_id"] = {"$in": order_ids}
+    
+    # Search by product name in product specs
+    if product:
+        query["product_specs.product_name"] = {"$regex": product, "$options": "i"}
+    
+    # Date range filter
+    if start_date or end_date:
+        date_filter = {}
+        if start_date:
+            date_filter["$gte"] = start_date
+        if end_date:
+            date_filter["$lte"] = end_date
+        query["completed_at"] = date_filter
+    
+    # Get matching job cards
+    job_cards = await db.job_cards.find(query).sort("completed_at", -1).to_list(1000)
+    
+    # Remove MongoDB _id and enrich with order info
+    results = []
+    for card in job_cards:
+        if "_id" in card:
+            del card["_id"]
+        
+        # Get order info
+        order = await db.orders.find_one({"id": card["order_id"]})
+        if order:
+            card["order_number"] = order["order_number"]
+            card["client_name"] = order["client_name"]
+            
+            # Check for invoice
+            if invoice_number:
+                invoice = await db.invoices.find_one({
+                    "job_id": card["order_id"],
+                    "invoice_number": {"$regex": invoice_number, "$options": "i"}
+                })
+                if invoice:
+                    card["invoice_number"] = invoice["invoice_number"]
+                    results.append(card)
+            else:
+                results.append(card)
+    
+    # Group by order
+    grouped_results = {}
+    for card in results:
+        order_id = card["order_id"]
+        if order_id not in grouped_results:
+            grouped_results[order_id] = {
+                "order_id": order_id,
+                "order_number": card.get("order_number", "Unknown"),
+                "client_name": card.get("client_name", "Unknown"),
+                "invoice_number": card.get("invoice_number"),
+                "job_cards": []
+            }
+        grouped_results[order_id]["job_cards"].append(card)
+    
+    return {
+        "success": True,
+        "data": list(grouped_results.values())
+    }
+
 @api_router.put("/production/order-item-status/{order_id}")
 async def update_order_item_status(
     order_id: str,
