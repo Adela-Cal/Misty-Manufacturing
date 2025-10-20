@@ -206,30 +206,36 @@ class TimesheetFlowTester:
             return False
         
         try:
-            # Sample timesheet update data
+            # Sample timesheet update data with required fields
             update_data = {
-                "daily_entries": [
+                "employee_id": self.employee_id,
+                "week_starting": "2024-12-16T00:00:00",
+                "entries": [
                     {
-                        "date": "2024-12-16",
+                        "date": "2024-12-16T00:00:00",
                         "regular_hours": 8.0,
                         "overtime_hours": 0.0,
+                        "leave_hours": {},
                         "notes": "Regular work day - testing update"
                     },
                     {
-                        "date": "2024-12-17",
+                        "date": "2024-12-17T00:00:00",
                         "regular_hours": 8.0,
                         "overtime_hours": 1.0,
+                        "leave_hours": {},
                         "notes": "Overtime for urgent project"
                     },
                     {
-                        "date": "2024-12-18",
+                        "date": "2024-12-18T00:00:00",
                         "regular_hours": 7.5,
                         "overtime_hours": 0.5,
+                        "leave_hours": {},
                         "notes": "Half day overtime"
                     }
                 ],
                 "total_regular_hours": 23.5,
-                "total_overtime_hours": 1.5
+                "total_overtime_hours": 1.5,
+                "total_leave_hours": {}
             }
             
             response = self.session.put(f"{API_BASE}/payroll/timesheets/{self.timesheet_id}", json=update_data)
