@@ -72,7 +72,7 @@ const PayrollReports = () => {
   const generatePayslip = async (timesheetId) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/payroll/reports/payslip/${timesheetId}`, {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/reports/payslip/${timesheetId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       if (response.ok) {
