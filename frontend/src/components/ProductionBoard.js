@@ -570,6 +570,7 @@ const ProductionBoard = () => {
           stage={selectedJobCard.stage}
           orderId={selectedJobCard.orderId}
           onClose={handleCloseJobCard}
+          onJobStarted={handleJobStarted}
         />
       )}
 
