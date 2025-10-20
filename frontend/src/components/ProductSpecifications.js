@@ -1237,7 +1237,7 @@ const ProductSpecifications = () => {
               placeholder="Search specifications..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="misty-input pl-14 w-full"
+              className="misty-input pl-16 w-full"
             />
           </div>
         </div>
