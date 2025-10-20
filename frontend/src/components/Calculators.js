@@ -475,15 +475,19 @@ const MaterialPermutation = ({ loading, setLoading }) => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                 <div>
                   <span className="text-gray-400">Master Width:</span>
-                  <p className="text-white font-medium">{selectedMaterial.width_mm} mm</p>
+                  <p className="text-white font-medium">
+                    {selectedMaterial.width_mm || selectedMaterial.master_deckle_width_mm || 0} mm
+                  </p>
                 </div>
                 <div>
                   <span className="text-gray-400">GSM:</span>
-                  <p className="text-white font-medium">{selectedMaterial.gsm}</p>
+                  <p className="text-white font-medium">{selectedMaterial.gsm || 0}</p>
                 </div>
                 <div>
                   <span className="text-gray-400">Cost/Tonne:</span>
-                  <p className="text-white font-medium">${selectedMaterial.cost_per_tonne?.toFixed(2) || '0.00'}</p>
+                  <p className="text-white font-medium">
+                    ${(selectedMaterial.cost_per_tonne || selectedMaterial.price || 0).toFixed(2)}
+                  </p>
                 </div>
                 <div>
                   <span className="text-gray-400">Tonnage:</span>
