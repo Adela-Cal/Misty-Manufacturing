@@ -7269,8 +7269,9 @@ async def generate_profitability_report(
                 # Unit price is ex GST as per client product catalogue
                 job_revenue += item.get("unit_price", 0) * item.get("quantity", 0)
             
-            # 1. Calculate Material Costs from Job Card
+            # 1. Calculate Material Costs from Job Card with detailed breakdown
             material_cost = 0
+            material_layers_breakdown = []
             job_card = await db.job_cards.find_one({"order_id": order_id})
             
             if job_card:
@@ -7281,25 +7282,49 @@ async def generate_profitability_report(
                 # Calculate total length from calculations if available
                 calculations = job_card.get("calculations", {})
                 total_length_m = float(calculations.get("totalLengthRequired", 0))
+                good_length_m = float(calculations.get("goodMaterialLength", 0))
+                makeready_length_m = float(calculations.get("makereadyLength", 0))
+                waste_length_m = float(calculations.get("wasteLength", 0))
                 
                 for layer in material_layers:
                     material_id = layer.get("material_id")
+                    material_name = layer.get("material_name", "Unknown")
+                    layer_type = layer.get("layer_type", "Unknown")
                     layer_width_mm = float(layer.get("width", 0))
                     layer_gsm = float(layer.get("gsm", 0))
+                    layer_thickness = float(layer.get("thickness", 0))
+                    supplier = layer.get("supplier", "Unknown")
                     
                     # Get material pricing from materials collection
                     material_doc = await db.materials.find_one({"id": material_id})
+                    price_per_tonne = 0
                     if material_doc:
-                        # Price is typically per tonne
                         price_per_tonne = float(material_doc.get("price", 0))
-                        
-                        # Calculate weight: (width_m * length_m * gsm) / 1000 = kg
-                        width_m = layer_width_mm / 1000.0
-                        weight_kg = (width_m * total_length_m * layer_gsm) / 1000.0
-                        
-                        # Cost = (weight_kg / 1000) * price_per_tonne
-                        layer_cost = (weight_kg / 1000.0) * price_per_tonne
-                        material_cost += layer_cost
+                    
+                    # Calculate weight: (width_m * length_m * gsm) / 1000 = kg
+                    width_m = layer_width_mm / 1000.0
+                    weight_kg = (width_m * total_length_m * layer_gsm) / 1000.0
+                    
+                    # Cost = (weight_kg / 1000) * price_per_tonne
+                    layer_cost = (weight_kg / 1000.0) * price_per_tonne
+                    material_cost += layer_cost
+                    
+                    # Store detailed breakdown for this layer
+                    material_layers_breakdown.append({
+                        "layer_type": layer_type,
+                        "material_name": material_name,
+                        "supplier": supplier,
+                        "width_mm": layer_width_mm,
+                        "thickness_microns": layer_thickness,
+                        "gsm": layer_gsm,
+                        "linear_meters_consumed": round(total_length_m, 2),
+                        "good_material_meters": round(good_length_m, 2),
+                        "makeready_meters": round(makeready_length_m, 2),
+                        "waste_meters": round(waste_length_m, 2),
+                        "weight_kg": round(weight_kg, 3),
+                        "price_per_tonne": round(price_per_tonne, 2),
+                        "layer_cost_aud": round(layer_cost, 2)
+                    })
             
             # 2. Calculate Labour Costs (from timesheets)
             labour_cost = 0
