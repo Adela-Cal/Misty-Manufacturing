@@ -1233,4 +1233,238 @@ async def check_timesheet_reminder(current_user: dict = Depends(require_any_role
             "message": "Don't forget to submit your timesheet!" if should_show else None,
             "current_day": date.today().strftime("%A")
         }
+
+    }
+
+# ============= PAYROLL REPORTS ENDPOINTS =============
+
+@payroll_router.get("/reports/payslips")
+async def get_all_payslips(current_user: dict = Depends(require_payroll_access)):
+    """Get all historic payslips"""
+    
+    try:
+        # Get all payslips
+        payslips = await db.payslips.find({}).sort("generated_at", -1).to_list(1000)
+        
+        # Remove MongoDB ObjectId
+        for payslip in payslips:
+            if "_id" in payslip:
+                del payslip["_id"]
+        
+        return {
+            "success": True,
+            "data": payslips
+        }
+    except Exception as e:
+        logger.error(f"Failed to load payslips: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to load payslips: {str(e)}")
+
+
+@payroll_router.get("/reports/payslip/{timesheet_id}")
+async def generate_payslip(timesheet_id: str, current_user: dict = Depends(require_payroll_access)):
+    """Generate a payslip from an approved timesheet"""
+    
+    try:
+        # Get the timesheet
+        timesheet = await db.timesheets.find_one({"id": timesheet_id, "status": TimesheetStatus.APPROVED})
+        if not timesheet:
+            raise HTTPException(status_code=404, detail="Approved timesheet not found")
+        
+        # Get employee profile
+        employee = await db.employee_profiles.find_one({"id": timesheet["employee_id"]})
+        if not employee:
+            raise HTTPException(status_code=404, detail="Employee not found")
+        
+        # Calculate regular and overtime hours
+        entries = timesheet.get("entries", [])
+        total_regular_hours = Decimal("0")
+        total_overtime_hours = Decimal("0")
+        
+        for entry in entries:
+            regular_hours = Decimal(str(entry.get("regular_hours", 0)))
+            overtime_hours = Decimal(str(entry.get("overtime_hours", 0)))
+            total_regular_hours += regular_hours
+            total_overtime_hours += overtime_hours
+        
+        # Get hourly rate
+        hourly_rate = Decimal(str(employee.get("hourly_rate", 25.00)))
+        overtime_rate = hourly_rate * Decimal("1.5")
+        
+        # Calculate earnings
+        regular_pay = total_regular_hours * hourly_rate
+        overtime_pay = total_overtime_hours * overtime_rate
+        gross_pay = regular_pay + overtime_pay
+        
+        # Calculate deductions (simplified - 15% tax, 10.5% super)
+        tax_withheld = gross_pay * Decimal("0.15")
+        superannuation = gross_pay * Decimal("0.105")
+        net_pay = gross_pay - tax_withheld
+        
+        # Get YTD data (simplified - just use current values for MVP)
+        ytd_gross = gross_pay
+        ytd_tax = tax_withheld
+        ytd_super = superannuation
+        ytd_net = net_pay
+        
+        # Create payslip data
+        payslip_data = {
+            "employee": {
+                "name": f"{employee['first_name']} {employee['last_name']}",
+                "employee_number": employee["employee_number"],
+                "position": employee["position"],
+                "department": employee["department"],
+                "tax_file_number": employee.get("tax_file_number", "Not provided")
+            },
+            "pay_period": {
+                "week_start": timesheet.get("week_starting", ""),
+                "week_end": timesheet.get("week_ending", "")
+            },
+            "hours": {
+                "regular_hours": float(total_regular_hours),
+                "overtime_hours": float(total_overtime_hours),
+                "hourly_rate": float(hourly_rate)
+            },
+            "earnings": {
+                "regular_pay": float(regular_pay),
+                "overtime_pay": float(overtime_pay),
+                "gross_pay": float(gross_pay)
+            },
+            "deductions": {
+                "tax_withheld": float(tax_withheld),
+                "superannuation": float(superannuation)
+            },
+            "net_pay": float(net_pay),
+            "year_to_date": {
+                "gross_pay": float(ytd_gross),
+                "tax_withheld": float(ytd_tax),
+                "superannuation": float(ytd_super),
+                "net_pay": float(ytd_net)
+            },
+            "bank_details": {
+                "bsb": employee.get("bsb", "Not provided"),
+                "account_number": employee.get("account_number", "Not provided"),
+                "superannuation_fund": employee.get("superannuation_fund", "Not provided")
+            },
+            "generated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Check if payslip already exists for this timesheet
+        existing_payslip = await db.payslips.find_one({"timesheet_id": timesheet_id})
+        
+        if existing_payslip:
+            # Return existing payslip
+            if "_id" in existing_payslip:
+                del existing_payslip["_id"]
+            return {
+                "success": True,
+                "message": "Payslip already exists for this timesheet",
+                "data": existing_payslip
+            }
+        
+        # Save payslip to database
+        payslip_record = {
+            "id": str(uuid4()),
+            "timesheet_id": timesheet_id,
+            "employee_id": employee["id"],
+            "payslip_data": payslip_data,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_by": current_user["user_id"]
+        }
+        
+        await db.payslips.insert_one(payslip_record)
+        
+        if "_id" in payslip_record:
+            del payslip_record["_id"]
+        
+        return {
+            "success": True,
+            "message": "Payslip generated successfully",
+            "data": payslip_record
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate payslip: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate payslip: {str(e)}")
+
+
+@payroll_router.get("/reports/timesheets")
+async def get_timesheet_report(
+    employee_id: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    current_user: dict = Depends(require_payroll_access)
+):
+    """Get timesheet report with filters"""
+    
+    try:
+        # Build query
+        query = {}
+        
+        if employee_id:
+            query["employee_id"] = employee_id
+        
+        if start_date or end_date:
+            date_query = {}
+            if start_date:
+                date_query["$gte"] = start_date
+            if end_date:
+                date_query["$lte"] = end_date
+            query["week_starting"] = date_query
+        
+        # Get timesheets
+        timesheets = await db.timesheets.find(query).sort("week_starting", -1).to_list(1000)
+        
+        # Calculate summary
+        total_regular_hours = 0
+        total_overtime_hours = 0
+        
+        for timesheet in timesheets:
+            # Remove MongoDB ObjectId
+            if "_id" in timesheet:
+                del timesheet["_id"]
+            
+            # Enrich with employee name
+            employee = await db.employee_profiles.find_one({"id": timesheet["employee_id"]})
+            if employee:
+                timesheet["employee_name"] = f"{employee['first_name']} {employee['last_name']}"
+            else:
+                timesheet["employee_name"] = "Unknown"
+            
+            # Get approver name if approved
+            if timesheet.get("approved_by"):
+                approver = await db.users.find_one({"id": timesheet["approved_by"]})
+                if approver:
+                    timesheet["approver_name"] = approver.get("full_name", "Unknown")
+            
+            # Calculate hours
+            entries = timesheet.get("entries", [])
+            for entry in entries:
+                total_regular_hours += entry.get("regular_hours", 0)
+                total_overtime_hours += entry.get("overtime_hours", 0)
+            
+            # Add fields for display
+            timesheet["total_regular_hours"] = sum(e.get("regular_hours", 0) for e in entries)
+            timesheet["total_overtime_hours"] = sum(e.get("overtime_hours", 0) for e in entries)
+            timesheet["week_start"] = timesheet.get("week_starting", "")
+            timesheet["week_end"] = timesheet.get("week_ending", "")
+        
+        summary = {
+            "total_timesheets": len(timesheets),
+            "total_regular_hours": round(total_regular_hours, 2),
+            "total_overtime_hours": round(total_overtime_hours, 2),
+            "total_hours": round(total_regular_hours + total_overtime_hours, 2)
+        }
+        
+        return {
+            "success": True,
+            "data": timesheets,
+            "summary": summary
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to load timesheet report: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to load timesheet report: {str(e)}")
+
     }
