@@ -358,20 +358,33 @@ class InvoicingWorkflowTester:
             
             if response.status_code == 200:
                 result = response.json()
-                invoice_id = result.get("data", {}).get("invoice_id")
+                invoice_id = result.get("invoice_id")  # Direct access, not nested in data
+                invoice_number = result.get("invoice_number")
                 
                 self.log_result(
                     "First Partial Invoice Generation", 
                     True, 
                     f"Successfully generated first partial invoice",
-                    f"Invoice ID: {invoice_id}, Items: {len(partial_items)}"
+                    f"Invoice ID: {invoice_id}, Invoice Number: {invoice_number}, Items: {len(partial_items)}"
                 )
                 
                 if invoice_id:
                     self.invoice_ids.append(invoice_id)
                 
-                # Verify invoice number has ~1 suffix
-                self.verify_invoice_number_suffix(invoice_id, "~1")
+                # Verify invoice number has ~1 suffix directly from response
+                if invoice_number and invoice_number.endswith("~1"):
+                    self.log_result(
+                        "Invoice Number Suffix Verification ~1", 
+                        True, 
+                        f"Invoice number correctly has suffix: {invoice_number}"
+                    )
+                else:
+                    self.log_result(
+                        "Invoice Number Suffix Verification ~1", 
+                        False, 
+                        f"Invoice number does not have expected suffix ~1",
+                        f"Got: {invoice_number}"
+                    )
                 
                 # Verify job status after first partial invoice
                 self.verify_job_status_after_partial_invoice(1)
