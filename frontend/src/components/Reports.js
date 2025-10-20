@@ -2519,10 +2519,3 @@ const Reports = () => {
 };
 
 export default Reports;
-
-      </div>
-    </Layout>
-  );
-};
-
-export default Reports;
