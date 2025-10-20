@@ -206,6 +206,11 @@ const ProductionBoard = () => {
     }, 500);
   };
 
+  const handleJobStarted = () => {
+    console.log('Job started - refreshing production board');
+    loadProductionBoard();
+  };
+
   const moveJobStage = async (jobId, currentStage, direction) => {
     try {
       await apiHelpers.moveOrderStage(jobId, { direction });
