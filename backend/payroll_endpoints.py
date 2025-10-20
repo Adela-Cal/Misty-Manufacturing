@@ -204,7 +204,7 @@ async def sync_employees_from_users(current_user: dict = Depends(require_admin))
         user_id = user.get("id") or user.get("_id")
         if user_id and user_id not in existing_employee_user_ids:
             # Create default employee profile from user data
-            employee_number = f"EMP{len(existing_employees) + created_count + 1:04d}"
+            employee_number = await get_next_employee_number()
             
             # Extract name parts
             full_name = user.get("full_name", "")
