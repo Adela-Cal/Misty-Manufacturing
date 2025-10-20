@@ -205,7 +205,7 @@ const ArchivedOrders = ({ client, onClose }) => {
             <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search orders by number, products, or PO number..."
+              placeholder=""
               value={filters.search_query}
               onChange={(e) => handleFilterChange('search_query', e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
