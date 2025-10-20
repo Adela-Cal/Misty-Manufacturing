@@ -44,6 +44,7 @@ const PayrollManagement = () => {
   const [showPermanentDeleteConfirm, setShowPermanentDeleteConfirm] = useState(false);
   const [employeeToPermanentlyDelete, setEmployeeToPermanentlyDelete] = useState(null);
   const [showBankDetailsModal, setShowBankDetailsModal] = useState(false);
+  const [approvingTimesheet, setApprovingTimesheet] = useState(null);
   const [bankDetailsFormData, setBankDetailsFormData] = useState({
     bank_account_bsb: '',
     bank_account_number: '',
