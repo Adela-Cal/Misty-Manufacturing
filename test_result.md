@@ -69,6 +69,21 @@ frontend:
 
 
 backend:
+  - task: "Profitability Report Material Costs and Data Sources Debugging"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Debug the Profitability Report material costs and data sources: 1) Check job_cards collection structure - what fields exist for material usage? 2) Check if client_products endpoint exists and returns data 3) Verify completed orders have associated job cards 4) Identify correct field names for material usage in job cards"
+      - working: false
+        agent: "testing"
+        comment: "🔍 PROFITABILITY REPORT MATERIAL COSTS DEBUGGING COMPLETED - CRITICAL DATA STRUCTURE ISSUES IDENTIFIED: Comprehensive analysis of job cards, client products, orders, and material data sources completed with 80% success rate (16/20 tests passed). CRITICAL FINDINGS: ✅ Job Cards Structure: Found 5 job cards via /production/job-cards/search endpoint. Job cards contain detailed material_layers data within product_specs field with complete material information (material_id, material_name, layer_type, width, thickness, quantity, gsm, supplier). Each job card has calculations field with material usage metrics (goodMaterialLength, makereadyLength, wasteLength, totalLengthRequired). ✅ Client Products Structure: Successfully accessed 6 client products via /clients/{client_id}/catalog endpoint. Products have material_used field (currently empty arrays) but NO material_layers field. This is a critical gap for profitability calculations. ✅ Orders Structure: Found 7 orders with detailed structure including items, pricing, and invoice_history. Orders have profitability-relevant fields but no direct material cost tracking. ❌ CRITICAL ISSUES IDENTIFIED: 1) Client products lack material_layers field needed for profitability calculations, 2) No completed orders found (all orders have 'active' or 'pending' status), 3) Job cards contain material data but no direct material cost fields, 4) Stock movements endpoint not accessible (404 error). MATERIAL DATA SOURCES VERIFIED: ✅ Materials Master Data (3 items with GSM, thickness, price), ✅ Raw Materials Stock (4 items), ✅ Raw Substrates Stock (25 items), ❌ Stock Movements (404 - not accessible). CONCLUSION: The system has rich material specification data in job cards but lacks the material_layers field in client products and direct material cost tracking mechanisms needed for accurate profitability reporting. The material cost calculation would need to derive costs from job card material_layers data combined with materials master data pricing."
+
   - task: "Part Supply Invoicing Workflow Testing"
     implemented: true
     working: true
