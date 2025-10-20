@@ -647,10 +647,31 @@ async def get_pending_timesheets(current_user: dict = Depends(require_payroll_ac
         # Remove MongoDB ObjectId to prevent serialization errors
         if "_id" in timesheet:
             del timesheet["_id"]
+        
+        # Try to find employee by id first, then by user_id as fallback
+        employee_id = timesheet.get("employee_id")
+        employee = None
+        
+        if employee_id:
+            # First try: Find by employee_id in employee_profiles
+            employee = await db.employee_profiles.find_one({"id": employee_id})
             
-        employee = await db.employee_profiles.find_one({"id": timesheet["employee_id"]})
+            # Second try: Find by user_id in employee_profiles (in case employee_id is actually a user_id)
+            if not employee:
+                employee = await db.employee_profiles.find_one({"user_id": employee_id})
+            
+            # Third try: Find user and get their employee profile
+            if not employee:
+                user = await db.users.find_one({"id": employee_id})
+                if user:
+                    employee = await db.employee_profiles.find_one({"user_id": user["id"]})
+        
+        # Set employee name if found, otherwise use ID
         if employee:
             timesheet["employee_name"] = f"{employee['first_name']} {employee['last_name']}"
+        else:
+            timesheet["employee_name"] = f"Unknown Employee (ID: {employee_id[:8]}...)"
+            logger.warning(f"Could not find employee for timesheet {timesheet.get('id')} with employee_id {employee_id}")
     
     return {"success": True, "data": pending_timesheets}
 
