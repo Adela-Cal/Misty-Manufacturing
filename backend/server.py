@@ -7422,6 +7422,7 @@ async def generate_profitability_report(
                 "client_name": client_name,
                 "job_revenue": round(job_revenue, 2),
                 "material_cost": round(material_cost, 2),
+                "material_layers_breakdown": material_layers_breakdown,  # Detailed layer info
                 "labour_cost": round(labour_cost, 2),
                 "machine_cost": round(machine_cost, 2),
                 "consumables_cost": round(consumables_cost, 2),
