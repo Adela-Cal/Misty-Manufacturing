@@ -126,7 +126,44 @@ class ProfitabilityDebugTester:
         """Test 1: Check job_cards collection structure - what fields exist for material usage?"""
         print("\n--- Test 1: Job Cards Collection Structure ---")
         try:
-            response = self.session.get(f"{API_BASE}/job-cards")
+            # Try different job card endpoints
+            endpoints_to_try = [
+                "/production/job-cards/search",
+                "/job-cards",
+                "/production/job-cards"
+            ]
+            
+            job_cards = []
+            successful_endpoint = None
+            
+            for endpoint in endpoints_to_try:
+                try:
+                    response = self.session.get(f"{API_BASE}{endpoint}")
+                    if response.status_code == 200:
+                        data = response.json()
+                        if isinstance(data, dict) and 'data' in data:
+                            job_cards = data['data']
+                        else:
+                            job_cards = data
+                        successful_endpoint = endpoint
+                        break
+                except:
+                    continue
+            
+            if not successful_endpoint:
+                # Try to get job cards by getting orders first and then their job cards
+                orders_response = self.session.get(f"{API_BASE}/orders")
+                if orders_response.status_code == 200:
+                    orders = orders_response.json()
+                    if orders and len(orders) > 0:
+                        # Try to get job cards for the first order
+                        order_id = orders[0].get('id')
+                        response = self.session.get(f"{API_BASE}/production/job-cards/order/{order_id}")
+                        if response.status_code == 200:
+                            data = response.json()
+                            if isinstance(data, dict) and 'data' in data:
+                                job_cards = data['data']
+                            successful_endpoint = f"/production/job-cards/order/{order_id}"
             
             if response.status_code == 200:
                 job_cards = response.json()
