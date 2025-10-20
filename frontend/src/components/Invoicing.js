@@ -140,6 +140,15 @@ const Invoicing = () => {
 
   const handleInvoiceJob = (job) => {
     setSelectedJob(job);
+    // Initialize partial items with zero quantities
+    if (job.items && Array.isArray(job.items)) {
+      const initialPartialItems = job.items.map(item => ({
+        ...item,
+        invoice_quantity: 0,
+        original_quantity: item.quantity || 0
+      }));
+      setPartialItems(initialPartialItems);
+    }
     setShowInvoiceModal(true);
   };
 
