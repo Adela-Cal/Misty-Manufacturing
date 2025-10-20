@@ -42,14 +42,14 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
       setLoading(true);
       
       // Determine employee ID to use
-      let actualEmployeeId = employeeId;
+      let resolvedEmployeeId = employeeId;
       
       // If no employeeId provided, get current user's employee profile
-      if (!actualEmployeeId) {
+      if (!resolvedEmployeeId) {
         try {
           const myProfileResponse = await payrollApi.getMyEmployeeProfile();
-          actualEmployeeId = myProfileResponse.data.id;
-          console.log('Got employee ID from profile:', actualEmployeeId);
+          resolvedEmployeeId = myProfileResponse.data.id;
+          console.log('Got employee ID from profile:', resolvedEmployeeId);
         } catch (error) {
           console.error('Failed to load employee profile:', error);
           toast.error('Unable to load your employee profile');
@@ -58,18 +58,18 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
         }
       }
       
-      console.log('Loading timesheet for employeeId:', actualEmployeeId);
+      console.log('Loading timesheet for employeeId:', resolvedEmployeeId);
       
-      if (!actualEmployeeId) {
+      if (!resolvedEmployeeId) {
         toast.error('Unable to determine employee ID');
         setLoading(false);
         return;
       }
       
       // Store the actual employee ID in state
-      setActualEmployeeId(actualEmployeeId);
+      setActualEmployeeId(resolvedEmployeeId);
       
-      const response = await payrollApi.getCurrentWeekTimesheet(actualEmployeeId);
+      const response = await payrollApi.getCurrentWeekTimesheet(resolvedEmployeeId);
       const timesheetData = response.data;
       
       setTimesheet(timesheetData);
@@ -78,7 +78,7 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
       // Load employee info if manager
       if (isManager) {
         try {
-          const empResponse = await payrollApi.getEmployee(employeeId);
+          const empResponse = await payrollApi.getEmployee(resolvedEmployeeId);
           setEmployee(empResponse.data);
         } catch (error) {
           console.warn('Could not load employee details:', error);
