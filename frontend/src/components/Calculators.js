@@ -46,7 +46,7 @@ const Calculators = () => {
     {
       id: 'material-permutation',
       name: 'Material Permutation',
-      description: 'Optimize master deckle width arrangements with core IDs and sizes',
+      description: 'Calculate all slit-cut patterns for master rolls with cost, waste, and yield optimization',
       icon: CubeIcon
     },
     {
