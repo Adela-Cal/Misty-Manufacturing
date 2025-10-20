@@ -724,7 +724,7 @@ class PartSupplyInvoicingTester:
     def test_invoice_pdf_download(self, order_id):
         """Test invoice PDF download"""
         try:
-            response = self.session.get(f"{API_BASE}/invoices/download/{order_id}")
+            response = self.session.get(f"{API_BASE}/documents/invoice/{order_id}")
             
             if response.status_code == 200:
                 content_type = response.headers.get('content-type', '')
