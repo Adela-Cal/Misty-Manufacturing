@@ -7,6 +7,7 @@ export const payrollApi = {
   createEmployee: (data) => api.post('/payroll/employees', data),
   updateEmployee: (id, data) => api.put(`/payroll/employees/${id}`, data),
   getEmployee: (id) => api.get(`/payroll/employees/${id}`),
+  getMyEmployeeProfile: () => api.get('/payroll/employees/me/profile'),
   getEmployeeLeaveBalances: (id) => api.get(`/payroll/employees/${id}/leave-balances`),
   
   // Timesheet Management
