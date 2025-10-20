@@ -1018,6 +1018,131 @@ const Invoicing = () => {
             </div>
           </div>
         )}
+
+        {/* Part Supply Item Selection Modal */}
+        {showPartSupplyModal && selectedJob && (
+          <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowPartSupplyModal(false)}>
+            <div className="modal-content max-w-4xl">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Part Supply - Select Items</h3>
+                    <p className="text-sm text-gray-400">
+                      Order: {selectedJob.order_number} - {selectedJob.client_name}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowPartSupplyModal(false)}
+                    className="text-gray-400 hover:text-white text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="mb-6">
+                  <p className="text-sm text-gray-400 mb-4">
+                    Select the quantities of each item you wish to invoice. Enter 0 to exclude an item.
+                  </p>
+                  
+                  <div className="misty-table">
+                    <table className="w-full">
+                      <thead>
+                        <tr>
+                          <th>Product</th>
+                          <th>Ordered Qty</th>
+                          <th>Invoice Qty</th>
+                          <th>Unit Price</th>
+                          <th>Line Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {partialItems.map((item, index) => (
+                          <tr key={index}>
+                            <td>
+                              <p className="font-medium">{item.product_name || item.description}</p>
+                              {item.specifications && (
+                                <p className="text-xs text-gray-400">{item.specifications}</p>
+                              )}
+                            </td>
+                            <td className="text-center">{item.original_quantity}</td>
+                            <td>
+                              <input
+                                type="number"
+                                min="0"
+                                max={item.original_quantity}
+                                value={item.invoice_quantity}
+                                onChange={(e) => updatePartialItemQuantity(index, parseInt(e.target.value) || 0)}
+                                className="misty-input w-24 text-center"
+                              />
+                            </td>
+                            <td className="text-right">${(item.unit_price || 0).toFixed(2)}</td>
+                            <td className="text-right font-medium text-green-400">
+                              ${((item.unit_price || 0) * item.invoice_quantity).toFixed(2)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-gray-600">
+                          <td colSpan="4" className="text-right font-semibold">Subtotal:</td>
+                          <td className="text-right font-semibold text-white">
+                            ${partialItems.reduce((sum, item) => sum + (item.unit_price * item.invoice_quantity), 0).toFixed(2)}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td colSpan="4" className="text-right">GST (10%):</td>
+                          <td className="text-right">
+                            ${(partialItems.reduce((sum, item) => sum + (item.unit_price * item.invoice_quantity), 0) * 0.1).toFixed(2)}
+                          </td>
+                        </tr>
+                        <tr className="border-t border-gray-600">
+                          <td colSpan="4" className="text-right font-bold text-lg">Total:</td>
+                          <td className="text-right font-bold text-lg text-yellow-400">
+                            ${(partialItems.reduce((sum, item) => sum + (item.unit_price * item.invoice_quantity), 0) * 1.1).toFixed(2)}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="flex justify-between">
+                  <button
+                    onClick={() => {
+                      setShowPartSupplyModal(false);
+                      setShowInvoiceModal(true);
+                    }}
+                    className="misty-button misty-button-secondary"
+                  >
+                    ← Back
+                  </button>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => {
+                        // Set all items to full quantity
+                        const fullItems = partialItems.map(item => ({
+                          ...item,
+                          invoice_quantity: item.original_quantity
+                        }));
+                        setPartialItems(fullItems);
+                      }}
+                      className="misty-button misty-button-secondary"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      onClick={generateInvoice}
+                      className="misty-button misty-button-primary"
+                      disabled={partialItems.every(item => item.invoice_quantity === 0)}
+                    >
+                      Generate Invoice & Packing Slip
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
