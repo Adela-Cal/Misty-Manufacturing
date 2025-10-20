@@ -164,17 +164,32 @@ class RawMaterialPermutationTester:
                     cost_per_tonne = float(cost_per_tonne)
                     
                     if width_mm > 0 and gsm > 0 and cost_per_tonne > 0:
-                        # Add the standardized field names to the material for easier access
-                        material["width_mm"] = width_mm
-                        material["cost_per_tonne"] = cost_per_tonne
-                        
-                        self.log_result(
-                            "Find Suitable Material", 
-                            True, 
-                            f"Found suitable material: {material_name}",
-                            f"Width: {width_mm}mm, GSM: {gsm}, Cost: ${cost_per_tonne}/tonne"
-                        )
-                        return material
+                        # Create a raw material entry for testing since the endpoint expects specific field names
+                        raw_material_id = self.create_raw_material_for_testing(material, width_mm, gsm, cost_per_tonne)
+                        if raw_material_id:
+                            # Return the raw material ID and properties
+                            return {
+                                "id": raw_material_id,
+                                "material_id": raw_material_id,
+                                "width_mm": width_mm,
+                                "gsm": gsm,
+                                "cost_per_tonne": cost_per_tonne,
+                                "material_description": material_name,
+                                "supplier": material.get("supplier"),
+                                "product_code": material.get("product_code")
+                            }
+                        else:
+                            # Fallback: try to use the material directly with field mapping
+                            material["width_mm"] = width_mm
+                            material["cost_per_tonne"] = cost_per_tonne
+                            
+                            self.log_result(
+                                "Find Suitable Material", 
+                                True, 
+                                f"Found suitable material (direct): {material_name}",
+                                f"Width: {width_mm}mm, GSM: {gsm}, Cost: ${cost_per_tonne}/tonne"
+                            )
+                            return material
                 except (ValueError, TypeError):
                     continue
         
@@ -183,6 +198,54 @@ class RawMaterialPermutationTester:
             False, 
             "No materials found with required properties (width_mm, gsm, cost_per_tonne)"
         )
+        return None
+
+    def create_raw_material_for_testing(self, base_material, width_mm, gsm, cost_per_tonne):
+        """Create a raw material entry for testing with proper field names"""
+        try:
+            # Create raw material stock entry with the correct field names expected by the endpoint
+            raw_material_data = {
+                "material_id": str(uuid.uuid4()),
+                "material_name": base_material.get("material_description", "Test Material"),
+                "material_description": base_material.get("material_description", "Test Material"),
+                "product_code": base_material.get("product_code", "TEST"),
+                "supplier": base_material.get("supplier", "Test Supplier"),
+                "width_mm": width_mm,
+                "gsm": gsm,
+                "cost_per_tonne": cost_per_tonne,
+                "tonnage": 10.0,  # 10 tonnes for testing
+                "quantity_on_hand": 1000.0,  # 1000 meters as fallback
+                "unit_of_measure": "tonnes",
+                "minimum_stock_level": 1.0,
+                "usage_rate_per_month": 2.0,
+                "alert_threshold_days": 30
+            }
+            
+            # Try to create via raw materials endpoint
+            response = self.session.post(f"{API_BASE}/stock/raw-materials", json=raw_material_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                raw_material_id = result.get("data", {}).get("id")
+                
+                self.log_result(
+                    "Create Raw Material for Testing", 
+                    True, 
+                    f"Created raw material entry with ID: {raw_material_id}",
+                    f"Width: {width_mm}mm, GSM: {gsm}, Cost: ${cost_per_tonne}/tonne"
+                )
+                return raw_material_id
+            else:
+                self.log_result(
+                    "Create Raw Material for Testing", 
+                    False, 
+                    f"Failed to create raw material: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Create Raw Material for Testing", False, f"Error: {str(e)}")
+        
         return None
 
     def test_material_permutation_basic(self, material):
