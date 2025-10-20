@@ -348,9 +348,48 @@ class PartSupplyInvoicingTester:
     def create_final_partial_invoice(self, order_id, quantity, description):
         """Create the final partial invoice that should complete the order"""
         try:
+            # First get the order to get the item details
+            order_response = self.session.get(f"{API_BASE}/orders/{order_id}")
+            if order_response.status_code != 200:
+                self.log_result(
+                    f"Get Order for Final Invoice - {description}", 
+                    False, 
+                    f"Failed to get order: {order_response.status_code}"
+                )
+                return None
+            
+            order_data = order_response.json()
+            original_items = order_data.get("items", [])
+            
+            if not original_items:
+                self.log_result(
+                    f"Get Order Items for Final Invoice - {description}", 
+                    False, 
+                    "No items found in order"
+                )
+                return None
+            
+            # Create partial items with the specified quantity
+            partial_items = []
+            for item in original_items:
+                partial_item = item.copy()
+                partial_item["quantity"] = quantity
+                # Recalculate total price based on partial quantity
+                unit_price = item.get("unit_price", 0)
+                partial_item["total_price"] = quantity * unit_price
+                partial_items.append(partial_item)
+            
+            # Calculate partial totals
+            subtotal = sum(item["total_price"] for item in partial_items)
+            gst = subtotal * 0.1
+            total_amount = subtotal + gst
+            
             invoice_data = {
                 "invoice_type": "partial",
-                "quantity_to_invoice": quantity
+                "items": partial_items,
+                "subtotal": subtotal,
+                "gst": gst,
+                "total_amount": total_amount
             }
             
             response = self.session.post(f"{API_BASE}/invoicing/generate/{order_id}", json=invoice_data)
