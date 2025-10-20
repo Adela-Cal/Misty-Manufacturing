@@ -15,6 +15,7 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
   const [loading, setLoading] = useState(true);
   const [timesheet, setTimesheet] = useState(null);
   const [employee, setEmployee] = useState(null);
+  const [actualEmployeeId, setActualEmployeeId] = useState(employeeId);
   const [entries, setEntries] = useState([]);
   const [totalHours, setTotalHours] = useState({ regular: 0, overtime: 0, leave: {} });
   const [errors, setErrors] = useState({});
