@@ -228,10 +228,13 @@ class PartSupplyInvoicingTester:
             if len(invoice_history) >= 1:
                 first_invoice = invoice_history[0]
                 if first_invoice.get("invoice_number") == "INV-0036":
+                    # Calculate quantity from items
+                    items = first_invoice.get("items", [])
+                    total_quantity = sum(item.get("quantity", 0) for item in items)
                     self.log_result(
                         "Verify Existing Invoice", 
                         True, 
-                        f"Found existing invoice INV-0036 with {first_invoice.get('quantity_invoiced')} units"
+                        f"Found existing invoice INV-0036 with {total_quantity} units"
                     )
                 else:
                     self.log_result(
