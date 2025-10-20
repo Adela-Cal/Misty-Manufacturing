@@ -209,7 +209,7 @@ const ArchivedOrders = ({ client, onClose }) => {
               value={filters.search_query}
               onChange={(e) => handleFilterChange('search_query', e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
-              className="misty-input pl-12 w-full"
+              className="misty-input pl-14 w-full"
             />
           </div>
           
