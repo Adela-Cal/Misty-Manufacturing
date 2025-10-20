@@ -288,7 +288,20 @@ const PayrollManagement = () => {
         loadPayrollData();
       } else {
         const error = await response.json();
-        toast.error(error.detail || 'Failed to create leave request');
+        // Handle Pydantic validation errors
+        if (error.detail) {
+          if (Array.isArray(error.detail)) {
+            // Pydantic validation error array
+            const errorMessages = error.detail.map(err => err.msg || JSON.stringify(err)).join(', ');
+            toast.error(errorMessages);
+          } else if (typeof error.detail === 'string') {
+            toast.error(error.detail);
+          } else {
+            toast.error('Validation error occurred');
+          }
+        } else {
+          toast.error('Failed to create leave request');
+        }
       }
     } catch (error) {
       console.error('Failed to create leave request:', error);
