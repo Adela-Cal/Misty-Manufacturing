@@ -7190,6 +7190,235 @@ async def delete_slit_width(
 async def root():
     return {"message": "Misty Manufacturing Management System API"}
 
+@api_router.post("/reports/profitability", response_model=StandardResponse)
+async def generate_profitability_report(
+    request: ProfitabilityReportRequest,
+    current_user: dict = Depends(require_any_role)
+):
+    """
+    Generate profitability report for completed/archived jobs.
+    Calculates Gross Profit and Net Profit based on:
+    - Material costs
+    - Labour costs (from timesheets)
+    - Machine costs (from job cards)
+    - Consumables (from client products)
+    - Selling price (from client product catalogue)
+    """
+    try:
+        from decimal import Decimal
+        
+        # Build query filter
+        query = {}
+        
+        # Filter by specific order IDs
+        if request.order_ids:
+            query["id"] = {"$in": request.order_ids}
+        else:
+            # Filter completed/archived jobs
+            query["$or"] = [
+                {"status": "completed"},
+                {"current_stage": "cleared"}
+            ]
+        
+        # Filter by client
+        if request.client_id:
+            query["client_id"] = request.client_id
+        
+        # Filter by date range
+        if request.start_date and request.end_date:
+            start_dt = datetime.fromisoformat(request.start_date.replace('Z', '+00:00')).replace(tzinfo=None)
+            end_dt = datetime.fromisoformat(request.end_date.replace('Z', '+00:00')).replace(tzinfo=None)
+            query["created_at"] = {"$gte": start_dt, "$lte": end_dt}
+        
+        # Get orders
+        orders = await db.orders.find(query).to_list(length=None)
+        
+        if not orders:
+            return StandardResponse(
+                success=True,
+                message="No orders found matching the criteria",
+                data={"profitability_data": [], "summary": {}}
+            )
+        
+        profitability_data = []
+        total_revenue = 0
+        total_costs = 0
+        total_gp = 0
+        total_np = 0
+        
+        for order in orders:
+            order_id = order.get("id")
+            order_number = order.get("order_number", "Unknown")
+            client_name = order.get("client_name", "Unknown")
+            
+            # Calculate Job Revenue (selling price ex GST from order items)
+            job_revenue = 0
+            for item in order.get("items", []):
+                # Unit price is ex GST as per client product catalogue
+                job_revenue += item.get("unit_price", 0) * item.get("quantity", 0)
+            
+            # 1. Calculate Material Costs
+            material_cost = 0
+            job_card = await db.job_cards.find_one({"order_id": order_id})
+            
+            if job_card:
+                # Get material usage from job card
+                materials_used = job_card.get("materials_used", [])
+                for material in materials_used:
+                    material_id = material.get("material_id")
+                    quantity_used = float(material.get("quantity_used", 0))
+                    
+                    # Get material cost from materials collection
+                    material_doc = await db.materials.find_one({"id": material_id})
+                    if material_doc:
+                        # Cost calculation depends on material type
+                        cost_per_unit = float(material_doc.get("price", 0))
+                        material_cost += quantity_used * cost_per_unit
+            
+            # 2. Calculate Labour Costs (from timesheets)
+            labour_cost = 0
+            timesheets = await db.timesheets.find({"order_id": order_id}).to_list(length=None)
+            
+            for timesheet in timesheets:
+                employee_id = timesheet.get("employee_id")
+                
+                # Get employee hourly rate
+                employee = await db.employee_profiles.find_one({"id": employee_id})
+                if employee:
+                    hourly_rate = float(employee.get("hourly_rate", 0))
+                    
+                    # Sum regular and overtime hours
+                    entries = timesheet.get("entries", [])
+                    for entry in entries:
+                        regular_hours = float(entry.get("regular_hours", 0))
+                        overtime_hours = float(entry.get("overtime_hours", 0))
+                        
+                        # Regular hours at normal rate, overtime at 1.5x
+                        labour_cost += (regular_hours * hourly_rate) + (overtime_hours * hourly_rate * 1.5)
+            
+            # 3. Calculate Machine Costs (from job card machine usage)
+            machine_cost = 0
+            overhead_cost = 0  # Overheads = machine costs as per requirements
+            
+            if job_card:
+                machine_usage = job_card.get("machine_usage", [])
+                for machine in machine_usage:
+                    machine_id = machine.get("machine_id")
+                    runtime_minutes = float(machine.get("runtime_minutes", 0))
+                    
+                    # Get machine hourly rate
+                    machinery = await db.machinery_rates.find_one({"id": machine_id})
+                    if machinery:
+                        hourly_rate = float(machinery.get("hourly_rate", 0))
+                        machine_cost += (runtime_minutes / 60.0) * hourly_rate
+                
+                # Overheads = machine costs
+                overhead_cost = machine_cost
+            
+            # 4. Calculate Consumables Costs (from client product catalogue)
+            consumables_cost = 0
+            for item in order.get("items", []):
+                product_id = item.get("product_id")
+                quantity = item.get("quantity", 0)
+                
+                # Get client product to check for consumables
+                client_product = await db.client_products.find_one({"id": product_id})
+                if client_product:
+                    # Check if product has consumables defined
+                    consumables = client_product.get("consumables", [])
+                    for consumable in consumables:
+                        consumable_cost_per_unit = float(consumable.get("cost_per_unit", 0))
+                        consumable_quantity_per_product = float(consumable.get("quantity_per_unit", 1))
+                        consumables_cost += quantity * consumable_quantity_per_product * consumable_cost_per_unit
+            
+            # 5. Calculate Totals
+            total_production_cost = material_cost + labour_cost + machine_cost + consumables_cost
+            
+            # Calculate Gross Profit
+            gross_profit = job_revenue - (material_cost + labour_cost + machine_cost + consumables_cost)
+            gp_percentage = (gross_profit / job_revenue * 100) if job_revenue > 0 else 0
+            
+            # Calculate Net Profit (GP - Overheads)
+            # Note: Overheads already included in machine_cost, so NP = GP - overhead_cost
+            # But since machine_cost is already subtracted in GP, we don't subtract again
+            # Per requirements: NP = GP - Overheads, and Overheads = machine costs
+            # But machine costs are already in GP calculation, so:
+            # Let's recalculate: GP should be Revenue - (Materials + Labour) only
+            # Then NP = GP - (Machine costs as overhead)
+            
+            gross_profit_proper = job_revenue - (material_cost + labour_cost + consumables_cost)
+            net_profit = gross_profit_proper - machine_cost
+            np_percentage = (net_profit / job_revenue * 100) if job_revenue > 0 else 0
+            
+            # Calculate additional metrics
+            profit_per_hour = 0
+            if job_card:
+                total_hours = 0
+                # Sum all labour hours
+                for timesheet in timesheets:
+                    entries = timesheet.get("entries", [])
+                    for entry in entries:
+                        total_hours += float(entry.get("regular_hours", 0)) + float(entry.get("overtime_hours", 0))
+                
+                profit_per_hour = (net_profit / total_hours) if total_hours > 0 else 0
+            
+            # Check profit threshold for alerts
+            alert_low_profit = np_percentage < request.profit_threshold
+            
+            profitability_data.append({
+                "order_id": order_id,
+                "order_number": order_number,
+                "client_name": client_name,
+                "job_revenue": round(job_revenue, 2),
+                "material_cost": round(material_cost, 2),
+                "labour_cost": round(labour_cost, 2),
+                "machine_cost": round(machine_cost, 2),
+                "consumables_cost": round(consumables_cost, 2),
+                "total_production_cost": round(total_production_cost, 2),
+                "gross_profit": round(gross_profit_proper, 2),
+                "gp_percentage": round(gp_percentage, 2),
+                "overhead_cost": round(overhead_cost, 2),
+                "net_profit": round(net_profit, 2),
+                "np_percentage": round(np_percentage, 2),
+                "profit_per_hour": round(profit_per_hour, 2),
+                "alert_low_profit": alert_low_profit,
+                "completed_at": order.get("completed_at")
+            })
+            
+            # Accumulate totals
+            total_revenue += job_revenue
+            total_costs += total_production_cost
+            total_gp += gross_profit_proper
+            total_np += net_profit
+        
+        # Calculate summary
+        avg_gp_percentage = (total_gp / total_revenue * 100) if total_revenue > 0 else 0
+        avg_np_percentage = (total_np / total_revenue * 100) if total_revenue > 0 else 0
+        
+        summary = {
+            "total_jobs": len(profitability_data),
+            "total_revenue": round(total_revenue, 2),
+            "total_costs": round(total_costs, 2),
+            "total_gross_profit": round(total_gp, 2),
+            "total_net_profit": round(total_np, 2),
+            "average_gp_percentage": round(avg_gp_percentage, 2),
+            "average_np_percentage": round(avg_np_percentage, 2),
+            "jobs_below_threshold": sum(1 for job in profitability_data if job["alert_low_profit"])
+        }
+        
+        return StandardResponse(
+            success=True,
+            message=f"Profitability report generated for {len(profitability_data)} jobs",
+            data={
+                "profitability_data": profitability_data,
+                "summary": summary
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Profitability report generation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Report generation failed: {str(e)}")
+
 @api_router.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc)}
