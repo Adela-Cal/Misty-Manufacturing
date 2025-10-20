@@ -663,7 +663,7 @@ async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(requ
     
     await db.employee_profiles.update_one(
         {"id": employee.id},
-        {"$set": leave_updates}
+        {"$set": prepare_for_mongo(leave_updates)}
     )
     
     logger.info(f"Approved timesheet {timesheet_id} and calculated pay: ${payroll_calculation.gross_pay}")
