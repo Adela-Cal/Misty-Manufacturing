@@ -368,6 +368,93 @@ async def permanently_delete_employee(employee_id: str, current_user: dict = Dep
     
     return StandardResponse(success=True, message="Employee and all associated data permanently deleted")
 
+@payroll_router.put("/employees/{employee_id}/bank-details", response_model=StandardResponse)
+async def update_employee_bank_details(
+    employee_id: str,
+    bank_account_bsb: str,
+    bank_account_number: str,
+    tax_file_number: Optional[str] = None,
+    superannuation_fund: Optional[str] = None,
+    current_user: dict = Depends(require_admin)
+):
+    """Update employee bank details and tax information (Admin only)"""
+    
+    result = await db.employee_profiles.update_one(
+        {"id": employee_id},
+        {"$set": {
+            "bank_account_bsb": bank_account_bsb,
+            "bank_account_number": bank_account_number,
+            "tax_file_number": tax_file_number,
+            "superannuation_fund": superannuation_fund,
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    
+    logger.info(f"Updated bank details for employee {employee_id}")
+    
+    return StandardResponse(success=True, message="Bank details updated successfully")
+
+@payroll_router.post("/leave-adjustments", response_model=StandardResponse)
+async def create_leave_adjustment(adjustment: LeaveAdjustmentCreate, current_user: dict = Depends(require_admin)):
+    """Create manual leave adjustment with reason (Admin only)"""
+    
+    # Get employee
+    employee = await db.employee_profiles.find_one({"id": adjustment.employee_id})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    
+    employee_profile = EmployeeProfile(**employee)
+    
+    # Get current balance based on leave type
+    balance_field = f"{adjustment.leave_type.value}_balance"
+    current_balance = getattr(employee_profile, balance_field, Decimal("0"))
+    
+    # Calculate new balance
+    new_balance = current_balance + adjustment.adjustment_hours
+    
+    if new_balance < 0:
+        raise HTTPException(status_code=400, detail="Adjustment would result in negative balance")
+    
+    # Create adjustment record
+    leave_adjustment = LeaveAdjustment(
+        **adjustment.dict(),
+        previous_balance=current_balance,
+        new_balance=new_balance,
+        adjusted_by=current_user["user_id"]
+    )
+    
+    adjustment_dict = prepare_for_mongo(leave_adjustment.dict())
+    await db.leave_adjustments.insert_one(adjustment_dict)
+    
+    # Update employee balance
+    await db.employee_profiles.update_one(
+        {"id": adjustment.employee_id},
+        {"$set": {balance_field: float(new_balance), "updated_at": datetime.utcnow()}}
+    )
+    
+    logger.info(f"Created leave adjustment for employee {adjustment.employee_id}: {adjustment.adjustment_hours}h")
+    
+    return StandardResponse(
+        success=True,
+        message=f"Leave adjustment recorded. New balance: {new_balance}h",
+        data={"new_balance": float(new_balance)}
+    )
+
+@payroll_router.get("/leave-adjustments/{employee_id}")
+async def get_leave_adjustment_history(employee_id: str, current_user: dict = Depends(require_payroll_access)):
+    """Get leave adjustment history for an employee"""
+    
+    adjustments = await db.leave_adjustments.find({"employee_id": employee_id}).sort("created_at", -1).to_list(100)
+    
+    for adj in adjustments:
+        if "_id" in adj:
+            del adj["_id"]
+    
+    return {"success": True, "data": adjustments}
+
 @payroll_router.get("/employees/{employee_id}/leave-balances", response_model=EmployeeLeaveBalance)
 async def get_employee_leave_balances(employee_id: str, current_user: dict = Depends(require_any_role)):
     """Get employee leave balances (Employee can view own, Managers can view all)"""
