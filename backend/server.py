@@ -1480,6 +1480,14 @@ async def update_production_stage(order_id: str, stage_update: ProductionStageUp
     # Check permissions for specific actions
     user_role = current_user.get("role")
     
+    # Auto-populate updated_by from current user if not provided
+    if not stage_update.updated_by:
+        stage_update.updated_by = current_user.get("user_id") or current_user.get("sub")
+    
+    # Auto-populate order_id if not provided
+    if not stage_update.order_id:
+        stage_update.order_id = order_id
+    
     # Production team can only move stages forward, not create/delete orders
     if user_role == UserRole.PRODUCTION_TEAM.value:
         if stage_update.to_stage == ProductionStage.ORDER_ENTERED:
