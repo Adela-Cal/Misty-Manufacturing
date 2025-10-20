@@ -140,13 +140,38 @@ const Invoicing = () => {
 
   const handleInvoiceJob = (job) => {
     setSelectedJob(job);
-    // Initialize partial items with zero quantities
+    
+    // Initialize partial items with remaining quantities to invoice
     if (job.items && Array.isArray(job.items)) {
-      const initialPartialItems = job.items.map(item => ({
-        ...item,
-        invoice_quantity: 0,
-        original_quantity: item.quantity || 0
-      }));
+      // Calculate already invoiced quantities from invoice_history
+      const invoicedQuantities = {};
+      if (job.invoice_history && Array.isArray(job.invoice_history)) {
+        job.invoice_history.forEach(inv => {
+          inv.items.forEach(item => {
+            const productId = item.product_id || item.product_name;
+            if (productId) {
+              invoicedQuantities[productId] = (invoicedQuantities[productId] || 0) + item.quantity;
+            }
+          });
+        });
+      }
+      
+      // Set invoice quantities to remaining amounts
+      const initialPartialItems = job.items.map(item => {
+        const productId = item.product_id || item.product_name;
+        const originalQty = item.quantity || 0;
+        const invoicedQty = invoicedQuantities[productId] || 0;
+        const remainingQty = Math.max(0, originalQty - invoicedQty);
+        
+        return {
+          ...item,
+          invoice_quantity: 0,
+          original_quantity: originalQty,
+          already_invoiced: invoicedQty,
+          remaining_quantity: remainingQty
+        };
+      });
+      
       setPartialItems(initialPartialItems);
     }
     setShowInvoiceModal(true);
