@@ -119,7 +119,7 @@ class TimesheetFlowTester:
                         "Get Employee ID", 
                         False, 
                         "Could not find Callum in employees list",
-                        f"Available employees: {[f\"{emp.get('first_name')} {emp.get('last_name')}\" for emp in employees]}"
+                        f"Available employees: {[emp.get('first_name', '') + ' ' + emp.get('last_name', '') for emp in employees]}"
                     )
                     return False
             else:
