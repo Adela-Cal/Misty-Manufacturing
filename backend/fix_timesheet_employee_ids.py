@@ -17,8 +17,12 @@ async def fix_timesheet_employee_ids():
     
     # Connect to MongoDB
     mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+    db_name = os.environ.get('DB_NAME', 'test_database')
     client = AsyncIOMotorClient(mongo_url)
-    db = client.misty_manufacturing
+    db = client[db_name]
+    
+    print(f"Connected to MongoDB: {mongo_url}")
+    print(f"Using database: {db_name}")
     
     print("Starting timesheet employee_id fix...")
     print("-" * 60)
