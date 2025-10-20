@@ -7210,7 +7210,7 @@ async def generate_profitability_report(
         # Build query filter
         query = {}
         
-        # Filter by specific order IDs
+        # Filter by specific order IDs (legacy - not used in new design)
         if request.order_ids:
             query["id"] = {"$in": request.order_ids}
         else:
@@ -7220,9 +7220,9 @@ async def generate_profitability_report(
                 {"current_stage": "cleared"}
             ]
         
-        # Filter by client
-        if request.client_id:
-            query["client_id"] = request.client_id
+        # Filter by multiple clients
+        if request.client_ids and len(request.client_ids) > 0:
+            query["client_id"] = {"$in": request.client_ids}
         
         # Filter by date range
         if request.start_date and request.end_date:
@@ -7232,6 +7232,18 @@ async def generate_profitability_report(
         
         # Get orders
         orders = await db.orders.find(query).to_list(length=None)
+        
+        # Filter by products if specified
+        if request.product_ids and len(request.product_ids) > 0:
+            # Filter orders that contain at least one of the specified products
+            filtered_orders = []
+            for order in orders:
+                order_items = order.get("items", [])
+                for item in order_items:
+                    if item.get("product_id") in request.product_ids:
+                        filtered_orders.append(order)
+                        break  # Include this order only once
+            orders = filtered_orders
         
         if not orders:
             return StandardResponse(
