@@ -770,41 +770,44 @@ async def calculate_raw_material_permutation(
         from itertools import combinations_with_replacement
         from decimal import Decimal
         
-        # Get raw material information
-        material = await db.raw_materials.find_one({"material_id": request.material_id})
-        if not material:
-            # Try materials collection as fallback
-            material = await db.materials.find_one({"id": request.material_id})
-        
-        if not material:
+        # Get material information - combine data from both collections
+        # First get the base material data (has GSM, width, price)
+        base_material = await db.materials.find_one({"id": request.material_id})
+        if not base_material:
             raise HTTPException(status_code=404, detail="Material not found")
         
-        # Extract material properties - try multiple field names for compatibility
-        master_width_mm = float(material.get("width_mm") or material.get("master_deckle_width_mm", 0))
+        # Then get the raw material stock data (has quantity_on_hand)
+        raw_material = await db.raw_materials.find_one({"material_id": request.material_id})
+        
+        # Extract material properties from base material
+        master_width_mm = float(base_material.get("width_mm") or base_material.get("master_deckle_width_mm", 0))
         if master_width_mm == 0:
             raise HTTPException(status_code=400, detail="Material does not have width defined")
         
-        gsm = float(material.get("gsm", 0))
+        gsm = float(base_material.get("gsm", 0))
         if gsm == 0:
             raise HTTPException(status_code=400, detail="Material does not have GSM defined")
         
         # Calculate total linear meters available
         # From tonnage: (tonnage * 1,000,000 grams) / (GSM * width_meters)
-        tonnage = float(material.get("tonnage", 0))
+        tonnage = float(base_material.get("tonnage", 0))
         if tonnage > 0:
             width_meters = master_width_mm / 1000.0
             total_linear_meters = (tonnage * 1000000) / (gsm * width_meters * 1000)  # Convert to meters
+        elif raw_material and raw_material.get("quantity_on_hand"):
+            # Use quantity from raw materials collection
+            total_linear_meters = float(raw_material.get("quantity_on_hand", 0))
         else:
-            # Fallback to quantity_on_hand if available
-            total_linear_meters = float(material.get("quantity_on_hand", 0))
+            # Fallback to quantity_on_hand from base material if available
+            total_linear_meters = float(base_material.get("quantity_on_hand", 0))
         
         if total_linear_meters == 0:
             raise HTTPException(status_code=400, detail="Could not calculate linear meters from material data")
         
         # Try multiple field names for cost
-        cost_per_tonne = float(material.get("cost_per_tonne") or material.get("price", 0))
-        material_name = material.get("material_description", material.get("supplier", "Unknown"))
-        material_code = material.get("product_code", "N/A")
+        cost_per_tonne = float(base_material.get("cost_per_tonne") or base_material.get("price", 0))
+        material_name = base_material.get("material_description", base_material.get("supplier", "Unknown"))
+        material_code = base_material.get("product_code", "N/A")
         
         # Generate all possible permutations
         permutations = []
