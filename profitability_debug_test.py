@@ -172,7 +172,7 @@ class ProfitabilityDebugTester:
                     self.log_result(
                         "Job Cards Endpoint Access", 
                         True, 
-                        f"Successfully retrieved {len(job_cards)} job cards"
+                        f"Successfully retrieved {len(job_cards)} job cards from {successful_endpoint}"
                     )
                     
                     # Check for material-related fields
