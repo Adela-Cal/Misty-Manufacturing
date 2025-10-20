@@ -316,13 +316,13 @@ const ProductionBoard = () => {
           <p className="text-xs text-gray-400 truncate">{job.client_name}</p>
           
           <div className="flex items-center justify-between mt-2 flex-wrap gap-1">
-            {/* Materials Status */}
+            {/* Job Start Status */}
             <button
-              onClick={() => toggleMaterialsModal(job.id)}
-              className="text-gray-400 hover:text-yellow-400 transition-colors"
-              title={`Materials ${materialsStatus === 'ready' ? 'Ready' : 'Pending'}`}
+              onClick={(e) => e.stopPropagation()}
+              className="cursor-default"
+              title={`Job ${jobStartStatus === 'started' ? 'Started' : 'Not Started'}`}
             >
-              <HexagonIcon status={materialsStatus} />
+              <JobStartStatusIcon status={jobStartStatus} />
             </button>
             
             {/* Order Items */}
