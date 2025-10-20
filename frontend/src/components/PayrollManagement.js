@@ -37,6 +37,13 @@ const PayrollManagement = () => {
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
   const [showPermanentDeleteConfirm, setShowPermanentDeleteConfirm] = useState(false);
   const [employeeToPermanentlyDelete, setEmployeeToPermanentlyDelete] = useState(null);
+  const [showBankDetailsModal, setShowBankDetailsModal] = useState(false);
+  const [bankDetailsFormData, setBankDetailsFormData] = useState({
+    bank_account_bsb: '',
+    bank_account_number: '',
+    tax_file_number: '',
+    superannuation_fund: ''
+  });
   const [leaveFormData, setLeaveFormData] = useState({
     employee_id: '',
     leave_type: 'annual_leave',
