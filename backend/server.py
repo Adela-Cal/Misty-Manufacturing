@@ -3455,10 +3455,10 @@ async def generate_job_invoice(
         update_data["fully_invoiced"] = is_fully_invoiced
         
         if not is_fully_invoiced:
-            # Keep in active live jobs
+            # Keep in invoicing stage for remaining items
             update_data["invoiced"] = False
             update_data["partially_invoiced"] = True
-            update_data["current_stage"] = "delivery"  # Keep in delivery stage for remaining items
+            update_data["current_stage"] = "invoicing"  # Keep in invoicing stage so it appears in "Jobs Ready for Invoicing"
             update_data["status"] = "active"  # Keep as active for partial invoices
             # Remove invoice date for partial invoices
             del update_data["invoice_date"]
