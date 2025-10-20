@@ -170,14 +170,45 @@ const Invoicing = () => {
     if (!selectedJob) return;
 
     try {
-      const invoiceData = {
-        invoice_type: invoiceType,
-        items: selectedJob.items,
-        subtotal: selectedJob.subtotal,
-        gst: selectedJob.gst,
-        total_amount: selectedJob.total_amount,
-        due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-      };
+      let invoiceData;
+      
+      if (invoiceType === 'partial') {
+        // Validate at least one item selected
+        const selectedItems = partialItems.filter(item => item.invoice_quantity > 0);
+        if (selectedItems.length === 0) {
+          toast.error('Please select at least one item to invoice');
+          return;
+        }
+        
+        // Calculate subtotal for selected items
+        const subtotal = selectedItems.reduce((sum, item) => {
+          return sum + (item.unit_price * item.invoice_quantity);
+        }, 0);
+        const gst = subtotal * 0.1; // 10% GST
+        const total_amount = subtotal + gst;
+        
+        invoiceData = {
+          invoice_type: invoiceType,
+          items: selectedItems.map(item => ({
+            ...item,
+            quantity: item.invoice_quantity // Use invoice quantity
+          })),
+          subtotal: subtotal,
+          gst: gst,
+          total_amount: total_amount,
+          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        };
+      } else {
+        // Full invoice
+        invoiceData = {
+          invoice_type: invoiceType,
+          items: selectedJob.items,
+          subtotal: selectedJob.subtotal,
+          gst: selectedJob.gst,
+          total_amount: selectedJob.total_amount,
+          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        };
+      }
 
       const response = await apiHelpers.generateJobInvoice(selectedJob.id, invoiceData);
       
@@ -208,6 +239,7 @@ const Invoicing = () => {
       );
       
       setShowInvoiceModal(false);
+      setShowPartSupplyModal(false);
       setSelectedJob(null);
       loadData(); // Refresh data
     } catch (error) {
