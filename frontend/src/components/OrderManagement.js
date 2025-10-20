@@ -157,7 +157,7 @@ const OrderManagement = () => {
             <input
               type="text"
               placeholder="Search orders..."
-              className="misty-input pl-12 w-full"
+              className="misty-input pl-14 w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               data-testid="order-search"
