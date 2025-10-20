@@ -514,8 +514,8 @@ async def get_current_week_timesheet(employee_id: str, current_user: dict = Depe
     if not employee_id or employee_id in ['undefined', 'null', 'None']:
         raise HTTPException(status_code=400, detail="Valid employee ID is required")
     
-    # Check access permissions
-    if current_user["role"] not in ["admin", "manager", "production_manager"] and current_user["user_id"] != employee_id:
+    # Check access permissions using the helper function
+    if not await check_timesheet_access(current_user, employee_id):
         raise HTTPException(status_code=403, detail="Access denied")
     
     week_starting = timesheet_service.get_current_week_starting()
