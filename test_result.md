@@ -311,7 +311,7 @@ backend:
 
   - task: "Material Usage Report Endpoint Testing"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
