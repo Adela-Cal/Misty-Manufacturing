@@ -691,7 +691,7 @@ class PartSupplyInvoicingTester:
     def test_packing_slip_download(self, order_id):
         """Test packing slip download"""
         try:
-            response = self.session.get(f"{API_BASE}/invoices/packing-slip/{order_id}")
+            response = self.session.get(f"{API_BASE}/documents/packing-list/{order_id}")
             
             if response.status_code == 200:
                 content_type = response.headers.get('content-type', '')
