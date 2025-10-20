@@ -302,7 +302,8 @@ const MaterialPermutation = ({ loading, setLoading }) => {
   };
 
   const handleMaterialChange = (materialId) => {
-    const material = rawMaterials.find(m => m.material_id === materialId);
+    // Materials endpoint uses 'id', raw materials use 'material_id'
+    const material = rawMaterials.find(m => m.id === materialId || m.material_id === materialId);
     setSelectedMaterial(material);
     setFormData({ ...formData, material_id: materialId });
   };
