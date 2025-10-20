@@ -120,7 +120,7 @@ const PayrollReports = () => {
     e.preventDefault();
     
     try {
-      const response = await fetch('/api/payroll/leave-adjustments', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-adjustments`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
