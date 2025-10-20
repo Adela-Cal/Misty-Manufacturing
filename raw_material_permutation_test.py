@@ -164,24 +164,22 @@ class RawMaterialPermutationTester:
                     cost_per_tonne = float(cost_per_tonne)
                     
                     if width_mm > 0 and gsm > 0 and cost_per_tonne > 0:
-                        # Create a raw material entry for testing since the endpoint expects specific field names
-                        raw_material_id = self.create_raw_material_for_testing(material, width_mm, gsm, cost_per_tonne)
-                        if raw_material_id:
-                            # Return the raw material ID and properties
-                            return {
-                                "id": raw_material_id,
-                                "material_id": raw_material_id,
-                                "width_mm": width_mm,
-                                "gsm": gsm,
-                                "cost_per_tonne": cost_per_tonne,
-                                "material_description": material_name,
-                                "supplier": material.get("supplier"),
-                                "product_code": material.get("product_code")
-                            }
+                        # The endpoint expects specific field names, so we need to update the material in the database
+                        # or use the material directly with the correct field mapping
+                        updated_material = self.update_material_for_testing(material, width_mm, gsm, cost_per_tonne)
+                        if updated_material:
+                            self.log_result(
+                                "Find Suitable Material", 
+                                True, 
+                                f"Found and updated suitable material: {material_name}",
+                                f"Width: {width_mm}mm, GSM: {gsm}, Cost: ${cost_per_tonne}/tonne"
+                            )
+                            return updated_material
                         else:
                             # Fallback: try to use the material directly with field mapping
                             material["width_mm"] = width_mm
                             material["cost_per_tonne"] = cost_per_tonne
+                            material["quantity_on_hand"] = 1000.0  # Add fallback quantity
                             
                             self.log_result(
                                 "Find Suitable Material", 
@@ -198,6 +196,66 @@ class RawMaterialPermutationTester:
             False, 
             "No materials found with required properties (width_mm, gsm, cost_per_tonne)"
         )
+        return None
+
+    def update_material_for_testing(self, material, width_mm, gsm, cost_per_tonne):
+        """Update the material in the database with the required fields for testing"""
+        try:
+            material_id = material.get("id")
+            
+            # Update the material with the required fields
+            update_data = {
+                "supplier": material.get("supplier"),
+                "product_code": material.get("product_code"),
+                "order_to_delivery_time": material.get("order_to_delivery_time"),
+                "material_description": material.get("material_description"),
+                "price": material.get("price"),
+                "currency": material.get("currency"),
+                "unit": material.get("unit"),
+                "raw_substrate": material.get("raw_substrate"),
+                "gsm": gsm,
+                "thickness_mm": material.get("thickness_mm"),
+                "burst_strength_kpa": material.get("burst_strength_kpa"),
+                "ply_bonding_jm2": material.get("ply_bonding_jm2"),
+                "moisture_percent": material.get("moisture_percent"),
+                "supplied_roll_weight": material.get("supplied_roll_weight"),
+                "master_deckle_width_mm": material.get("master_deckle_width_mm"),
+                # Add the required fields for the endpoint
+                "width_mm": width_mm,
+                "cost_per_tonne": cost_per_tonne,
+                "quantity_on_hand": 1000.0,  # Add fallback quantity
+                "tonnage": 10.0  # Add tonnage for calculation
+            }
+            
+            response = self.session.put(f"{API_BASE}/materials/{material_id}", json=update_data)
+            
+            if response.status_code == 200:
+                # Return the updated material
+                updated_material = material.copy()
+                updated_material.update({
+                    "width_mm": width_mm,
+                    "cost_per_tonne": cost_per_tonne,
+                    "quantity_on_hand": 1000.0,
+                    "tonnage": 10.0
+                })
+                
+                self.log_result(
+                    "Update Material for Testing", 
+                    True, 
+                    f"Updated material with required fields"
+                )
+                return updated_material
+            else:
+                self.log_result(
+                    "Update Material for Testing", 
+                    False, 
+                    f"Failed to update material: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Update Material for Testing", False, f"Error: {str(e)}")
+        
         return None
 
     def create_raw_material_for_testing(self, base_material, width_mm, gsm, cost_per_tonne):
