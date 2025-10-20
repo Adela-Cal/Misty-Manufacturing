@@ -487,7 +487,7 @@ const PayrollManagement = () => {
     try {
       setApprovingTimesheet(timesheetId);
       
-      const response = await fetch(`/api/payroll/timesheets/${timesheetId}/approve`, {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/timesheets/${timesheetId}/approve`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
