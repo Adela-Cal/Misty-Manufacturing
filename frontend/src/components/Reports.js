@@ -2946,36 +2946,121 @@ const Reports = () => {
                     </thead>
                     <tbody className="bg-gray-800 divide-y divide-gray-700">
                       {profitabilityReport.profitability_data.map((job, index) => (
-                        <tr key={index} className={job.alert_low_profit ? 'bg-red-900 bg-opacity-20' : ''}>
-                          <td className="px-3 py-3 text-sm">
-                            <div className="text-white font-medium">{job.order_number}</div>
-                            <div className="text-gray-400 text-xs">{job.client_name}</div>
-                          </td>
-                          <td className="px-3 py-3 text-sm text-right text-white">
-                            ${job.job_revenue.toLocaleString()}
-                          </td>
-                          <td className="px-3 py-3 text-sm text-right text-gray-300">
-                            ${job.material_cost.toLocaleString()}
-                          </td>
-                          <td className="px-3 py-3 text-sm text-right text-gray-300">
-                            ${job.labour_cost.toLocaleString()}
-                          </td>
-                          <td className="px-3 py-3 text-sm text-right text-gray-300">
-                            ${job.machine_cost.toLocaleString()}
-                          </td>
-                          <td className="px-3 py-3 text-sm text-right font-medium text-blue-400">
-                            ${job.gross_profit.toLocaleString()}
-                          </td>
-                          <td className="px-3 py-3 text-sm text-right font-medium text-blue-400">
-                            {job.gp_percentage.toFixed(1)}%
-                          </td>
-                          <td className={`px-3 py-3 text-sm text-right font-medium ${job.alert_low_profit ? 'text-red-400' : 'text-green-400'}`}>
-                            ${job.net_profit.toLocaleString()}
-                          </td>
-                          <td className={`px-3 py-3 text-sm text-right font-medium ${job.alert_low_profit ? 'text-red-400' : 'text-green-400'}`}>
-                            {job.np_percentage.toFixed(1)}%
-                          </td>
-                        </tr>
+                        <React.Fragment key={index}>
+                          <tr className={job.alert_low_profit ? 'bg-red-900 bg-opacity-20' : ''}>
+                            <td className="px-3 py-3 text-sm">
+                              <div className="flex items-center space-x-2">
+                                {job.material_layers_breakdown && job.material_layers_breakdown.length > 0 && (
+                                  <button
+                                    onClick={() => toggleMaterialDetails(job.order_id)}
+                                    className="text-blue-400 hover:text-blue-300"
+                                  >
+                                    {expandedMaterialDetails[job.order_id] ? (
+                                      <ChevronUpIcon className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronDownIcon className="h-4 w-4" />
+                                    )}
+                                  </button>
+                                )}
+                                <div>
+                                  <div className="text-white font-medium">{job.order_number}</div>
+                                  <div className="text-gray-400 text-xs">{job.client_name}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-3 py-3 text-sm text-right text-white">
+                              ${job.job_revenue.toLocaleString()}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-right text-gray-300">
+                              ${job.material_cost.toLocaleString()}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-right text-gray-300">
+                              ${job.labour_cost.toLocaleString()}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-right text-gray-300">
+                              ${job.machine_cost.toLocaleString()}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-right font-medium text-blue-400">
+                              ${job.gross_profit.toLocaleString()}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-right font-medium text-blue-400">
+                              {job.gp_percentage.toFixed(1)}%
+                            </td>
+                            <td className={`px-3 py-3 text-sm text-right font-medium ${job.alert_low_profit ? 'text-red-400' : 'text-green-400'}`}>
+                              ${job.net_profit.toLocaleString()}
+                            </td>
+                            <td className={`px-3 py-3 text-sm text-right font-medium ${job.alert_low_profit ? 'text-red-400' : 'text-green-400'}`}>
+                              {job.np_percentage.toFixed(1)}%
+                            </td>
+                          </tr>
+                          
+                          {/* Expanded Material Details */}
+                          {expandedMaterialDetails[job.order_id] && job.material_layers_breakdown && (
+                            <tr className="bg-gray-750">
+                              <td colSpan="9" className="px-6 py-4">
+                                <div className="bg-gray-900 rounded-lg p-4">
+                                  <h4 className="text-yellow-400 font-medium mb-3">📋 Material Consumption Breakdown</h4>
+                                  <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                      <thead className="bg-gray-800">
+                                        <tr>
+                                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-400">Layer</th>
+                                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-400">Material</th>
+                                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-400">Supplier</th>
+                                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-400">Width (mm)</th>
+                                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-400">GSM</th>
+                                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-400">Linear Meters</th>
+                                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-400">Good Material</th>
+                                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-400">Makeready</th>
+                                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-400">Waste</th>
+                                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-400">Weight (kg)</th>
+                                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-400">Cost (AUD)</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-gray-700">
+                                        {job.material_layers_breakdown.map((layer, layerIndex) => (
+                                          <tr key={layerIndex}>
+                                            <td className="px-3 py-2 text-sm text-white">{layer.layer_type}</td>
+                                            <td className="px-3 py-2 text-sm text-gray-300">{layer.material_name}</td>
+                                            <td className="px-3 py-2 text-sm text-gray-400">{layer.supplier}</td>
+                                            <td className="px-3 py-2 text-sm text-right text-gray-300">{layer.width_mm}</td>
+                                            <td className="px-3 py-2 text-sm text-right text-gray-300">{layer.gsm}</td>
+                                            <td className="px-3 py-2 text-sm text-right text-yellow-400 font-medium">
+                                              {layer.linear_meters_consumed} m
+                                            </td>
+                                            <td className="px-3 py-2 text-sm text-right text-green-400">
+                                              {layer.good_material_meters} m
+                                            </td>
+                                            <td className="px-3 py-2 text-sm text-right text-blue-400">
+                                              {layer.makeready_meters} m
+                                            </td>
+                                            <td className="px-3 py-2 text-sm text-right text-red-400">
+                                              {layer.waste_meters} m
+                                            </td>
+                                            <td className="px-3 py-2 text-sm text-right text-gray-300">
+                                              {layer.weight_kg} kg
+                                            </td>
+                                            <td className="px-3 py-2 text-sm text-right text-white font-medium">
+                                              ${layer.layer_cost_aud.toFixed(2)}
+                                            </td>
+                                          </tr>
+                                        ))}
+                                        <tr className="bg-gray-800 font-bold">
+                                          <td colSpan="10" className="px-3 py-2 text-sm text-right text-yellow-400">
+                                            Total Material Cost:
+                                          </td>
+                                          <td className="px-3 py-2 text-sm text-right text-yellow-400">
+                                            ${job.material_cost.toFixed(2)}
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
                       ))}
                     </tbody>
                   </table>
