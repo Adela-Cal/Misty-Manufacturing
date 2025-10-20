@@ -147,6 +147,24 @@ class LeaveRequestCreate(BaseModel):
             raise ValueError('Hours requested must be positive')
         return v
 
+# Leave Adjustment History Model
+class LeaveAdjustment(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    employee_id: str
+    leave_type: LeaveType
+    adjustment_hours: Decimal  # Positive for addition, negative for deduction
+    previous_balance: Decimal
+    new_balance: Decimal
+    reason: str
+    adjusted_by: str  # User ID of admin/manager who made adjustment
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class LeaveAdjustmentCreate(BaseModel):
+    employee_id: str
+    leave_type: LeaveType
+    adjustment_hours: Decimal
+    reason: str
+
 # Timesheet Models
 class TimesheetEntry(BaseModel):
     date: datetime  # Changed to datetime for MongoDB compatibility
