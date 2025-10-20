@@ -2222,7 +2222,7 @@ const Reports = () => {
             {/* Search Interface */}
             <div className="border border-gray-700 rounded-lg p-4 bg-gray-800/50">
               <h4 className="text-sm text-gray-300 mb-3">Search Job Cards</h4>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-5 gap-3">
                 <select
                   className="misty-select"
                   value={jobCardSearchType}
@@ -2248,6 +2248,14 @@ const Reports = () => {
                   className="misty-button misty-button-primary"
                 >
                   {loadingJobCards ? 'Searching...' : 'Search'}
+                </button>
+                
+                <button
+                  onClick={searchAllJobCards}
+                  disabled={loadingJobCards}
+                  className="misty-button misty-button-secondary"
+                >
+                  {loadingJobCards ? 'Loading...' : 'Search All'}
                 </button>
               </div>
             </div>
