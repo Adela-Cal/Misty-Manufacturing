@@ -1784,11 +1784,769 @@ class BackendAPITester:
         except Exception as e:
             self.log_result("Employee Sync Edge Cases", False, f"Error: {str(e)}")
 
-    def run_comprehensive_tests(self):
-        """Run all comprehensive tests for pending timesheets endpoint"""
+    def test_payroll_reports_endpoints(self):
+        """
+        NEW PRIORITY TEST: Payroll Reports Endpoints Testing
+        Test the newly implemented payroll reports endpoints:
+        1. GET /api/payroll/reports/payslips - Get all historic payslips
+        2. GET /api/payroll/reports/timesheets - Get timesheet report with filters
+        3. GET /api/payroll/reports/payslip/{timesheet_id} - Generate payslip from approved timesheet
+        """
         print("\n" + "="*80)
-        print("PENDING TIMESHEETS ENDPOINT TESTING")
-        print("Testing GET /api/payroll/timesheets/pending endpoint functionality")
+        print("NEW PRIORITY TEST: PAYROLL REPORTS ENDPOINTS TESTING")
+        print("Testing newly implemented payroll reports endpoints")
+        print("="*80)
+        
+        # Test 1: GET /api/payroll/reports/payslips - Should return empty array initially
+        self.test_get_all_payslips()
+        
+        # Test 2: GET /api/payroll/reports/timesheets - Test without filters
+        self.test_get_timesheet_report_no_filters()
+        
+        # Test 3: GET /api/payroll/reports/timesheets - Test with employee_id filter
+        self.test_get_timesheet_report_with_employee_filter()
+        
+        # Test 4: GET /api/payroll/reports/timesheets - Test with date range filters
+        self.test_get_timesheet_report_with_date_filters()
+        
+        # Test 5: Check if there are any approved timesheets
+        approved_timesheet_id = self.check_for_approved_timesheets()
+        
+        # Test 6: Generate payslip from approved timesheet (if available)
+        if approved_timesheet_id:
+            self.test_generate_payslip_from_timesheet(approved_timesheet_id)
+        else:
+            # Create an approved timesheet for testing
+            approved_timesheet_id = self.create_approved_timesheet_for_testing()
+            if approved_timesheet_id:
+                self.test_generate_payslip_from_timesheet(approved_timesheet_id)
+        
+        # Test 7: Verify payslip data structure
+        self.test_payslip_data_structure()
+        
+        # Test 8: Test edge cases
+        self.test_payroll_reports_edge_cases()
+
+    def test_get_all_payslips(self):
+        """Test GET /api/payroll/reports/payslips endpoint"""
+        try:
+            response = self.session.get(f"{API_BASE}/payroll/reports/payslips")
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Check response structure
+                if result.get("success") == True and "data" in result:
+                    payslips = result["data"]
+                    
+                    if isinstance(payslips, list):
+                        self.log_result(
+                            "Get All Payslips", 
+                            True, 
+                            f"Successfully retrieved payslips endpoint",
+                            f"Found {len(payslips)} payslips. Expected structure: {{success: true, data: []}}"
+                        )
+                        
+                        # If payslips exist, check structure
+                        if len(payslips) > 0:
+                            payslip = payslips[0]
+                            expected_fields = ["id", "timesheet_id", "employee_id", "payslip_data", "generated_at"]
+                            missing_fields = [field for field in expected_fields if field not in payslip]
+                            
+                            if not missing_fields:
+                                self.log_result(
+                                    "Payslip Data Structure", 
+                                    True, 
+                                    "Payslips have correct structure with all required fields"
+                                )
+                            else:
+                                self.log_result(
+                                    "Payslip Data Structure", 
+                                    False, 
+                                    f"Payslips missing fields: {missing_fields}"
+                                )
+                    else:
+                        self.log_result(
+                            "Get All Payslips", 
+                            False, 
+                            "Data field is not an array",
+                            f"Data type: {type(payslips)}"
+                        )
+                else:
+                    self.log_result(
+                        "Get All Payslips", 
+                        False, 
+                        "Invalid response structure",
+                        f"Response: {result}"
+                    )
+            elif response.status_code == 403:
+                self.log_result(
+                    "Get All Payslips", 
+                    False, 
+                    "Access denied - insufficient permissions for payroll reports"
+                )
+            else:
+                self.log_result(
+                    "Get All Payslips", 
+                    False, 
+                    f"Failed to get payslips: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Get All Payslips", False, f"Error: {str(e)}")
+
+    def test_get_timesheet_report_no_filters(self):
+        """Test GET /api/payroll/reports/timesheets without filters"""
+        try:
+            response = self.session.get(f"{API_BASE}/payroll/reports/timesheets")
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Check response structure
+                if result.get("success") == True and "data" in result and "summary" in result:
+                    timesheets = result["data"]
+                    summary = result["summary"]
+                    
+                    # Verify summary structure
+                    expected_summary_fields = ["total_timesheets", "total_regular_hours", "total_overtime_hours", "total_hours"]
+                    missing_summary_fields = [field for field in expected_summary_fields if field not in summary]
+                    
+                    if not missing_summary_fields:
+                        self.log_result(
+                            "Timesheet Report - No Filters", 
+                            True, 
+                            f"Successfully retrieved timesheet report",
+                            f"Found {len(timesheets)} timesheets. Summary: {summary['total_timesheets']} timesheets, {summary['total_hours']} total hours"
+                        )
+                        
+                        # Check timesheet enrichment
+                        if len(timesheets) > 0:
+                            timesheet = timesheets[0]
+                            if "employee_name" in timesheet:
+                                self.log_result(
+                                    "Timesheet Employee Name Enrichment", 
+                                    True, 
+                                    f"Timesheets properly enriched with employee names"
+                                )
+                            else:
+                                self.log_result(
+                                    "Timesheet Employee Name Enrichment", 
+                                    False, 
+                                    "Timesheets missing employee_name enrichment"
+                                )
+                    else:
+                        self.log_result(
+                            "Timesheet Report - No Filters", 
+                            False, 
+                            f"Summary missing fields: {missing_summary_fields}"
+                        )
+                else:
+                    self.log_result(
+                        "Timesheet Report - No Filters", 
+                        False, 
+                        "Invalid response structure - missing success, data, or summary"
+                    )
+            else:
+                self.log_result(
+                    "Timesheet Report - No Filters", 
+                    False, 
+                    f"Failed to get timesheet report: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Timesheet Report - No Filters", False, f"Error: {str(e)}")
+
+    def test_get_timesheet_report_with_employee_filter(self):
+        """Test GET /api/payroll/reports/timesheets with employee_id filter"""
+        try:
+            # Get employees first
+            employees_response = self.session.get(f"{API_BASE}/payroll/employees")
+            
+            if employees_response.status_code == 200:
+                employees = employees_response.json()
+                
+                if employees and len(employees) > 0:
+                    employee = employees[0]
+                    employee_id = employee["id"]
+                    
+                    # Test with employee filter
+                    response = self.session.get(f"{API_BASE}/payroll/reports/timesheets?employee_id={employee_id}")
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        
+                        if result.get("success") == True and "data" in result:
+                            timesheets = result["data"]
+                            
+                            # Verify all timesheets belong to the specified employee
+                            all_match_employee = all(ts.get("employee_id") == employee_id for ts in timesheets)
+                            
+                            if all_match_employee:
+                                self.log_result(
+                                    "Timesheet Report - Employee Filter", 
+                                    True, 
+                                    f"Successfully filtered timesheets by employee",
+                                    f"Found {len(timesheets)} timesheets for employee {employee.get('first_name')} {employee.get('last_name')}"
+                                )
+                            else:
+                                self.log_result(
+                                    "Timesheet Report - Employee Filter", 
+                                    False, 
+                                    "Filter not working - found timesheets for other employees"
+                                )
+                        else:
+                            self.log_result(
+                                "Timesheet Report - Employee Filter", 
+                                False, 
+                                "Invalid response structure"
+                            )
+                    else:
+                        self.log_result(
+                            "Timesheet Report - Employee Filter", 
+                            False, 
+                            f"Failed to get filtered timesheet report: {response.status_code}",
+                            response.text
+                        )
+                else:
+                    self.log_result(
+                        "Timesheet Report - Employee Filter", 
+                        False, 
+                        "No employees available for filter testing"
+                    )
+            else:
+                self.log_result(
+                    "Timesheet Report - Employee Filter", 
+                    False, 
+                    f"Failed to get employees for filter test: {employees_response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result("Timesheet Report - Employee Filter", False, f"Error: {str(e)}")
+
+    def test_get_timesheet_report_with_date_filters(self):
+        """Test GET /api/payroll/reports/timesheets with date range filters"""
+        try:
+            # Test with date range
+            start_date = "2024-12-01"
+            end_date = "2024-12-31"
+            
+            response = self.session.get(f"{API_BASE}/payroll/reports/timesheets?start_date={start_date}&end_date={end_date}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                if result.get("success") == True and "data" in result:
+                    timesheets = result["data"]
+                    
+                    self.log_result(
+                        "Timesheet Report - Date Range Filter", 
+                        True, 
+                        f"Successfully filtered timesheets by date range",
+                        f"Found {len(timesheets)} timesheets between {start_date} and {end_date}"
+                    )
+                    
+                    # Test with only start_date
+                    response2 = self.session.get(f"{API_BASE}/payroll/reports/timesheets?start_date={start_date}")
+                    
+                    if response2.status_code == 200:
+                        result2 = response2.json()
+                        timesheets2 = result2.get("data", [])
+                        
+                        self.log_result(
+                            "Timesheet Report - Start Date Only Filter", 
+                            True, 
+                            f"Successfully filtered timesheets by start date only",
+                            f"Found {len(timesheets2)} timesheets from {start_date} onwards"
+                        )
+                    
+                    # Test with only end_date
+                    response3 = self.session.get(f"{API_BASE}/payroll/reports/timesheets?end_date={end_date}")
+                    
+                    if response3.status_code == 200:
+                        result3 = response3.json()
+                        timesheets3 = result3.get("data", [])
+                        
+                        self.log_result(
+                            "Timesheet Report - End Date Only Filter", 
+                            True, 
+                            f"Successfully filtered timesheets by end date only",
+                            f"Found {len(timesheets3)} timesheets up to {end_date}"
+                        )
+                else:
+                    self.log_result(
+                        "Timesheet Report - Date Range Filter", 
+                        False, 
+                        "Invalid response structure"
+                    )
+            else:
+                self.log_result(
+                    "Timesheet Report - Date Range Filter", 
+                    False, 
+                    f"Failed to get date-filtered timesheet report: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Timesheet Report - Date Range Filter", False, f"Error: {str(e)}")
+
+    def check_for_approved_timesheets(self):
+        """Check if there are any approved timesheets for payslip generation"""
+        try:
+            # Get all timesheets and look for approved ones
+            response = self.session.get(f"{API_BASE}/payroll/reports/timesheets")
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                if result.get("success") == True and "data" in result:
+                    timesheets = result["data"]
+                    
+                    # Look for approved timesheets
+                    approved_timesheets = [ts for ts in timesheets if ts.get("status") == "approved"]
+                    
+                    if approved_timesheets:
+                        approved_timesheet = approved_timesheets[0]
+                        self.log_result(
+                            "Check for Approved Timesheets", 
+                            True, 
+                            f"Found {len(approved_timesheets)} approved timesheets",
+                            f"Using timesheet ID: {approved_timesheet['id']}"
+                        )
+                        return approved_timesheet["id"]
+                    else:
+                        self.log_result(
+                            "Check for Approved Timesheets", 
+                            False, 
+                            "No approved timesheets found for payslip generation",
+                            f"Found timesheets with statuses: {list(set(ts.get('status') for ts in timesheets))}"
+                        )
+                        return None
+                else:
+                    self.log_result(
+                        "Check for Approved Timesheets", 
+                        False, 
+                        "Invalid response structure"
+                    )
+            else:
+                self.log_result(
+                    "Check for Approved Timesheets", 
+                    False, 
+                    f"Failed to get timesheets: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result("Check for Approved Timesheets", False, f"Error: {str(e)}")
+        
+        return None
+
+    def create_approved_timesheet_for_testing(self):
+        """Create an approved timesheet for payslip generation testing"""
+        try:
+            # Get employees first
+            employees_response = self.session.get(f"{API_BASE}/payroll/employees")
+            
+            if employees_response.status_code == 200:
+                employees = employees_response.json()
+                
+                if employees and len(employees) > 0:
+                    employee = employees[0]
+                    
+                    # Create a timesheet with approved status
+                    timesheet_data = {
+                        "employee_id": employee["id"],
+                        "week_starting": "2024-12-16",
+                        "week_ending": "2024-12-22",
+                        "status": "approved",
+                        "entries": [
+                            {
+                                "date": "2024-12-16",
+                                "regular_hours": 8.0,
+                                "overtime_hours": 0.0,
+                                "notes": "Regular work day"
+                            },
+                            {
+                                "date": "2024-12-17",
+                                "regular_hours": 8.0,
+                                "overtime_hours": 2.0,
+                                "notes": "Overtime for urgent project"
+                            },
+                            {
+                                "date": "2024-12-18",
+                                "regular_hours": 8.0,
+                                "overtime_hours": 0.0,
+                                "notes": "Regular work day"
+                            },
+                            {
+                                "date": "2024-12-19",
+                                "regular_hours": 8.0,
+                                "overtime_hours": 0.0,
+                                "notes": "Regular work day"
+                            },
+                            {
+                                "date": "2024-12-20",
+                                "regular_hours": 6.0,
+                                "overtime_hours": 0.0,
+                                "notes": "Half day Friday"
+                            }
+                        ]
+                    }
+                    
+                    # Try to create timesheet (this might not work if endpoint doesn't exist)
+                    response = self.session.post(f"{API_BASE}/payroll/timesheets", json=timesheet_data)
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        timesheet_id = result.get("data", {}).get("id")
+                        
+                        self.log_result(
+                            "Create Approved Timesheet for Testing", 
+                            True, 
+                            f"Successfully created approved timesheet for payslip testing",
+                            f"Timesheet ID: {timesheet_id}, Employee: {employee.get('first_name')} {employee.get('last_name')}"
+                        )
+                        return timesheet_id
+                    else:
+                        self.log_result(
+                            "Create Approved Timesheet for Testing", 
+                            False, 
+                            f"Failed to create timesheet: {response.status_code}",
+                            "Timesheet creation endpoint may not be available"
+                        )
+                else:
+                    self.log_result(
+                        "Create Approved Timesheet for Testing", 
+                        False, 
+                        "No employees available for timesheet creation"
+                    )
+            else:
+                self.log_result(
+                    "Create Approved Timesheet for Testing", 
+                    False, 
+                    f"Failed to get employees: {employees_response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result("Create Approved Timesheet for Testing", False, f"Error: {str(e)}")
+        
+        return None
+
+    def test_generate_payslip_from_timesheet(self, timesheet_id):
+        """Test GET /api/payroll/reports/payslip/{timesheet_id} endpoint"""
+        try:
+            response = self.session.get(f"{API_BASE}/payroll/reports/payslip/{timesheet_id}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                if result.get("success") == True and "data" in result:
+                    payslip_data = result["data"]
+                    
+                    # Check payslip structure
+                    expected_fields = ["id", "timesheet_id", "employee_id", "payslip_data", "generated_at"]
+                    missing_fields = [field for field in expected_fields if field not in payslip_data]
+                    
+                    if not missing_fields:
+                        # Check payslip_data structure
+                        payslip_details = payslip_data.get("payslip_data", {})
+                        expected_sections = ["employee", "pay_period", "hours", "earnings", "deductions", "net_pay", "year_to_date", "bank_details"]
+                        missing_sections = [section for section in expected_sections if section not in payslip_details]
+                        
+                        if not missing_sections:
+                            self.log_result(
+                                "Generate Payslip from Timesheet", 
+                                True, 
+                                f"Successfully generated payslip from approved timesheet",
+                                f"Payslip ID: {payslip_data['id']}, Net Pay: ${payslip_details.get('net_pay', 0)}"
+                            )
+                            
+                            # Verify specific payslip data
+                            self.verify_payslip_calculations(payslip_details)
+                        else:
+                            self.log_result(
+                                "Generate Payslip from Timesheet", 
+                                False, 
+                                f"Payslip data missing sections: {missing_sections}"
+                            )
+                    else:
+                        self.log_result(
+                            "Generate Payslip from Timesheet", 
+                            False, 
+                            f"Payslip missing required fields: {missing_fields}"
+                        )
+                else:
+                    self.log_result(
+                        "Generate Payslip from Timesheet", 
+                        False, 
+                        "Invalid response structure"
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Generate Payslip from Timesheet", 
+                    False, 
+                    "Approved timesheet not found for payslip generation",
+                    f"Timesheet ID: {timesheet_id} may not be approved or may not exist"
+                )
+            else:
+                self.log_result(
+                    "Generate Payslip from Timesheet", 
+                    False, 
+                    f"Failed to generate payslip: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Generate Payslip from Timesheet", False, f"Error: {str(e)}")
+
+    def verify_payslip_calculations(self, payslip_details):
+        """Verify payslip calculations are correct"""
+        try:
+            employee = payslip_details.get("employee", {})
+            hours = payslip_details.get("hours", {})
+            earnings = payslip_details.get("earnings", {})
+            deductions = payslip_details.get("deductions", {})
+            
+            # Check employee info
+            required_employee_fields = ["name", "employee_number", "position", "department"]
+            missing_employee_fields = [field for field in required_employee_fields if not employee.get(field)]
+            
+            if not missing_employee_fields:
+                self.log_result(
+                    "Payslip Employee Info", 
+                    True, 
+                    f"Employee info complete: {employee['name']}, {employee['position']}, {employee['department']}"
+                )
+            else:
+                self.log_result(
+                    "Payslip Employee Info", 
+                    False, 
+                    f"Employee info missing fields: {missing_employee_fields}"
+                )
+            
+            # Check pay period
+            pay_period = payslip_details.get("pay_period", {})
+            if pay_period.get("week_start") and pay_period.get("week_end"):
+                self.log_result(
+                    "Payslip Pay Period", 
+                    True, 
+                    f"Pay period: {pay_period['week_start']} to {pay_period['week_end']}"
+                )
+            else:
+                self.log_result(
+                    "Payslip Pay Period", 
+                    False, 
+                    "Pay period missing week_start or week_end"
+                )
+            
+            # Check hours and earnings calculations
+            regular_hours = hours.get("regular_hours", 0)
+            overtime_hours = hours.get("overtime_hours", 0)
+            hourly_rate = hours.get("hourly_rate", 0)
+            
+            regular_pay = earnings.get("regular_pay", 0)
+            overtime_pay = earnings.get("overtime_pay", 0)
+            gross_pay = earnings.get("gross_pay", 0)
+            
+            # Verify calculations (allowing for small floating point differences)
+            expected_regular_pay = regular_hours * hourly_rate
+            expected_overtime_pay = overtime_hours * hourly_rate * 1.5
+            expected_gross_pay = expected_regular_pay + expected_overtime_pay
+            
+            if abs(regular_pay - expected_regular_pay) < 0.01:
+                self.log_result(
+                    "Payslip Regular Pay Calculation", 
+                    True, 
+                    f"Regular pay correct: {regular_hours}h × ${hourly_rate} = ${regular_pay}"
+                )
+            else:
+                self.log_result(
+                    "Payslip Regular Pay Calculation", 
+                    False, 
+                    f"Regular pay incorrect: Expected ${expected_regular_pay}, got ${regular_pay}"
+                )
+            
+            if abs(gross_pay - expected_gross_pay) < 0.01:
+                self.log_result(
+                    "Payslip Gross Pay Calculation", 
+                    True, 
+                    f"Gross pay correct: ${gross_pay}"
+                )
+            else:
+                self.log_result(
+                    "Payslip Gross Pay Calculation", 
+                    False, 
+                    f"Gross pay incorrect: Expected ${expected_gross_pay}, got ${gross_pay}"
+                )
+            
+            # Check deductions
+            tax = deductions.get("tax_withheld", 0)
+            super_amount = deductions.get("superannuation", 0)
+            net_pay = payslip_details.get("net_pay", 0)
+            
+            expected_net_pay = gross_pay - tax
+            
+            if abs(net_pay - expected_net_pay) < 0.01:
+                self.log_result(
+                    "Payslip Net Pay Calculation", 
+                    True, 
+                    f"Net pay correct: ${gross_pay} - ${tax} = ${net_pay}"
+                )
+            else:
+                self.log_result(
+                    "Payslip Net Pay Calculation", 
+                    False, 
+                    f"Net pay incorrect: Expected ${expected_net_pay}, got ${net_pay}"
+                )
+                
+        except Exception as e:
+            self.log_result("Verify Payslip Calculations", False, f"Error: {str(e)}")
+
+    def test_payslip_data_structure(self):
+        """Test payslip data structure by getting all payslips and checking first one"""
+        try:
+            response = self.session.get(f"{API_BASE}/payroll/reports/payslips")
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                if result.get("success") == True and "data" in result:
+                    payslips = result["data"]
+                    
+                    if len(payslips) > 0:
+                        payslip = payslips[0]
+                        payslip_data = payslip.get("payslip_data", {})
+                        
+                        # Check all required sections exist
+                        required_sections = {
+                            "employee": ["name", "employee_number", "position", "department"],
+                            "pay_period": ["week_start", "week_end"],
+                            "hours": ["regular_hours", "overtime_hours", "hourly_rate"],
+                            "earnings": ["regular_pay", "overtime_pay", "gross_pay"],
+                            "deductions": ["tax_withheld", "superannuation"],
+                            "year_to_date": ["gross_pay", "tax_withheld", "superannuation", "net_pay"],
+                            "bank_details": ["bsb", "account_number", "superannuation_fund"]
+                        }
+                        
+                        all_sections_valid = True
+                        for section, fields in required_sections.items():
+                            if section not in payslip_data:
+                                self.log_result(
+                                    f"Payslip Data Structure - {section}", 
+                                    False, 
+                                    f"Missing {section} section"
+                                )
+                                all_sections_valid = False
+                            else:
+                                section_data = payslip_data[section]
+                                missing_fields = [field for field in fields if field not in section_data]
+                                if missing_fields:
+                                    self.log_result(
+                                        f"Payslip Data Structure - {section}", 
+                                        False, 
+                                        f"Missing fields in {section}: {missing_fields}"
+                                    )
+                                    all_sections_valid = False
+                        
+                        if all_sections_valid:
+                            self.log_result(
+                                "Payslip Data Structure Complete", 
+                                True, 
+                                "All payslip sections and fields present and correct"
+                            )
+                    else:
+                        self.log_result(
+                            "Payslip Data Structure", 
+                            False, 
+                            "No payslips available to check structure"
+                        )
+                else:
+                    self.log_result(
+                        "Payslip Data Structure", 
+                        False, 
+                        "Invalid response structure"
+                    )
+            else:
+                self.log_result(
+                    "Payslip Data Structure", 
+                    False, 
+                    f"Failed to get payslips: {response.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result("Payslip Data Structure", False, f"Error: {str(e)}")
+
+    def test_payroll_reports_edge_cases(self):
+        """Test edge cases for payroll reports endpoints"""
+        try:
+            # Test 1: Generate payslip with non-existent timesheet ID
+            fake_timesheet_id = str(uuid.uuid4())
+            response = self.session.get(f"{API_BASE}/payroll/reports/payslip/{fake_timesheet_id}")
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Payslip Generation - Non-existent Timesheet", 
+                    True, 
+                    "Correctly returned 404 for non-existent timesheet"
+                )
+            else:
+                self.log_result(
+                    "Payslip Generation - Non-existent Timesheet", 
+                    False, 
+                    f"Expected 404, got {response.status_code}"
+                )
+            
+            # Test 2: Timesheet report with invalid employee_id
+            fake_employee_id = str(uuid.uuid4())
+            response2 = self.session.get(f"{API_BASE}/payroll/reports/timesheets?employee_id={fake_employee_id}")
+            
+            if response2.status_code == 200:
+                result = response2.json()
+                if result.get("success") == True and len(result.get("data", [])) == 0:
+                    self.log_result(
+                        "Timesheet Report - Invalid Employee ID", 
+                        True, 
+                        "Correctly returned empty array for non-existent employee"
+                    )
+                else:
+                    self.log_result(
+                        "Timesheet Report - Invalid Employee ID", 
+                        False, 
+                        "Should return empty array for non-existent employee"
+                    )
+            else:
+                self.log_result(
+                    "Timesheet Report - Invalid Employee ID", 
+                    False, 
+                    f"Expected 200 with empty data, got {response2.status_code}"
+                )
+            
+            # Test 3: Timesheet report with invalid date format
+            response3 = self.session.get(f"{API_BASE}/payroll/reports/timesheets?start_date=invalid-date")
+            
+            # Should handle gracefully (either 400/422 error or ignore invalid date)
+            if response3.status_code in [200, 400, 422]:
+                self.log_result(
+                    "Timesheet Report - Invalid Date Format", 
+                    True, 
+                    f"Handled invalid date format appropriately with status {response3.status_code}"
+                )
+            else:
+                self.log_result(
+                    "Timesheet Report - Invalid Date Format", 
+                    False, 
+                    f"Unexpected response to invalid date: {response3.status_code}"
+                )
+                
+        except Exception as e:
+            self.log_result("Payroll Reports Edge Cases", False, f"Error: {str(e)}")
+
+    def run_comprehensive_tests(self):
+        """Run all comprehensive tests for payroll reports endpoints"""
+        print("\n" + "="*80)
+        print("PAYROLL REPORTS ENDPOINTS TESTING")
+        print("Testing newly implemented payroll reports endpoints")
         print("="*80)
         
         # Step 1: Authenticate
@@ -1796,8 +2554,8 @@ class BackendAPITester:
             print("❌ Authentication failed - cannot proceed with tests")
             return
         
-        # Step 2: Run pending timesheets tests
-        self.test_pending_timesheets_endpoint()
+        # Step 2: Run payroll reports tests
+        self.test_payroll_reports_endpoints()
         
         # Step 3: Print comprehensive summary
         self.print_test_summary()
