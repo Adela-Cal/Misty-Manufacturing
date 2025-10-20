@@ -1,7 +1,19 @@
 #!/usr/bin/env python3
 """
-Timesheet API Debug Testing Suite
-Tests specific timesheet API issues reported by user
+Timesheet Creation and Submission Flow Testing
+Testing the specific timesheet workflow as requested in the review:
+
+1. GET /api/payroll/timesheets/current-week/{employee_id} - Test getting/creating current week timesheet
+2. PUT /api/payroll/timesheets/{timesheet_id} - Test updating timesheet
+3. POST /api/payroll/timesheets/{timesheet_id}/submit - Test submitting timesheet
+4. GET /api/payroll/timesheets/pending - Check if submitted timesheet appears
+
+Expected issues to identify:
+- Permission check failure (user_id vs employee_id mismatch)
+- Timesheet not appearing in pending after submission
+- Any other errors in the flow
+
+Using credentials: Callum / Peach7510
 """
 
 import requests
@@ -9,6 +21,7 @@ import json
 import os
 from datetime import datetime, timedelta, date
 from dotenv import load_dotenv
+import uuid
 
 # Load environment variables
 load_dotenv('/app/frontend/.env')
@@ -17,12 +30,14 @@ load_dotenv('/app/frontend/.env')
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
 API_BASE = f"{BACKEND_URL}/api"
 
-class TimesheetAPITester:
+class TimesheetFlowTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
         self.test_results = []
-        self.test_employee_id = None
+        self.current_user_id = None
+        self.employee_id = None
+        self.timesheet_id = None
         
     def log_result(self, test_name, success, message, details=None):
         """Log test result"""
@@ -40,7 +55,7 @@ class TimesheetAPITester:
             print(f"   Details: {details}")
     
     def authenticate(self):
-        """Test authentication with demo user"""
+        """Test authentication with Callum / Peach7510"""
         print("\n=== AUTHENTICATION TEST ===")
         
         try:
