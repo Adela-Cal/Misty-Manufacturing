@@ -394,10 +394,14 @@ class ProfitabilityDebugTester:
         """Test 4: Identify correct field names for material usage in job cards"""
         print("\n--- Test 4: Job Card Material Fields Deep Analysis ---")
         try:
-            response = self.session.get(f"{API_BASE}/job-cards")
+            response = self.session.get(f"{API_BASE}/production/job-cards/search")
             
             if response.status_code == 200:
-                job_cards = response.json()
+                data = response.json()
+                if isinstance(data, dict) and 'data' in data:
+                    job_cards = data['data']
+                else:
+                    job_cards = data
                 
                 if len(job_cards) > 0:
                     # Analyze multiple job cards to find material usage patterns
