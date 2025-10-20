@@ -2218,12 +2218,12 @@ const Reports = () => {
                   placeholder={`Enter ${jobCardSearchType}...`}
                   value={jobCardSearchTerm}
                   onChange={(e) => setJobCardSearchTerm(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && searchJobCards()}
+                  onKeyPress={(e) => e.key === 'Enter' && jobCardSearchTerm.trim() && searchJobCards()}
                 />
                 
                 <button
                   onClick={searchJobCards}
-                  disabled={loadingJobCards}
+                  disabled={loadingJobCards || !jobCardSearchTerm.trim()}
                   className="misty-button misty-button-primary"
                 >
                   {loadingJobCards ? 'Searching...' : 'Search'}
