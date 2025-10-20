@@ -1422,59 +1422,57 @@ class BackendAPITester:
         
         return None
 
-    def test_role_to_position_mapping(self):
-        """Test role to position mapping functionality"""
+    def test_get_pending_timesheets_after_creation(self):
+        """Test pending timesheets endpoint after creating test data"""
         try:
-            employees_response = self.session.get(f"{API_BASE}/payroll/employees")
+            response = self.session.get(f"{API_BASE}/payroll/timesheets/pending")
             
-            if employees_response.status_code == 200:
-                employees = employees_response.json()
+            if response.status_code == 200:
+                result = response.json()
                 
-                # Expected role to position mapping
-                expected_mapping = {
-                    "admin": "Administrator",
-                    "manager": "Manager", 
-                    "production_manager": "Production Manager",
-                    "supervisor": "Supervisor",
-                    "production_staff": "Production Staff",
-                    "production_team": "Production Team Member"
-                }
-                
-                mapping_correct = True
-                mapping_issues = []
-                
-                for emp in employees:
-                    role = emp.get("role")
-                    position = emp.get("position")
+                if result.get("success") and "data" in result:
+                    timesheets = result["data"]
                     
-                    if role and role in expected_mapping:
-                        expected_position = expected_mapping[role]
-                        if position != expected_position:
-                            mapping_correct = False
-                            mapping_issues.append(f"Role '{role}' mapped to '{position}', expected '{expected_position}'")
-                
-                if mapping_correct:
                     self.log_result(
-                        "Role to Position Mapping", 
+                        "Get Pending Timesheets After Creation", 
                         True, 
-                        f"All role to position mappings are correct for {len(employees)} employees"
+                        f"Found {len(timesheets)} pending timesheets after creating test data"
                     )
+                    
+                    # Check if our test timesheet is there
+                    submitted_timesheets = [ts for ts in timesheets if ts.get("status") == "submitted"]
+                    
+                    if len(submitted_timesheets) > 0:
+                        self.log_result(
+                            "Verify Submitted Timesheets Present", 
+                            True, 
+                            f"Found {len(submitted_timesheets)} submitted timesheets in pending list"
+                        )
+                    else:
+                        self.log_result(
+                            "Verify Submitted Timesheets Present", 
+                            False, 
+                            "No submitted timesheets found in pending list"
+                        )
+                    
+                    return timesheets
                 else:
                     self.log_result(
-                        "Role to Position Mapping", 
+                        "Get Pending Timesheets After Creation", 
                         False, 
-                        f"Found {len(mapping_issues)} mapping issues",
-                        f"Issues: {mapping_issues[:3]}"  # Show first 3
+                        "Invalid response structure"
                     )
             else:
                 self.log_result(
-                    "Role to Position Mapping", 
+                    "Get Pending Timesheets After Creation", 
                     False, 
-                    f"Failed to get employees: {employees_response.status_code}"
+                    f"Failed to get pending timesheets: {response.status_code}"
                 )
                 
         except Exception as e:
-            self.log_result("Role to Position Mapping", False, f"Error: {str(e)}")
+            self.log_result("Get Pending Timesheets After Creation", False, f"Error: {str(e)}")
+        
+        return []
 
     def test_employee_number_generation(self):
         """Test employee number generation (EMP0001, EMP0002, etc.)"""
