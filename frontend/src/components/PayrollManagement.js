@@ -513,14 +513,10 @@ const PayrollManagement = () => {
   };
 
   const handleViewTimesheet = (timesheet) => {
-    // Find the employee from the timesheet
-    const employee = employees.find(emp => emp.id === timesheet.employee_id);
-    if (employee) {
-      setSelectedEmployee(employee);
-      setShowTimesheetModal(true);
-    } else {
-      toast.error('Employee not found');
-    }
+    // Set a minimal employee object with just the id for TimesheetEntry
+    // TimesheetEntry will load the full employee details if needed
+    setSelectedEmployee({ id: timesheet.employee_id });
+    setShowTimesheetModal(true);
   };
 
   const handleEmployeeCreate = () => {
