@@ -751,9 +751,9 @@ class InvoicingWorkflowTester:
                         f"Job not marked as fully invoiced"
                     )
                 
-                # Check invoiced flag
-                invoiced = job.get("invoiced", False)
-                if invoiced:
+                # Check invoiced flag (should be True when fully invoiced)
+                invoiced = job.get("invoiced")
+                if invoiced is True:
                     self.log_result(
                         "Invoiced Flag", 
                         True, 
@@ -763,7 +763,7 @@ class InvoicingWorkflowTester:
                     self.log_result(
                         "Invoiced Flag", 
                         False, 
-                        f"Job not marked as invoiced"
+                        f"Job not marked as invoiced (value: {invoiced})"
                     )
                 
                 # Check invoice history has all 3 invoices
