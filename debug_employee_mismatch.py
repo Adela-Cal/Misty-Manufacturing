@@ -68,7 +68,11 @@ class EmployeeMismatchDebugger:
             
             if response.status_code == 200:
                 data = response.json()
-                employees = data.get("data", [])
+                # Handle both direct list and data wrapper
+                if isinstance(data, list):
+                    employees = data
+                else:
+                    employees = data.get("data", [])
                 print(f"✅ Found {len(employees)} employee profiles")
                 return employees
             else:
