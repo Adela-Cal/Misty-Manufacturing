@@ -69,6 +69,18 @@ frontend:
 
 
 backend:
+  - task: "Stage Update Endpoint 422 Error Debugging"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎉 STAGE UPDATE ENDPOINT 422 ERROR SUCCESSFULLY DEBUGGED AND RESOLVED! Comprehensive testing completed following exact steps from review request. ROOT CAUSE IDENTIFIED: The 422 validation error occurs because 'core_winding' is NOT a valid ProductionStage enum value. DETAILED FINDINGS: ✅ Successfully retrieved order ADM-2025-0001 from production board (currently in 'paper_slitting' stage), ✅ Captured full 422 error response with validation details: 'Input should be order_entered, pending_material, paper_slitting, winding, finishing, delivery, invoicing, accounting_transaction or cleared', ✅ CRITICAL DISCOVERY: The correct stage name is 'winding' NOT 'core_winding', ✅ Valid ProductionStage enum values confirmed: order_entered, pending_material, paper_slitting, winding, finishing, delivery, invoicing, accounting_transaction, cleared. SOLUTION VERIFIED: ✅ Changed from_stage: 'paper_slitting' to_stage: 'winding' (instead of 'core_winding'), ✅ Stage update succeeded with 200 OK response: 'Production stage updated successfully', ✅ Authentication working correctly with admin credentials (Callum/Peach7510), ✅ PUT /api/orders/{order_id}/stage endpoint functioning properly with correct enum values. TESTING VARIATIONS COMPLETED: ✅ Confirmed case sensitivity (UPPERCASE fails), ✅ Confirmed exact field names required (from_stage, to_stage), ✅ Confirmed enum validation is strict and accurate. CONCLUSION: The 422 error is caused by using incorrect stage name 'core_winding' instead of 'winding'. The endpoint is working correctly and enforcing proper validation. Users should use 'winding' as the correct stage name for core winding operations."
+
   - task: "Leave Calendar Endpoint Date Filtering Bug Fix"
     implemented: true
     working: true
