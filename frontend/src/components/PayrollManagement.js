@@ -1007,16 +1007,38 @@ const PayrollManagement = () => {
                     Create and manage employee leave requests
                   </p>
                 </div>
-                <button
-                  onClick={() => {
-                    loadAllLeaveRequests();
-                    handleAddLeaveRequest();
-                  }}
-                  className="misty-button misty-button-primary flex items-center"
-                >
-                  <UserPlusIcon className="h-4 w-4 mr-2" />
-                  Add Leave Request
-                </button>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => {
+                      loadLeaveCalendar();
+                      setShowLeaveCalendar(true);
+                    }}
+                    className="misty-button misty-button-secondary flex items-center"
+                  >
+                    <CalendarDaysIcon className="h-4 w-4 mr-2" />
+                    Leave Calendar
+                  </button>
+                  <button
+                    onClick={() => {
+                      loadArchivedLeaveRequests();
+                      setShowArchivedLeave(true);
+                    }}
+                    className="misty-button misty-button-secondary flex items-center"
+                  >
+                    <ArchiveBoxIcon className="h-4 w-4 mr-2" />
+                    Archived Leave
+                  </button>
+                  <button
+                    onClick={() => {
+                      loadAllLeaveRequests();
+                      handleAddLeaveRequest();
+                    }}
+                    className="misty-button misty-button-primary flex items-center"
+                  >
+                    <UserPlusIcon className="h-4 w-4 mr-2" />
+                    Add Leave Request
+                  </button>
+                </div>
               </div>
 
               {allLeaveRequests.length > 0 ? (
