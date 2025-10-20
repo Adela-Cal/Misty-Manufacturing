@@ -94,19 +94,18 @@ const ProductionBoard = () => {
     }));
   };
 
-  const toggleJumpDropdown = (jobId) => {
-    setJumpDropdowns(prev => ({
-      ...prev,
-      [jobId]: !prev[jobId]
-    }));
+  const openJumpModal = (jobId, currentStage) => {
+    const availableStages = getAvailableStages(currentStage);
+    setJumpJobData({ jobId, currentStage, stages: availableStages });
+    setShowJumpModal(true);
   };
 
-  const jumpToStage = async (jobId, targetStage) => {
+  const jumpToStage = async (targetStage) => {
     try {
-      await apiHelpers.jumpToStage(jobId, { target_stage: targetStage });
+      await apiHelpers.jumpToStage(jumpJobData.jobId, { target_stage: targetStage });
       toast.success(`Job jumped to ${stageDisplayNames[targetStage]}`);
-      setJumpDropdowns(prev => ({ ...prev, [jobId]: false })); // Close dropdown
-      loadProductionBoard(); // Refresh the board
+      setShowJumpModal(false);
+      loadProductionBoard(); // Reload to show updated position
     } catch (error) {
       console.error('Failed to jump job to stage:', error);
       if (error.response?.data?.detail) {
