@@ -489,8 +489,14 @@ const JobCard = ({ jobId, stage, orderId, onClose, onJobStarted }) => {
       await apiHelpers.updateOrder(orderId, {
         production_started_at: startTime.toISOString()
       });
+      
+      // Notify parent component to refresh
+      if (onJobStarted) {
+        onJobStarted();
+      }
     } catch (error) {
       console.error('Failed to update production start time:', error);
+      toast.error('Failed to mark job as started');
     }
   };
 
