@@ -758,46 +758,165 @@ async def calculate_material_consumption_by_client(
         raise HTTPException(status_code=500, detail=f"Calculation failed: {str(e)}")
 
 @api_router.post("/calculators/material-permutation", response_model=StandardResponse)
-async def calculate_material_permutation(
-    request: MaterialPermutationRequest,
+async def calculate_raw_material_permutation(
+    request: RawMaterialPermutationRequest,
     current_user: dict = Depends(require_any_role)
 ):
-    """Calculate optimal material permutation for core IDs"""
+    """
+    Calculate all possible slit-cut patterns for converting a master roll into smaller product widths.
+    Includes cost, waste, and yield optimization.
+    """
     try:
-        # Get product specifications for the core IDs
-        core_specs = await db.product_specifications.find({
-            "specifications.core_id": {"$in": request.core_ids},
-            "is_active": True
-        }).to_list(1000)
+        from itertools import combinations_with_replacement
+        from decimal import Decimal
         
-        # Calculate permutation options
-        permutation_options = []
-        for arrangement in _generate_permutations(request.sizes_to_manufacture, request.master_deckle_width):
-            waste_percentage = _calculate_waste(arrangement, request.master_deckle_width)
-            if waste_percentage <= request.acceptable_waste_percentage:
-                permutation_options.append({
-                    "arrangement": arrangement,
-                    "waste_percentage": waste_percentage,
-                    "efficiency": 100 - waste_percentage
-                })
+        # Get raw material information
+        material = await db.raw_materials.find_one({"material_id": request.material_id})
+        if not material:
+            # Try materials collection as fallback
+            material = await db.materials.find_one({"id": request.material_id})
         
-        # Sort by efficiency
-        permutation_options.sort(key=lambda x: x["efficiency"], reverse=True)
+        if not material:
+            raise HTTPException(status_code=404, detail="Material not found")
         
-        result = CalculationResult(
-            calculation_type="material_permutation",
-            input_parameters=request.dict(),
-            results={
-                "permutation_options": permutation_options[:10],  # Top 10 options
-                "total_options_found": len(permutation_options)
+        # Extract material properties
+        master_width_mm = float(material.get("width_mm", 0))
+        if master_width_mm == 0:
+            raise HTTPException(status_code=400, detail="Material does not have width_mm defined")
+        
+        gsm = float(material.get("gsm", 0))
+        if gsm == 0:
+            raise HTTPException(status_code=400, detail="Material does not have GSM defined")
+        
+        # Calculate total linear meters available
+        # From tonnage: (tonnage * 1,000,000 grams) / (GSM * width_meters)
+        tonnage = float(material.get("tonnage", 0))
+        if tonnage > 0:
+            width_meters = master_width_mm / 1000.0
+            total_linear_meters = (tonnage * 1000000) / (gsm * width_meters * 1000)  # Convert to meters
+        else:
+            # Fallback to quantity_on_hand if available
+            total_linear_meters = float(material.get("quantity_on_hand", 0))
+        
+        if total_linear_meters == 0:
+            raise HTTPException(status_code=400, detail="Could not calculate linear meters from material data")
+        
+        cost_per_tonne = float(material.get("cost_per_tonne", 0))
+        material_name = material.get("material_description", material.get("supplier", "Unknown"))
+        material_code = material.get("product_code", "N/A")
+        
+        # Generate all possible permutations
+        permutations = []
+        max_slits = int(master_width_mm / min(request.desired_slit_widths)) if request.desired_slit_widths else 0
+        
+        # Generate all combinations of slit widths that fit within master width
+        for num_slits in range(1, max_slits + 1):
+            for combo in combinations_with_replacement(request.desired_slit_widths, num_slits):
+                total_width = sum(combo)
+                
+                # Check if this combination fits within master width
+                if total_width <= master_width_mm:
+                    waste_mm = master_width_mm - total_width
+                    
+                    # Check if waste is within allowance
+                    if waste_mm <= request.waste_allowance_mm:
+                        # Calculate metrics for this pattern
+                        pattern = sorted(combo, reverse=True)  # Sort descending for readability
+                        
+                        # Yield percentage
+                        yield_pct = (total_width / master_width_mm) * 100
+                        
+                        # Number of slits per master roll (how many times this pattern fits)
+                        slits_per_master = 1  # Each pattern uses the full width once
+                        
+                        # Total finished rolls produced
+                        total_finished_rolls = len(pattern) * request.quantity_master_rolls
+                        
+                        # Linear meters per slit (all slits get the same length)
+                        linear_meters_per_slit = total_linear_meters
+                        
+                        # Calculate material weight and cost for each slit width in the pattern
+                        slit_details = []
+                        total_pattern_weight = 0
+                        total_pattern_cost = 0
+                        
+                        # Group by width for cleaner display
+                        width_counts = {}
+                        for width in pattern:
+                            width_counts[width] = width_counts.get(width, 0) + 1
+                        
+                        for slit_width, count in sorted(width_counts.items(), reverse=True):
+                            # Material weight per slit: (width_m * length_m * GSM) / 1000 = kg
+                            width_meters = slit_width / 1000.0
+                            weight_per_slit_kg = (width_meters * linear_meters_per_slit * gsm) / 1000
+                            
+                            # Material cost per slit: (weight_kg / 1000) * cost_per_tonne
+                            cost_per_slit = (weight_per_slit_kg / 1000) * cost_per_tonne
+                            
+                            total_pattern_weight += weight_per_slit_kg * count
+                            total_pattern_cost += cost_per_slit * count
+                            
+                            slit_details.append({
+                                "slit_width_mm": slit_width,
+                                "count": count,
+                                "linear_meters": round(linear_meters_per_slit, 2),
+                                "weight_per_slit_kg": round(weight_per_slit_kg, 3),
+                                "cost_per_slit_aud": round(cost_per_slit, 2)
+                            })
+                        
+                        # Total cost for all master rolls
+                        total_cost_all_rolls = total_pattern_cost * request.quantity_master_rolls
+                        
+                        permutations.append({
+                            "pattern": [f"{w}mm" for w in pattern],
+                            "pattern_description": " + ".join([f"{count}×{width}mm" for width, count in sorted(width_counts.items(), reverse=True)]),
+                            "used_width_mm": total_width,
+                            "waste_mm": round(waste_mm, 2),
+                            "yield_percentage": round(yield_pct, 2),
+                            "slits_per_master_roll": slits_per_master,
+                            "total_finished_rolls": total_finished_rolls,
+                            "linear_meters_per_slit": round(linear_meters_per_slit, 2),
+                            "slit_details": slit_details,
+                            "total_pattern_weight_kg": round(total_pattern_weight, 3),
+                            "total_pattern_cost_aud": round(total_pattern_cost, 2),
+                            "total_cost_all_rolls_aud": round(total_cost_all_rolls, 2)
+                        })
+        
+        # Sort by yield percentage (descending), then by waste (ascending)
+        permutations.sort(key=lambda x: (-x["yield_percentage"], x["waste_mm"]))
+        
+        result = {
+            "material_info": {
+                "material_id": request.material_id,
+                "material_name": material_name,
+                "material_code": material_code,
+                "master_width_mm": master_width_mm,
+                "gsm": gsm,
+                "total_linear_meters": round(total_linear_meters, 2),
+                "cost_per_tonne_aud": cost_per_tonne
             },
-            calculated_by=current_user["sub"]
+            "input_parameters": {
+                "waste_allowance_mm": request.waste_allowance_mm,
+                "desired_slit_widths": request.desired_slit_widths,
+                "quantity_master_rolls": request.quantity_master_rolls
+            },
+            "permutations": permutations,
+            "total_permutations_found": len(permutations),
+            "best_yield_percentage": permutations[0]["yield_percentage"] if permutations else 0,
+            "lowest_waste_mm": permutations[0]["waste_mm"] if permutations else 0
+        }
+        
+        return StandardResponse(
+            success=True,
+            message=f"Found {len(permutations)} valid slit patterns",
+            data=result
         )
         
-        return StandardResponse(success=True, message="Permutation calculation completed", data=result.dict())
-        
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Permutation calculation failed: {str(e)}")
+        logger.error(f"Material permutation calculation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Calculation failed: {str(e)}")
 
 @api_router.post("/calculators/spiral-core-consumption", response_model=StandardResponse)
 async def calculate_spiral_core_consumption(
