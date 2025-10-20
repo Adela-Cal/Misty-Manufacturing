@@ -644,7 +644,15 @@ class PartSupplyInvoicingTester:
             total_ordered = items[0].get("quantity", 0)
             invoice_history = order_data.get("invoice_history", [])
             
-            total_invoiced = sum(inv.get("quantity_invoiced", 0) for inv in invoice_history)
+            # Calculate total invoiced from items in each invoice
+            total_invoiced = 0
+            actual_quantities = []
+            
+            for inv in invoice_history:
+                inv_items = inv.get("items", [])
+                inv_quantity = sum(item.get("quantity", 0) for item in inv_items)
+                total_invoiced += inv_quantity
+                actual_quantities.append(inv_quantity)
             
             if total_invoiced == total_ordered:
                 self.log_result(
@@ -655,7 +663,6 @@ class PartSupplyInvoicingTester:
                 
                 # Verify individual invoice quantities
                 expected_quantities = [1000, 500, 640, 500]  # INV-0036, ~2, ~3, ~4
-                actual_quantities = [inv.get("quantity_invoiced", 0) for inv in invoice_history]
                 
                 if actual_quantities == expected_quantities:
                     self.log_result(
