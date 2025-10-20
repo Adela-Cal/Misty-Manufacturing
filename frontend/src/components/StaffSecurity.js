@@ -379,7 +379,7 @@ const StaffSecurity = () => {
               placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="misty-input pl-12 w-full"
+              className="misty-input pl-14 w-full"
             />
           </div>
         </div>
