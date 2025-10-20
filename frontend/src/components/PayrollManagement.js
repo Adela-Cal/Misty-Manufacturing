@@ -445,6 +445,36 @@ const PayrollManagement = () => {
     }
   };
 
+  const handleCancelLeave = async (requestId) => {
+    if (!window.confirm('Are you sure you want to cancel this approved leave? The hours will be restored to the employee.')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/payroll/leave-requests/${requestId}/cancel`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast.success(result.message || 'Leave cancelled and hours restored');
+        loadLeaveCalendar();
+        loadPayrollData();
+        loadAllLeaveRequests();
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to cancel leave');
+      }
+    } catch (error) {
+      console.error('Failed to cancel leave:', error);
+      toast.error('Failed to cancel leave');
+    }
+  };
+
   const handleEmployeeCreate = () => {
     setSelectedEmployee(null);
     setShowEmployeeModal(true);
