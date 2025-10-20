@@ -903,6 +903,104 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
           </div>
         </div>
       )}
+
+      {/* Previous Timesheets Modal */}
+      {showPreviousTimesheets && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowPreviousTimesheets(false)}>
+          <div className="modal-content max-w-4xl">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Previous Timesheets</h3>
+                  <p className="text-sm text-gray-400">
+                    View and edit your previous timesheets
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowPreviousTimesheets(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ×
+                </button>
+              </div>
+
+              {loadingPrevious ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-400">Loading timesheets...</p>
+                </div>
+              ) : previousTimesheets.length > 0 ? (
+                <div className="misty-table">
+                  <table className="w-full">
+                    <thead>
+                      <tr>
+                        <th>Week</th>
+                        <th>Status</th>
+                        <th>Regular Hours</th>
+                        <th>Overtime Hours</th>
+                        <th>Total Hours</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {previousTimesheets.map((ts) => {
+                        const regularHours = ts.total_regular_hours || 0;
+                        const overtimeHours = ts.total_overtime_hours || 0;
+                        const totalHours = regularHours + overtimeHours;
+                        const canEditThis = ts.status !== 'approved';
+                        
+                        return (
+                          <tr key={ts.id}>
+                            <td className="text-sm">
+                              <p>{ts.week_starting || ts.week_start}</p>
+                              <p className="text-gray-400 text-xs">to {ts.week_ending || ts.week_end}</p>
+                            </td>
+                            <td>
+                              <span className={`text-sm px-2 py-1 rounded ${
+                                ts.status === 'approved' ? 'bg-green-900 text-green-200' :
+                                ts.status === 'submitted' ? 'bg-yellow-900 text-yellow-200' :
+                                'bg-gray-700 text-gray-300'
+                              }`}>
+                                {ts.status || 'draft'}
+                              </span>
+                            </td>
+                            <td className="font-medium text-green-400">{regularHours.toFixed(1)}h</td>
+                            <td className="font-medium text-yellow-400">{overtimeHours.toFixed(1)}h</td>
+                            <td className="font-bold text-white">{totalHours.toFixed(1)}h</td>
+                            <td>
+                              <button
+                                onClick={() => loadPreviousTimesheet(ts.id)}
+                                disabled={!canEditThis}
+                                className={`text-sm ${canEditThis ? 'text-blue-400 hover:text-blue-300' : 'text-gray-600 cursor-not-allowed'}`}
+                                title={canEditThis ? 'Edit this timesheet' : 'Cannot edit approved timesheet'}
+                              >
+                                {canEditThis ? 'Edit' : 'View Only'}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gray-800 rounded-lg">
+                  <ClockIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-gray-300">No previous timesheets found</p>
+                </div>
+              )}
+
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={() => setShowPreviousTimesheets(false)}
+                  className="misty-button misty-button-secondary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
