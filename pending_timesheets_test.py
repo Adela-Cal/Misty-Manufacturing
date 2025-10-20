@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-Pending Timesheets Endpoint Testing - Employee Name Enrichment Fix
-Testing the pending timesheets endpoint after fixing the employee_id mismatch.
+Comprehensive test for Pending Timesheets functionality in Payroll Management system
+Tests the specific requirements from the review request:
+1. GET /api/payroll/timesheets/pending - returns pending timesheets with employee information
+2. POST /api/payroll/timesheets/{timesheet_id}/approve - timesheet approval functionality  
+3. Verify timesheet approval calculates pay correctly and updates status
 
-SPECIFIC TEST REQUIREMENTS:
-1. GET /api/payroll/timesheets/pending (with admin auth)
-2. Verify all pending timesheets are returned
-3. Each timesheet now has the employee_name field populated
-4. No "Unknown Employee" entries appear
-5. Employee names are correct (e.g., "Callum - System Administrator")
-
-Test credentials: Callum / Peach7510
-Expected result: All timesheets should now show proper employee names instead of "Unknown Employee"
+Test credentials: Callum / Peach7510 (from review request)
+Expected results:
+- Pending timesheets endpoint returns array with at least one timesheet
+- All timesheets have employee_name field populated
+- Approve endpoint successfully approves timesheet and calculates pay
+- Approved timesheet is removed from pending list
 """
 
 import requests
