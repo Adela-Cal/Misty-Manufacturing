@@ -208,7 +208,8 @@ class Order(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
     acknowledged_at: Optional[datetime] = None
-    production_started_at: Optional[datetime] = None  # When production actually started
+    production_started_at: Optional[datetime] = None  # When production actually started (overall)
+    stage_start_times: Optional[Dict[str, str]] = {}  # Stage-specific start times: {stage_name: timestamp}
     completed_at: Optional[datetime] = None
     invoice_history: Optional[List[dict]] = []  # Track partial invoices: [{invoice_number, items: [{product_id, quantity}], date}]
     fully_invoiced: bool = False  # Flag when all items have been invoiced
