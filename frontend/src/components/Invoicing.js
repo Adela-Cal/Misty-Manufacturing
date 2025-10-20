@@ -184,9 +184,10 @@ const Invoicing = () => {
 
   const updatePartialItemQuantity = (index, quantity) => {
     const newPartialItems = [...partialItems];
+    const maxQty = newPartialItems[index].remaining_quantity || newPartialItems[index].original_quantity;
     newPartialItems[index].invoice_quantity = Math.min(
       Math.max(0, quantity), 
-      newPartialItems[index].original_quantity
+      maxQty
     );
     setPartialItems(newPartialItems);
   };
