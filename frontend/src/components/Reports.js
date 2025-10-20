@@ -1123,6 +1123,16 @@ const Reports = () => {
             icon={ClipboardDocumentListIcon}
             onClick={() => setShowJobPerformanceModal(true)}
           />
+          
+          <ReportTile
+            title="Profitability Report"
+            description="Calculate Gross Profit and Net Profit for completed jobs"
+            icon={CurrencyDollarIcon}
+            onClick={() => {
+              setShowProfitabilityModal(true);
+              loadCompletedOrders();
+            }}
+          />
         </div>
 
         {/* Report Modals */}
