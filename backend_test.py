@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Payroll Employee Synchronization
-Testing new employee synchronization with Staff and Security users
+Backend API Testing Suite for Pending Timesheets Endpoint
+Testing the pending timesheets endpoint to verify it's returning submitted timesheets waiting for approval.
 
 PRIORITY TESTS:
-1. Employee Auto-Sync with Staff and Security Users
-2. Manual Sync Endpoint Testing
-3. Employee Data Enrichment Verification
-4. Employee Profile Creation with Default Values
-5. Role to Position Mapping Verification
+1. Test GET /api/payroll/timesheets/pending endpoint
+2. Check if there are any submitted timesheets in the database
+3. Verify the data is being returned correctly
+4. Check for any filtering or serialization issues
+5. Create test submitted timesheet if none exists
 """
 
 import requests
