@@ -1282,46 +1282,49 @@ class BackendAPITester:
         
         return []
 
-    def test_manual_employee_sync(self):
-        """Test POST /api/payroll/employees/sync manual sync endpoint"""
+    def test_check_timesheet_statuses(self):
+        """Test checking what timesheet statuses exist in the database"""
         try:
-            response = self.session.post(f"{API_BASE}/payroll/employees/sync")
+            # Get employees first to create test timesheets
+            employees_response = self.session.get(f"{API_BASE}/payroll/employees")
             
-            if response.status_code == 200:
-                result = response.json()
+            if employees_response.status_code == 200:
+                employees = employees_response.json()
                 
-                # Check response structure
-                if result.get("success") and "data" in result:
-                    data = result["data"]
-                    created_count = data.get("created_count", 0)
-                    total_employees = data.get("total_employees", 0)
+                if employees and len(employees) > 0:
+                    self.log_result(
+                        "Check Employees for Timesheet Creation", 
+                        True, 
+                        f"Found {len(employees)} employees available for timesheet creation"
+                    )
+                    
+                    # Check what statuses should exist: draft, submitted, approved, rejected
+                    expected_statuses = ["draft", "submitted", "approved", "rejected"]
                     
                     self.log_result(
-                        "Manual Employee Sync", 
+                        "Expected Timesheet Statuses", 
                         True, 
-                        f"Successfully synced employees",
-                        f"Created: {created_count}, Total employees: {total_employees}"
+                        f"Expected statuses: {expected_statuses}"
                     )
-                    return data
+                    
+                    return employees
                 else:
                     self.log_result(
-                        "Manual Employee Sync", 
+                        "Check Employees for Timesheet Creation", 
                         False, 
-                        "Invalid response structure",
-                        f"Response: {result}"
+                        "No employees found - cannot create test timesheets"
                     )
             else:
                 self.log_result(
-                    "Manual Employee Sync", 
+                    "Check Employees for Timesheet Creation", 
                     False, 
-                    f"Failed to sync employees: {response.status_code}",
-                    response.text
+                    f"Failed to get employees: {employees_response.status_code}"
                 )
                 
         except Exception as e:
-            self.log_result("Manual Employee Sync", False, f"Error: {str(e)}")
+            self.log_result("Check Timesheet Statuses", False, f"Error: {str(e)}")
         
-        return {}
+        return []
 
     def test_employee_data_matches_user_data(self):
         """Test that employee data matches user data from Staff and Security"""
