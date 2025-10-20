@@ -69,6 +69,21 @@ frontend:
 
 
 backend:
+  - task: "Part Supply Invoicing Workflow Testing"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Part Supply Invoicing workflow for partial invoicing with 50%, 30%, 20% splits as requested in review"
+      - working: true
+        agent: "testing"
+        comment: "🎉 PART SUPPLY INVOICING WORKFLOW 100% SUCCESSFUL! Comprehensive end-to-end testing of the partial invoicing workflow completed with perfect success (29/29 tests passed). CRITICAL FUNCTIONALITY VERIFIED: ✅ POST /api/invoicing/generate/{job_id} endpoint working perfectly with invoice_type: 'partial', ✅ Invoice generation with correct suffixes: INV-0050~1, INV-0050~2, INV-0050~3, ✅ Job stage management: remains in delivery stage during partial invoicing, moves to accounting_transaction when fully invoiced, ✅ Job status tracking: status=active during partial invoicing, status=accounting_draft when fully invoiced, ✅ Invoice flags working correctly: partially_invoiced=True during partial invoicing, invoiced=True and fully_invoiced=True when complete, ✅ Invoice history tracking: all 3 partial invoices properly recorded with correct quantities and dates, ✅ Quantity calculations: 50% + 30% + 20% = 100% correctly calculated and tracked. WORKFLOW TESTED: Created fresh test order (ADM-2025-0017) → Moved through production stages to delivery → First partial invoice (50% quantities) → Second partial invoice (30% quantities) → Third partial invoice (20% quantities) → Job fully invoiced and moved to accounting_transaction stage. BACKEND FIX APPLIED: Added missing invoiced and partially_invoiced fields to Order model in models.py to ensure proper database persistence. API ENDPOINTS VERIFIED: ✅ POST /api/invoicing/generate/{job_id} - generates partial invoices with correct numbering, ✅ GET /api/orders/{job_id} - returns updated job status and invoice history. CONCLUSION: The Part Supply Invoicing workflow is production-ready and fully functional. All requirements from the review request have been successfully implemented and verified: partial invoicing with suffix numbering, job stage transitions, status tracking, and complete invoice history management."
+
   - task: "Stage Update Endpoint 422 Error Debugging"
     implemented: true
     working: true
