@@ -328,11 +328,15 @@ class ProfitabilityDebugTester:
                 )
                 
                 if len(completed_orders) > 0:
-                    # Get job cards
-                    job_cards_response = self.session.get(f"{API_BASE}/job-cards")
+                    # Get job cards using search endpoint
+                    job_cards_response = self.session.get(f"{API_BASE}/production/job-cards/search")
                     
                     if job_cards_response.status_code == 200:
-                        job_cards = job_cards_response.json()
+                        data = job_cards_response.json()
+                        if isinstance(data, dict) and 'data' in data:
+                            job_cards = data['data']
+                        else:
+                            job_cards = data
                         
                         # Check association between completed orders and job cards
                         orders_with_job_cards = 0
