@@ -13,7 +13,9 @@ import {
   ExclamationTriangleIcon,
   ClipboardDocumentListIcon,
   DocumentChartBarIcon,
-  CurrencyDollarIcon
+  CurrencyDollarIcon,
+  ChevronDownIcon,
+  ChevronUpIcon
 } from '@heroicons/react/24/outline';
 
 const Reports = () => {
