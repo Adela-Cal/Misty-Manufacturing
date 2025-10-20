@@ -269,6 +269,18 @@ async def get_employee(employee_id: str, current_user: dict = Depends(require_pa
     
     return EmployeeProfile(**employee)
 
+@payroll_router.get("/employees/me/profile", response_model=EmployeeProfile)
+async def get_my_employee_profile(current_user: dict = Depends(require_any_role)):
+    """Get current user's employee profile"""
+    user_id = current_user.get("user_id") or current_user.get("sub")
+    
+    # Find employee profile by user_id
+    employee = await db.employee_profiles.find_one({"user_id": user_id, "is_active": True})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee profile not found for current user")
+    
+    return EmployeeProfile(**employee)
+
 @payroll_router.put("/employees/{employee_id}", response_model=StandardResponse)
 async def update_employee(employee_id: str, employee_data: EmployeeProfileCreate, current_user: dict = Depends(require_admin)):
     """Update employee profile (Admin only)"""
