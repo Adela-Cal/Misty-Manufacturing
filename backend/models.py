@@ -228,10 +228,10 @@ class OrderCreate(BaseModel):
 
 # Production Stage Tracking
 class ProductionStageUpdate(BaseModel):
-    order_id: str
+    order_id: str = None  # Make optional since it's in the URL
     from_stage: ProductionStage
     to_stage: ProductionStage
-    updated_by: str
+    updated_by: Optional[str] = None  # Make optional, will be populated from current_user
     notes: Optional[str] = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
