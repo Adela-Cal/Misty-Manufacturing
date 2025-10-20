@@ -16,7 +16,8 @@ import {
   TrashIcon,
   ArchiveBoxIcon,
   ArrowPathIcon,
-  BuildingLibraryIcon
+  BuildingLibraryIcon,
+  EyeIcon
 } from '@heroicons/react/24/outline';
 
 const PayrollManagement = () => {
