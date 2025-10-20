@@ -183,6 +183,94 @@ class ProfitabilityReportTester:
         
         return []
 
+    def create_completed_orders_for_testing(self):
+        """Create completed orders by moving existing orders to completed status"""
+        print("\n--- STEP 1b: Creating Completed Orders for Testing ---")
+        
+        try:
+            # Get existing orders
+            response = self.session.get(f"{API_BASE}/orders")
+            
+            if response.status_code == 200:
+                orders = response.json()
+                
+                if not orders:
+                    self.log_result(
+                        "Create Completed Orders", 
+                        False, 
+                        "No orders available to move to completed status"
+                    )
+                    return []
+                
+                # Try to move first 2 orders to completed status
+                completed_orders = []
+                
+                for i, order in enumerate(orders[:2]):
+                    order_id = order.get('id')
+                    order_number = order.get('order_number', 'N/A')
+                    
+                    # Try to update order status to completed
+                    update_data = {
+                        "status": "completed",
+                        "current_stage": "cleared",
+                        "completed_at": datetime.now().isoformat()
+                    }
+                    
+                    update_response = self.session.put(f"{API_BASE}/orders/{order_id}", json=update_data)
+                    
+                    if update_response.status_code == 200:
+                        completed_orders.append(order)
+                        self.log_result(
+                            f"Move Order {i+1} to Completed", 
+                            True, 
+                            f"Successfully moved order {order_number} to completed status"
+                        )
+                    else:
+                        # Try alternative approach - update stage to cleared
+                        stage_data = {
+                            "from_stage": order.get('current_stage', 'delivery'),
+                            "to_stage": "cleared"
+                        }
+                        
+                        stage_response = self.session.put(f"{API_BASE}/orders/{order_id}/stage", json=stage_data)
+                        
+                        if stage_response.status_code == 200:
+                            completed_orders.append(order)
+                            self.log_result(
+                                f"Move Order {i+1} to Cleared Stage", 
+                                True, 
+                                f"Successfully moved order {order_number} to cleared stage"
+                            )
+                        else:
+                            self.log_result(
+                                f"Move Order {i+1} to Completed", 
+                                False, 
+                                f"Failed to move order {order_number}: {update_response.status_code}",
+                                update_response.text
+                            )
+                
+                if completed_orders:
+                    self.log_result(
+                        "Create Completed Orders Summary", 
+                        True, 
+                        f"Successfully created {len(completed_orders)} completed orders for testing"
+                    )
+                
+                return completed_orders
+                
+            else:
+                self.log_result(
+                    "Create Completed Orders", 
+                    False, 
+                    f"Failed to get orders for completion: {response.status_code}",
+                    response.text
+                )
+                
+        except Exception as e:
+            self.log_result("Create Completed Orders", False, f"Error: {str(e)}")
+        
+        return []
+
     def verify_data_sources(self):
         """Verify all data sources are accessible"""
         print("\n--- STEP 2: Verifying Data Sources ---")
