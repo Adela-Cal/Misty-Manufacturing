@@ -442,6 +442,20 @@ const Reports = () => {
     }
   };
   
+  const loadClientProducts = async () => {
+    try {
+      const response = await fetch('/api/client-products', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setClientProducts(data);
+      }
+    } catch (error) {
+      console.error('Failed to load client products:', error);
+    }
+  };
+  
   const toggleJobDetails = (jobId) => {
     setExpandedJobDetails(prev => ({
       ...prev,
