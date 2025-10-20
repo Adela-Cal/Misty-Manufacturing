@@ -767,6 +767,192 @@ async def reject_leave_request(request_id: str, rejection_reason: str, current_u
 
 # ============= REPORTING ENDPOINTS =============
 
+@payroll_router.get("/reports/timesheets")
+async def get_timesheet_report(
+    employee_id: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    current_user: dict = Depends(require_payroll_access)
+):
+    """Get timesheet report with filtering"""
+    
+    query = {}
+    if employee_id:
+        query["employee_id"] = employee_id
+    if start_date:
+        query["week_start"] = {"$gte": start_date}
+    if end_date:
+        if "week_start" in query:
+            query["week_start"]["$lte"] = end_date
+        else:
+            query["week_start"] = {"$lte": end_date}
+    
+    timesheets = await db.timesheets.find(query).sort("week_start", -1).to_list(1000)
+    
+    # Enrich with employee and approver names
+    for timesheet in timesheets:
+        if "_id" in timesheet:
+            del timesheet["_id"]
+        
+        # Get employee name
+        employee = await db.employee_profiles.find_one({"id": timesheet["employee_id"]})
+        if employee:
+            timesheet["employee_name"] = f"{employee['first_name']} {employee['last_name']}"
+        
+        # Get approver name
+        if timesheet.get("approved_by"):
+            approver = await db.users.find_one({"id": timesheet["approved_by"]})
+            if approver:
+                timesheet["approver_name"] = approver.get("full_name", "Unknown")
+    
+    # Calculate summary
+    total_regular = sum(float(ts.get("total_regular_hours", 0)) for ts in timesheets)
+    total_overtime = sum(float(ts.get("total_overtime_hours", 0)) for ts in timesheets)
+    
+    return {
+        "success": True,
+        "data": timesheets,
+        "summary": {
+            "total_timesheets": len(timesheets),
+            "total_regular_hours": round(total_regular, 2),
+            "total_overtime_hours": round(total_overtime, 2),
+            "total_hours": round(total_regular + total_overtime, 2)
+        }
+    }
+
+@payroll_router.get("/reports/payslip/{timesheet_id}")
+async def generate_payslip(timesheet_id: str, current_user: dict = Depends(require_payroll_access)):
+    """Generate payslip for a submitted timesheet"""
+    
+    # Get timesheet
+    timesheet = await db.timesheets.find_one({"id": timesheet_id})
+    if not timesheet:
+        raise HTTPException(status_code=404, detail="Timesheet not found")
+    
+    # Get employee
+    employee = await db.employee_profiles.find_one({"id": timesheet["employee_id"]})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    
+    employee_profile = EmployeeProfile(**employee)
+    
+    # Calculate pay
+    regular_hours = float(timesheet.get("total_regular_hours", 0))
+    overtime_hours = float(timesheet.get("total_overtime_hours", 0))
+    hourly_rate = float(employee_profile.hourly_rate)
+    
+    # Basic calculations
+    regular_pay = regular_hours * hourly_rate
+    overtime_pay = overtime_hours * hourly_rate * 1.5  # 1.5x for overtime
+    gross_pay = regular_pay + overtime_pay
+    
+    # Tax calculation (simplified - 15% flat rate for demo)
+    tax_withheld = gross_pay * 0.15
+    
+    # Superannuation (11% of gross pay in Australia)
+    superannuation = gross_pay * 0.11
+    
+    # Net pay
+    net_pay = gross_pay - tax_withheld
+    
+    # Get YTD totals (sum all approved timesheets for this employee this financial year)
+    # Financial year in Australia: July 1 to June 30
+    current_date = datetime.utcnow()
+    if current_date.month >= 7:
+        fy_start = datetime(current_date.year, 7, 1)
+    else:
+        fy_start = datetime(current_date.year - 1, 7, 1)
+    
+    ytd_timesheets = await db.timesheets.find({
+        "employee_id": timesheet["employee_id"],
+        "status": TimesheetStatus.APPROVED,
+        "week_start": {"$gte": fy_start.date().isoformat()}
+    }).to_list(1000)
+    
+    ytd_gross = sum(
+        (float(ts.get("total_regular_hours", 0)) * hourly_rate) +
+        (float(ts.get("total_overtime_hours", 0)) * hourly_rate * 1.5)
+        for ts in ytd_timesheets
+    )
+    ytd_tax = ytd_gross * 0.15
+    ytd_super = ytd_gross * 0.11
+    ytd_net = ytd_gross - ytd_tax
+    
+    payslip = {
+        "timesheet_id": timesheet_id,
+        "employee": {
+            "name": f"{employee_profile.first_name} {employee_profile.last_name}",
+            "employee_number": employee_profile.employee_number,
+            "position": employee_profile.position,
+            "department": employee_profile.department,
+            "email": employee_profile.email,
+            "tax_file_number": employee_profile.tax_file_number or "Not provided"
+        },
+        "bank_details": {
+            "bsb": employee_profile.bank_account_bsb or "Not provided",
+            "account_number": employee_profile.bank_account_number or "Not provided",
+            "superannuation_fund": employee_profile.superannuation_fund or "Not provided"
+        },
+        "pay_period": {
+            "week_start": timesheet["week_start"],
+            "week_end": timesheet["week_end"]
+        },
+        "hours": {
+            "regular_hours": round(regular_hours, 2),
+            "overtime_hours": round(overtime_hours, 2),
+            "hourly_rate": round(hourly_rate, 2)
+        },
+        "earnings": {
+            "regular_pay": round(regular_pay, 2),
+            "overtime_pay": round(overtime_pay, 2),
+            "gross_pay": round(gross_pay, 2)
+        },
+        "deductions": {
+            "tax_withheld": round(tax_withheld, 2),
+            "superannuation": round(superannuation, 2)
+        },
+        "net_pay": round(net_pay, 2),
+        "year_to_date": {
+            "gross_pay": round(ytd_gross, 2),
+            "tax_withheld": round(ytd_tax, 2),
+            "superannuation": round(ytd_super, 2),
+            "net_pay": round(ytd_net, 2)
+        },
+        "generated_at": datetime.utcnow().isoformat()
+    }
+    
+    # Store payslip in database
+    await db.payslips.insert_one({
+        "id": str(uuid.uuid4()),
+        "timesheet_id": timesheet_id,
+        "employee_id": timesheet["employee_id"],
+        "payslip_data": payslip,
+        "created_at": datetime.utcnow()
+    })
+    
+    return {"success": True, "data": payslip}
+
+@payroll_router.get("/reports/payslips")
+async def get_all_payslips(
+    employee_id: Optional[str] = None,
+    current_user: dict = Depends(require_payroll_access)
+):
+    """Get all historic payslips"""
+    
+    query = {}
+    if employee_id:
+        query["employee_id"] = employee_id
+    
+    payslips = await db.payslips.find(query).sort("created_at", -1).to_list(1000)
+    
+    for payslip in payslips:
+        if "_id" in payslip:
+            del payslip["_id"]
+    
+    return {"success": True, "data": payslips}
+
+# ============= REPORTING ENDPOINTS =============
+
 @payroll_router.get("/reports/payroll-summary")
 async def get_payroll_summary(start_date: date, end_date: date, current_user: dict = Depends(require_payroll_access)):
     """Get payroll summary for date range"""
