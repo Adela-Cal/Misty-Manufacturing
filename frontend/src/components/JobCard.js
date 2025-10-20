@@ -546,12 +546,20 @@ const JobCard = ({ jobId, stage, orderId, onClose, onJobStarted }) => {
         await apiHelpers.saveJobCard(jobCardData);
         
         // Move job to next stage
-        const currentStageIndex = Object.values(ProductionStage).indexOf(stage);
-        const nextStage = Object.values(ProductionStage)[currentStageIndex + 1];
+        const stageOrder = [
+          ProductionStage.ORDER_ENTERED,
+          ProductionStage.PAPER_SLITTING,
+          ProductionStage.CORE_WINDING,
+          ProductionStage.FINISHING_PACKING,
+          ProductionStage.DELIVERY,
+          ProductionStage.INVOICING
+        ];
         
-        if (nextStage && nextStage !== 'cleared') {
+        const currentStageIndex = stageOrder.indexOf(stage);
+        const nextStage = stageOrder[currentStageIndex + 1];
+        
+        if (nextStage) {
           await apiHelpers.updateOrderStage(orderId, {
-            order_id: orderId,
             from_stage: stage,
             to_stage: nextStage
           });
@@ -583,7 +591,7 @@ const JobCard = ({ jobId, stage, orderId, onClose, onJobStarted }) => {
         
       } catch (error) {
         console.error('Failed to complete job card:', error);
-        toast.error('Failed to save job card and move to next stage');
+        toast.error('Failed to save job card and move to next stage: ' + (error.message || 'Unknown error'));
       }
     }
   };
