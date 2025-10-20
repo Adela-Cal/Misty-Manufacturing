@@ -11,6 +11,8 @@ import {
   BuildingLibraryIcon
 } from '@heroicons/react/24/outline';
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+
 const PayrollReports = () => {
   const [activeReportTab, setActiveReportTab] = useState('payslips');
   const [employees, setEmployees] = useState([]);
