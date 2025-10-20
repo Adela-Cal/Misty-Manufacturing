@@ -100,6 +100,7 @@ const PayrollManagement = () => {
 
   useEffect(() => {
     loadPayrollData();
+    loadLeaveReminders(); // Load leave reminders on mount (for login notifications)
   }, []);
 
   const loadPayrollData = async () => {
