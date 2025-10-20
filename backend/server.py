@@ -5248,7 +5248,7 @@ async def get_detailed_material_usage_report(
         # Also check slit widths that might have been used
         slit_widths = await db.slit_widths.find({
             "raw_material_id": material_id,
-            "created_at": {"$gte": start.isoformat(), "$lte": end.isoformat()},
+            "created_at": {"$gte": start_dt, "$lte": end_dt},
             "is_allocated": True
         }).to_list(length=None)
         
