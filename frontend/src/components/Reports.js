@@ -382,12 +382,27 @@ const Reports = () => {
         profit_threshold: profitThreshold
       };
       
-      if (profitabilityMode === 'single' && selectedOrders.length > 0) {
-        requestData.order_ids = selectedOrders;
-      } else if (profitabilityMode === 'multiple') {
-        // Filter by client if selected
-        if (profitabilityClient) {
-          requestData.client_id = profitabilityClient;
+      if (profitabilityMode === 'all') {
+        // All jobs mode - get all completed/archived jobs
+        // Use date range for filtering
+        let finalStartDate = profitabilityStartDate;
+        let finalEndDate = profitabilityEndDate;
+        
+        if (finalStartDate && finalEndDate) {
+          requestData.start_date = finalStartDate + 'T00:00:00Z';
+          requestData.end_date = finalEndDate + 'T23:59:59Z';
+        }
+      } else if (profitabilityMode === 'filtered') {
+        // Filtered mode - use client and product filters
+        
+        // Multiple clients filter
+        if (selectedProfitClients.length > 0) {
+          requestData.client_ids = selectedProfitClients;
+        }
+        
+        // Multiple products filter
+        if (selectedProfitProducts.length > 0) {
+          requestData.product_ids = selectedProfitProducts;
         }
         
         // Date range
