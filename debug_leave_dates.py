@@ -41,7 +41,16 @@ def debug_leave_dates():
     response = session.get(f"{API_BASE}/payroll/leave-requests/pending")
     
     if response.status_code == 200:
-        pending_requests = response.json()
+        response_data = response.json()
+        print(f"Response structure: {type(response_data)}")
+        print(f"Response keys: {list(response_data.keys()) if isinstance(response_data, dict) else 'Not a dict'}")
+        
+        # Handle StandardResponse format
+        if isinstance(response_data, dict) and "data" in response_data:
+            pending_requests = response_data["data"]
+        else:
+            pending_requests = response_data
+            
         print(f"Found {len(pending_requests)} pending leave requests")
         
         for i, req in enumerate(pending_requests):
