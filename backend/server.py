@@ -1391,9 +1391,38 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(req
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
     
-    # Generate order number
-    order_count = await db.orders.count_documents({})
-    order_number = f"ADM-{datetime.now().year}-{order_count + 1:04d}"
+    # Generate order number - find the highest existing order number for this year
+    current_year = datetime.now().year
+    order_number_pattern = f"ADM-{current_year}-"
+    
+    # Get all orders for this year and find the highest number
+    existing_orders = await db.orders.find(
+        {"order_number": {"$regex": f"^{order_number_pattern}"}}
+    ).sort("order_number", -1).limit(1).to_list(length=1)
+    
+    if existing_orders:
+        # Extract the number from the last order (e.g., "ADM-2025-0007" -> 7)
+        last_number = int(existing_orders[0]["order_number"].split("-")[-1])
+        next_number = last_number + 1
+    else:
+        # First order of the year
+        next_number = 1
+    
+    # Generate order number with uniqueness check
+    max_attempts = 100
+    for attempt in range(max_attempts):
+        order_number = f"ADM-{current_year}-{next_number:04d}"
+        
+        # Check if this order number already exists
+        existing = await db.orders.find_one({"order_number": order_number})
+        if not existing:
+            break
+        
+        # If it exists, increment and try again
+        next_number += 1
+    else:
+        # If we've tried 100 times and still can't find a unique number, something is very wrong
+        raise HTTPException(status_code=500, detail="Unable to generate unique order number")
     
     # Calculate totals with discount applied before GST
     subtotal = sum(item.total_price for item in order_data.items)
