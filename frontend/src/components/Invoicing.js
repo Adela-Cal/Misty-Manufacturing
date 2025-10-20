@@ -152,6 +152,20 @@ const Invoicing = () => {
     setShowInvoiceModal(true);
   };
 
+  const handlePartSupplyNext = () => {
+    setShowInvoiceModal(false);
+    setShowPartSupplyModal(true);
+  };
+
+  const updatePartialItemQuantity = (index, quantity) => {
+    const newPartialItems = [...partialItems];
+    newPartialItems[index].invoice_quantity = Math.min(
+      Math.max(0, quantity), 
+      newPartialItems[index].original_quantity
+    );
+    setPartialItems(newPartialItems);
+  };
+
   const generateInvoice = async () => {
     if (!selectedJob) return;
 
