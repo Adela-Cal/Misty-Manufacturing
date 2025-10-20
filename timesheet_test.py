@@ -72,10 +72,13 @@ class TimesheetFlowTester:
                 })
                 
                 user_info = data.get('user', {})
+                self.current_user_id = user_info.get('id')
+                
                 self.log_result(
                     "Authentication", 
                     True, 
-                    f"Successfully authenticated as {user_info.get('username')} with role {user_info.get('role')}"
+                    f"Successfully authenticated as {user_info.get('username')} with role {user_info.get('role')}",
+                    f"User ID: {self.current_user_id}"
                 )
                 return True
             else:
@@ -89,6 +92,53 @@ class TimesheetFlowTester:
                 
         except Exception as e:
             self.log_result("Authentication", False, f"Authentication error: {str(e)}")
+            return False
+
+    def get_employee_id_for_callum(self):
+        """Get the employee_id for Callum from /api/payroll/employees"""
+        print("\n=== GETTING EMPLOYEE ID FOR CALLUM ===")
+        
+        try:
+            response = self.session.get(f"{API_BASE}/payroll/employees")
+            
+            if response.status_code == 200:
+                employees = response.json()
+                
+                # Look for Callum in the employees list
+                callum_employee = None
+                for emp in employees:
+                    if 'callum' in emp.get('first_name', '').lower() or 'callum' in emp.get('full_name', '').lower():
+                        callum_employee = emp
+                        break
+                
+                if callum_employee:
+                    self.employee_id = callum_employee['id']
+                    self.log_result(
+                        "Get Employee ID for Callum", 
+                        True, 
+                        f"Found Callum's employee ID: {self.employee_id}",
+                        f"Employee: {callum_employee.get('first_name')} {callum_employee.get('last_name')}, Number: {callum_employee.get('employee_number')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Get Employee ID for Callum", 
+                        False, 
+                        "Could not find Callum in employees list",
+                        f"Available employees: {[emp.get('first_name') + ' ' + emp.get('last_name') for emp in employees]}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Get Employee ID for Callum", 
+                    False, 
+                    f"Failed to get employees: {response.status_code}",
+                    response.text
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Get Employee ID for Callum", False, f"Error: {str(e)}")
             return False
     
     def test_payroll_endpoints_access(self):
