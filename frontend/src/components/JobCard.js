@@ -497,10 +497,18 @@ const JobCard = ({ jobId, stage, orderId, onClose, onJobStarted }) => {
     setIsJobRunning(true);
     toast.success(`Job started at ${startTime.toLocaleTimeString()}`);
     
-    // Update the order with production_started_at timestamp
+    // Update the order with stage-specific start timestamp
     try {
+      // Get current stage_start_times
+      const orderResponse = await apiHelpers.getOrder(orderId);
+      const currentStageStartTimes = orderResponse.data.stage_start_times || {};
+      
+      // Add/update the start time for current stage
+      currentStageStartTimes[stage] = startTime.toISOString();
+      
       await apiHelpers.updateOrder(orderId, {
-        production_started_at: startTime.toISOString()
+        production_started_at: startTime.toISOString(),  // Overall start time (first start)
+        stage_start_times: currentStageStartTimes  // Stage-specific start times
       });
       
       // Notify parent component to refresh
