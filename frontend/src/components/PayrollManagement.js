@@ -477,6 +477,47 @@ const PayrollManagement = () => {
     }
   };
 
+  const handleApproveTimesheet = async (timesheetId) => {
+    if (!window.confirm('Are you sure you want to approve this timesheet and calculate pay?')) {
+      return;
+    }
+    
+    try {
+      setApprovingTimesheet(timesheetId);
+      
+      const response = await fetch(`/api/payroll/timesheets/${timesheetId}/approve`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const payData = result.data || {};
+        toast.success(`Timesheet approved! Gross pay: $${payData.gross_pay?.toFixed(2) || '0.00'}, Net pay: $${payData.net_pay?.toFixed(2) || '0.00'}`);
+        loadPayrollData(); // Reload to update pending timesheets
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to approve timesheet');
+      }
+    } catch (error) {
+      console.error('Failed to approve timesheet:', error);
+      toast.error('Failed to approve timesheet');
+    } finally {
+      setApprovingTimesheet(null);
+    }
+  };
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to cancel leave');
+      }
+    } catch (error) {
+      console.error('Failed to cancel leave:', error);
+      toast.error('Failed to cancel leave');
+    }
+  };
+
   const handleEmployeeCreate = () => {
     setSelectedEmployee(null);
     setShowEmployeeModal(true);
