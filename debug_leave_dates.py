@@ -46,15 +46,18 @@ def debug_leave_dates():
         
         for i, req in enumerate(pending_requests):
             print(f"\nRequest {i+1}:")
-            print(f"  ID: {req.get('id')}")
-            print(f"  Status: {req.get('status')}")
-            print(f"  Start Date: {req.get('start_date')} (type: {type(req.get('start_date'))})")
-            print(f"  End Date: {req.get('end_date')} (type: {type(req.get('end_date'))})")
-            print(f"  Employee ID: {req.get('employee_id')}")
-            
-            # Check if this is our test request
-            if req.get('id') == '21e7e913-b17c-469a-b1d0-e94fd1a68fa9':
-                print("  *** THIS IS OUR TEST REQUEST ***")
+            if isinstance(req, dict):
+                print(f"  ID: {req.get('id')}")
+                print(f"  Status: {req.get('status')}")
+                print(f"  Start Date: {req.get('start_date')} (type: {type(req.get('start_date'))})")
+                print(f"  End Date: {req.get('end_date')} (type: {type(req.get('end_date'))})")
+                print(f"  Employee ID: {req.get('employee_id')}")
+                
+                # Check if this is our test request
+                if req.get('id') == '21e7e913-b17c-469a-b1d0-e94fd1a68fa9':
+                    print("  *** THIS IS OUR TEST REQUEST ***")
+            else:
+                print(f"  Request data: {req} (type: {type(req)})")
     else:
         print(f"Failed to get pending requests: {response.status_code}")
     
