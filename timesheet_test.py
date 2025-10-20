@@ -140,64 +140,395 @@ class TimesheetFlowTester:
         except Exception as e:
             self.log_result("Get Employee ID for Callum", False, f"Error: {str(e)}")
             return False
-    
-    def test_payroll_endpoints_access(self):
-        """Test if payroll endpoints are accessible"""
-        print("\n=== PAYROLL ENDPOINTS ACCESS TEST ===")
+
+    def test_get_current_week_timesheet(self):
+        """Test GET /api/payroll/timesheets/current-week/{employee_id}"""
+        print("\n=== TEST 1: GET CURRENT WEEK TIMESHEET ===")
         
         try:
-            response = self.session.get(f"{API_BASE}/payroll/employees")
+            response = self.session.get(f"{API_BASE}/payroll/timesheets/current-week/{self.employee_id}")
             
             if response.status_code == 200:
-                employees = response.json()
+                timesheet_data = response.json()
+                self.timesheet_id = timesheet_data.get('id')
+                
                 self.log_result(
-                    "Payroll Endpoints Access", 
+                    "Get Current Week Timesheet", 
                     True, 
-                    f"Successfully accessed payroll endpoints - found {len(employees)} employees"
+                    f"Successfully retrieved/created current week timesheet",
+                    f"Timesheet ID: {self.timesheet_id}, Status: {timesheet_data.get('status')}, Week: {timesheet_data.get('week_starting')} to {timesheet_data.get('week_ending')}"
                 )
                 
-                # Use first employee for testing if available
-                if employees:
-                    first_employee = employees[0]
-                    employee_id = first_employee.get('id')
-                    self.test_employee_id = employee_id
-                    
+                # Check if permission check is working correctly
+                if timesheet_data.get('employee_id') == self.employee_id:
                     self.log_result(
-                        "Employee ID Available", 
+                        "Permission Check - Employee ID Match", 
                         True, 
-                        f"Using existing employee ID: {employee_id}",
-                        f"Employee: {first_employee.get('first_name')} {first_employee.get('last_name')}"
+                        "Employee ID in timesheet matches requested employee ID"
                     )
-                    
-                    return employee_id
                 else:
                     self.log_result(
-                        "Employee ID Available", 
+                        "Permission Check - Employee ID Match", 
                         False, 
-                        "No employees found in system - need to create test employee"
+                        f"Employee ID mismatch: requested {self.employee_id}, got {timesheet_data.get('employee_id')}"
+                    )
+                
+                return True
+            elif response.status_code == 403:
+                self.log_result(
+                    "Get Current Week Timesheet", 
+                    False, 
+                    "Permission denied - this is the expected issue (user_id vs employee_id mismatch)",
+                    f"Current user ID: {self.current_user_id}, Employee ID: {self.employee_id}"
+                )
+                return False
+            else:
+                self.log_result(
+                    "Get Current Week Timesheet", 
+                    False, 
+                    f"Failed to get timesheet: {response.status_code}",
+                    response.text
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Get Current Week Timesheet", False, f"Error: {str(e)}")
+            return False
+
+    def test_update_timesheet(self):
+        """Test PUT /api/payroll/timesheets/{timesheet_id}"""
+        print("\n=== TEST 2: UPDATE TIMESHEET ===")
+        
+        if not self.timesheet_id:
+            self.log_result(
+                "Update Timesheet", 
+                False, 
+                "No timesheet ID available - cannot test update"
+            )
+            return False
+        
+        try:
+            # Create sample timesheet entries
+            update_data = {
+                "entries": [
+                    {
+                        "date": "2024-12-16",
+                        "regular_hours": 8.0,
+                        "overtime_hours": 0.0,
+                        "break_hours": 1.0,
+                        "notes": "Regular work day - Monday"
+                    },
+                    {
+                        "date": "2024-12-17",
+                        "regular_hours": 8.0,
+                        "overtime_hours": 1.5,
+                        "break_hours": 1.0,
+                        "notes": "Overtime for urgent order - Tuesday"
+                    },
+                    {
+                        "date": "2024-12-18",
+                        "regular_hours": 8.0,
+                        "overtime_hours": 0.0,
+                        "break_hours": 1.0,
+                        "notes": "Regular work day - Wednesday"
+                    },
+                    {
+                        "date": "2024-12-19",
+                        "regular_hours": 7.5,
+                        "overtime_hours": 0.0,
+                        "break_hours": 1.0,
+                        "notes": "Left early for appointment - Thursday"
+                    },
+                    {
+                        "date": "2024-12-20",
+                        "regular_hours": 8.0,
+                        "overtime_hours": 0.0,
+                        "break_hours": 1.0,
+                        "notes": "Regular work day - Friday"
+                    }
+                ]
+            }
+            
+            response = self.session.put(f"{API_BASE}/payroll/timesheets/{self.timesheet_id}", json=update_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                self.log_result(
+                    "Update Timesheet", 
+                    True, 
+                    f"Successfully updated timesheet with sample data",
+                    f"Response: {result.get('message')}, Total entries: {len(update_data['entries'])}"
+                )
+                return True
+            elif response.status_code == 403:
+                self.log_result(
+                    "Update Timesheet", 
+                    False, 
+                    "Permission denied - this is the expected issue (user_id vs employee_id mismatch)",
+                    f"Current user ID: {self.current_user_id}, Employee ID: {self.employee_id}"
+                )
+                return False
+            else:
+                self.log_result(
+                    "Update Timesheet", 
+                    False, 
+                    f"Failed to update timesheet: {response.status_code}",
+                    response.text
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Update Timesheet", False, f"Error: {str(e)}")
+            return False
+
+    def test_submit_timesheet(self):
+        """Test POST /api/payroll/timesheets/{timesheet_id}/submit"""
+        print("\n=== TEST 3: SUBMIT TIMESHEET ===")
+        
+        if not self.timesheet_id:
+            self.log_result(
+                "Submit Timesheet", 
+                False, 
+                "No timesheet ID available - cannot test submit"
+            )
+            return False
+        
+        try:
+            response = self.session.post(f"{API_BASE}/payroll/timesheets/{self.timesheet_id}/submit")
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                self.log_result(
+                    "Submit Timesheet", 
+                    True, 
+                    f"Successfully submitted timesheet for approval",
+                    f"Response: {result.get('message')}"
+                )
+                return True
+            elif response.status_code == 403:
+                self.log_result(
+                    "Submit Timesheet", 
+                    False, 
+                    "Permission denied - this is the expected issue (user_id vs employee_id mismatch)",
+                    f"Current user ID: {self.current_user_id}, Employee ID: {self.employee_id}"
+                )
+                return False
+            else:
+                self.log_result(
+                    "Submit Timesheet", 
+                    False, 
+                    f"Failed to submit timesheet: {response.status_code}",
+                    response.text
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Submit Timesheet", False, f"Error: {str(e)}")
+            return False
+
+    def test_check_pending_timesheets(self):
+        """Test GET /api/payroll/timesheets/pending"""
+        print("\n=== TEST 4: CHECK PENDING TIMESHEETS ===")
+        
+        try:
+            response = self.session.get(f"{API_BASE}/payroll/timesheets/pending")
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                if result.get("success") and "data" in result:
+                    pending_timesheets = result["data"]
+                    
+                    # Check if our submitted timesheet appears in pending
+                    our_timesheet_found = False
+                    if self.timesheet_id:
+                        for ts in pending_timesheets:
+                            if ts.get('id') == self.timesheet_id:
+                                our_timesheet_found = True
+                                break
+                    
+                    self.log_result(
+                        "Check Pending Timesheets", 
+                        True, 
+                        f"Successfully retrieved pending timesheets",
+                        f"Total pending: {len(pending_timesheets)}, Our timesheet found: {our_timesheet_found}"
+                    )
+                    
+                    if self.timesheet_id and not our_timesheet_found:
+                        self.log_result(
+                            "Timesheet Appears in Pending", 
+                            False, 
+                            "Submitted timesheet does NOT appear in pending list - this is the expected issue",
+                            f"Looking for timesheet ID: {self.timesheet_id}"
+                        )
+                    elif self.timesheet_id and our_timesheet_found:
+                        self.log_result(
+                            "Timesheet Appears in Pending", 
+                            True, 
+                            "Submitted timesheet correctly appears in pending list"
+                        )
+                    
+                    return True
+                else:
+                    self.log_result(
+                        "Check Pending Timesheets", 
+                        False, 
+                        "Invalid response structure",
+                        f"Response: {result}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Check Pending Timesheets", 
+                    False, 
+                    f"Failed to get pending timesheets: {response.status_code}",
+                    response.text
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Check Pending Timesheets", False, f"Error: {str(e)}")
+            return False
+
+    def test_permission_mismatch_investigation(self):
+        """Investigate the user_id vs employee_id mismatch issue"""
+        print("\n=== PERMISSION MISMATCH INVESTIGATION ===")
+        
+        try:
+            # Get current user info
+            user_response = self.session.get(f"{API_BASE}/auth/me")
+            if user_response.status_code == 200:
+                user_info = user_response.json()
+                current_user_id = user_info.get('id')
+                
+                self.log_result(
+                    "Current User Investigation", 
+                    True, 
+                    f"Current user ID from /auth/me: {current_user_id}",
+                    f"User: {user_info.get('username')}, Role: {user_info.get('role')}"
+                )
+                
+                # Compare with employee_id
+                if current_user_id == self.employee_id:
+                    self.log_result(
+                        "User ID vs Employee ID Match", 
+                        True, 
+                        "Current user ID matches employee ID - permissions should work"
+                    )
+                else:
+                    self.log_result(
+                        "User ID vs Employee ID Match", 
+                        False, 
+                        f"MISMATCH FOUND: Current user ID ({current_user_id}) != Employee ID ({self.employee_id})",
+                        "This explains the permission failures - the system checks current_user['user_id'] != timesheet['employee_id']"
                     )
             else:
                 self.log_result(
-                    "Payroll Endpoints Access", 
+                    "Current User Investigation", 
                     False, 
-                    f"Failed to access payroll endpoints: {response.status_code}",
-                    response.text
+                    f"Failed to get current user info: {user_response.status_code}"
                 )
                 
         except Exception as e:
-            self.log_result("Payroll Endpoints Access", False, f"Error: {str(e)}")
+            self.log_result("Permission Mismatch Investigation", False, f"Error: {str(e)}")
+
+    def run_complete_timesheet_flow_test(self):
+        """Run the complete timesheet creation and submission flow test"""
+        print("="*80)
+        print("TIMESHEET CREATION AND SUBMISSION FLOW TESTING")
+        print("Testing the specific workflow requested in the review")
+        print("="*80)
         
-        return None
-    
-    def test_undefined_employee_id_issue(self):
-        """Test the specific issue where employee_id comes as undefined"""
-        print("\n=== UNDEFINED EMPLOYEE_ID ISSUE TEST ===")
+        # Step 1: Authenticate
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot continue with tests")
+            return
         
-        # Test with undefined/null employee_id
-        test_cases = [
-            ("undefined", "undefined"),
-            ("null", "null"),
-            ("", "empty string"),
+        # Step 2: Get employee ID for Callum
+        if not self.get_employee_id_for_callum():
+            print("❌ Could not get employee ID - cannot continue with tests")
+            return
+        
+        # Step 3: Investigate permission mismatch
+        self.test_permission_mismatch_investigation()
+        
+        # Step 4: Test getting/creating current week timesheet
+        timesheet_created = self.test_get_current_week_timesheet()
+        
+        # Step 5: Test updating timesheet (if creation succeeded)
+        if timesheet_created:
+            self.test_update_timesheet()
+        
+        # Step 6: Test submitting timesheet (if creation succeeded)
+        if timesheet_created:
+            self.test_submit_timesheet()
+        
+        # Step 7: Check if timesheet appears in pending
+        self.test_check_pending_timesheets()
+        
+        # Print summary
+        self.print_test_summary()
+
+    def print_test_summary(self):
+        """Print test summary"""
+        print("\n" + "="*80)
+        print("TIMESHEET FLOW TEST SUMMARY")
+        print("="*80)
+        
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result['success'])
+        failed_tests = total_tests - passed_tests
+        
+        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {failed_tests}")
+        print(f"Success Rate: {success_rate:.1f}%")
+        
+        print("\n" + "="*60)
+        print("DETAILED RESULTS:")
+        print("="*60)
+        
+        for result in self.test_results:
+            status = "✅" if result['success'] else "❌"
+            print(f"{status} {result['test']}: {result['message']}")
+            if result['details'] and not result['success']:
+                print(f"   Details: {result['details']}")
+        
+        # Show identified issues
+        failed_results = [r for r in self.test_results if not r['success']]
+        if failed_results:
+            print("\n" + "="*60)
+            print("IDENTIFIED ISSUES:")
+            print("="*60)
+            
+            permission_issues = [r for r in failed_results if 'permission' in r['message'].lower() or 'mismatch' in r['message'].lower()]
+            pending_issues = [r for r in failed_results if 'pending' in r['message'].lower()]
+            
+            if permission_issues:
+                print("\n🔒 PERMISSION ISSUES:")
+                for issue in permission_issues:
+                    print(f"   • {issue['test']}: {issue['message']}")
+            
+            if pending_issues:
+                print("\n📋 PENDING TIMESHEET ISSUES:")
+                for issue in pending_issues:
+                    print(f"   • {issue['test']}: {issue['message']}")
+            
+            other_issues = [r for r in failed_results if r not in permission_issues and r not in pending_issues]
+            if other_issues:
+                print("\n⚠️  OTHER ISSUES:")
+                for issue in other_issues:
+                    print(f"   • {issue['test']}: {issue['message']}")
+        
+        print("\n" + "="*80)
+
+if __name__ == "__main__":
+    tester = TimesheetFlowTester()
+    tester.run_complete_timesheet_flow_test()
             (None, "None/null")
         ]
         
