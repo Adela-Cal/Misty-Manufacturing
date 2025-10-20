@@ -3324,9 +3324,13 @@ async def create_xero_draft_invoice(
 
 @api_router.get("/invoicing/live-jobs")
 async def get_live_jobs(current_user: dict = Depends(require_admin_or_manager)):
-    """Get all jobs ready for invoicing (in invoicing stage on production board)"""
+    """Get all jobs ready for invoicing (in delivery or invoicing stage, not fully invoiced)"""
     live_jobs = await db.orders.find({
-        "current_stage": "invoicing", 
+        "$or": [
+            {"current_stage": "invoicing"},
+            {"current_stage": "delivery", "partially_invoiced": True}
+        ],
+        "invoiced": {"$ne": True},  # Exclude fully invoiced orders
         "status": {"$ne": "completed"}
     }).to_list(length=None)
     
