@@ -1785,10 +1785,10 @@ class BackendAPITester:
             self.log_result("Employee Sync Edge Cases", False, f"Error: {str(e)}")
 
     def run_comprehensive_tests(self):
-        """Run all comprehensive tests for payroll employee synchronization"""
+        """Run all comprehensive tests for pending timesheets endpoint"""
         print("\n" + "="*80)
-        print("PAYROLL EMPLOYEE SYNCHRONIZATION TESTING")
-        print("Testing new employee synchronization with Staff and Security users")
+        print("PENDING TIMESHEETS ENDPOINT TESTING")
+        print("Testing GET /api/payroll/timesheets/pending endpoint functionality")
         print("="*80)
         
         # Step 1: Authenticate
@@ -1796,8 +1796,8 @@ class BackendAPITester:
             print("❌ Authentication failed - cannot proceed with tests")
             return
         
-        # Step 2: Run payroll synchronization tests
-        self.test_payroll_employee_synchronization()
+        # Step 2: Run pending timesheets tests
+        self.test_pending_timesheets_endpoint()
         
         # Step 3: Print comprehensive summary
         self.print_test_summary()
