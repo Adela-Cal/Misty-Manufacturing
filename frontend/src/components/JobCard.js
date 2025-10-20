@@ -478,11 +478,20 @@ const JobCard = ({ jobId, stage, orderId, onClose }) => {
     window.print();
   };
 
-  const handleStartJob = () => {
+  const handleStartJob = async () => {
     const startTime = new Date();
     setJobStartTime(startTime);
     setIsJobRunning(true);
     toast.success(`Job started at ${startTime.toLocaleTimeString()}`);
+    
+    // Update the order with production_started_at timestamp
+    try {
+      await apiHelpers.updateOrder(orderId, {
+        production_started_at: startTime.toISOString()
+      });
+    } catch (error) {
+      console.error('Failed to update production start time:', error);
+    }
   };
 
   const handleCompleteRun = () => {
