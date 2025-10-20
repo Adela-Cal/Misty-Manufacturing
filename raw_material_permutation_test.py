@@ -389,6 +389,36 @@ class RawMaterialPermutationTester:
                         f"Response missing required fields: {missing_fields}",
                         f"Available fields: {list(data.keys())}"
                     )
+            elif response.status_code == 400:
+                error_detail = response.json().get("detail", "")
+                if "width_mm" in error_detail:
+                    self.log_result(
+                        "Basic Material Permutation", 
+                        False, 
+                        f"BACKEND BUG IDENTIFIED: Endpoint expects 'width_mm' field but materials have 'master_deckle_width_mm'",
+                        f"Error: {error_detail}. Material has master_deckle_width_mm: {material.get('master_deckle_width_mm')}"
+                    )
+                elif "GSM" in error_detail:
+                    self.log_result(
+                        "Basic Material Permutation", 
+                        False, 
+                        f"BACKEND BUG IDENTIFIED: GSM field issue",
+                        f"Error: {error_detail}. Material has gsm: {material.get('gsm')}"
+                    )
+                elif "cost_per_tonne" in error_detail:
+                    self.log_result(
+                        "Basic Material Permutation", 
+                        False, 
+                        f"BACKEND BUG IDENTIFIED: Endpoint expects 'cost_per_tonne' field but materials have 'price'",
+                        f"Error: {error_detail}. Material has price: {material.get('price')}"
+                    )
+                else:
+                    self.log_result(
+                        "Basic Material Permutation", 
+                        False, 
+                        f"Request failed with status {response.status_code}",
+                        response.text
+                    )
             else:
                 self.log_result(
                     "Basic Material Permutation", 
