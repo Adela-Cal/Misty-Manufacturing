@@ -98,6 +98,19 @@ const Reports = () => {
   const [showJobTypeBreakdown, setShowJobTypeBreakdown] = useState(false);
   const [showClientPerformance, setShowClientPerformance] = useState(false);
 
+  // Profitability Report states
+  const [showProfitabilityModal, setShowProfitabilityModal] = useState(false);
+  const [profitabilityMode, setProfitabilityMode] = useState('multiple'); // 'single' or 'multiple'
+  const [selectedOrders, setSelectedOrders] = useState([]);
+  const [profitabilityClient, setProfitabilityClient] = useState('');
+  const [profitabilityStartDate, setProfitabilityStartDate] = useState('');
+  const [profitabilityEndDate, setProfitabilityEndDate] = useState('');
+  const [profitabilityDatePreset, setProfitabilityDatePreset] = useState('last_30_days');
+  const [profitThreshold, setProfitThreshold] = useState(0);
+  const [profitabilityReport, setProfitabilityReport] = useState(null);
+  const [loadingProfitability, setLoadingProfitability] = useState(false);
+  const [completedOrders, setCompletedOrders] = useState([]);
+
   useEffect(() => {
     loadReportsData();
     loadMaterials();
