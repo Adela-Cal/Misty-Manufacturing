@@ -253,7 +253,11 @@ class RawMaterialPermutationTester:
         print("\n=== TESTING BASIC MATERIAL PERMUTATION ===")
         
         try:
+            # Use the original material ID for the endpoint to find in materials collection
             material_id = material.get("id") or material.get("material_id")
+            
+            print(f"DEBUG: Using material_id: {material_id}")
+            print(f"DEBUG: Material data: {material}")
             
             # Test parameters as specified in review request
             request_data = {
