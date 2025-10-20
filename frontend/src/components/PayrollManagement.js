@@ -629,7 +629,41 @@ const PayrollManagement = () => {
         {/* Tab Content */}
         <div className="animate-fadeIn">
           {activeTab === 'overview' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-6">Payroll Dashboard</h3>
+              
+              {/* Leave Reminders Section for Managers */}
+              {hasPermission('manage_payroll') && leaveReminders.length > 0 && (
+                <div className="bg-yellow-900 bg-opacity-20 border border-yellow-500 border-opacity-50 rounded-lg p-4 mb-6">
+                  <div className="flex items-center mb-3">
+                    <ExclamationTriangleIcon className="h-6 w-6 text-yellow-400 mr-2" />
+                    <h4 className="text-lg font-semibold text-white">Upcoming Leave Reminders</h4>
+                  </div>
+                  <div className="space-y-2">
+                    {leaveReminders.map((reminder) => (
+                      <div key={reminder.id} className="bg-gray-800 rounded p-3 flex items-center justify-between">
+                        <div>
+                          <p className="text-white font-medium">{reminder.message}</p>
+                          <p className="text-sm text-gray-400">
+                            {reminder.employee_number} - {reminder.department} | 
+                            {new Date(reminder.start_date).toLocaleDateString()} to {new Date(reminder.end_date).toLocaleDateString()} | 
+                            {reminder.hours_requested}h
+                          </p>
+                        </div>
+                        <span className={`px-3 py-1 rounded text-sm font-medium ${
+                          reminder.reminder_type === '1_day' 
+                            ? 'bg-red-900 text-red-200' 
+                            : 'bg-yellow-900 text-yellow-200'
+                        }`}>
+                          {reminder.reminder_type === '1_day' ? 'Tomorrow' : 'In 7 days'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Recent Activity */}
               <div className="misty-card p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
