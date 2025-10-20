@@ -1495,6 +1495,173 @@ const PayrollManagement = () => {
         </div>
       )}
 
+      {/* Archived Leave Requests Modal */}
+      {showArchivedLeave && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowArchivedLeave(false)}>
+          <div className="modal-content max-w-6xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-white flex items-center">
+                  <ArchiveBoxIcon className="h-6 w-6 mr-2 text-gray-400" />
+                  Archived Leave Requests
+                </h3>
+                <button
+                  onClick={() => setShowArchivedLeave(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-sm text-gray-400 mb-6">
+                Viewing all approved and declined leave requests
+              </p>
+
+              {archivedLeaveRequests.length > 0 ? (
+                <div className="misty-table">
+                  <table className="w-full">
+                    <thead>
+                      <tr>
+                        <th>Employee</th>
+                        <th>Leave Type</th>
+                        <th>Dates</th>
+                        <th>Hours</th>
+                        <th>Status</th>
+                        <th>Approver</th>
+                        <th>Reason</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {archivedLeaveRequests.map((request) => (
+                        <tr key={request.id}>
+                          <td>
+                            <p className="font-medium">{request.employee_name}</p>
+                          </td>
+                          <td>
+                            <span className="text-sm bg-blue-900 px-2 py-1 rounded capitalize">
+                              {request.leave_type.replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td className="text-sm">
+                            <p>{new Date(request.start_date).toLocaleDateString()}</p>
+                            <p className="text-gray-400">to {new Date(request.end_date).toLocaleDateString()}</p>
+                          </td>
+                          <td className="font-medium text-yellow-400">
+                            {request.hours_requested}h
+                          </td>
+                          <td>
+                            <span className={`text-sm px-2 py-1 rounded ${
+                              request.status === 'approved' ? 'bg-green-900 text-green-200' :
+                              'bg-red-900 text-red-200'
+                            }`}>
+                              {request.status}
+                            </span>
+                          </td>
+                          <td className="text-sm text-gray-400">
+                            {request.approver_name || 'N/A'}
+                          </td>
+                          <td className="text-sm text-gray-400 max-w-xs truncate">
+                            {request.reason || 'No reason provided'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-800 rounded-lg">
+                  <ArchiveBoxIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm text-gray-300">No archived leave requests</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Leave Calendar Modal */}
+      {showLeaveCalendar && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowLeaveCalendar(false)}>
+          <div className="modal-content max-w-6xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-white flex items-center">
+                  <CalendarDaysIcon className="h-6 w-6 mr-2 text-blue-400" />
+                  Upcoming Approved Leave Calendar
+                </h3>
+                <button
+                  onClick={() => setShowLeaveCalendar(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-sm text-gray-400 mb-6">
+                Showing all upcoming approved leave from today onwards
+              </p>
+
+              {leaveCalendarEvents.length > 0 ? (
+                <div className="space-y-4">
+                  {leaveCalendarEvents.map((event) => {
+                    const startDate = new Date(event.start_date);
+                    const endDate = new Date(event.end_date);
+                    const daysUntil = Math.ceil((startDate - new Date()) / (1000 * 60 * 60 * 24));
+                    
+                    return (
+                      <div key={event.id} className="bg-gray-800 rounded-lg p-4 border-l-4 border-blue-500">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h4 className="text-lg font-semibold text-white">{event.employee_name}</h4>
+                              <span className="text-sm bg-blue-900 px-2 py-1 rounded capitalize">
+                                {event.leave_type.replace('_', ' ')}
+                              </span>
+                              {daysUntil <= 7 && (
+                                <span className="text-xs bg-yellow-900 text-yellow-200 px-2 py-1 rounded">
+                                  {daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : `In ${daysUntil} days`}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-400">
+                              <p>{event.employee_number} - {event.department}</p>
+                              <p className="mt-1">
+                                <span className="font-medium text-white">
+                                  {startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                                </span>
+                                <span className="mx-2">→</span>
+                                <span className="font-medium text-white">
+                                  {endDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                                </span>
+                              </p>
+                              <p className="mt-1">{event.hours_requested} hours</p>
+                              {event.reason && (
+                                <p className="mt-2 text-xs italic">"{event.reason}"</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-3xl font-bold text-blue-400">
+                              {startDate.getDate()}
+                            </div>
+                            <div className="text-sm text-gray-400">
+                              {startDate.toLocaleDateString('en-US', { month: 'short' })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-800 rounded-lg">
+                  <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm text-gray-300">No upcoming approved leave</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Permanent Delete Confirmation Modal */}
       {showPermanentDeleteConfirm && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowPermanentDeleteConfirm(false)}>
