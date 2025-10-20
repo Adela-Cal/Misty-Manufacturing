@@ -443,7 +443,10 @@ const Reports = () => {
   };
 
   const searchJobCards = async () => {
-    if (!jobCardSearchTerm.trim()) {
+    // Trim whitespace and check if empty
+    const trimmedSearch = jobCardSearchTerm.trim();
+    
+    if (!trimmedSearch) {
       toast.error('Please enter a search term');
       return;
     }
@@ -453,11 +456,11 @@ const Reports = () => {
       const params = {};
       
       if (jobCardSearchType === 'customer') {
-        params.customer = jobCardSearchTerm;
+        params.customer = trimmedSearch;
       } else if (jobCardSearchType === 'invoice') {
-        params.invoice_number = jobCardSearchTerm;
+        params.invoice_number = trimmedSearch;
       } else if (jobCardSearchType === 'product') {
-        params.product = jobCardSearchTerm;
+        params.product = trimmedSearch;
       }
       
       const response = await apiHelpers.searchJobCards(params);
