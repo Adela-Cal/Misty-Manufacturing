@@ -66,6 +66,9 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
         return;
       }
       
+      // Store the actual employee ID in state
+      setActualEmployeeId(actualEmployeeId);
+      
       const response = await payrollApi.getCurrentWeekTimesheet(actualEmployeeId);
       const timesheetData = response.data;
       
