@@ -559,11 +559,15 @@ class ProfitabilityDebugTester:
         print("\n--- Test 6: Job Cards and Orders Cross-Reference ---")
         try:
             # Get both job cards and orders
-            job_cards_response = self.session.get(f"{API_BASE}/job-cards")
+            job_cards_response = self.session.get(f"{API_BASE}/production/job-cards/search")
             orders_response = self.session.get(f"{API_BASE}/orders")
             
             if job_cards_response.status_code == 200 and orders_response.status_code == 200:
-                job_cards = job_cards_response.json()
+                job_cards_data = job_cards_response.json()
+                if isinstance(job_cards_data, dict) and 'data' in job_cards_data:
+                    job_cards = job_cards_data['data']
+                else:
+                    job_cards = job_cards_data
                 orders = orders_response.json()
                 
                 # Create mappings
