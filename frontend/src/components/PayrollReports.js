@@ -55,7 +55,7 @@ const PayrollReports = () => {
   const loadPayslips = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/payroll/reports/payslips', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/reports/payslips`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       if (response.ok) {
