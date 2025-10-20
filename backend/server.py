@@ -3327,25 +3327,38 @@ async def generate_job_invoice(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    if job.get("invoiced"):
-        raise HTTPException(status_code=400, detail="Job already invoiced")
-    
     # Get client info
     client = await db.clients.find_one({"id": job["client_id"]})
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
     
-    # Generate invoice number (simple sequential for now)
-    invoice_count = await db.invoices.count_documents({}) + 1
-    invoice_number = f"INV-{invoice_count:04d}"
+    # Get invoice history for this job
+    invoice_history = job.get("invoice_history", [])
+    is_partial = invoice_data.get("invoice_type") == "partial"
+    
+    # Generate base invoice number if this is the first invoice for this job
+    if not invoice_history:
+        invoice_count = await db.invoices.count_documents({}) + 1
+        base_invoice_number = f"INV-{invoice_count:04d}"
+    else:
+        # Use existing base invoice number from first invoice
+        base_invoice_number = invoice_history[0].get("base_invoice_number") or invoice_history[0].get("invoice_number").split("~")[0]
+    
+    # Add suffix for partial invoices
+    if is_partial:
+        partial_count = len(invoice_history) + 1
+        invoice_number = f"{base_invoice_number}~{partial_count}"
+    else:
+        invoice_number = base_invoice_number
     
     # Prepare invoice data
     invoice_record = {
         "id": str(uuid.uuid4()),
         "invoice_number": invoice_number,
+        "base_invoice_number": base_invoice_number,
         "job_id": job_id,
         "client_id": job["client_id"],
-        "invoice_type": invoice_data.get("invoice_type", "full"),  # "full" or "partial"
+        "invoice_type": invoice_data.get("invoice_type", "full"),
         "items": invoice_data.get("items", job["items"]),
         "subtotal": invoice_data.get("subtotal", job["subtotal"]),
         "gst": invoice_data.get("gst", job["gst"]),
