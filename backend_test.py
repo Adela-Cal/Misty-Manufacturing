@@ -1573,58 +1573,99 @@ class BackendAPITester:
         except Exception as e:
             self.log_result("Pending Timesheets Data Structure", False, f"Error: {str(e)}")
 
-    def test_employee_default_values(self):
-        """Test employee default values (hourly_rate=$25.00, weekly_hours=38)"""
+    def test_pending_timesheets_authentication(self):
+        """Test authentication requirements for pending timesheets endpoint"""
         try:
-            employees_response = self.session.get(f"{API_BASE}/payroll/employees")
+            # Test without authentication
+            session_no_auth = requests.Session()
+            response = session_no_auth.get(f"{API_BASE}/payroll/timesheets/pending")
             
-            if employees_response.status_code == 200:
-                employees = employees_response.json()
-                
-                correct_defaults = 0
-                incorrect_defaults = []
-                
-                for emp in employees:
-                    hourly_rate = emp.get("hourly_rate")
-                    weekly_hours = emp.get("weekly_hours")
-                    
-                    # Check default values
-                    rate_correct = hourly_rate == 25.0 or hourly_rate == "25.00"
-                    hours_correct = weekly_hours == 38
-                    
-                    if rate_correct and hours_correct:
-                        correct_defaults += 1
-                    else:
-                        issues = []
-                        if not rate_correct:
-                            issues.append(f"hourly_rate={hourly_rate} (expected 25.00)")
-                        if not hours_correct:
-                            issues.append(f"weekly_hours={weekly_hours} (expected 38)")
-                        
-                        incorrect_defaults.append(f"Employee {emp.get('employee_number')}: {', '.join(issues)}")
-                
-                if len(incorrect_defaults) == 0:
-                    self.log_result(
-                        "Employee Default Values", 
-                        True, 
-                        f"All {correct_defaults} employees have correct default values (hourly_rate=$25.00, weekly_hours=38)"
-                    )
-                else:
-                    self.log_result(
-                        "Employee Default Values", 
-                        False, 
-                        f"Found {len(incorrect_defaults)} employees with incorrect defaults",
-                        f"Issues: {incorrect_defaults[:3]}"  # Show first 3
-                    )
+            if response.status_code == 403 or response.status_code == 401:
+                self.log_result(
+                    "Pending Timesheets Authentication - No Auth", 
+                    True, 
+                    f"Correctly denied access without authentication (status: {response.status_code})"
+                )
             else:
                 self.log_result(
-                    "Employee Default Values", 
+                    "Pending Timesheets Authentication - No Auth", 
                     False, 
-                    f"Failed to get employees: {employees_response.status_code}"
+                    f"Expected 401/403, got {response.status_code}",
+                    "Endpoint should require authentication"
+                )
+            
+            # Test with valid authentication (already done in main test)
+            response_auth = self.session.get(f"{API_BASE}/payroll/timesheets/pending")
+            
+            if response_auth.status_code == 200:
+                self.log_result(
+                    "Pending Timesheets Authentication - With Auth", 
+                    True, 
+                    "Successfully accessed endpoint with valid authentication"
+                )
+            elif response_auth.status_code == 403:
+                self.log_result(
+                    "Pending Timesheets Authentication - With Auth", 
+                    False, 
+                    "Access denied even with authentication - user may lack payroll permissions"
+                )
+            else:
+                self.log_result(
+                    "Pending Timesheets Authentication - With Auth", 
+                    False, 
+                    f"Unexpected status with auth: {response_auth.status_code}"
                 )
                 
         except Exception as e:
-            self.log_result("Employee Default Values", False, f"Error: {str(e)}")
+            self.log_result("Pending Timesheets Authentication", False, f"Error: {str(e)}")
+
+    def test_check_backend_logs(self):
+        """Check backend logs for any errors related to pending timesheets"""
+        try:
+            # Try to check supervisor logs for backend errors
+            import subprocess
+            
+            # Check backend logs
+            result = subprocess.run(
+                ["tail", "-n", "50", "/var/log/supervisor/backend.err.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode == 0:
+                log_content = result.stdout
+                
+                # Look for errors related to timesheets
+                timesheet_errors = []
+                for line in log_content.split('\n'):
+                    if 'timesheet' in line.lower() and ('error' in line.lower() or 'exception' in line.lower()):
+                        timesheet_errors.append(line.strip())
+                
+                if len(timesheet_errors) == 0:
+                    self.log_result(
+                        "Backend Logs - Timesheet Errors", 
+                        True, 
+                        "No timesheet-related errors found in backend logs"
+                    )
+                else:
+                    self.log_result(
+                        "Backend Logs - Timesheet Errors", 
+                        False, 
+                        f"Found {len(timesheet_errors)} timesheet-related errors",
+                        f"Errors: {timesheet_errors[:3]}"
+                    )
+            else:
+                self.log_result(
+                    "Backend Logs Check", 
+                    False, 
+                    "Could not access backend error logs"
+                )
+                
+        except subprocess.TimeoutExpired:
+            self.log_result("Backend Logs Check", False, "Timeout accessing logs")
+        except Exception as e:
+            self.log_result("Backend Logs Check", False, f"Error: {str(e)}")
 
     def test_employee_data_enrichment(self):
         """Test employee data enrichment with current user information"""
