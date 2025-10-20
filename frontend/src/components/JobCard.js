@@ -500,7 +500,7 @@ const JobCard = ({ jobId, stage, orderId, onClose, onJobStarted }) => {
     }
   };
 
-  const handleCompleteRun = () => {
+  const handleCompleteRun = async () => {
     if (jobStartTime) {
       const endTime = new Date();
       const durationMs = endTime.getTime() - new Date(jobStartTime).getTime();
@@ -508,7 +508,72 @@ const JobCard = ({ jobId, stage, orderId, onClose, onJobStarted }) => {
       
       setActualRunTime(durationMinutes);
       setIsJobRunning(false);
-      toast.success(`Job completed! Actual run time: ${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60}m`);
+      
+      // Prepare job card data for archiving
+      const jobCardData = {
+        order_id: orderId,
+        job_id: jobId,
+        stage: stage,
+        machine: selectedMachine,
+        setup_notes: setupNotes,
+        job_start_time: jobStartTime,
+        job_end_time: endTime,
+        actual_run_time_minutes: durationMinutes,
+        finished_quantity: finishedQuantity,
+        additional_production: additionalProduction,
+        master_cores: masterCores,
+        completed_products: completedProducts,
+        operator_signoffs: signOffs,
+        product_specs: productSpecs,
+        calculations: calculations,
+        completed_at: endTime.toISOString(),
+        completed_by: localStorage.getItem('user_name') || 'Unknown'
+      };
+      
+      try {
+        // Save job card to backend
+        await apiHelpers.saveJobCard(jobCardData);
+        
+        // Move job to next stage
+        const currentStageIndex = Object.values(ProductionStage).indexOf(stage);
+        const nextStage = Object.values(ProductionStage)[currentStageIndex + 1];
+        
+        if (nextStage && nextStage !== 'cleared') {
+          await apiHelpers.updateOrderStage(orderId, {
+            order_id: orderId,
+            from_stage: stage,
+            to_stage: nextStage
+          });
+          
+          toast.success(
+            <div>
+              <p>Job completed! Actual run time: {Math.floor(durationMinutes / 60)}h {durationMinutes % 60}m</p>
+              <p className="text-sm">Job moved to: {nextStage.replace(/_/g, ' ').toUpperCase()}</p>
+            </div>,
+            { duration: 5000 }
+          );
+        } else {
+          toast.success(`Job completed! Actual run time: ${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60}m`);
+        }
+        
+        // Clear localStorage for this job card
+        const timingKey = `jobTiming_${jobId}_${stage}`;
+        localStorage.removeItem(timingKey);
+        
+        // Notify parent and close modal
+        if (onJobStarted) {
+          onJobStarted(); // This will refresh the production board
+        }
+        
+        // Close the job card after a short delay
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+        
+      } catch (error) {
+        console.error('Failed to complete job card:', error);
+        toast.error('Failed to save job card and move to next stage');
+      }
     }
   };
 
