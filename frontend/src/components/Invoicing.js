@@ -1076,7 +1076,9 @@ const Invoicing = () => {
                         <tr>
                           <th>Product</th>
                           <th>Ordered Qty</th>
-                          <th>Invoice Qty</th>
+                          <th>Already Invoiced</th>
+                          <th>Remaining Qty</th>
+                          <th>Invoice Now</th>
                           <th>Unit Price</th>
                           <th>Line Total</th>
                         </tr>
@@ -1091,14 +1093,17 @@ const Invoicing = () => {
                               )}
                             </td>
                             <td className="text-center">{item.original_quantity}</td>
+                            <td className="text-center text-yellow-400">{item.already_invoiced || 0}</td>
+                            <td className="text-center text-blue-400 font-medium">{item.remaining_quantity || item.original_quantity}</td>
                             <td>
                               <input
                                 type="number"
                                 min="0"
-                                max={item.original_quantity}
+                                max={item.remaining_quantity || item.original_quantity}
                                 value={item.invoice_quantity}
                                 onChange={(e) => updatePartialItemQuantity(index, parseInt(e.target.value) || 0)}
                                 className="misty-input w-24 text-center"
+                                placeholder="0"
                               />
                             </td>
                             <td className="text-right">${(item.unit_price || 0).toFixed(2)}</td>
