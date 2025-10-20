@@ -2292,31 +2292,226 @@ const Reports = () => {
             )}
           </div>
         </ReportModal>
-                  className="misty-button misty-button-primary flex-1"
-                >
-                  {loadingJobPerformance ? 'Generating...' : 'Generate Report'}
-                </button>
-                
-                {jobPerformanceReport && (
-                  <>
-                    <button
-                      onClick={exportJobPerformanceCSV}
-                      className="misty-button misty-button-secondary"
-                      title="Export to CSV"
-                    >
-                      <DocumentArrowDownIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => window.print()}
-                      className="misty-button misty-button-secondary"
-                      title="Print Report"
-                    >
-                      <PrinterIcon className="h-5 w-5" />
-                    </button>
-                  </>
-                )}
+
+        {/* Job Cards Viewing/Editing Modal */}
+        {showJobCardsModal && selectedOrderJobCards && (
+          <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowJobCardsModal(false)}>
+            <div className="modal-content max-w-6xl max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6 border-b border-gray-700 pb-4">
+                  <div>
+                    <h3 className="text-xl font-semibold text-white">
+                      {selectedOrderJobCards.order_number} - Job Cards
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      {selectedOrderJobCards.client_name}
+                      {selectedOrderJobCards.invoice_number && (
+                        <span className="ml-2 text-yellow-400">
+                          • Invoice: {selectedOrderJobCards.invoice_number}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowJobCardsModal(false)}
+                    className="text-gray-400 hover:text-white text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {/* Job Cards List */}
+                <div className="space-y-4">
+                  {selectedOrderJobCards.job_cards.map((card, index) => (
+                    <div key={card.id} className="border border-gray-700 rounded-lg p-5 bg-gray-800/50">
+                      {/* Card Header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <span className="bg-purple-900 text-purple-200 px-3 py-1 rounded-full text-sm font-medium">
+                            Stage {index + 1}
+                          </span>
+                          <h4 className="text-lg font-semibold text-white">
+                            {card.stage.replace(/_/g, ' ').toUpperCase()}
+                          </h4>
+                        </div>
+                        <button
+                          onClick={() => setEditingJobCard(card)}
+                          className="misty-button misty-button-secondary text-sm"
+                        >
+                          Edit
+                        </button>
+                      </div>
+
+                      {/* Card Details Grid */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                          <p className="text-xs text-gray-400 mb-1">Machine</p>
+                          <p className="text-white font-medium">{card.machine || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-400 mb-1">Start Time</p>
+                          <p className="text-white font-medium">
+                            {card.job_start_time ? new Date(card.job_start_time).toLocaleString() : 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-400 mb-1">End Time</p>
+                          <p className="text-white font-medium">
+                            {card.job_end_time ? new Date(card.job_end_time).toLocaleString() : 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-400 mb-1">Runtime</p>
+                          <p className="text-green-400 font-bold">
+                            {Math.floor((card.actual_run_time_minutes || 0) / 60)}h{' '}
+                            {(card.actual_run_time_minutes || 0) % 60}m
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-400 mb-1">Finished Quantity</p>
+                          <p className="text-white font-medium">{card.finished_quantity || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-400 mb-1">Master Cores</p>
+                          <p className="text-white font-medium">{card.master_cores || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-400 mb-1">Completed By</p>
+                          <p className="text-white font-medium">{card.completed_by || 'Unknown'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-400 mb-1">Completed At</p>
+                          <p className="text-white font-medium">
+                            {card.completed_at ? new Date(card.completed_at).toLocaleDateString() : 'N/A'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Setup Notes */}
+                      {card.setup_notes && (
+                        <div className="mt-4 pt-4 border-t border-gray-700">
+                          <p className="text-xs text-gray-400 mb-2">Setup Notes:</p>
+                          <p className="text-sm text-gray-300">{card.setup_notes}</p>
+                        </div>
+                      )}
+
+                      {/* Additional Production */}
+                      {card.additional_production && card.additional_production.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-gray-700">
+                          <p className="text-xs text-gray-400 mb-2">Additional Production:</p>
+                          <div className="space-y-1">
+                            {card.additional_production.map((prod, idx) => (
+                              <p key={idx} className="text-sm text-gray-300">
+                                • {prod.description}: {prod.quantity}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className="flex justify-end mt-6 pt-4 border-t border-gray-700">
+                  <button
+                    onClick={() => setShowJobCardsModal(false)}
+                    className="misty-button misty-button-secondary"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Edit Job Card Modal */}
+        {editingJobCard && (
+          <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setEditingJobCard(null)}>
+            <div className="modal-content max-w-2xl">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-white">
+                    Edit Job Card - {editingJobCard.stage.replace(/_/g, ' ').toUpperCase()}
+                  </h3>
+                  <button
+                    onClick={() => setEditingJobCard(null)}
+                    className="text-gray-400 hover:text-white text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target);
+                  const updates = {
+                    machine: formData.get('machine'),
+                    setup_notes: formData.get('setup_notes'),
+                    finished_quantity: parseInt(formData.get('finished_quantity')),
+                    master_cores: parseInt(formData.get('master_cores'))
+                  };
+                  updateJobCard(editingJobCard.id, updates);
+                  setEditingJobCard(null);
+                }}>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Machine</label>
+                      <input
+                        type="text"
+                        name="machine"
+                        className="misty-input"
+                        defaultValue={editingJobCard.machine}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Finished Quantity</label>
+                      <input
+                        type="number"
+                        name="finished_quantity"
+                        className="misty-input"
+                        defaultValue={editingJobCard.finished_quantity}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Master Cores</label>
+                      <input
+                        type="number"
+                        name="master_cores"
+                        className="misty-input"
+                        defaultValue={editingJobCard.master_cores}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Setup Notes</label>
+                      <textarea
+                        name="setup_notes"
+                        rows="3"
+                        className="misty-input"
+                        defaultValue={editingJobCard.setup_notes}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 mt-6">
+                    <button
+                      type="button"
+                      onClick={() => setEditingJobCard(null)}
+                      className="misty-button misty-button-secondary"
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="misty-button misty-button-primary">
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
 
             {/* Report Results */}
             {jobPerformanceReport && (
