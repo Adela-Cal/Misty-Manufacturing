@@ -1115,7 +1115,7 @@ const PayrollManagement = () => {
                                   {approvingTimesheet === timesheet.id ? 'Approving...' : 'Approve'}
                                 </button>
                                 <button
-                                  onClick={() => {/* View details - could open TimesheetEntry modal */}}
+                                  onClick={() => handleViewTimesheet(timesheet)}
                                   className="text-blue-400 hover:text-blue-300 flex items-center text-sm"
                                 >
                                   <EyeIcon className="h-4 w-4 mr-1" />
