@@ -474,7 +474,7 @@ class ProfitabilityReportTester:
                 
                 if result.get('success'):
                     data = result.get('data', {})
-                    jobs = data.get('jobs', [])
+                    jobs = data.get('profitability_data', [])
                     
                     self.log_result(
                         "Profitability Report - Specific Orders", 
