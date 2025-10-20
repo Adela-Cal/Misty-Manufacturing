@@ -1002,10 +1002,16 @@ const Invoicing = () => {
                     Cancel
                   </button>
                   <button
-                    onClick={generateInvoice}
+                    onClick={() => {
+                      if (invoiceType === 'partial') {
+                        handlePartSupplyNext();
+                      } else {
+                        generateInvoice();
+                      }
+                    }}
                     className="misty-button misty-button-primary"
                   >
-                    Generate Invoice
+                    {invoiceType === 'partial' ? 'Next: Select Items' : 'Generate Invoice'}
                   </button>
                 </div>
               </div>
