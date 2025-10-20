@@ -108,6 +108,10 @@ class ProfitabilityReportTester:
         # Step 1: Check for completed/archived orders
         completed_orders = self.check_completed_archived_orders()
         
+        # Step 1b: If no completed orders, try to move some orders to completed status
+        if not completed_orders:
+            completed_orders = self.create_completed_orders_for_testing()
+        
         # Step 2: Verify data sources are accessible
         self.verify_data_sources()
         
