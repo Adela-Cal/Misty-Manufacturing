@@ -454,11 +454,19 @@ const MaterialPermutation = ({ loading, setLoading }) => {
             required
           >
             <option value="">Select a material...</option>
-            {rawMaterials.map(material => (
-              <option key={material.material_id} value={material.material_id}>
-                {material.supplier} - {material.product_code} ({material.width_mm}mm, {material.gsm} GSM)
-              </option>
-            ))}
+            {rawMaterials.map(material => {
+              const materialId = material.id || material.material_id;
+              const width = material.width_mm || material.master_deckle_width_mm || 0;
+              const supplier = material.supplier || material.material_description || 'Unknown';
+              const code = material.product_code || 'N/A';
+              const gsm = material.gsm || 0;
+              
+              return (
+                <option key={materialId} value={materialId}>
+                  {supplier} - {code} ({width}mm, {gsm} GSM)
+                </option>
+              );
+            })}
           </select>
           
           {selectedMaterial && (
