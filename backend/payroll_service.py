@@ -40,8 +40,8 @@ class PayrollCalculationService:
         """Calculate weekly pay from timesheet"""
         
         # Calculate total hours
-        regular_hours = timesheet.total_regular_hours
-        overtime_hours = timesheet.total_overtime_hours
+        regular_hours = Decimal(str(timesheet.total_regular_hours))
+        overtime_hours = Decimal(str(timesheet.total_overtime_hours))
         total_hours = regular_hours + overtime_hours
         
         # Calculate pay
