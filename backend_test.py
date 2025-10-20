@@ -94,36 +94,36 @@ class BackendAPITester:
             self.log_result("Authentication", False, f"Authentication error: {str(e)}")
             return False
 
-    def test_pending_timesheets_endpoint(self):
+    def test_profitability_report_material_costs_debugging(self):
         """
-        PRIORITY TEST 1: Pending Timesheets Endpoint Testing
-        Test GET /api/payroll/timesheets/pending endpoint to verify it's returning submitted timesheets
+        PRIORITY TEST 1: Profitability Report Material Costs and Data Sources Debugging
+        Debug the Profitability Report material costs and data sources
         """
         print("\n" + "="*80)
-        print("PRIORITY TEST 1: PENDING TIMESHEETS ENDPOINT TESTING")
-        print("Testing GET /api/payroll/timesheets/pending endpoint")
+        print("PRIORITY TEST 1: PROFITABILITY REPORT MATERIAL COSTS AND DATA SOURCES DEBUGGING")
+        print("Debugging material costs and data sources for profitability reports")
         print("="*80)
         
-        # Test 1: Check pending timesheets endpoint
-        self.test_get_pending_timesheets()
+        # Test 1: Check job_cards collection structure
+        self.test_job_cards_collection_structure()
         
-        # Test 2: Check all timesheets in database
-        self.test_get_all_timesheets()
+        # Test 2: Check if client_products endpoint exists and returns data
+        self.test_client_products_endpoint()
         
-        # Test 3: Check timesheet statuses
-        self.test_check_timesheet_statuses()
+        # Test 3: Verify completed orders have associated job cards
+        self.test_completed_orders_job_cards_association()
         
-        # Test 4: Create test submitted timesheet if none exists
-        self.test_create_submitted_timesheet()
+        # Test 4: Identify correct field names for material usage in job cards
+        self.test_job_card_material_fields()
         
-        # Test 5: Verify data structure
-        self.test_pending_timesheets_data_structure()
+        # Test 5: Check orders structure and status
+        self.test_orders_structure()
         
-        # Test 6: Test authentication
-        self.test_pending_timesheets_authentication()
+        # Test 6: Cross-reference job cards with orders
+        self.test_job_cards_orders_cross_reference()
         
-        # Test 7: Check backend logs for errors
-        self.test_check_backend_logs()
+        # Test 7: Analyze material data sources
+        self.test_material_data_sources()
 
     def create_test_substrate_stock(self):
         """Create test substrate stock for PDF testing"""
