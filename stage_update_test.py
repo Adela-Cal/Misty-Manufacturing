@@ -134,36 +134,64 @@ class StageUpdateTester:
             if response.status_code == 200:
                 result = response.json()
                 
-                # Check if it's a StandardResponse format
+                # Production board returns data organized by stages
                 if isinstance(result, dict) and "data" in result:
-                    orders = result.get("data", [])
-                else:
-                    orders = result if isinstance(result, list) else []
-                
-                if orders and len(orders) > 0:
-                    order = orders[0]  # Get first order
-                    current_stage = order.get('current_stage', 'unknown')
+                    board_data = result.get("data", {})
                     
-                    self.log_result(
-                        "Get Order from Production Board", 
-                        True, 
-                        f"Found order {order.get('order_number', 'N/A')} with current_stage: {current_stage}",
-                        f"Order ID: {order.get('id')}, Total orders: {len(orders)}"
-                    )
+                    # Look for orders in paper_slitting stage (as mentioned in the test)
+                    paper_slitting_orders = board_data.get("paper_slitting", [])
                     
-                    print(f"📋 Selected Order Details:")
-                    print(f"   Order ID: {order.get('id')}")
-                    print(f"   Order Number: {order.get('order_number')}")
-                    print(f"   Current Stage: {current_stage}")
-                    print(f"   Client: {order.get('client_name', 'N/A')}")
-                    
-                    return order
-                else:
-                    self.log_result(
-                        "Get Order from Production Board", 
-                        False, 
-                        "No orders found in production board"
-                    )
+                    if paper_slitting_orders and len(paper_slitting_orders) > 0:
+                        order = paper_slitting_orders[0]  # Get first order from paper_slitting
+                        current_stage = "paper_slitting"  # We know it's in this stage
+                        
+                        self.log_result(
+                            "Get Order from Production Board", 
+                            True, 
+                            f"Found order {order.get('order_number', 'N/A')} in stage: {current_stage}",
+                            f"Order ID: {order.get('id')}, Total paper_slitting orders: {len(paper_slitting_orders)}"
+                        )
+                        
+                        print(f"📋 Selected Order Details:")
+                        print(f"   Order ID: {order.get('id')}")
+                        print(f"   Order Number: {order.get('order_number')}")
+                        print(f"   Current Stage: {current_stage}")
+                        print(f"   Client: {order.get('client_name', 'N/A')}")
+                        
+                        return order
+                    else:
+                        # Try to get any order from any stage
+                        all_orders = []
+                        for stage, orders in board_data.items():
+                            if isinstance(orders, list) and len(orders) > 0:
+                                for order in orders:
+                                    order['current_stage'] = stage
+                                    all_orders.append(order)
+                        
+                        if all_orders:
+                            order = all_orders[0]
+                            current_stage = order.get('current_stage', 'unknown')
+                            
+                            self.log_result(
+                                "Get Order from Production Board", 
+                                True, 
+                                f"Found order {order.get('order_number', 'N/A')} in stage: {current_stage}",
+                                f"Order ID: {order.get('id')}, Total orders across all stages: {len(all_orders)}"
+                            )
+                            
+                            print(f"📋 Selected Order Details:")
+                            print(f"   Order ID: {order.get('id')}")
+                            print(f"   Order Number: {order.get('order_number')}")
+                            print(f"   Current Stage: {current_stage}")
+                            print(f"   Client: {order.get('client_name', 'N/A')}")
+                            
+                            return order
+                        else:
+                            self.log_result(
+                                "Get Order from Production Board", 
+                                False, 
+                                "No orders found in any production stage"
+                            )
             else:
                 self.log_result(
                     "Get Order from Production Board", 
