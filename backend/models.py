@@ -468,8 +468,9 @@ class RawMaterialPermutationRequest(BaseModel):
     quantity_master_rolls: int = 1  # Number of master rolls available
 
 class ProfitabilityReportRequest(BaseModel):
-    order_ids: Optional[List[str]] = None  # For single or multiple job analysis
-    client_id: Optional[str] = None  # Filter by client
+    order_ids: Optional[List[str]] = None  # For specific order analysis (not used in new design)
+    client_ids: Optional[List[str]] = None  # Filter by multiple clients
+    product_ids: Optional[List[str]] = None  # Filter by multiple products
     start_date: Optional[str] = None  # Filter by date range
     end_date: Optional[str] = None
     profit_threshold: float = 0.0  # Profit % threshold for alerts (default 0%)
