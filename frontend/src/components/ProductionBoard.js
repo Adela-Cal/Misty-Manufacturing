@@ -285,19 +285,6 @@ const ProductionBoard = () => {
         `}
         data-testid={`job-card-${job.id}`}
       >
-        {/* Background Logo Watermark */}
-        {job.client_logo && (
-          <div 
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-            style={{ zIndex: 0, opacity: 0.15 }}
-          >
-            <img
-              src={job.client_logo}
-              alt=""
-              className="w-36 h-36 object-contain"
-            />
-          </div>
-        )}
         {/* Job Header */}
         <div className="mb-2 relative z-10">
           <div className="flex items-center mb-1">
