@@ -208,8 +208,10 @@ class TimesheetFlowTester:
             return False
         
         try:
-            # Create sample timesheet entries
+            # Create sample timesheet entries with required fields
             update_data = {
+                "employee_id": self.employee_id,
+                "week_starting": "2024-12-16",
                 "entries": [
                     {
                         "date": "2024-12-16",
