@@ -2708,6 +2708,11 @@ const Reports = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">Filter by Client (Optional)</label>
+                  {clients.length > 0 && (
+                    <div className="text-gray-400 text-xs mb-2">
+                      {clients.length} client(s) available
+                    </div>
+                  )}
                   <select
                     className="misty-select w-full"
                     value={profitabilityClient}
