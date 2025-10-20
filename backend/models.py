@@ -461,6 +461,12 @@ class MaterialPermutationRequest(BaseModel):
     master_deckle_width: float
     acceptable_waste_percentage: float
 
+class RawMaterialPermutationRequest(BaseModel):
+    material_id: str  # Raw material ID from raw_materials collection
+    waste_allowance_mm: float  # Maximum acceptable waste in mm
+    desired_slit_widths: List[float]  # List of target slit widths in mm
+    quantity_master_rolls: int = 1  # Number of master rolls available
+
 class SpiralCoreConsumptionRequest(BaseModel):
     product_specification_id: str
     core_internal_diameter: float  # mm
