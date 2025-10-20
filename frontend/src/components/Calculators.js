@@ -255,38 +255,61 @@ const MaterialConsumptionByClient = ({ clients, materials, loading, setLoading }
   );
 };
 
-// Material Permutation Calculator
-const MaterialPermutation = ({ productSpecs, loading, setLoading }) => {
+// Raw Material Permutation and Yield Calculator
+const MaterialPermutation = ({ loading, setLoading }) => {
+  const [rawMaterials, setRawMaterials] = useState([]);
   const [formData, setFormData] = useState({
-    core_ids: [],
-    sizes_to_manufacture: [{ width: '', priority: 1 }],
-    master_deckle_width: '',
-    acceptable_waste_percentage: 10
+    material_id: '',
+    waste_allowance_mm: 5,
+    desired_slit_widths: [''],
+    quantity_master_rolls: 1
   });
   const [results, setResults] = useState(null);
+  const [sortBy, setSortBy] = useState('yield'); // yield, waste, cost
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
 
-  const coreIds = [...new Set(productSpecs
-    .map(spec => spec.specifications?.core_id)
-    .filter(Boolean)
-  )];
+  useEffect(() => {
+    loadRawMaterials();
+  }, []);
 
-  const addSize = () => {
+  const loadRawMaterials = async () => {
+    try {
+      const response = await fetch('/api/raw-materials', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setRawMaterials(data);
+      }
+    } catch (error) {
+      console.error('Failed to load raw materials:', error);
+      toast.error('Failed to load raw materials');
+    }
+  };
+
+  const handleMaterialChange = (materialId) => {
+    const material = rawMaterials.find(m => m.material_id === materialId);
+    setSelectedMaterial(material);
+    setFormData({ ...formData, material_id: materialId });
+  };
+
+  const addSlitWidth = () => {
     setFormData({
       ...formData,
-      sizes_to_manufacture: [...formData.sizes_to_manufacture, { width: '', priority: 1 }]
+      desired_slit_widths: [...formData.desired_slit_widths, '']
     });
   };
 
-  const removeSize = (index) => {
-    const newSizes = formData.sizes_to_manufacture.filter((_, i) => i !== index);
-    setFormData({ ...formData, sizes_to_manufacture: newSizes });
+  const removeSlitWidth = (index) => {
+    const newWidths = formData.desired_slit_widths.filter((_, i) => i !== index);
+    setFormData({ ...formData, desired_slit_widths: newWidths });
   };
 
-  const updateSize = (index, field, value) => {
-    const newSizes = formData.sizes_to_manufacture.map((size, i) => 
-      i === index ? { ...size, [field]: field === 'priority' ? parseInt(value) : parseFloat(value) } : size
+  const updateSlitWidth = (index, value) => {
+    const newWidths = formData.desired_slit_widths.map((w, i) => 
+      i === index ? value : w
     );
-    setFormData({ ...formData, sizes_to_manufacture: newSizes });
+    setFormData({ ...formData, desired_slit_widths: newWidths });
   };
 
   const handleSubmit = async (e) => {
@@ -294,9 +317,41 @@ const MaterialPermutation = ({ productSpecs, loading, setLoading }) => {
     setLoading(true);
     
     try {
-      const response = await apiHelpers.calculateMaterialPermutation(formData);
-      setResults(response.data.data);
-      toast.success('Permutation calculated successfully');
+      // Filter out empty widths and convert to numbers
+      const validWidths = formData.desired_slit_widths
+        .filter(w => w !== '' && !isNaN(parseFloat(w)))
+        .map(w => parseFloat(w));
+      
+      if (validWidths.length === 0) {
+        toast.error('Please enter at least one slit width');
+        setLoading(false);
+        return;
+      }
+
+      const requestData = {
+        material_id: formData.material_id,
+        waste_allowance_mm: parseFloat(formData.waste_allowance_mm),
+        desired_slit_widths: validWidths,
+        quantity_master_rolls: parseInt(formData.quantity_master_rolls)
+      };
+
+      const response = await fetch('/api/calculators/material-permutation', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setResults(data.data);
+        toast.success(data.message);
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Calculation failed');
+      }
     } catch (error) {
       console.error('Calculation failed:', error);
       toast.error('Permutation calculation failed');
@@ -305,77 +360,174 @@ const MaterialPermutation = ({ productSpecs, loading, setLoading }) => {
     }
   };
 
+  const exportToCSV = () => {
+    if (!results) return;
+    
+    const headers = ['Pattern', 'Used Width (mm)', 'Waste (mm)', 'Yield (%)', 'Slits/Roll', 'Total Rolls', 'Linear Meters', 'Weight (kg)', 'Cost/Pattern (AUD)', 'Total Cost (AUD)'];
+    const rows = results.permutations.map(p => [
+      p.pattern_description,
+      p.used_width_mm,
+      p.waste_mm,
+      p.yield_percentage,
+      p.slits_per_master_roll,
+      p.total_finished_rolls,
+      p.linear_meters_per_slit,
+      p.total_pattern_weight_kg,
+      p.total_pattern_cost_aud,
+      p.total_cost_all_rolls_aud
+    ]);
+    
+    const csvContent = [
+      ['Raw Material Permutation and Yield Calculator'],
+      ['Material: ' + results.material_info.material_name],
+      ['Master Width: ' + results.material_info.master_width_mm + 'mm'],
+      [],
+      headers,
+      ...rows
+    ].map(row => row.join(',')).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `material-permutation-${Date.now()}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success('CSV exported successfully');
+  };
+
+  const printResults = () => {
+    window.print();
+  };
+
+  const getSortedPermutations = () => {
+    if (!results) return [];
+    
+    const perms = [...results.permutations];
+    
+    switch (sortBy) {
+      case 'waste':
+        return perms.sort((a, b) => a.waste_mm - b.waste_mm);
+      case 'cost':
+        return perms.sort((a, b) => a.total_cost_all_rolls_aud - b.total_cost_all_rolls_aud);
+      case 'yield':
+      default:
+        return perms.sort((a, b) => b.yield_percentage - a.yield_percentage);
+    }
+  };
+
   return (
     <div>
-      <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+      <div className="bg-blue-900 bg-opacity-20 border border-blue-500 border-opacity-30 rounded-lg p-4 mb-6">
+        <h3 className="text-blue-200 font-medium mb-2">📐 Raw Material Permutation & Yield Calculator</h3>
+        <p className="text-sm text-blue-300">
+          Calculate all possible slit-cut patterns for converting master rolls into smaller widths. 
+          Find the most efficient patterns to minimize waste, maximize yield, and optimize costs.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6 mb-6">
+        {/* Material Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            1. Select Raw Material <span className="text-red-400">*</span>
+          </label>
+          <select
+            value={formData.material_id}
+            onChange={(e) => handleMaterialChange(e.target.value)}
+            className="misty-select w-full"
+            required
+          >
+            <option value="">Select a material...</option>
+            {rawMaterials.map(material => (
+              <option key={material.material_id} value={material.material_id}>
+                {material.supplier} - {material.product_code} ({material.width_mm}mm, {material.gsm} GSM)
+              </option>
+            ))}
+          </select>
+          
+          {selectedMaterial && (
+            <div className="mt-3 bg-gray-700 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-yellow-400 mb-2">Material Details</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-400">Master Width:</span>
+                  <p className="text-white font-medium">{selectedMaterial.width_mm} mm</p>
+                </div>
+                <div>
+                  <span className="text-gray-400">GSM:</span>
+                  <p className="text-white font-medium">{selectedMaterial.gsm}</p>
+                </div>
+                <div>
+                  <span className="text-gray-400">Cost/Tonne:</span>
+                  <p className="text-white font-medium">${selectedMaterial.cost_per_tonne?.toFixed(2) || '0.00'}</p>
+                </div>
+                <div>
+                  <span className="text-gray-400">Tonnage:</span>
+                  <p className="text-white font-medium">{selectedMaterial.tonnage || '0'} tonnes</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* User Inputs */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Core IDs</label>
-            <select
-              multiple
-              value={formData.core_ids}
-              onChange={(e) => setFormData({...formData, core_ids: Array.from(e.target.selectedOptions, option => option.value)})}
-              className="misty-select w-full h-32"
-            >
-              {coreIds.map(coreId => (
-                <option key={coreId} value={coreId}>{coreId}</option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-400 mt-1">Hold Ctrl/Cmd to select multiple</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Master Deckle Width (mm)</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              2. Waste Allowance (mm) <span className="text-red-400">*</span>
+            </label>
             <input
               type="number"
               step="0.1"
-              value={formData.master_deckle_width}
-              onChange={(e) => setFormData({...formData, master_deckle_width: parseFloat(e.target.value)})}
+              min="0"
+              value={formData.waste_allowance_mm}
+              onChange={(e) => setFormData({...formData, waste_allowance_mm: e.target.value})}
+              className="misty-input w-full"
+              placeholder="e.g., 5"
+              required
+            />
+            <p className="text-xs text-gray-400 mt-1">Maximum acceptable leftover width</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Quantity of Master Rolls
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={formData.quantity_master_rolls}
+              onChange={(e) => setFormData({...formData, quantity_master_rolls: e.target.value})}
               className="misty-input w-full"
               required
             />
+            <p className="text-xs text-gray-400 mt-1">Number of rolls available for conversion</p>
           </div>
         </div>
 
+        {/* Desired Slit Widths */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Acceptable Waste Percentage (%)</label>
-          <input
-            type="number"
-            step="0.1"
-            min="0"
-            max="50"
-            value={formData.acceptable_waste_percentage}
-            onChange={(e) => setFormData({...formData, acceptable_waste_percentage: parseFloat(e.target.value)})}
-            className="misty-input w-full max-w-xs"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Sizes to Manufacture</label>
-          {formData.sizes_to_manufacture.map((size, index) => (
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            3. Desired Slit Widths (mm) <span className="text-red-400">*</span>
+          </label>
+          {formData.desired_slit_widths.map((width, index) => (
             <div key={index} className="flex items-center space-x-2 mb-2">
               <input
                 type="number"
                 step="0.1"
-                placeholder="Width (mm)"
-                value={size.width}
-                onChange={(e) => updateSize(index, 'width', e.target.value)}
+                min="1"
+                placeholder="Width (mm), e.g., 50, 75, 100"
+                value={width}
+                onChange={(e) => updateSlitWidth(index, e.target.value)}
                 className="misty-input flex-1"
+                required
               />
-              <select
-                value={size.priority}
-                onChange={(e) => updateSize(index, 'priority', e.target.value)}
-                className="misty-select w-24"
-              >
-                <option value={1}>High</option>
-                <option value={2}>Medium</option>
-                <option value={3}>Low</option>
-              </select>
-              {formData.sizes_to_manufacture.length > 1 && (
+              {formData.desired_slit_widths.length > 1 && (
                 <button
                   type="button"
-                  onClick={() => removeSize(index)}
-                  className="text-red-400 hover:text-red-300"
+                  onClick={() => removeSlitWidth(index)}
+                  className="text-red-400 hover:text-red-300 px-3 py-2"
                 >
                   Remove
                 </button>
@@ -384,44 +536,131 @@ const MaterialPermutation = ({ productSpecs, loading, setLoading }) => {
           ))}
           <button
             type="button"
-            onClick={addSize}
-            className="text-yellow-400 hover:text-yellow-300 text-sm"
+            onClick={addSlitWidth}
+            className="text-yellow-400 hover:text-yellow-300 text-sm font-medium"
           >
-            + Add Size
+            + Add Slit Width
           </button>
         </div>
 
+        {/* Calculate Button */}
         <button
           type="submit"
           disabled={loading}
-          className="misty-button misty-button-primary"
+          className="misty-button misty-button-primary w-full md:w-auto"
         >
           {loading ? (
             <>
-              <ArrowPathIcon className="animate-spin h-4 w-4 mr-2" />
-              Calculating...
+              <ArrowPathIcon className="animate-spin h-5 w-5 mr-2" />
+              Calculating All Permutations...
             </>
           ) : (
-            'Calculate Permutation'
+            '🔍 Calculate All Permutations'
           )}
         </button>
       </form>
 
+      {/* Results */}
       {results && (
-        <div className="bg-gray-700 rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-white mb-4">Permutation Results</h3>
-          <p className="text-gray-300 mb-4">Found {results.results.total_options_found} arrangement options</p>
-          {results.results.permutation_options?.slice(0, 5).map((option, index) => (
-            <div key={index} className="bg-gray-800 rounded p-3 mb-2">
-              <div className="flex justify-between items-center">
-                <span className="text-white">Option {index + 1}</span>
-                <span className="text-green-400 font-medium">{option.efficiency.toFixed(1)}% Efficiency</span>
+        <div className="space-y-6">
+          {/* Summary */}
+          <div className="bg-gradient-to-r from-green-900/30 to-blue-900/30 border border-green-500 border-opacity-30 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">📊 Calculation Summary</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <span className="text-sm text-gray-300">Total Patterns Found</span>
+                <p className="text-2xl font-bold text-green-400">{results.total_permutations_found}</p>
               </div>
-              <div className="text-sm text-gray-300 mt-1">
-                Waste: {option.waste_percentage.toFixed(1)}%
+              <div>
+                <span className="text-sm text-gray-300">Best Yield</span>
+                <p className="text-2xl font-bold text-green-400">{results.best_yield_percentage}%</p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-300">Lowest Waste</span>
+                <p className="text-2xl font-bold text-green-400">{results.lowest_waste_mm} mm</p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-300">Linear Meters/Roll</span>
+                <p className="text-2xl font-bold text-blue-400">{results.material_info.total_linear_meters} m</p>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Export Buttons */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <label className="text-sm text-gray-300">Sort by:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="misty-select"
+              >
+                <option value="yield">Highest Yield</option>
+                <option value="waste">Lowest Waste</option>
+                <option value="cost">Lowest Cost</option>
+              </select>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={exportToCSV}
+                className="misty-button misty-button-secondary"
+              >
+                📥 Export CSV
+              </button>
+              <button
+                onClick={printResults}
+                className="misty-button misty-button-secondary"
+              >
+                🖨️ Print
+              </button>
+            </div>
+          </div>
+
+          {/* Results Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-700">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Pattern</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Used (mm)</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Waste (mm)</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Yield (%)</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Rolls Out</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Linear m</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Weight (kg)</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Cost (AUD)</th>
+                </tr>
+              </thead>
+              <tbody className="bg-gray-800 divide-y divide-gray-700">
+                {getSortedPermutations().map((perm, index) => (
+                  <tr 
+                    key={index} 
+                    className={index < 3 ? 'bg-green-900 bg-opacity-20' : ''}
+                  >
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center">
+                        {index < 3 && <span className="text-yellow-400 mr-2">⭐</span>}
+                        <span className="text-white font-medium">{perm.pattern_description}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-300">{perm.used_width_mm}</td>
+                    <td className="px-4 py-3 text-gray-300">{perm.waste_mm}</td>
+                    <td className="px-4 py-3">
+                      <span className={`font-medium ${perm.yield_percentage >= 95 ? 'text-green-400' : 'text-yellow-400'}`}>
+                        {perm.yield_percentage}%
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-300">{perm.total_finished_rolls}</td>
+                    <td className="px-4 py-3 text-gray-300">{perm.linear_meters_per_slit}</td>
+                    <td className="px-4 py-3 text-gray-300">{perm.total_pattern_weight_kg}</td>
+                    <td className="px-4 py-3 text-gray-300">
+                      ${perm.total_cost_all_rolls_aud.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
