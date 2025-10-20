@@ -27,6 +27,10 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
   const [managers, setManagers] = useState([]);
   const [selectedManager, setSelectedManager] = useState('');
   const [selectedWeekStart, setSelectedWeekStart] = useState(null);
+  const [showPreviousTimesheets, setShowPreviousTimesheets] = useState(false);
+  const [previousTimesheets, setPreviousTimesheets] = useState([]);
+  const [loadingPrevious, setLoadingPrevious] = useState(false);
+
 
   useEffect(() => {
     loadTimesheet();
