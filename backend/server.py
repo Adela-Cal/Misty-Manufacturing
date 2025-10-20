@@ -5200,10 +5200,11 @@ async def get_detailed_material_usage_report(
         
         for order in orders:
             order_number = order.get("order_number", "Unknown")
+            order_id = order.get("id")
             
-            # Check job specifications for this order to find material usage
+            # Strategy 1: Check job specifications for this order to find material usage
             job_specs = await db.job_specifications.find({
-                "order_id": order["id"]
+                "order_id": order_id
             }).to_list(length=None)
             
             for job_spec in job_specs:
@@ -5244,6 +5245,57 @@ async def get_detailed_material_usage_report(
                             # Calculate m² for this usage (width in mm / 1000 * length in m)
                             m2 = (width_mm / 1000.0) * quantity_meters
                             total_m2 += m2
+            
+            # Strategy 2: Check order items and their associated client products for material_layers
+            order_items = order.get("items", [])
+            for item in order_items:
+                product_id = item.get("product_id")
+                if product_id:
+                    # Get client product to check for material_layers
+                    client_product = await db.client_products.find_one({"id": product_id})
+                    if client_product:
+                        material_layers = client_product.get("material_layers", [])
+                        
+                        for material_layer in material_layers:
+                            layer_material_id = material_layer.get("material_id")
+                            
+                            if layer_material_id == material_id:
+                                # Get width and calculate quantity based on order quantity
+                                width_mm = material_layer.get("width_mm") or material_layer.get("width", 0)
+                                order_quantity = item.get("quantity", 0)
+                                
+                                # Estimate length per unit - can be refined based on product specs
+                                # For now, use a default or get from material_layer if available
+                                length_per_unit = material_layer.get("quantity") or material_layer.get("length_m", 1.0)
+                                quantity_meters = order_quantity * length_per_unit
+                                
+                                if width_mm > 0 and quantity_meters > 0:
+                                    width_key = f"{width_mm}"
+                                    
+                                    # Initialize width entry if not exists
+                                    if width_key not in usage_by_width:
+                                        usage_by_width[width_key] = {
+                                            "width_mm": width_mm,
+                                            "total_length_m": 0.0,
+                                            "orders": []
+                                        }
+                                    
+                                    # Add to width total
+                                    usage_by_width[width_key]["total_length_m"] += quantity_meters
+                                    
+                                    # Track order detail if breakdown requested
+                                    if include_order_breakdown:
+                                        usage_by_width[width_key]["orders"].append({
+                                            "order_number": order_number,
+                                            "length_m": quantity_meters,
+                                            "order_date": order.get("created_at", ""),
+                                            "client_name": order.get("client_name", "Unknown"),
+                                            "product_name": item.get("product_name", "Unknown")
+                                        })
+                                    
+                                    # Calculate m² for this usage
+                                    m2 = (width_mm / 1000.0) * quantity_meters
+                                    total_m2 += m2
         
         # Also check slit widths that might have been used
         slit_widths = await db.slit_widths.find({
