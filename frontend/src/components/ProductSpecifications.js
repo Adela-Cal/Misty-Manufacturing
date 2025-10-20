@@ -1046,8 +1046,8 @@ const ProductSpecifications = () => {
         core_winding_spec_id: formData.core_winding_spec_id
       };
 
-      // For Spiral Paper Cores, add specific fields to specifications
-      if (formData.product_type === 'Spiral Paper Core') {
+      // For Spiral Paper Cores and Composite Cores, add specific fields to specifications
+      if (formData.product_type === 'Spiral Paper Core' || formData.product_type === 'Composite Core') {
         submitData.specifications = {
           ...submitData.specifications,
           internal_diameter: formData.internal_diameter ? parseFloat(formData.internal_diameter) : null,
