@@ -165,10 +165,7 @@ class ProfitabilityDebugTester:
                                 job_cards = data['data']
                             successful_endpoint = f"/production/job-cards/order/{order_id}"
             
-            if response.status_code == 200:
-                job_cards = response.json()
-                
-                if isinstance(job_cards, list) and len(job_cards) > 0:
+            if successful_endpoint and len(job_cards) > 0:
                     # Analyze first job card structure
                     sample_job_card = job_cards[0]
                     
