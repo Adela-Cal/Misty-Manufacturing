@@ -2639,6 +2639,224 @@ const Reports = () => {
           </div>
         )}
 
+        {/* Profitability Report Modal */}
+        <ReportModal
+          isOpen={showProfitabilityModal}
+          onClose={() => setShowProfitabilityModal(false)}
+          title="Profitability Report - GP & NP Analysis"
+        >
+          <div className="space-y-6">
+            {/* Mode Selection */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Analysis Mode</label>
+              <div className="flex gap-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="single"
+                    checked={profitabilityMode === 'single'}
+                    onChange={(e) => setProfitabilityMode(e.target.value)}
+                    className="mr-2"
+                  />
+                  <span className="text-white">Single Job</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="multiple"
+                    checked={profitabilityMode === 'multiple'}
+                    onChange={(e) => setProfitabilityMode(e.target.value)}
+                    className="mr-2"
+                  />
+                  <span className="text-white">Multiple Jobs (with filters)</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Single Job Mode */}
+            {profitabilityMode === 'single' && (
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Select Completed Job</label>
+                <select
+                  className="misty-select w-full"
+                  onChange={(e) => setSelectedOrders([e.target.value])}
+                  value={selectedOrders[0] || ''}
+                >
+                  <option value="">Select a job...</option>
+                  {completedOrders.map(order => (
+                    <option key={order.id} value={order.id}>
+                      {order.order_number} - {order.client_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Multiple Jobs Mode */}
+            {profitabilityMode === 'multiple' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Filter by Client (Optional)</label>
+                  <select
+                    className="misty-select w-full"
+                    value={profitabilityClient}
+                    onChange={(e) => setProfitabilityClient(e.target.value)}
+                  >
+                    <option value="">All Clients</option>
+                    {clients.map(client => (
+                      <option key={client.id} value={client.id}>
+                        {client.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Date Range</label>
+                  <select
+                    className="misty-select w-full"
+                    value={profitabilityDatePreset}
+                    onChange={(e) => {
+                      const preset = e.target.value;
+                      setProfitabilityDatePreset(preset);
+                      if (preset !== 'all_time') {
+                        const { start, end } = getDateRangeFromPreset(preset);
+                        setProfitabilityStartDate(start);
+                        setProfitabilityEndDate(end);
+                      }
+                    }}
+                  >
+                    <option value="last_7_days">Last 7 Days</option>
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="this_year">This Year</option>
+                    <option value="all_time">All Time</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Profit Threshold */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">
+                Profit Warning Threshold (%)
+              </label>
+              <input
+                type="number"
+                step="1"
+                value={profitThreshold}
+                onChange={(e) => setProfitThreshold(parseFloat(e.target.value))}
+                className="misty-input w-full md:w-64"
+                placeholder="e.g., 10"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Jobs below this Net Profit % will be highlighted in red
+              </p>
+            </div>
+
+            {/* Generate Button */}
+            <button
+              onClick={loadProfitabilityReport}
+              disabled={loadingProfitability || (profitabilityMode === 'single' && !selectedOrders.length)}
+              className="misty-button misty-button-primary w-full md:w-auto"
+            >
+              {loadingProfitability ? 'Generating...' : '📊 Generate Profitability Report'}
+            </button>
+
+            {/* Results */}
+            {profitabilityReport && (
+              <div className="space-y-6 mt-6">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <p className="text-sm text-gray-400">Total Jobs</p>
+                    <p className="text-2xl font-bold text-white">{profitabilityReport.summary.total_jobs}</p>
+                  </div>
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <p className="text-sm text-gray-400">Total Revenue</p>
+                    <p className="text-2xl font-bold text-green-400">
+                      ${profitabilityReport.summary.total_revenue.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <p className="text-sm text-gray-400">Avg GP %</p>
+                    <p className="text-2xl font-bold text-blue-400">
+                      {profitabilityReport.summary.average_gp_percentage.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <p className="text-sm text-gray-400">Avg NP %</p>
+                    <p className="text-2xl font-bold text-yellow-400">
+                      {profitabilityReport.summary.average_np_percentage.toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+
+                {profitabilityReport.summary.jobs_below_threshold > 0 && (
+                  <div className="bg-red-900 bg-opacity-30 border border-red-500 rounded-lg p-4">
+                    <p className="text-red-400 font-medium">
+                      ⚠️ Alert: {profitabilityReport.summary.jobs_below_threshold} job(s) below profit threshold!
+                    </p>
+                  </div>
+                )}
+
+                {/* Detailed Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-700">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase">Job</th>
+                        <th className="px-3 py-2 text-right text-xs font-medium text-gray-300 uppercase">Revenue</th>
+                        <th className="px-3 py-2 text-right text-xs font-medium text-gray-300 uppercase">Material</th>
+                        <th className="px-3 py-2 text-right text-xs font-medium text-gray-300 uppercase">Labour</th>
+                        <th className="px-3 py-2 text-right text-xs font-medium text-gray-300 uppercase">Machine</th>
+                        <th className="px-3 py-2 text-right text-xs font-medium text-gray-300 uppercase">GP</th>
+                        <th className="px-3 py-2 text-right text-xs font-medium text-gray-300 uppercase">GP %</th>
+                        <th className="px-3 py-2 text-right text-xs font-medium text-gray-300 uppercase">NP</th>
+                        <th className="px-3 py-2 text-right text-xs font-medium text-gray-300 uppercase">NP %</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-gray-800 divide-y divide-gray-700">
+                      {profitabilityReport.profitability_data.map((job, index) => (
+                        <tr key={index} className={job.alert_low_profit ? 'bg-red-900 bg-opacity-20' : ''}>
+                          <td className="px-3 py-3 text-sm">
+                            <div className="text-white font-medium">{job.order_number}</div>
+                            <div className="text-gray-400 text-xs">{job.client_name}</div>
+                          </td>
+                          <td className="px-3 py-3 text-sm text-right text-white">
+                            ${job.job_revenue.toLocaleString()}
+                          </td>
+                          <td className="px-3 py-3 text-sm text-right text-gray-300">
+                            ${job.material_cost.toLocaleString()}
+                          </td>
+                          <td className="px-3 py-3 text-sm text-right text-gray-300">
+                            ${job.labour_cost.toLocaleString()}
+                          </td>
+                          <td className="px-3 py-3 text-sm text-right text-gray-300">
+                            ${job.machine_cost.toLocaleString()}
+                          </td>
+                          <td className="px-3 py-3 text-sm text-right font-medium text-blue-400">
+                            ${job.gross_profit.toLocaleString()}
+                          </td>
+                          <td className="px-3 py-3 text-sm text-right font-medium text-blue-400">
+                            {job.gp_percentage.toFixed(1)}%
+                          </td>
+                          <td className={`px-3 py-3 text-sm text-right font-medium ${job.alert_low_profit ? 'text-red-400' : 'text-green-400'}`}>
+                            ${job.net_profit.toLocaleString()}
+                          </td>
+                          <td className={`px-3 py-3 text-sm text-right font-medium ${job.alert_low_profit ? 'text-red-400' : 'text-green-400'}`}>
+                            {job.np_percentage.toFixed(1)}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        </ReportModal>
+
       </div>
     </Layout>
   );
