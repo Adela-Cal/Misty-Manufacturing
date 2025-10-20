@@ -7,7 +7,8 @@ import {
   CalendarDaysIcon,
   ArrowDownTrayIcon,
   PencilIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  BuildingLibraryIcon
 } from '@heroicons/react/24/outline';
 
 const PayrollReports = () => {
