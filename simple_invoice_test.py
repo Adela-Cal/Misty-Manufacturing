@@ -112,13 +112,22 @@ def test_first_partial_invoice(session, order_id):
     """Test first partial invoice (5 out of 10 items)"""
     print(f"\n=== TESTING FIRST PARTIAL INVOICE (5/10) ===")
     
-    # Invoice 5 out of 10 items
+    # First, get the order to get the correct product_id
+    order_response = session.get(f"{API_BASE}/orders/{order_id}")
+    if order_response.status_code != 200:
+        print("❌ Failed to get order details")
+        return False
+    
+    order = order_response.json()
+    original_item = order["items"][0]  # Get the first (and only) item
+    
+    # Invoice 5 out of 10 items using the same product_id
     invoice_data = {
         "invoice_type": "partial",
         "items": [
             {
-                "product_id": str(uuid.uuid4()),  # This might be the issue - using different product_id
-                "product_name": "Simple Test Product",
+                "product_id": original_item["product_id"],  # Use same product_id as original order
+                "product_name": original_item["product_name"],
                 "quantity": 5,
                 "unit_price": 100.00,
                 "total_price": 500.00
