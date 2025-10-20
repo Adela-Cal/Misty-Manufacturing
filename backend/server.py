@@ -796,15 +796,25 @@ async def calculate_raw_material_permutation(
         # Calculate total linear meters available
         # From tonnage: (tonnage * 1,000,000 grams) / (GSM * width_meters)
         tonnage = float(base_material.get("tonnage", 0))
+        print(f"DEBUG: tonnage={tonnage}, gsm={gsm}, width={master_width_mm}")
+        
         if tonnage > 0:
             width_meters = master_width_mm / 1000.0
             total_linear_meters = (tonnage * 1000000) / (gsm * width_meters * 1000)  # Convert to meters
+            print(f"DEBUG: Calculated from tonnage: {total_linear_meters}")
         elif raw_material and raw_material.get("quantity_on_hand"):
             # Use quantity from raw materials collection
             total_linear_meters = float(raw_material.get("quantity_on_hand", 0))
+            print(f"DEBUG: Using raw material quantity: {total_linear_meters}")
         else:
             # Fallback to quantity_on_hand from base material if available
             total_linear_meters = float(base_material.get("quantity_on_hand", 0))
+            print(f"DEBUG: Using base material quantity: {total_linear_meters}")
+        
+        print(f"DEBUG: Final total_linear_meters: {total_linear_meters}")
+        print(f"DEBUG: raw_material exists: {raw_material is not None}")
+        if raw_material:
+            print(f"DEBUG: raw_material quantity_on_hand: {raw_material.get('quantity_on_hand')}")
         
         if total_linear_meters == 0:
             raise HTTPException(status_code=400, detail="Could not calculate linear meters from material data")
