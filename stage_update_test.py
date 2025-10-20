@@ -115,12 +115,21 @@ class StageUpdateTester:
             response = self.session.get(f"{API_BASE}/production/board")
             
             print(f"Production board response status: {response.status_code}")
-            if response.status_code != 200:
+            
+            if response.status_code == 200:
+                # Debug: print the actual response
+                try:
+                    result = response.json()
+                    print(f"Production board response: {json.dumps(result, indent=2)}")
+                except:
+                    print(f"Production board response (raw): {response.text}")
+            else:
                 print(f"Production board failed: {response.text}")
                 
                 # Fallback: try getting orders directly
                 print("Trying fallback: GET /api/orders")
                 response = self.session.get(f"{API_BASE}/orders")
+                print(f"Orders endpoint status: {response.status_code}")
             
             if response.status_code == 200:
                 result = response.json()
