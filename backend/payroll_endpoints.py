@@ -31,6 +31,32 @@ logger = logging.getLogger(__name__)
 
 # ============= HELPER FUNCTIONS =============
 
+
+async def get_next_employee_number() -> str:
+    """
+    Get the next unique employee number by finding the highest existing number
+    """
+    # Get all employee profiles (including archived)
+    all_profiles = await db.employee_profiles.find({}).to_list(1000)
+    
+    if not all_profiles:
+        return "EMP0001"
+    
+    # Extract all employee numbers and find the highest
+    max_number = 0
+    for profile in all_profiles:
+        emp_num = profile.get("employee_number", "EMP0000")
+        if emp_num.startswith("EMP"):
+            try:
+                num = int(emp_num[3:])  # Extract number part after "EMP"
+                if num > max_number:
+                    max_number = num
+            except ValueError:
+                continue
+    
+    # Return next number
+    return f"EMP{max_number + 1:04d}"
+
 async def check_timesheet_access(current_user: dict, timesheet_employee_id: str) -> bool:
     """
     Check if current user has access to a timesheet.
