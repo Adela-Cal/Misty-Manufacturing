@@ -1767,6 +1767,7 @@ async def get_production_board(current_user: dict = Depends(require_any_role)):
                 "items": order["items"],
                 "delivery_address": order.get("delivery_address"),
                 "is_overdue": due_date < datetime.now(timezone.utc),
+                "production_started_at": order.get("production_started_at"),
                 "display_order": order.get("display_order", 999)  # Default to end if not set
             }
             board[stage].append(order_info)
