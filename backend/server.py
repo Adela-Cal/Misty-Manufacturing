@@ -1382,8 +1382,12 @@ async def get_orders(status_filter: Optional[str] = None, current_user: dict = D
     if status_filter:
         query["status"] = status_filter
     else:
-        # By default, exclude completed orders (they should only appear in archived jobs)
-        query["status"] = {"$ne": "completed"}
+        # By default, exclude completed orders and orders in cleared stage
+        # (they should only appear in archived jobs)
+        query["$and"] = [
+            {"status": {"$ne": "completed"}},
+            {"current_stage": {"$ne": "cleared"}}
+        ]
     
     orders = await db.orders.find(query).sort("created_at", -1).to_list(1000)
     return [Order(**order) for order in orders]
