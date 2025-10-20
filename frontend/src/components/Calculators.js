@@ -273,12 +273,27 @@ const MaterialPermutation = ({ loading, setLoading }) => {
 
   const loadRawMaterials = async () => {
     try {
-      const response = await fetch('/api/raw-materials', {
+      // Try materials endpoint first (has all required fields)
+      let response = await fetch('/api/materials', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
+      
       if (response.ok) {
         const data = await response.json();
+        // Materials endpoint returns array directly
         setRawMaterials(data);
+        return;
+      }
+      
+      // Fallback to stock/raw-materials endpoint
+      response = await fetch('/api/stock/raw-materials', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        // Stock endpoint returns StandardResponse format
+        setRawMaterials(result.data || []);
       }
     } catch (error) {
       console.error('Failed to load raw materials:', error);
