@@ -255,6 +255,22 @@ const ProductionBoard = () => {
     return { x: 60, y: 60 };
   };
 
+  const getJobStartStatus = (job) => {
+    // A job is considered "started" if it's in any stage beyond the first stage
+    // Or if it has a start_date/started_at field
+    if (job.started_at || job.start_date) {
+      return 'started';
+    }
+    // You can also check the current stage - if it's not in the first stage, it's started
+    return 'not_started';
+  };
+
+  const JobStartStatusIcon = ({ status }) => (
+    <ClockIcon 
+      className={`h-5 w-5 ${status === 'started' ? 'text-green-500' : 'text-red-500'}`}
+    />
+  );
+
   const HexagonIcon = ({ status }) => (
     <svg 
       width="20" 
