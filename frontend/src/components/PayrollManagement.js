@@ -1265,6 +1265,103 @@ const PayrollManagement = () => {
         </div>
       )}
 
+      {/* Bank Details Modal */}
+      {showBankDetailsModal && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowBankDetailsModal(false)}>
+          <div className="modal-content max-w-lg">
+            <div className="p-6">
+              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                <BuildingLibraryIcon className="h-6 w-6 mr-2 text-green-400" />
+                Update Bank Details
+              </h3>
+              <p className="text-sm text-gray-400 mb-6">
+                Employee: {selectedEmployee?.first_name} {selectedEmployee?.last_name}
+              </p>
+
+              <form onSubmit={handleBankDetailsSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      BSB <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={bankDetailsFormData.bank_account_bsb}
+                      onChange={(e) => setBankDetailsFormData({...bankDetailsFormData, bank_account_bsb: e.target.value})}
+                      className="misty-input w-full font-mono"
+                      placeholder="123-456"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Account Number <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={bankDetailsFormData.bank_account_number}
+                      onChange={(e) => setBankDetailsFormData({...bankDetailsFormData, bank_account_number: e.target.value})}
+                      className="misty-input w-full font-mono"
+                      placeholder="12345678"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Tax File Number (TFN)
+                  </label>
+                  <input
+                    type="text"
+                    value={bankDetailsFormData.tax_file_number}
+                    onChange={(e) => setBankDetailsFormData({...bankDetailsFormData, tax_file_number: e.target.value})}
+                    className="misty-input w-full font-mono"
+                    placeholder="123 456 789"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Superannuation Fund
+                  </label>
+                  <input
+                    type="text"
+                    value={bankDetailsFormData.superannuation_fund}
+                    onChange={(e) => setBankDetailsFormData({...bankDetailsFormData, superannuation_fund: e.target.value})}
+                    className="misty-input w-full"
+                    placeholder="e.g., AustralianSuper"
+                  />
+                </div>
+
+                <div className="bg-blue-900 bg-opacity-20 border border-blue-500 border-opacity-30 rounded-lg p-3">
+                  <p className="text-xs text-blue-200">
+                    <CheckCircleIcon className="h-4 w-4 inline mr-1" />
+                    This information is securely stored and used for payroll processing only.
+                  </p>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-600">
+                  <button
+                    type="button"
+                    onClick={() => setShowBankDetailsModal(false)}
+                    className="misty-button misty-button-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="misty-button misty-button-primary"
+                  >
+                    Update Details
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Permanent Delete Confirmation Modal */}
       {showPermanentDeleteConfirm && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowPermanentDeleteConfirm(false)}>
