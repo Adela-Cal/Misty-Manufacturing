@@ -40,9 +40,24 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
     try {
       setLoading(true);
       
-      // Use current user ID if employeeId is not provided
-      const actualEmployeeId = employeeId || user?.id || user?.user_id || user?.sub;
-      console.log('Loading timesheet for employeeId:', actualEmployeeId, 'user:', user);
+      // Determine employee ID to use
+      let actualEmployeeId = employeeId;
+      
+      // If no employeeId provided, get current user's employee profile
+      if (!actualEmployeeId) {
+        try {
+          const myProfileResponse = await payrollApi.getMyEmployeeProfile();
+          actualEmployeeId = myProfileResponse.data.id;
+          console.log('Got employee ID from profile:', actualEmployeeId);
+        } catch (error) {
+          console.error('Failed to load employee profile:', error);
+          toast.error('Unable to load your employee profile');
+          setLoading(false);
+          return;
+        }
+      }
+      
+      console.log('Loading timesheet for employeeId:', actualEmployeeId);
       
       if (!actualEmployeeId) {
         toast.error('Unable to determine employee ID');
