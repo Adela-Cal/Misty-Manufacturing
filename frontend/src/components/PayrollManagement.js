@@ -721,6 +721,7 @@ const PayrollManagement = () => {
                 )}
               </div>
             </div>
+            </div>
           )}
 
           {activeTab === 'employees' && hasPermission('manage_payroll') && (
