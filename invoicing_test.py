@@ -843,7 +843,7 @@ class InvoicingWorkflowTester:
                     requirements_met = False
                 
                 # 3. Job should be invoiced
-                if not job.get("invoiced"):
+                if job.get("invoiced") is not True:
                     requirements_met = False
                 
                 # 4. Should have 3 invoices in history
