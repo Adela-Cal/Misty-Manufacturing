@@ -45,6 +45,45 @@ const PayrollManagement = () => {
     approver_id: ''
   });
 
+  // Calculate business days between two dates (excluding weekends)
+  const calculateBusinessDays = (startDate, endDate) => {
+    if (!startDate || !endDate) return 0;
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (end < start) return 0;
+    
+    let businessDays = 0;
+    const currentDate = new Date(start);
+    
+    while (currentDate <= end) {
+      const dayOfWeek = currentDate.getDay();
+      // 0 = Sunday, 6 = Saturday
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        businessDays++;
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return businessDays;
+  };
+
+  // Auto-calculate hours when dates change
+  const handleDateChange = (field, value) => {
+    const newFormData = { ...leaveFormData, [field]: value };
+    
+    // If both dates are set, calculate hours
+    if (newFormData.start_date && newFormData.end_date) {
+      const businessDays = calculateBusinessDays(newFormData.start_date, newFormData.end_date);
+      // Assuming 8 hours per work day
+      const calculatedHours = businessDays * 8;
+      newFormData.hours_requested = calculatedHours.toString();
+    }
+    
+    setLeaveFormData(newFormData);
+  };
+
   useEffect(() => {
     loadPayrollData();
   }, []);
