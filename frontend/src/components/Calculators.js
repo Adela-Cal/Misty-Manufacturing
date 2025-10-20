@@ -111,7 +111,6 @@ const Calculators = () => {
 
             {activeCalculator === 'material-permutation' && (
               <MaterialPermutation 
-                productSpecs={productSpecs}
                 loading={loading}
                 setLoading={setLoading}
               />
