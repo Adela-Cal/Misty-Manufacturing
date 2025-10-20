@@ -691,6 +691,23 @@ const PayrollManagement = () => {
                               >
                                 Timesheet
                               </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedEmployee(employee);
+                                  setBankDetailsFormData({
+                                    bank_account_bsb: employee.bank_account_bsb || '',
+                                    bank_account_number: employee.bank_account_number || '',
+                                    tax_file_number: employee.tax_file_number || '',
+                                    superannuation_fund: employee.superannuation_fund || ''
+                                  });
+                                  setShowBankDetailsModal(true);
+                                }}
+                                className="text-gray-400 hover:text-green-400 transition-colors flex items-center"
+                                data-testid={`bank-details-${employee.id}`}
+                              >
+                                <BuildingLibraryIcon className="h-4 w-4 mr-1" />
+                                Bank
+                              </button>
                             </div>
                           </td>
                         </tr>
