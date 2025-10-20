@@ -5466,17 +5466,32 @@ async def get_detailed_material_usage_report(
                 m2 = (width_mm / 1000.0) * quantity_meters
                 total_m2 += m2
         
-        # Convert to sorted list
+        # Convert to sorted list with cost calculations
         usage_list = []
+        
+        # Get material GSM and pricing for cost calculations
+        material_gsm = float(material.get("gsm", 0))
+        material_price_per_tonne = float(material.get("price", 0))
+        
         for width_key, data in usage_by_width.items():
             width_mm = data["width_mm"]
             total_length_m = data["total_length_m"]
             m2_for_width = (width_mm / 1000.0) * total_length_m
             
+            # Calculate cost per linear meter and total cost
+            # Formula: (width_m * 1m * GSM) / 1000 = kg per meter
+            # Cost per meter = (kg_per_meter / 1000) * price_per_tonne
+            width_m = width_mm / 1000.0
+            kg_per_linear_meter = (width_m * 1.0 * material_gsm) / 1000.0
+            cost_per_linear_meter = (kg_per_linear_meter / 1000.0) * material_price_per_tonne
+            total_cost_aud = cost_per_linear_meter * total_length_m
+            
             width_data = {
                 "width_mm": width_mm,
                 "total_length_m": round(total_length_m, 2),
-                "m2": round(m2_for_width, 2)
+                "m2": round(m2_for_width, 2),
+                "cost_per_linear_meter_aud": round(cost_per_linear_meter, 4),
+                "total_cost_aud": round(total_cost_aud, 2)
             }
             
             # Add order breakdown if requested
@@ -5489,10 +5504,15 @@ async def get_detailed_material_usage_report(
         # Sort by width (ascending)
         usage_list.sort(key=lambda x: x["width_mm"])
         
+        # Calculate grand totals
+        grand_total_cost = sum(w["total_cost_aud"] for w in usage_list)
+        
         report_data = {
             "material_id": material_id,
             "material_name": material.get("material_description", material.get("supplier", "Unknown")),
             "material_code": material.get("product_code", "N/A"),
+            "material_gsm": material_gsm,
+            "material_price_per_tonne": material_price_per_tonne,
             "report_period": {
                 "start_date": start_date,
                 "end_date": end_date,
@@ -5502,6 +5522,7 @@ async def get_detailed_material_usage_report(
             "total_widths_used": len(usage_list),
             "grand_total_m2": round(total_m2, 2),
             "grand_total_length_m": round(sum(w["total_length_m"] for w in usage_list), 2),
+            "grand_total_cost_aud": round(grand_total_cost, 2),
             "include_order_breakdown": include_order_breakdown
         }
         
