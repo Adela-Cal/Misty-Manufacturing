@@ -29,6 +29,31 @@ reporting_service = PayrollReportingService()
 
 logger = logging.getLogger(__name__)
 
+# ============= HELPER FUNCTIONS =============
+
+async def check_timesheet_access(current_user: dict, timesheet_employee_id: str) -> bool:
+    """
+    Check if current user has access to a timesheet.
+    Handles user_id to employee_id mapping for permission checks.
+    """
+    # Admins and managers always have access
+    if current_user["role"] in ["admin", "manager", "production_manager"]:
+        return True
+    
+    # Check if user's employee profile matches the timesheet's employee_id
+    user_id = current_user.get("user_id") or current_user.get("sub")
+    
+    # First try direct match
+    if user_id == timesheet_employee_id:
+        return True
+    
+    # Then check if user_id maps to this employee via employee_profiles
+    employee_profile = await db.employee_profiles.find_one({"user_id": user_id})
+    if employee_profile and employee_profile["id"] == timesheet_employee_id:
+        return True
+    
+    return False
+
 # ============= EMPLOYEE MANAGEMENT ENDPOINTS =============
 
 @payroll_router.get("/employees", response_model=List[EmployeeProfile])
