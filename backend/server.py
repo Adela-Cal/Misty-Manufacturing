@@ -1455,6 +1455,25 @@ async def get_order(order_id: str, current_user: dict = Depends(require_any_role
     
     return Order(**order)
 
+
+@api_router.put("/orders/{order_id}", response_model=StandardResponse)
+async def update_order(order_id: str, update_data: dict, current_user: dict = Depends(require_any_role)):
+    """Update order fields"""
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Add updated_at timestamp
+    update_data["updated_at"] = datetime.now(timezone.utc)
+    
+    # Update the order
+    await db.orders.update_one(
+        {"id": order_id},
+        {"$set": update_data}
+    )
+    
+    return StandardResponse(success=True, message="Order updated successfully")
+
 @api_router.put("/orders/{order_id}/stage", response_model=StandardResponse)
 async def update_production_stage(order_id: str, stage_update: ProductionStageUpdate, current_user: dict = Depends(require_production_access)):
     """Update order production stage"""
