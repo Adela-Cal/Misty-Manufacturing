@@ -272,13 +272,24 @@ const PayrollManagement = () => {
     e.preventDefault();
     
     try {
+      // Prepare data with proper type conversions
+      const submitData = {
+        employee_id: leaveFormData.employee_id,
+        leave_type: leaveFormData.leave_type,
+        start_date: leaveFormData.start_date,
+        end_date: leaveFormData.end_date,
+        hours_requested: parseFloat(leaveFormData.hours_requested),
+        reason: leaveFormData.reason || null,
+        approver_id: leaveFormData.approver_id || null
+      };
+
       const response = await fetch('/api/payroll/leave-requests', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(leaveFormData)
+        body: JSON.stringify(submitData)
       });
 
       if (response.ok) {
