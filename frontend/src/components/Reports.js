@@ -11,7 +11,8 @@ import {
   PrinterIcon,
   UserIcon,
   ExclamationTriangleIcon,
-  ClipboardDocumentListIcon
+  ClipboardDocumentListIcon,
+  DocumentChartBarIcon
 } from '@heroicons/react/24/outline';
 
 const Reports = () => {
