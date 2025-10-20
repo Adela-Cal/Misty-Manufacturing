@@ -1164,6 +1164,7 @@ const Reports = () => {
             onClick={() => {
               setShowProfitabilityModal(true);
               loadCompletedOrders();
+              loadClientProducts();
             }}
           />
         </div>
