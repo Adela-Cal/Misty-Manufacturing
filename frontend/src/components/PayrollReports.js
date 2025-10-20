@@ -523,6 +523,75 @@ Generated: ${new Date(data.generated_at).toLocaleString()}
         </div>
       )}
 
+      {/* Bank Details Tab */}
+      {activeReportTab === 'bank-details' && (
+        <div>
+          <h3 className="text-xl font-semibold text-white mb-4">Employee Bank Details</h3>
+          <p className="text-sm text-gray-400 mb-6">
+            Manage employee banking information for payroll processing
+          </p>
+
+          {employees.length > 0 ? (
+            <div className="misty-table">
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th>Employee</th>
+                    <th>Bank Name</th>
+                    <th>BSB</th>
+                    <th>Account Number</th>
+                    <th>Super Fund</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {employees.map((employee) => (
+                    <tr key={employee.id}>
+                      <td>
+                        <p className="font-medium">{employee.first_name} {employee.last_name}</p>
+                        <p className="text-sm text-gray-400">{employee.employee_number}</p>
+                      </td>
+                      <td className="text-sm">
+                        {employee.bank_name || <span className="text-gray-500">Not set</span>}
+                      </td>
+                      <td className="font-mono text-sm">
+                        {employee.bsb || <span className="text-gray-500">Not set</span>}
+                      </td>
+                      <td className="font-mono text-sm">
+                        {employee.account_number ? 
+                          `****${employee.account_number.slice(-4)}` : 
+                          <span className="text-gray-500">Not set</span>
+                        }
+                      </td>
+                      <td className="text-sm">
+                        {employee.superannuation_fund || <span className="text-gray-500">Not set</span>}
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => {
+                            toast.info('Bank details management coming soon');
+                          }}
+                          className="text-yellow-400 hover:text-yellow-300 flex items-center text-sm"
+                        >
+                          <PencilIcon className="h-4 w-4 mr-1" />
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-gray-800 rounded-lg">
+              <BuildingLibraryIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-2 text-sm text-gray-300">No employees found</p>
+              <p className="text-xs text-gray-500">Employee bank details will appear here</p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Leave Adjustment Modal */}
       {showLeaveAdjustment && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowLeaveAdjustment(false)}>
