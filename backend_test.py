@@ -1474,56 +1474,104 @@ class BackendAPITester:
         
         return []
 
-    def test_employee_number_generation(self):
-        """Test employee number generation (EMP0001, EMP0002, etc.)"""
+    def test_pending_timesheets_data_structure(self):
+        """Verify pending timesheets response has correct data structure"""
         try:
-            employees_response = self.session.get(f"{API_BASE}/payroll/employees")
+            response = self.session.get(f"{API_BASE}/payroll/timesheets/pending")
             
-            if employees_response.status_code == 200:
-                employees = employees_response.json()
+            if response.status_code == 200:
+                result = response.json()
                 
-                # Check employee number format
-                valid_numbers = 0
-                invalid_numbers = []
-                
-                for emp in employees:
-                    emp_number = emp.get("employee_number", "")
+                # Check top-level structure
+                if result.get("success") == True and "data" in result:
+                    timesheets = result["data"]
                     
-                    # Check format: EMP followed by 4 digits
-                    if emp_number.startswith("EMP") and len(emp_number) == 7:
-                        try:
-                            number_part = int(emp_number[3:])
-                            if 1 <= number_part <= 9999:
-                                valid_numbers += 1
+                    if isinstance(timesheets, list):
+                        self.log_result(
+                            "Pending Timesheets Response Structure", 
+                            True, 
+                            f"Response has correct structure: success=true, data=array"
+                        )
+                        
+                        # Check individual timesheet structure
+                        if len(timesheets) > 0:
+                            timesheet = timesheets[0]
+                            
+                            # Expected fields for each timesheet
+                            expected_fields = [
+                                "id", "employee_id", "employee_name", "week_start", "week_end", 
+                                "status", "total_regular_hours", "total_overtime_hours"
+                            ]
+                            
+                            missing_fields = [field for field in expected_fields if field not in timesheet]
+                            
+                            if len(missing_fields) == 0:
+                                self.log_result(
+                                    "Timesheet Data Structure", 
+                                    True, 
+                                    f"Timesheets have all required fields: {expected_fields}"
+                                )
+                                
+                                # Check that no MongoDB _id field is present
+                                if "_id" not in timesheet:
+                                    self.log_result(
+                                        "MongoDB ObjectId Removal", 
+                                        True, 
+                                        "No MongoDB _id field present in response (correctly removed)"
+                                    )
+                                else:
+                                    self.log_result(
+                                        "MongoDB ObjectId Removal", 
+                                        False, 
+                                        "MongoDB _id field still present in response"
+                                    )
+                                
+                                # Check employee_name enrichment
+                                if timesheet.get("employee_name"):
+                                    self.log_result(
+                                        "Employee Name Enrichment", 
+                                        True, 
+                                        f"Employee name enriched: {timesheet.get('employee_name')}"
+                                    )
+                                else:
+                                    self.log_result(
+                                        "Employee Name Enrichment", 
+                                        False, 
+                                        "Employee name not enriched in response"
+                                    )
                             else:
-                                invalid_numbers.append(f"Number out of range: {emp_number}")
-                        except ValueError:
-                            invalid_numbers.append(f"Invalid number format: {emp_number}")
+                                self.log_result(
+                                    "Timesheet Data Structure", 
+                                    False, 
+                                    f"Missing required fields: {missing_fields}"
+                                )
+                        else:
+                            self.log_result(
+                                "Timesheet Data Structure", 
+                                True, 
+                                "No timesheets to check structure (empty array is valid)"
+                            )
                     else:
-                        invalid_numbers.append(f"Invalid format: {emp_number}")
-                
-                if len(invalid_numbers) == 0:
-                    self.log_result(
-                        "Employee Number Generation", 
-                        True, 
-                        f"All {valid_numbers} employee numbers have correct format (EMP####)"
-                    )
+                        self.log_result(
+                            "Pending Timesheets Response Structure", 
+                            False, 
+                            "Data field is not an array"
+                        )
                 else:
                     self.log_result(
-                        "Employee Number Generation", 
+                        "Pending Timesheets Response Structure", 
                         False, 
-                        f"Found {len(invalid_numbers)} invalid employee numbers",
-                        f"Invalid: {invalid_numbers[:3]}"  # Show first 3
+                        "Response missing success=true or data field"
                     )
             else:
                 self.log_result(
-                    "Employee Number Generation", 
+                    "Pending Timesheets Data Structure", 
                     False, 
-                    f"Failed to get employees: {employees_response.status_code}"
+                    f"Failed to get response: {response.status_code}"
                 )
                 
         except Exception as e:
-            self.log_result("Employee Number Generation", False, f"Error: {str(e)}")
+            self.log_result("Pending Timesheets Data Structure", False, f"Error: {str(e)}")
 
     def test_employee_default_values(self):
         """Test employee default values (hourly_rate=$25.00, weekly_hours=38)"""
