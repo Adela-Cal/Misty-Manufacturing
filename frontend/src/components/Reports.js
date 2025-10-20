@@ -459,15 +459,37 @@ const Reports = () => {
   
   const loadClientProducts = async () => {
     try {
-      const response = await fetch('/api/client-products', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setClientProducts(data);
+      // Load all client products from all clients
+      const clientsResponse = await apiHelpers.getClients();
+      const allClients = clientsResponse.data;
+      
+      let allProducts = [];
+      
+      // Fetch products for each client
+      for (const client of allClients) {
+        try {
+          const response = await fetch(`/api/clients/${client.id}/catalog`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
+          if (response.ok) {
+            const products = await response.json();
+            // Add client name to each product for display
+            const productsWithClient = products.map(p => ({
+              ...p,
+              client_name: client.name || client.company_name
+            }));
+            allProducts = [...allProducts, ...productsWithClient];
+          }
+        } catch (error) {
+          console.error(`Failed to load products for client ${client.id}:`, error);
+        }
       }
+      
+      setClientProducts(allProducts);
+      console.log(`Loaded ${allProducts.length} products from ${allClients.length} clients`);
     } catch (error) {
       console.error('Failed to load client products:', error);
+      toast.error('Failed to load client products');
     }
   };
   
