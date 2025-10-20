@@ -829,10 +829,39 @@ async def get_leave_reminders(current_user: dict = Depends(require_any_role)):
 
 @payroll_router.post("/leave-requests/{request_id}/approve", response_model=StandardResponse)
 async def approve_leave_request(request_id: str, current_user: dict = Depends(require_payroll_access)):
-    """Approve leave request"""
+    """Approve leave request and deduct from employee balance"""
     
-    result = await db.leave_requests.update_one(
-        {"id": request_id, "status": LeaveStatus.PENDING},
+    # Get the leave request
+    leave_request = await db.leave_requests.find_one({"id": request_id, "status": LeaveStatus.PENDING})
+    if not leave_request:
+        raise HTTPException(status_code=404, detail="Leave request not found or already processed")
+    
+    # Get employee profile
+    employee = await db.employee_profiles.find_one({"id": leave_request["employee_id"]})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    
+    # Determine balance field based on leave type
+    leave_type = leave_request["leave_type"]
+    balance_field = f"{leave_type}_balance"
+    hours_requested = float(leave_request["hours_requested"])
+    
+    # Get current balance
+    current_balance = float(employee.get(balance_field, 0))
+    
+    # Check if employee has sufficient balance
+    if current_balance < hours_requested:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Insufficient {leave_type.replace('_', ' ')} balance. Available: {current_balance}h, Requested: {hours_requested}h"
+        )
+    
+    # Calculate new balance
+    new_balance = current_balance - hours_requested
+    
+    # Update leave request status
+    await db.leave_requests.update_one(
+        {"id": request_id},
         {"$set": {
             "status": LeaveStatus.APPROVED,
             "approved_by": current_user["user_id"],
@@ -841,14 +870,22 @@ async def approve_leave_request(request_id: str, current_user: dict = Depends(re
         }}
     )
     
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Leave request not found or already processed")
+    # Deduct leave balance from employee
+    await db.employee_profiles.update_one(
+        {"id": leave_request["employee_id"]},
+        {"$set": {balance_field: new_balance, "updated_at": datetime.utcnow()}}
+    )
     
-    return StandardResponse(success=True, message="Leave request approved")
+    logger.info(f"Approved leave request {request_id}. Deducted {hours_requested}h from {leave_type}. New balance: {new_balance}h")
+    
+    return StandardResponse(
+        success=True, 
+        message=f"Leave request approved. Deducted {hours_requested}h from {leave_type.replace('_', ' ')}. New balance: {new_balance}h"
+    )
 
 @payroll_router.post("/leave-requests/{request_id}/reject", response_model=StandardResponse)
 async def reject_leave_request(request_id: str, rejection_reason: str, current_user: dict = Depends(require_payroll_access)):
-    """Reject leave request"""
+    """Reject leave request (no balance deduction)"""
     
     result = await db.leave_requests.update_one(
         {"id": request_id, "status": LeaveStatus.PENDING},
@@ -864,7 +901,61 @@ async def reject_leave_request(request_id: str, rejection_reason: str, current_u
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Leave request not found or already processed")
     
+    logger.info(f"Rejected leave request {request_id}")
+    
     return StandardResponse(success=True, message="Leave request rejected")
+
+@payroll_router.post("/leave-requests/{request_id}/cancel", response_model=StandardResponse)
+async def cancel_leave_request(request_id: str, current_user: dict = Depends(require_any_role)):
+    """Cancel approved leave request and restore balance to employee"""
+    
+    # Get the leave request
+    leave_request = await db.leave_requests.find_one({"id": request_id, "status": LeaveStatus.APPROVED})
+    if not leave_request:
+        raise HTTPException(status_code=404, detail="Approved leave request not found")
+    
+    # Check if user has permission to cancel (admin/manager or the employee themselves)
+    if current_user["role"] not in ["admin", "manager", "production_manager"] and current_user["user_id"] != leave_request["employee_id"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Get employee profile
+    employee = await db.employee_profiles.find_one({"id": leave_request["employee_id"]})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    
+    # Determine balance field based on leave type
+    leave_type = leave_request["leave_type"]
+    balance_field = f"{leave_type}_balance"
+    hours_requested = float(leave_request["hours_requested"])
+    
+    # Get current balance
+    current_balance = float(employee.get(balance_field, 0))
+    
+    # Calculate new balance (restore the hours)
+    new_balance = current_balance + hours_requested
+    
+    # Update leave request status to cancelled
+    await db.leave_requests.update_one(
+        {"id": request_id},
+        {"$set": {
+            "status": LeaveStatus.REJECTED,  # Use REJECTED status to indicate cancelled
+            "rejection_reason": f"Cancelled by {current_user.get('full_name', 'user')}",
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    
+    # Restore leave balance to employee
+    await db.employee_profiles.update_one(
+        {"id": leave_request["employee_id"]},
+        {"$set": {balance_field: new_balance, "updated_at": datetime.utcnow()}}
+    )
+    
+    logger.info(f"Cancelled leave request {request_id}. Restored {hours_requested}h to {leave_type}. New balance: {new_balance}h")
+    
+    return StandardResponse(
+        success=True, 
+        message=f"Leave cancelled. Restored {hours_requested}h to {leave_type.replace('_', ' ')}. New balance: {new_balance}h"
+    )
 
 # ============= REPORTING ENDPOINTS =============
 
