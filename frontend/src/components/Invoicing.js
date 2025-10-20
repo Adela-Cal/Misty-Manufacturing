@@ -996,28 +996,48 @@ const Invoicing = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Invoice Type
                   </label>
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        value="full"
-                        checked={invoiceType === 'full'}
-                        onChange={(e) => setInvoiceType(e.target.value)}
-                        className="form-radio h-4 w-4 text-yellow-400"
-                      />
-                      <span className="ml-2 text-gray-300">Full Invoice</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        value="partial"
-                        checked={invoiceType === 'partial'}
-                        onChange={(e) => setInvoiceType(e.target.value)}
-                        className="form-radio h-4 w-4 text-yellow-400"
-                      />
-                      <span className="ml-2 text-gray-300">Part Supply</span>
-                    </label>
-                  </div>
+                  {selectedJob.invoice_history && selectedJob.invoice_history.length > 0 ? (
+                    // If job has been partially invoiced, only show Part Supply option
+                    <div className="bg-blue-900/20 border border-blue-600/30 rounded p-3">
+                      <p className="text-sm text-blue-300 mb-2">
+                        ℹ️ This job has been partially invoiced. Only Part Supply is available.
+                      </p>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          value="partial"
+                          checked={true}
+                          readOnly
+                          className="form-radio h-4 w-4 text-yellow-400"
+                        />
+                        <span className="ml-2 text-gray-300">Part Supply</span>
+                      </label>
+                    </div>
+                  ) : (
+                    // If no invoice history, show both options
+                    <div className="space-y-2">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          value="full"
+                          checked={invoiceType === 'full'}
+                          onChange={(e) => setInvoiceType(e.target.value)}
+                          className="form-radio h-4 w-4 text-yellow-400"
+                        />
+                        <span className="ml-2 text-gray-300">Full Invoice</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          value="partial"
+                          checked={invoiceType === 'partial'}
+                          onChange={(e) => setInvoiceType(e.target.value)}
+                          className="form-radio h-4 w-4 text-yellow-400"
+                        />
+                        <span className="ml-2 text-gray-300">Part Supply</span>
+                      </label>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-end space-x-3">
