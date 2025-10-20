@@ -375,25 +375,25 @@ class ProfitabilityReportTester:
                 if result.get('success'):
                     data = result.get('data', {})
                     
-                    # Check for required fields
-                    required_fields = ['report_period', 'jobs', 'summary']
+                    # Check for required fields (correct field names from backend)
+                    required_fields = ['profitability_data', 'summary']
                     missing_fields = [field for field in required_fields if field not in data]
                     
                     if not missing_fields:
-                        jobs = data.get('jobs', [])
+                        jobs = data.get('profitability_data', [])
                         summary = data.get('summary', {})
                         
                         self.log_result(
                             "Profitability Report - Multiple Jobs", 
                             True, 
                             f"Successfully generated profitability report",
-                            f"Jobs analyzed: {len(jobs)}, Total revenue: ${summary.get('total_revenue', 0)}, Total profit: ${summary.get('total_profit', 0)}"
+                            f"Jobs analyzed: {len(jobs)}, Total revenue: ${summary.get('total_revenue', 0)}, Total net profit: ${summary.get('total_net_profit', 0)}"
                         )
                         
                         # Check individual job structure
                         if jobs:
                             job = jobs[0]
-                            job_fields = ['order_id', 'order_number', 'revenue', 'costs', 'profit', 'profit_margin']
+                            job_fields = ['order_id', 'order_number', 'job_revenue', 'total_production_cost', 'net_profit', 'np_percentage']
                             missing_job_fields = [field for field in job_fields if field not in job]
                             
                             if not missing_job_fields:
