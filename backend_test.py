@@ -1232,60 +1232,53 @@ class BackendAPITester:
         
         return []
 
-    def test_get_employees_with_auto_sync(self):
-        """Test GET /api/payroll/employees with auto-sync functionality"""
+    def test_get_all_timesheets(self):
+        """Test checking all timesheets in database regardless of status"""
         try:
-            response = self.session.get(f"{API_BASE}/payroll/employees")
+            # Try to get all timesheets (if endpoint exists)
+            response = self.session.get(f"{API_BASE}/payroll/timesheets")
             
             if response.status_code == 200:
-                employees = response.json()
+                result = response.json()
                 
-                # Verify response structure
-                if isinstance(employees, list):
-                    # Check required fields for each employee
-                    required_fields = [
-                        "id", "user_id", "employee_number", "first_name", "last_name",
-                        "email", "department", "position", "employment_type", 
-                        "hourly_rate", "weekly_hours", "is_active"
-                    ]
+                if result.get("success") and "data" in result:
+                    all_timesheets = result["data"]
                     
-                    all_valid = True
-                    for emp in employees:
-                        missing_fields = [field for field in required_fields if field not in emp]
-                        if missing_fields:
-                            all_valid = False
-                            break
+                    self.log_result(
+                        "Get All Timesheets", 
+                        True, 
+                        f"Found {len(all_timesheets)} total timesheets in database"
+                    )
                     
-                    if all_valid:
-                        self.log_result(
-                            "Get Employees with Auto-Sync", 
-                            True, 
-                            f"Successfully retrieved {len(employees)} employees with auto-sync",
-                            f"All employees have required fields"
-                        )
-                        return employees
-                    else:
-                        self.log_result(
-                            "Get Employees with Auto-Sync", 
-                            False, 
-                            f"Some employees missing required fields: {missing_fields}"
-                        )
+                    # Analyze statuses
+                    status_counts = {}
+                    for ts in all_timesheets:
+                        status = ts.get("status", "unknown")
+                        status_counts[status] = status_counts.get(status, 0) + 1
+                    
+                    self.log_result(
+                        "Timesheet Status Analysis", 
+                        True, 
+                        f"Status breakdown: {status_counts}"
+                    )
+                    
+                    return all_timesheets
                 else:
                     self.log_result(
-                        "Get Employees with Auto-Sync", 
+                        "Get All Timesheets", 
                         False, 
-                        "Response is not a list of employees"
+                        "Invalid response structure for all timesheets"
                     )
             else:
                 self.log_result(
-                    "Get Employees with Auto-Sync", 
+                    "Get All Timesheets", 
                     False, 
-                    f"Failed to get employees: {response.status_code}",
-                    response.text
+                    f"All timesheets endpoint not available or failed: {response.status_code}",
+                    "This is expected if endpoint doesn't exist"
                 )
                 
         except Exception as e:
-            self.log_result("Get Employees with Auto-Sync", False, f"Error: {str(e)}")
+            self.log_result("Get All Timesheets", False, f"Error: {str(e)}")
         
         return []
 
