@@ -779,10 +779,10 @@ async def calculate_raw_material_permutation(
         if not material:
             raise HTTPException(status_code=404, detail="Material not found")
         
-        # Extract material properties
-        master_width_mm = float(material.get("width_mm", 0))
+        # Extract material properties - try multiple field names for compatibility
+        master_width_mm = float(material.get("width_mm") or material.get("master_deckle_width_mm", 0))
         if master_width_mm == 0:
-            raise HTTPException(status_code=400, detail="Material does not have width_mm defined")
+            raise HTTPException(status_code=400, detail="Material does not have width defined")
         
         gsm = float(material.get("gsm", 0))
         if gsm == 0:
@@ -801,7 +801,8 @@ async def calculate_raw_material_permutation(
         if total_linear_meters == 0:
             raise HTTPException(status_code=400, detail="Could not calculate linear meters from material data")
         
-        cost_per_tonne = float(material.get("cost_per_tonne", 0))
+        # Try multiple field names for cost
+        cost_per_tonne = float(material.get("cost_per_tonne") or material.get("price", 0))
         material_name = material.get("material_description", material.get("supplier", "Unknown"))
         material_code = material.get("product_code", "N/A")
         
