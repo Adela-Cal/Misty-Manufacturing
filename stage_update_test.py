@@ -105,6 +105,9 @@ class StageUpdateTester:
         
         # Additional debugging tests
         self.test_stage_update_variations(order)
+        
+        # Test with correct stage values
+        self.test_stage_update_with_correct_values(order)
 
     def get_order_from_production_board(self):
         """Step 1: Get an order from production board - GET /api/production/board"""
