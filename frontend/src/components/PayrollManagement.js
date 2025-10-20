@@ -509,14 +509,6 @@ const PayrollManagement = () => {
       setApprovingTimesheet(null);
     }
   };
-        const error = await response.json();
-        toast.error(error.detail || 'Failed to cancel leave');
-      }
-    } catch (error) {
-      console.error('Failed to cancel leave:', error);
-      toast.error('Failed to cancel leave');
-    }
-  };
 
   const handleEmployeeCreate = () => {
     setSelectedEmployee(null);
