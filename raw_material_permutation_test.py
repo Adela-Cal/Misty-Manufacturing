@@ -140,10 +140,21 @@ class RawMaterialPermutationTester:
         print("\n=== FINDING SUITABLE MATERIAL ===")
         
         for material in materials:
-            width_mm = material.get("width_mm")
+            # Try different field names for width
+            width_mm = (material.get("width_mm") or 
+                       material.get("master_deckle_width_mm") or 
+                       material.get("master_width_mm"))
+            
             gsm = material.get("gsm")
-            cost_per_tonne = material.get("cost_per_tonne")
-            material_name = material.get("material_description") or material.get("supplier") or material.get("product_code")
+            
+            # Try different field names for cost
+            cost_per_tonne = (material.get("cost_per_tonne") or 
+                             material.get("price") or 
+                             material.get("cost"))
+            
+            material_name = (material.get("material_description") or 
+                           material.get("supplier") or 
+                           material.get("product_code"))
             
             # Check if material has required properties
             if width_mm and gsm and cost_per_tonne:
@@ -153,6 +164,10 @@ class RawMaterialPermutationTester:
                     cost_per_tonne = float(cost_per_tonne)
                     
                     if width_mm > 0 and gsm > 0 and cost_per_tonne > 0:
+                        # Add the standardized field names to the material for easier access
+                        material["width_mm"] = width_mm
+                        material["cost_per_tonne"] = cost_per_tonne
+                        
                         self.log_result(
                             "Find Suitable Material", 
                             True, 
