@@ -529,15 +529,6 @@ class TimesheetFlowTester:
 if __name__ == "__main__":
     tester = TimesheetFlowTester()
     tester.run_complete_timesheet_flow_test()
-            (None, "None/null")
-        ]
-        
-        for employee_id, description in test_cases:
-            try:
-                if employee_id is None:
-                    url = f"{API_BASE}/payroll/timesheets/current-week/None"
-                else:
-                    url = f"{API_BASE}/payroll/timesheets/current-week/{employee_id}"
                 
                 response = self.session.get(url)
                 
