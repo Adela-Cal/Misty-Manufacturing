@@ -1563,6 +1563,28 @@ const ProductSpecifications = () => {
                         </div>
                       )}
                     </div>
+
+                    {/* Grams of Glue per Layer Meter */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Grams of Glue per Layer Meter (g/m) *
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.grams_of_glue_per_layer_meter}
+                        onChange={(e) => setFormData(prev => ({ 
+                          ...prev, 
+                          grams_of_glue_per_layer_meter: e.target.value
+                        }))}
+                        className="misty-input w-full max-w-md"
+                        placeholder="Enter grams of glue per layer meter"
+                      />
+                      <p className="text-sm text-gray-400 mt-1">
+                        Specify the amount of glue used per meter of each layer (used for material cost calculations)
+                      </p>
+                    </div>
                   </div>
                 )}
 
