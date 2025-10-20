@@ -260,6 +260,52 @@ const PayrollManagement = () => {
     }
   };
 
+  const loadArchivedLeaveRequests = async () => {
+    try {
+      const response = await fetch('/api/payroll/leave-requests/archived', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setArchivedLeaveRequests(data.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to load archived leave requests:', error);
+    }
+  };
+
+  const loadLeaveCalendar = async () => {
+    try {
+      const response = await fetch('/api/payroll/leave-requests/calendar', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setLeaveCalendarEvents(data.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to load leave calendar:', error);
+      toast.error('Failed to load leave calendar');
+    }
+  };
+
+  const loadLeaveReminders = async () => {
+    try {
+      const response = await fetch('/api/payroll/leave-requests/reminders', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setLeaveReminders(data.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to load leave reminders:', error);
+    }
+  };
+
   const handleAddLeaveRequest = () => {
     setLeaveFormData({
       employee_id: '',
