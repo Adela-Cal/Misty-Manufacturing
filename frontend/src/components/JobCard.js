@@ -550,9 +550,10 @@ const JobCard = ({ jobId, stage, orderId, onClose, onJobStarted }) => {
         // Move job to next stage
         const stageOrder = [
           ProductionStage.ORDER_ENTERED,
+          ProductionStage.PENDING_MATERIAL,
           ProductionStage.PAPER_SLITTING,
-          ProductionStage.CORE_WINDING,
-          ProductionStage.FINISHING_PACKING,
+          ProductionStage.WINDING,
+          ProductionStage.FINISHING,
           ProductionStage.DELIVERY,
           ProductionStage.INVOICING
         ];
