@@ -369,6 +369,75 @@ const Reports = () => {
     }
   };
   
+  const loadProfitabilityReport = async () => {
+    try {
+      setLoadingProfitability(true);
+      
+      // Build request based on mode
+      const requestData = {
+        profit_threshold: profitThreshold
+      };
+      
+      if (profitabilityMode === 'single' && selectedOrders.length > 0) {
+        requestData.order_ids = selectedOrders;
+      } else if (profitabilityMode === 'multiple') {
+        // Filter by client if selected
+        if (profitabilityClient) {
+          requestData.client_id = profitabilityClient;
+        }
+        
+        // Date range
+        let finalStartDate = profitabilityStartDate;
+        let finalEndDate = profitabilityEndDate;
+        
+        if (profitabilityDatePreset !== 'all_time' && (!finalStartDate || !finalEndDate)) {
+          toast.error('Please select date range');
+          return;
+        }
+        
+        if (finalStartDate && finalEndDate) {
+          requestData.start_date = finalStartDate + 'T00:00:00Z';
+          requestData.end_date = finalEndDate + 'T23:59:59Z';
+        }
+      }
+      
+      const response = await fetch('/api/reports/profitability', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setProfitabilityReport(data.data);
+        toast.success(data.message);
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to generate profitability report');
+      }
+    } catch (error) {
+      console.error('Failed to load profitability report:', error);
+      toast.error('Failed to load profitability report');
+    } finally {
+      setLoadingProfitability(false);
+    }
+  };
+  
+  const loadCompletedOrders = async () => {
+    try {
+      const response = await apiHelpers.getOrders();
+      const completed = response.data.filter(order => 
+        order.status === 'completed' || order.current_stage === 'cleared'
+      );
+      setCompletedOrders(completed);
+    } catch (error) {
+      console.error('Failed to load completed orders:', error);
+    }
+  };
+  
   const toggleJobDetails = (jobId) => {
     setExpandedJobDetails(prev => ({
       ...prev,
