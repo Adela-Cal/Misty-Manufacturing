@@ -13,6 +13,17 @@ import {
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
 
+// Production Stage Enum (matches backend)
+const ProductionStage = {
+  ORDER_ENTERED: 'order_entered',
+  PAPER_SLITTING: 'paper_slitting',
+  CORE_WINDING: 'core_winding',
+  FINISHING_PACKING: 'finishing_packing',
+  DELIVERY: 'delivery',
+  INVOICING: 'invoicing',
+  CLEARED: 'cleared'
+};
+
 // Machine Line Configurations
 const MACHINE_LINES = {
   paper_slitting: {
