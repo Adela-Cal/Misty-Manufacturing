@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Pending Timesheets Endpoint
-Testing the pending timesheets endpoint to verify it's returning submitted timesheets waiting for approval.
+Backend API Testing Suite for Profitability Report Material Costs and Data Sources Debugging
 
 PRIORITY TESTS:
-1. Test GET /api/payroll/timesheets/pending endpoint
-2. Check if there are any submitted timesheets in the database
-3. Verify the data is being returned correctly
-4. Check for any filtering or serialization issues
-5. Create test submitted timesheet if none exists
+1. Check job_cards collection structure - what fields exist for material usage?
+2. Check if client_products endpoint exists and returns data
+3. Verify completed orders have associated job cards
+4. Identify correct field names for material usage in job cards
+
+TEST STEPS:
+1. Login with admin credentials (Callum/Peach7510)
+2. GET /api/job-cards to see structure of job cards
+3. Check a sample job card for material-related fields
+4. GET /api/client-products to verify endpoint exists
+5. Check structure of client products
+6. GET /api/orders and find one completed order
+7. Check if that order has a job card with order_id matching
+8. Examine what material fields are in the job card
 """
 
 import requests
