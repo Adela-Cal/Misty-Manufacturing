@@ -341,38 +341,17 @@ const ProductionBoard = () => {
             </button>
             
             {/* Jump to Stage */}
-            <div className="relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleJumpDropdown(job.id);
-                }}
-                className="text-gray-400 hover:text-green-400 transition-colors"
-                title="Jump to Stage"
-                data-testid={`jump-stage-${job.id}`}
-              >
-                <JumpingManIcon className="h-4 w-4" />
-              </button>
-              
-              {jumpDropdowns[job.id] && (
-                <div 
-                  className="absolute right-0 mt-1 w-48 bg-gray-800 border border-gray-600 rounded-md shadow-lg z-10"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="py-1">
-                    {getAvailableStages(stageKey).map((stage) => (
-                      <button
-                        key={stage}
-                        onClick={() => jumpToStage(job.id, stage)}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-                      >
-                        Jump to {stageDisplayNames[stage]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                openJumpModal(job.id, stageKey);
+              }}
+              className="text-gray-400 hover:text-green-400 transition-colors"
+              title="Jump to Stage"
+              data-testid={`jump-stage-${job.id}`}
+            >
+              <JumpingManIcon className="h-4 w-4" />
+            </button>
             
             {/* Interactive Job Card */}
             <button
