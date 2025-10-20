@@ -1110,7 +1110,7 @@ const PayrollManagement = () => {
                     <input
                       type="date"
                       value={leaveFormData.start_date}
-                      onChange={(e) => setLeaveFormData({...leaveFormData, start_date: e.target.value})}
+                      onChange={(e) => handleDateChange('start_date', e.target.value)}
                       className="misty-input w-full"
                       required
                     />
@@ -1124,8 +1124,9 @@ const PayrollManagement = () => {
                     <input
                       type="date"
                       value={leaveFormData.end_date}
-                      onChange={(e) => setLeaveFormData({...leaveFormData, end_date: e.target.value})}
+                      onChange={(e) => handleDateChange('end_date', e.target.value)}
                       className="misty-input w-full"
+                      min={leaveFormData.start_date}
                       required
                     />
                   </div>
@@ -1142,9 +1143,18 @@ const PayrollManagement = () => {
                       value={leaveFormData.hours_requested}
                       onChange={(e) => setLeaveFormData({...leaveFormData, hours_requested: e.target.value})}
                       className="misty-input w-full"
-                      placeholder="e.g., 8, 38, 76"
+                      placeholder="Auto-calculated from dates"
                       required
                     />
+                    {leaveFormData.start_date && leaveFormData.end_date && (
+                      <p className="text-xs text-blue-400 mt-1">
+                        ℹ️ {calculateBusinessDays(leaveFormData.start_date, leaveFormData.end_date)} business days 
+                        (excludes weekends) × 8 hours = {leaveFormData.hours_requested || 0} hours
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      You can manually adjust this value if needed
+                    </p>
                   </div>
 
                   {/* Approver Selection */}
