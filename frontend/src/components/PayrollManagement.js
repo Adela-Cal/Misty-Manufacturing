@@ -1668,13 +1668,19 @@ const PayrollManagement = () => {
                               )}
                             </div>
                           </div>
-                          <div className="text-right">
-                            <div className="text-3xl font-bold text-blue-400">
+                          <div className="text-right flex flex-col items-end">
+                            <div className="text-3xl font-bold text-blue-400 mb-2">
                               {startDate.getDate()}
                             </div>
-                            <div className="text-sm text-gray-400">
+                            <div className="text-sm text-gray-400 mb-3">
                               {startDate.toLocaleDateString('en-US', { month: 'short' })}
                             </div>
+                            <button
+                              onClick={() => handleCancelLeave(event.id)}
+                              className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                            >
+                              Cancel Leave
+                            </button>
                           </div>
                         </div>
                       </div>
