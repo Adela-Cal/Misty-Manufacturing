@@ -43,7 +43,8 @@ const ProductionBoard = () => {
   const [productionBoard, setProductionBoard] = useState({});
   const [loading, setLoading] = useState(true);
   const [expandedJobs, setExpandedJobs] = useState({});
-  const [jumpDropdowns, setJumpDropdowns] = useState({}); // For managing jump dropdown visibility
+  const [showJumpModal, setShowJumpModal] = useState(false);
+  const [jumpJobData, setJumpJobData] = useState({ jobId: null, currentStage: null, stages: [] });
   const [showJobCard, setShowJobCard] = useState(false);
   const [selectedJobCard, setSelectedJobCard] = useState({ jobId: null, stage: null, orderId: null });
 
