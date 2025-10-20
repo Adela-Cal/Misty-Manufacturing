@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from './Layout';
 import TimesheetEntry from './TimesheetEntry';
+import PayrollReports from './PayrollReports';
 import { useAuth } from '../contexts/AuthContext';
 import { apiHelpers, formatCurrency, formatDate } from '../utils/api';
 import { toast } from 'sonner';
@@ -14,7 +15,8 @@ import {
   CheckCircleIcon,
   TrashIcon,
   ArchiveBoxIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  BuildingLibraryIcon
 } from '@heroicons/react/24/outline';
 
 const PayrollManagement = () => {
