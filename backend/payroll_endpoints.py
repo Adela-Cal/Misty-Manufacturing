@@ -725,6 +725,108 @@ async def get_my_approval_requests(current_user: dict = Depends(require_any_role
     
     return {"success": True, "data": my_requests}
 
+@payroll_router.get("/leave-requests/archived")
+async def get_archived_leave_requests(current_user: dict = Depends(require_payroll_access)):
+    """Get all archived (approved/declined) leave requests"""
+    
+    archived_requests = await db.leave_requests.find({
+        "status": {"$in": [LeaveStatus.APPROVED, LeaveStatus.REJECTED]}
+    }).sort("created_at", -1).to_list(1000)
+    
+    # Remove MongoDB ObjectId and enrich with employee names
+    for request in archived_requests:
+        if "_id" in request:
+            del request["_id"]
+            
+        employee = await db.employee_profiles.find_one({"id": request["employee_id"]})
+        if employee:
+            request["employee_name"] = f"{employee['first_name']} {employee['last_name']}"
+        
+        # Get approver name
+        if request.get("approved_by"):
+            approver = await db.users.find_one({"id": request["approved_by"]})
+            if approver:
+                request["approver_name"] = approver.get("full_name", "Unknown")
+    
+    return {"success": True, "data": archived_requests}
+
+@payroll_router.get("/leave-requests/calendar")
+async def get_leave_calendar(current_user: dict = Depends(require_any_role)):
+    """Get all upcoming approved leave for calendar view"""
+    
+    today = datetime.utcnow().date()
+    
+    # Get approved leave requests starting from today or in the future
+    upcoming_leave = await db.leave_requests.find({
+        "status": LeaveStatus.APPROVED,
+        "end_date": {"$gte": today.isoformat()}
+    }).sort("start_date", 1).to_list(1000)
+    
+    # Enrich with employee details
+    calendar_events = []
+    for request in upcoming_leave:
+        if "_id" in request:
+            del request["_id"]
+            
+        employee = await db.employee_profiles.find_one({"id": request["employee_id"]})
+        if employee:
+            calendar_events.append({
+                "id": request["id"],
+                "employee_id": request["employee_id"],
+                "employee_name": f"{employee['first_name']} {employee['last_name']}",
+                "employee_number": employee["employee_number"],
+                "department": employee.get("department", "N/A"),
+                "leave_type": request["leave_type"],
+                "start_date": request["start_date"],
+                "end_date": request["end_date"],
+                "hours_requested": float(request["hours_requested"]),
+                "reason": request.get("reason", "")
+            })
+    
+    return {"success": True, "data": calendar_events}
+
+@payroll_router.get("/leave-requests/reminders")
+async def get_leave_reminders(current_user: dict = Depends(require_any_role)):
+    """Get leave reminders for upcoming approved leave (1 week and 1 day before)"""
+    
+    today = datetime.utcnow().date()
+    one_week_from_now = today + timedelta(days=7)
+    tomorrow = today + timedelta(days=1)
+    
+    # Get approved leave starting in 1 week or 1 day
+    upcoming_leave = await db.leave_requests.find({
+        "status": LeaveStatus.APPROVED,
+        "start_date": {"$in": [one_week_from_now.isoformat(), tomorrow.isoformat()]}
+    }).to_list(100)
+    
+    reminders = []
+    for request in upcoming_leave:
+        if "_id" in request:
+            del request["_id"]
+            
+        employee = await db.employee_profiles.find_one({"id": request["employee_id"]})
+        if employee:
+            start_date = datetime.fromisoformat(request["start_date"]).date()
+            days_until = (start_date - today).days
+            
+            reminder_type = "1_week" if days_until == 7 else "1_day"
+            
+            reminders.append({
+                "id": request["id"],
+                "employee_name": f"{employee['first_name']} {employee['last_name']}",
+                "employee_number": employee["employee_number"],
+                "department": employee.get("department", "N/A"),
+                "leave_type": request["leave_type"],
+                "start_date": request["start_date"],
+                "end_date": request["end_date"],
+                "hours_requested": float(request["hours_requested"]),
+                "days_until": days_until,
+                "reminder_type": reminder_type,
+                "message": f"{employee['first_name']} {employee['last_name']} has approved {request['leave_type'].replace('_', ' ')} starting in {days_until} {'day' if days_until == 1 else 'days'}"
+            })
+    
+    return {"success": True, "data": reminders}
+
 @payroll_router.post("/leave-requests/{request_id}/approve", response_model=StandardResponse)
 async def approve_leave_request(request_id: str, current_user: dict = Depends(require_payroll_access)):
     """Approve leave request"""
