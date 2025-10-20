@@ -315,7 +315,10 @@ class RawMaterialPermutationTester:
             material_id = material.get("id") or material.get("material_id")
             
             print(f"DEBUG: Using material_id: {material_id}")
-            print(f"DEBUG: Material data: {material}")
+            print(f"DEBUG: Material has master_deckle_width_mm: {material.get('master_deckle_width_mm')}")
+            print(f"DEBUG: Material has width_mm: {material.get('width_mm')}")
+            print(f"DEBUG: Material has gsm: {material.get('gsm')}")
+            print(f"DEBUG: Material has cost_per_tonne: {material.get('cost_per_tonne')}")
             
             # Test parameters as specified in review request
             request_data = {
