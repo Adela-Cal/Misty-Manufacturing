@@ -237,6 +237,17 @@ Generated: ${new Date(data.generated_at).toLocaleString()}
           <CalendarDaysIcon className="h-5 w-5 inline mr-2" />
           Leave Entitlements
         </button>
+        <button
+          onClick={() => setActiveReportTab('bank-details')}
+          className={`px-4 py-2 font-medium transition-colors ${
+            activeReportTab === 'bank-details'
+              ? 'text-yellow-400 border-b-2 border-yellow-400'
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          <BuildingLibraryIcon className="h-5 w-5 inline mr-2" />
+          Bank Details
+        </button>
       </div>
 
       {/* Pay Slips Tab */}
