@@ -101,9 +101,10 @@ const Reports = () => {
 
   // Profitability Report states
   const [showProfitabilityModal, setShowProfitabilityModal] = useState(false);
-  const [profitabilityMode, setProfitabilityMode] = useState('multiple'); // 'single' or 'multiple'
-  const [selectedOrders, setSelectedOrders] = useState([]);
-  const [profitabilityClient, setProfitabilityClient] = useState('');
+  const [profitabilityMode, setProfitabilityMode] = useState('all'); // 'all' or 'filtered'
+  const [selectedProfitClients, setSelectedProfitClients] = useState([]); // Multiple clients
+  const [selectedProfitProducts, setSelectedProfitProducts] = useState([]); // Multiple products
+  const [clientProducts, setClientProducts] = useState([]); // All client products
   const [profitabilityStartDate, setProfitabilityStartDate] = useState('');
   const [profitabilityEndDate, setProfitabilityEndDate] = useState('');
   const [profitabilityDatePreset, setProfitabilityDatePreset] = useState('last_30_days');
