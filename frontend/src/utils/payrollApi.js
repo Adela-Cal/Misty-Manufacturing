@@ -12,6 +12,7 @@ export const payrollApi = {
   
   // Timesheet Management
   getCurrentWeekTimesheet: (employeeId) => api.get(`/payroll/timesheets/current-week/${employeeId}`),
+  getEmployeeTimesheets: (employeeId) => api.get(`/payroll/timesheets/employee/${employeeId}`),
   updateTimesheet: (id, data) => api.put(`/payroll/timesheets/${id}`, data),
   submitTimesheet: (id) => api.post(`/payroll/timesheets/${id}/submit`),
   approveTimesheet: (id) => api.post(`/payroll/timesheets/${id}/approve`),
