@@ -28,6 +28,11 @@ const PayrollManagement = () => {
   const [pendingTimesheets, setPendingTimesheets] = useState([]);
   const [pendingLeaveRequests, setPendingLeaveRequests] = useState([]);
   const [allLeaveRequests, setAllLeaveRequests] = useState([]);
+  const [archivedLeaveRequests, setArchivedLeaveRequests] = useState([]);
+  const [leaveCalendarEvents, setLeaveCalendarEvents] = useState([]);
+  const [leaveReminders, setLeaveReminders] = useState([]);
+  const [showArchivedLeave, setShowArchivedLeave] = useState(false);
+  const [showLeaveCalendar, setShowLeaveCalendar] = useState(false);
   const [timesheetReminder, setTimesheetReminder] = useState(null);
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
   const [showTimesheetModal, setShowTimesheetModal] = useState(false);
