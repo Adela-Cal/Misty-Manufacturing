@@ -144,7 +144,16 @@ class TimesheetFlowTester:
             
             if response.status_code == 200:
                 data = response.json()
-                timesheet_data = data.get('data', {})
+                
+                # Check if response is direct timesheet data or wrapped in StandardResponse
+                if isinstance(data, dict) and 'id' in data:
+                    # Direct timesheet data
+                    timesheet_data = data
+                elif isinstance(data, dict) and 'data' in data:
+                    # Wrapped in StandardResponse
+                    timesheet_data = data.get('data', {})
+                else:
+                    timesheet_data = {}
                 
                 if timesheet_data and timesheet_data.get('id'):
                     self.timesheet_id = timesheet_data['id']
