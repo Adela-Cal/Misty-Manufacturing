@@ -3189,6 +3189,39 @@ async def generate_job_invoice(
     # Insert invoice record
     await db.invoices.insert_one(invoice_record)
     
+    # Calculate if job is fully invoiced for partial invoices
+    is_fully_invoiced = False
+    if invoice_data.get("invoice_type") == "partial":
+        # Get existing invoice history
+        invoice_history = job.get("invoice_history", [])
+        
+        # Add this invoice to history
+        invoice_history_entry = {
+            "invoice_number": invoice_number,
+            "invoice_id": invoice_record["id"],
+            "items": invoice_data.get("items", []),
+            "date": datetime.now(timezone.utc).isoformat()
+        }
+        invoice_history.append(invoice_history_entry)
+        
+        # Calculate total invoiced quantities per item
+        invoiced_quantities = {}
+        for inv in invoice_history:
+            for item in inv.get("items", []):
+                product_id = item.get("product_id") or item.get("product_name")
+                if product_id:
+                    invoiced_quantities[product_id] = invoiced_quantities.get(product_id, 0) + item.get("quantity", 0)
+        
+        # Check if all items are fully invoiced
+        is_fully_invoiced = True
+        for item in job["items"]:
+            product_id = item.get("product_id") or item.get("product_name")
+            original_quantity = item.get("quantity", 0)
+            invoiced_qty = invoiced_quantities.get(product_id, 0)
+            if invoiced_qty < original_quantity:
+                is_fully_invoiced = False
+                break
+    
     # Update job status and move to accounting transactions
     update_data = {
         "invoiced": True,
@@ -3199,14 +3232,23 @@ async def generate_job_invoice(
         "updated_at": datetime.now(timezone.utc)
     }
     
-    # If partial invoice, don't mark as fully invoiced
+    # If partial invoice, track history and check if fully invoiced
     if invoice_data.get("invoice_type") == "partial":
-        update_data["invoiced"] = False
-        update_data["partially_invoiced"] = True
-        update_data["current_stage"] = "delivery"  # Keep in delivery stage for remaining items
-        update_data["status"] = "pending"  # Keep as pending for partial invoices
-        # Remove invoice date for partial invoices
-        del update_data["invoice_date"]
+        update_data["invoice_history"] = invoice_history
+        update_data["fully_invoiced"] = is_fully_invoiced
+        
+        if not is_fully_invoiced:
+            # Keep in active live jobs
+            update_data["invoiced"] = False
+            update_data["partially_invoiced"] = True
+            update_data["current_stage"] = "delivery"  # Keep in delivery stage for remaining items
+            update_data["status"] = "active"  # Keep as active for partial invoices
+            # Remove invoice date for partial invoices
+            del update_data["invoice_date"]
+        else:
+            # All items invoiced - move to accounting
+            update_data["invoiced"] = True
+            update_data["partially_invoiced"] = False
     
     await db.orders.update_one(
         {"id": job_id},
