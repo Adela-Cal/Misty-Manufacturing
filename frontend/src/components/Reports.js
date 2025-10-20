@@ -1380,13 +1380,13 @@ const Reports = () => {
                     </button>
                   </div>
                   
-                  {/* Summary Stats */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div className="bg-gray-700/50 rounded-lg p-4 text-center">
                       <p className="text-2xl font-bold text-yellow-400">
                         {materialUsageReport.grand_total_m2} m²
                       </p>
-                      <p className="text-sm text-gray-400">Total Area Used</p>
+                      <p className="text-sm text-gray-400">Total Area</p>
                     </div>
                     <div className="bg-gray-700/50 rounded-lg p-4 text-center">
                       <p className="text-2xl font-bold text-green-400">
@@ -1400,6 +1400,27 @@ const Reports = () => {
                       </p>
                       <p className="text-sm text-gray-400">Different Widths Used</p>
                     </div>
+                    <div className="bg-gray-700/50 rounded-lg p-4 text-center">
+                      <p className="text-2xl font-bold text-green-400">
+                        ${materialUsageReport.grand_total_cost_aud?.toLocaleString() || '0.00'}
+                      </p>
+                      <p className="text-sm text-gray-400">Total Cost (AUD)</p>
+                    </div>
+                  </div>
+
+                  {/* Material Info */}
+                  <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+                    <h4 className="text-blue-300 font-medium mb-2">Material Pricing Information</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-400">GSM:</span>
+                        <span className="text-white ml-2">{materialUsageReport.material_gsm}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Price per Tonne:</span>
+                        <span className="text-white ml-2">${materialUsageReport.material_price_per_tonne?.toLocaleString()}</span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Usage by Width Table */}
@@ -1410,6 +1431,8 @@ const Reports = () => {
                           <th className="text-left py-3 px-4 text-gray-300 font-medium">Width (mm)</th>
                           <th className="text-right py-3 px-4 text-gray-300 font-medium">Total Length (m)</th>
                           <th className="text-right py-3 px-4 text-gray-300 font-medium">Area (m²)</th>
+                          <th className="text-right py-3 px-4 text-gray-300 font-medium">Cost/Linear m</th>
+                          <th className="text-right py-3 px-4 text-gray-300 font-medium">Total Cost (AUD)</th>
                           {includeOrderBreakdown && (
                             <th className="text-center py-3 px-4 text-gray-300 font-medium">Orders</th>
                           )}
@@ -1422,6 +1445,8 @@ const Reports = () => {
                               <td className="py-3 px-4 text-white font-medium">{width.width_mm} mm</td>
                               <td className="py-3 px-4 text-right text-gray-300">{width.total_length_m.toLocaleString()} m</td>
                               <td className="py-3 px-4 text-right text-yellow-400 font-medium">{width.m2.toLocaleString()} m²</td>
+                              <td className="py-3 px-4 text-right text-blue-400">${width.cost_per_linear_meter_aud?.toFixed(4) || '0.0000'}</td>
+                              <td className="py-3 px-4 text-right text-green-400 font-medium">${width.total_cost_aud?.toLocaleString() || '0.00'}</td>
                               {includeOrderBreakdown && (
                                 <td className="py-3 px-4 text-center text-gray-300">{width.order_count || 0}</td>
                               )}
@@ -1430,7 +1455,7 @@ const Reports = () => {
                             {/* Order Breakdown */}
                             {includeOrderBreakdown && width.orders && width.orders.length > 0 && (
                               <tr>
-                                <td colSpan={includeOrderBreakdown ? 4 : 3} className="py-2 px-4 bg-gray-700/20">
+                                <td colSpan={includeOrderBreakdown ? 6 : 5} className="py-2 px-4 bg-gray-700/20">
                                   <div className="pl-8 space-y-1">
                                     <p className="text-sm font-medium text-gray-400 mb-2">Order Breakdown:</p>
                                     {width.orders.map((order, orderIndex) => (
@@ -1458,6 +1483,10 @@ const Reports = () => {
                           </td>
                           <td className="py-4 px-4 text-right text-yellow-400 text-lg">
                             {materialUsageReport.grand_total_m2.toLocaleString()} m²
+                          </td>
+                          <td className="py-4 px-4 text-right text-gray-400">-</td>
+                          <td className="py-4 px-4 text-right text-green-400 text-lg">
+                            ${materialUsageReport.grand_total_cost_aud?.toLocaleString() || '0.00'}
                           </td>
                           {includeOrderBreakdown && <td></td>}
                         </tr>
