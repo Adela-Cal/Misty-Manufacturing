@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, date, timedelta, timezone
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
+from uuid import uuid4
 import os
 from auth import require_admin, require_admin_or_manager, get_current_user, require_any_role, require_manager, require_payroll_access
 from payroll_models import *
