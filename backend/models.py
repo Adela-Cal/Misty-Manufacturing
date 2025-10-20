@@ -467,6 +467,13 @@ class RawMaterialPermutationRequest(BaseModel):
     desired_slit_widths: List[float]  # List of target slit widths in mm
     quantity_master_rolls: int = 1  # Number of master rolls available
 
+class ProfitabilityReportRequest(BaseModel):
+    order_ids: Optional[List[str]] = None  # For single or multiple job analysis
+    client_id: Optional[str] = None  # Filter by client
+    start_date: Optional[str] = None  # Filter by date range
+    end_date: Optional[str] = None
+    profit_threshold: float = 0.0  # Profit % threshold for alerts (default 0%)
+
 class SpiralCoreConsumptionRequest(BaseModel):
     product_specification_id: str
     core_internal_diameter: float  # mm
