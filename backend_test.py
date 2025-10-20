@@ -86,43 +86,36 @@ class BackendAPITester:
             self.log_result("Authentication", False, f"Authentication error: {str(e)}")
             return False
 
-    def test_payroll_employee_synchronization(self):
+    def test_pending_timesheets_endpoint(self):
         """
-        PRIORITY TEST 1: Payroll Employee Synchronization
-        Test GET /api/payroll/employees and POST /api/payroll/employees/sync
-        Verify employee auto-sync with Staff and Security users
+        PRIORITY TEST 1: Pending Timesheets Endpoint Testing
+        Test GET /api/payroll/timesheets/pending endpoint to verify it's returning submitted timesheets
         """
         print("\n" + "="*80)
-        print("PRIORITY TEST 1: PAYROLL EMPLOYEE SYNCHRONIZATION")
-        print("Testing employee synchronization with Staff and Security users")
+        print("PRIORITY TEST 1: PENDING TIMESHEETS ENDPOINT TESTING")
+        print("Testing GET /api/payroll/timesheets/pending endpoint")
         print("="*80)
         
-        # Test 1: Get current users from Staff and Security
-        self.test_get_staff_security_users()
+        # Test 1: Check pending timesheets endpoint
+        self.test_get_pending_timesheets()
         
-        # Test 2: Test GET /api/payroll/employees (auto-sync)
-        self.test_get_employees_with_auto_sync()
+        # Test 2: Check all timesheets in database
+        self.test_get_all_timesheets()
         
-        # Test 3: Test POST /api/payroll/employees/sync (manual sync)
-        self.test_manual_employee_sync()
+        # Test 3: Check timesheet statuses
+        self.test_check_timesheet_statuses()
         
-        # Test 4: Verify employee data matches user data
-        self.test_employee_data_matches_user_data()
+        # Test 4: Create test submitted timesheet if none exists
+        self.test_create_submitted_timesheet()
         
-        # Test 5: Test role to position mapping
-        self.test_role_to_position_mapping()
+        # Test 5: Verify data structure
+        self.test_pending_timesheets_data_structure()
         
-        # Test 6: Test employee number generation
-        self.test_employee_number_generation()
+        # Test 6: Test authentication
+        self.test_pending_timesheets_authentication()
         
-        # Test 7: Test default values
-        self.test_employee_default_values()
-        
-        # Test 8: Test data enrichment
-        self.test_employee_data_enrichment()
-        
-        # Test 9: Test edge cases
-        self.test_employee_sync_edge_cases()
+        # Test 7: Check backend logs for errors
+        self.test_check_backend_logs()
 
     def create_test_substrate_stock(self):
         """Create test substrate stock for PDF testing"""
