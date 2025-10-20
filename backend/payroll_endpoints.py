@@ -756,10 +756,13 @@ async def get_leave_calendar(current_user: dict = Depends(require_any_role)):
     
     today = datetime.utcnow().date()
     
-    # Get approved leave requests starting from today or in the future
+    # Fix date format issue - use datetime object for MongoDB comparison
+    today_dt = datetime.combine(today, datetime.min.time())
+    
+    # Get approved leave requests with end_date >= today
     upcoming_leave = await db.leave_requests.find({
         "status": LeaveStatus.APPROVED,
-        "end_date": {"$gte": today.isoformat()}
+        "end_date": {"$gte": today_dt}
     }).sort("start_date", 1).to_list(1000)
     
     # Enrich with employee details
