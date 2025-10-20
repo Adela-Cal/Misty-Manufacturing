@@ -548,8 +548,12 @@ async def update_timesheet(timesheet_id: str, timesheet_data: TimesheetCreate, c
     if not existing_timesheet:
         raise HTTPException(status_code=404, detail="Timesheet not found")
     
-    # Check access permissions
-    if current_user["role"] not in ["admin", "manager", "production_manager"] and current_user["user_id"] != existing_timesheet["employee_id"]:
+    # Check if timesheet is already approved (can't edit approved timesheets)
+    if existing_timesheet.get("status") == TimesheetStatus.APPROVED:
+        raise HTTPException(status_code=400, detail="Cannot edit approved timesheet")
+    
+    # Check access permissions using the helper function
+    if not await check_timesheet_access(current_user, existing_timesheet["employee_id"]):
         raise HTTPException(status_code=403, detail="Access denied")
     
     # Update timesheet
