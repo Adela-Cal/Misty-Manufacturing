@@ -204,24 +204,18 @@ class ProfitabilityDebugTester:
                     
                     return job_cards
                     
-                elif isinstance(job_cards, list) and len(job_cards) == 0:
-                    self.log_result(
-                        "Job Cards Collection Structure", 
-                        False, 
-                        "Job cards collection is empty - no data to analyze"
-                    )
-                else:
-                    self.log_result(
-                        "Job Cards Collection Structure", 
-                        False, 
-                        f"Unexpected response format: {type(job_cards)}"
-                    )
+            elif len(job_cards) == 0:
+                self.log_result(
+                    "Job Cards Collection Structure", 
+                    False, 
+                    "Job cards collection is empty - no data to analyze"
+                )
             else:
                 self.log_result(
                     "Job Cards Endpoint Access", 
                     False, 
-                    f"Failed to access job cards endpoint: {response.status_code}",
-                    response.text
+                    "Failed to access any job cards endpoints",
+                    f"Tried endpoints: {endpoints_to_try}"
                 )
                 
         except Exception as e:
