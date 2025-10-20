@@ -5181,14 +5181,17 @@ async def get_detailed_material_usage_report(
         if not material:
             raise HTTPException(status_code=404, detail="Material not found")
         
-        # Parse dates
+        # Parse dates and remove timezone for MongoDB comparison
         start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
         end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+        start_dt = start.replace(tzinfo=None)
+        end_dt = end.replace(tzinfo=None)
         
         # Find all orders in the date range that used this material
+        # Include active orders (orders on hand) as well as completed/archived
         orders = await db.orders.find({
-            "created_at": {"$gte": start.isoformat(), "$lte": end.isoformat()},
-            "status": {"$in": ["completed", "archived"]}
+            "created_at": {"$gte": start_dt, "$lte": end_dt},
+            "status": {"$nin": ["cancelled", "deleted"]}
         }).to_list(length=None)
         
         # Track material usage by width
