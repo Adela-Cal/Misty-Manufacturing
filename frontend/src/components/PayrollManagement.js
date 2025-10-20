@@ -1018,10 +1018,76 @@ const PayrollManagement = () => {
               <h3 className="text-xl font-semibold text-white mb-4">Pending Timesheets</h3>
               <p className="text-gray-400 mb-4">Review and approve employee timesheets</p>
               
-              <div className="text-center py-8">
-                <CheckCircleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-400">Timesheet approval interface will be implemented here</p>
-              </div>
+              {pendingTimesheets.length > 0 ? (
+                <div className="misty-table">
+                  <table className="w-full">
+                    <thead>
+                      <tr>
+                        <th>Employee</th>
+                        <th>Week</th>
+                        <th>Regular Hours</th>
+                        <th>Overtime Hours</th>
+                        <th>Total Hours</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pendingTimesheets.map((timesheet) => {
+                        const regularHours = timesheet.total_regular_hours || 0;
+                        const overtimeHours = timesheet.total_overtime_hours || 0;
+                        const totalHours = regularHours + overtimeHours;
+                        
+                        return (
+                          <tr key={timesheet.id}>
+                            <td>
+                              <p className="font-medium">{timesheet.employee_name || 'Unknown'}</p>
+                              <p className="text-sm text-gray-400">{timesheet.employee_number || 'N/A'}</p>
+                            </td>
+                            <td className="text-sm">
+                              <p>{timesheet.week_starting || timesheet.week_start}</p>
+                              <p className="text-gray-400">to {timesheet.week_ending || timesheet.week_end}</p>
+                            </td>
+                            <td className="font-medium text-green-400">{regularHours.toFixed(1)}h</td>
+                            <td className="font-medium text-yellow-400">{overtimeHours.toFixed(1)}h</td>
+                            <td className="font-bold text-white">{totalHours.toFixed(1)}h</td>
+                            <td>
+                              <span className="text-sm px-2 py-1 rounded bg-yellow-900 text-yellow-200">
+                                {timesheet.status || 'submitted'}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => handleApproveTimesheet(timesheet.id)}
+                                  className="text-green-400 hover:text-green-300 flex items-center text-sm"
+                                  disabled={approvingTimesheet === timesheet.id}
+                                >
+                                  <CheckCircleIcon className="h-4 w-4 mr-1" />
+                                  {approvingTimesheet === timesheet.id ? 'Approving...' : 'Approve'}
+                                </button>
+                                <button
+                                  onClick={() => {/* View details - could open TimesheetEntry modal */}}
+                                  className="text-blue-400 hover:text-blue-300 flex items-center text-sm"
+                                >
+                                  <EyeIcon className="h-4 w-4 mr-1" />
+                                  View
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-800 rounded-lg">
+                  <CheckCircleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-gray-300">No pending timesheets</p>
+                  <p className="text-sm text-gray-500">Submitted timesheets will appear here for approval</p>
+                </div>
+              )}
             </div>
           )}
 
