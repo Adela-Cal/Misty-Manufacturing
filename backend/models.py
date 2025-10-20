@@ -208,6 +208,7 @@ class Order(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
     acknowledged_at: Optional[datetime] = None
+    production_started_at: Optional[datetime] = None  # When production actually started
     completed_at: Optional[datetime] = None
 
 class OrderCreate(BaseModel):
