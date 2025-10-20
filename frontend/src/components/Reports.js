@@ -447,7 +447,7 @@ const Reports = () => {
     const trimmedSearch = jobCardSearchTerm.trim();
     
     if (!trimmedSearch) {
-      toast.error('Please enter a search term');
+      toast.error('Please enter a search term or click "Search All"');
       return;
     }
 
@@ -468,6 +468,27 @@ const Reports = () => {
       
       if (response.data?.data?.length === 0) {
         toast.info('No job cards found for this search');
+      } else {
+        toast.success(`Found ${response.data?.data?.length} orders with job cards`);
+      }
+    } catch (error) {
+      console.error('Failed to search job cards:', error);
+      toast.error('Failed to search job cards');
+    } finally {
+      setLoadingJobCards(false);
+    }
+  };
+
+  const searchAllJobCards = async () => {
+    try {
+      setLoadingJobCards(true);
+      
+      // Search without any parameters to get all job cards
+      const response = await apiHelpers.searchJobCards({});
+      setJobCardResults(response.data?.data || []);
+      
+      if (response.data?.data?.length === 0) {
+        toast.info('No job cards found');
       } else {
         toast.success(`Found ${response.data?.data?.length} orders with job cards`);
       }
