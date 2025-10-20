@@ -581,8 +581,8 @@ async def submit_timesheet(timesheet_id: str, current_user: dict = Depends(requi
     if not timesheet:
         raise HTTPException(status_code=404, detail="Timesheet not found")
     
-    # Check access permissions
-    if current_user["role"] not in ["admin", "manager", "production_manager"] and current_user["user_id"] != timesheet["employee_id"]:
+    # Check access permissions using the helper function
+    if not await check_timesheet_access(current_user, timesheet["employee_id"]):
         raise HTTPException(status_code=403, detail="Access denied")
     
     # Update status
