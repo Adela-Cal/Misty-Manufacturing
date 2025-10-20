@@ -309,6 +309,21 @@ backend:
         agent: "testing"
         comment: "🎯 DELETE ENDPOINT FRONTEND DEBUGGING COMPLETED: Comprehensive testing of DELETE /api/slit-widths/{slit_width_id} endpoint completed with 100% success rate (5/5 test scenarios passed). FRONTEND ISSUE ROOT CAUSE ANALYSIS: ✅ Backend DELETE endpoint is working perfectly - successfully deletes unallocated slit width entries, ✅ Response format matches frontend expectations exactly: {'success': True, 'message': 'Slit width deleted successfully', 'data': None}, ✅ Frontend can check response.data.success === true as expected, ✅ Error handling working correctly: 404 for non-existent IDs, 400 for allocated entries with proper error messages. COMPREHENSIVE TEST SCENARIOS VERIFIED: ✅ Create test slit width entry → DELETE unallocated entry (200 success), ✅ DELETE non-existent slit width ID → 404 'Slit width entry not found', ✅ CREATE allocated slit width → UPDATE to allocated status → DELETE allocated entry → 400 'Cannot delete slit width that is allocated to orders', ✅ Response structure validation: success field is boolean True, message field is string, data field is null. CONCLUSION: The DELETE /api/slit-widths/{slit_width_id} endpoint is working correctly and returns the exact response format the frontend expects. The original frontend delete functionality issue was likely caused by network connectivity, authentication token problems, or frontend error handling logic rather than backend API issues. The backend API is production-ready and fully functional."
 
+  - task: "Material Usage Report Endpoint Testing"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Material Usage Report endpoint to identify why it returns no data as requested in review"
+      - working: false
+        agent: "testing"
+        comment: "🚨 CRITICAL ISSUES IDENTIFIED - MATERIAL USAGE REPORT RETURNING NO DATA: Comprehensive testing of GET /api/stock/reports/material-usage-detailed endpoint revealed multiple critical issues preventing data retrieval. ROOT CAUSE ANALYSIS COMPLETED: ❌ STATUS FILTERING TOO RESTRICTIVE: Line 5191 filters for {'status': {'$in': ['completed', 'archived']}} but all 8 orders have 'active' status, resulting in 0 matching orders, ❌ DATE FORMAT MISMATCH: Line 5190 uses start.isoformat() string comparison but should use datetime objects for MongoDB comparison (same issue as other fixed endpoints), ❌ MISSING JOB_SPECIFICATIONS COLLECTION: Report depends on job_specifications collection having materials_composition data, but no job_specifications exist for any orders, ❌ NO MATERIALS_COMPOSITION DATA: Orders and client products lack materials_composition data required for material usage calculations. DETAILED FINDINGS: ✅ Authentication working (Callum/Peach7510), ✅ Found 3 materials available for testing, ✅ Selected material: Jintian Paper - Paper.Jin01 (ID: 56a11b18-d12e-42f8-a76f-631c97382a6e), ✅ Found 9 orders (8 active, 1 pending), ✅ Material exists in raw_materials collection, ❌ 0/9 orders within date range due to date format mismatch, ❌ 0 orders with materials_composition or job_specifications data, ❌ 0/7 client products with materials_composition data, ❌ Report returns empty results: 0 widths used, 0 m² total. SPECIFIC FIXES REQUIRED: 1) Change status filter to include 'active' orders: {'status': {'$nin': ['cancelled', 'deleted']}}, 2) Fix date comparison to use datetime objects: start_dt = start.replace(tzinfo=None), end_dt = end.replace(tzinfo=None), then {'created_at': {'$gte': start_dt, '$lte': end_dt}}, 3) Create job_specifications collection with materials_composition data for orders, 4) Populate client products with materials_composition data. SUCCESS RATE: 33.3% (5/15 tests passed). The endpoint structure is correct but data dependencies and filtering logic prevent it from returning results."
+
   - task: "Timesheet Approval Employee Not Found Error Debug"
     implemented: true
     working: true
