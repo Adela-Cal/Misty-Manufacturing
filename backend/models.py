@@ -212,6 +212,8 @@ class Order(BaseModel):
     stage_start_times: Optional[Dict[str, str]] = {}  # Stage-specific start times: {stage_name: timestamp}
     completed_at: Optional[datetime] = None
     invoice_history: Optional[List[dict]] = []  # Track partial invoices: [{invoice_number, items: [{product_id, quantity}], date}]
+    invoiced: Optional[bool] = None  # Flag when order has been invoiced (True for full invoice, False for partial)
+    partially_invoiced: Optional[bool] = None  # Flag when order has been partially invoiced
     fully_invoiced: bool = False  # Flag when all items have been invoiced
 
 class OrderCreate(BaseModel):
