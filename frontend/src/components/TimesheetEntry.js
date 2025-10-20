@@ -312,7 +312,7 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
       setSubmitting(true);
       
       const timesheetData = {
-        employee_id: employeeId,
+        employee_id: actualEmployeeId,
         week_starting: timesheet?.week_starting || payrollUtils.getCurrentWeekDates().monday.toISOString().split('T')[0],
         entries: entries
       };
