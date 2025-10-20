@@ -63,6 +63,15 @@ const Reports = () => {
   const [loadingProjectionReport, setLoadingProjectionReport] = useState(false);
   const [expandedMaterials, setExpandedMaterials] = useState({});
   const [expandedCustomers, setExpandedCustomers] = useState({});
+  
+  // Job Card Performance Report states
+  const [jobCardSearchTerm, setJobCardSearchTerm] = useState('');
+  const [jobCardSearchType, setJobCardSearchType] = useState('customer'); // customer, invoice, product
+  const [jobCardResults, setJobCardResults] = useState([]);
+  const [loadingJobCards, setLoadingJobCards] = useState(false);
+  const [selectedOrderJobCards, setSelectedOrderJobCards] = useState(null);
+  const [showJobCardsModal, setShowJobCardsModal] = useState(false);
+  const [editingJobCard, setEditingJobCard] = useState(null);
   const [selectedProjectionPeriod, setSelectedProjectionPeriod] = useState('3_months');
   
   // Modal states for each report type
