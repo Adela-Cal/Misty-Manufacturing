@@ -327,7 +327,7 @@ class InvoicingWorkflowTester:
             for item in self.test_order_data["items"]:
                 partial_quantity = int(item["quantity"] * 0.5)  # 50%
                 partial_items.append({
-                    "product_id": item["product_id"],
+                    "product_id": item["product_id"],  # Use same product_id as original order
                     "product_name": item["product_name"],
                     "quantity": partial_quantity,
                     "unit_price": item["unit_price"],
