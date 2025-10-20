@@ -257,6 +257,7 @@ const ProductSpecifications = () => {
       layers_required: 0,
       layer_specifications: [],
       core_winding_spec_id: '',  // Selected core winding specification
+      grams_of_glue_per_layer_meter: '',
       // Pallet specific fields
       pallet_dimensions: {
         length: '',
