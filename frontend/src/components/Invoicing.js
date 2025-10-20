@@ -23,7 +23,9 @@ const Invoicing = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showPartSupplyModal, setShowPartSupplyModal] = useState(false);
   const [invoiceType, setInvoiceType] = useState('full');
+  const [partialItems, setPartialItems] = useState([]);
   const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
   const [reportYear, setReportYear] = useState(new Date().getFullYear());
   const [xeroConnected, setXeroConnected] = useState(false);
