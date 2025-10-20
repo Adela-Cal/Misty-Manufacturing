@@ -2194,100 +2194,104 @@ const Reports = () => {
           title="Job Card Performance Report"
         >
           <div className="space-y-4">
-            <div className="flex flex-col gap-4">
-              {/* Date Range Selection */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Date Range Preset */}
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Date Range</label>
-                  <select
-                    className="misty-select"
-                    value={jobPerformanceDatePreset}
-                    onChange={(e) => {
-                      setJobPerformanceDatePreset(e.target.value);
-                      if (e.target.value !== 'custom') {
-                        const { start, end } = getDateRangeFromPreset(e.target.value);
-                        setJobPerformanceStartDate(start);
-                        setJobPerformanceEndDate(end);
-                      }
-                    }}
-                  >
-                    <option value="last_7_days">Last 7 Days</option>
-                    <option value="last_30_days">Last 30 Days</option>
-                    <option value="last_90_days">Last 90 Days</option>
-                    <option value="last_6_months">Last 6 Months</option>
-                    <option value="last_12_months">Last 12 Months</option>
-                    <option value="custom">Custom Range</option>
-                  </select>
+            {/* Search Interface */}
+            <div className="border border-gray-700 rounded-lg p-4 bg-gray-800/50">
+              <h4 className="text-sm text-gray-300 mb-3">Search Job Cards</h4>
+              <div className="grid grid-cols-4 gap-3">
+                <select
+                  className="misty-select"
+                  value={jobCardSearchType}
+                  onChange={(e) => setJobCardSearchType(e.target.value)}
+                >
+                  <option value="customer">Customer</option>
+                  <option value="invoice">Invoice Number</option>
+                  <option value="product">Product</option>
+                </select>
+                
+                <input
+                  type="text"
+                  className="misty-input col-span-2"
+                  placeholder={`Enter ${jobCardSearchType}...`}
+                  value={jobCardSearchTerm}
+                  onChange={(e) => setJobCardSearchTerm(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && searchJobCards()}
+                />
+                
+                <button
+                  onClick={searchJobCards}
+                  disabled={loadingJobCards}
+                  className="misty-button misty-button-primary"
+                >
+                  {loadingJobCards ? 'Searching...' : 'Search'}
+                </button>
+              </div>
+            </div>
+
+            {/* Search Results */}
+            {jobCardResults.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-sm text-gray-300">
+                  Found {jobCardResults.length} order(s) with completed job cards
+                </h4>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {jobCardResults.map((orderGroup) => (
+                    <div
+                      key={orderGroup.order_id}
+                      onDoubleClick={() => viewOrderJobCards(orderGroup)}
+                      className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="text-white font-semibold">
+                            {orderGroup.order_number} - {orderGroup.client_name}
+                          </h3>
+                          {orderGroup.invoice_number && (
+                            <p className="text-sm text-yellow-400">
+                              Invoice: {orderGroup.invoice_number}
+                            </p>
+                          )}
+                        </div>
+                        <span className="bg-green-900 text-green-200 px-3 py-1 rounded-full text-sm">
+                          {orderGroup.job_cards.length} Job Card{orderGroup.job_cards.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      
+                      <div className="text-sm text-gray-400">
+                        <p className="mb-1">
+                          <span className="font-medium">Stages Completed:</span>{' '}
+                          {orderGroup.job_cards
+                            .map(card => card.stage.replace(/_/g, ' ').toUpperCase())
+                            .join(' → ')}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Double-click to view and edit job cards
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
+            )}
 
-              {/* Custom Date Range Selection */}
-              {jobPerformanceDatePreset === 'custom' && (
-                <div className="border border-gray-700 rounded-lg p-4 bg-gray-800/50">
-                  <h4 className="text-sm text-gray-300 mb-3">Custom Date Range</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-2">Start Date</label>
-                      <div className="flex gap-2">
-                        <select
-                          className="misty-select flex-1"
-                          value={customJobPerformanceStartMonth}
-                          onChange={(e) => setCustomJobPerformanceStartMonth(parseInt(e.target.value))}
-                        >
-                          {['January', 'February', 'March', 'April', 'May', 'June', 
-                            'July', 'August', 'September', 'October', 'November', 'December']
-                            .map((month, idx) => (
-                              <option key={idx} value={idx}>{month}</option>
-                            ))}
-                        </select>
-                        <select
-                          className="misty-select"
-                          value={customJobPerformanceStartYear}
-                          onChange={(e) => setCustomJobPerformanceStartYear(parseInt(e.target.value))}
-                        >
-                          {[...Array(5)].map((_, i) => {
-                            const year = new Date().getFullYear() - i;
-                            return <option key={year} value={year}>{year}</option>;
-                          })}
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-2">End Date</label>
-                      <div className="flex gap-2">
-                        <select
-                          className="misty-select flex-1"
-                          value={customJobPerformanceEndMonth}
-                          onChange={(e) => setCustomJobPerformanceEndMonth(parseInt(e.target.value))}
-                        >
-                          {['January', 'February', 'March', 'April', 'May', 'June', 
-                            'July', 'August', 'September', 'October', 'November', 'December']
-                            .map((month, idx) => (
-                              <option key={idx} value={idx}>{month}</option>
-                            ))}
-                        </select>
-                        <select
-                          className="misty-select"
-                          value={customJobPerformanceEndYear}
-                          onChange={(e) => setCustomJobPerformanceEndYear(parseInt(e.target.value))}
-                        >
-                          {[...Array(5)].map((_, i) => {
-                            const year = new Date().getFullYear() - i;
-                            return <option key={year} value={year}>{year}</option>;
-                          })}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+            {/* Empty State */}
+            {!loadingJobCards && jobCardResults.length === 0 && jobCardSearchTerm && (
+              <div className="text-center py-8">
+                <DocumentChartBarIcon className="mx-auto h-12 w-12 text-gray-600 mb-3" />
+                <p className="text-gray-400">No job cards found for this search</p>
+                <p className="text-sm text-gray-500 mt-1">Try a different search term</p>
+              </div>
+            )}
 
-              {/* Action Buttons */}
-              <div className="flex gap-2">
-                <button
-                  onClick={loadJobPerformanceReport}
-                  disabled={loadingJobPerformance}
+            {/* Instructions */}
+            {!jobCardSearchTerm && (
+              <div className="text-center py-8">
+                <DocumentChartBarIcon className="mx-auto h-12 w-12 text-gray-600 mb-3" />
+                <p className="text-gray-400">Search for job cards by customer, invoice number, or product</p>
+                <p className="text-sm text-gray-500 mt-1">Results are grouped by order number</p>
+              </div>
+            )}
+          </div>
+        </ReportModal>
                   className="misty-button misty-button-primary flex-1"
                 >
                   {loadingJobPerformance ? 'Generating...' : 'Generate Report'}
