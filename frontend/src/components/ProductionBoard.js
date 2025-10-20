@@ -260,9 +260,9 @@ const ProductionBoard = () => {
     return { x: 60, y: 60 };
   };
 
-  const getJobStartStatus = (job) => {
-    // A job is considered "started" if it has a production_started_at timestamp
-    if (job.production_started_at) {
+  const getJobStartStatus = (job, currentStage) => {
+    // Check if the job has been started for the CURRENT stage
+    if (job.stage_start_times && job.stage_start_times[currentStage]) {
       return 'started';
     }
     return 'not_started';
