@@ -329,6 +329,7 @@ const ProductSpecifications = () => {
       layers_required: spec.specifications?.layers_required || 0,
       layer_specifications: spec.specifications?.layer_specifications || [],
       core_winding_spec_id: spec.core_winding_spec_id || '',
+      grams_of_glue_per_layer_meter: spec.specifications?.grams_of_glue_per_layer_meter || '',
       // Pallet specific fields
       pallet_dimensions: {
         length: spec.specifications?.dimensions?.length || '',
