@@ -459,6 +459,62 @@ class StageUpdateTester:
         except Exception as e:
             self.log_result("Stage Update Variations", False, f"Error: {str(e)}")
 
+    def test_stage_update_with_correct_values(self, order):
+        """Test stage update with correct enum values"""
+        try:
+            print("\n--- Testing with CORRECT ProductionStage enum values ---")
+            
+            order_id = order.get('id')
+            if not order_id:
+                return
+            
+            # Based on the 422 error, the correct enum values are:
+            # 'order_entered', 'pending_material', 'paper_slitting', 'winding', 
+            # 'finishing', 'delivery', 'invoicing', 'accounting_transaction', 'cleared'
+            
+            # Test moving from paper_slitting to winding (correct values)
+            correct_body = {
+                "from_stage": "paper_slitting",
+                "to_stage": "winding"  # This should be correct instead of "core_winding"
+            }
+            
+            print(f"\n🧪 Testing with CORRECT enum values:")
+            print(f"   Body: {json.dumps(correct_body, indent=2)}")
+            
+            response = self.session.put(
+                f"{API_BASE}/orders/{order_id}/stage", 
+                json=correct_body
+            )
+            
+            print(f"   Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log_result(
+                    "Stage Update - Correct Values", 
+                    True, 
+                    "Successfully updated stage with correct enum values",
+                    f"Response: {json.dumps(result, indent=2)}"
+                )
+                print(f"   ✅ SUCCESS: {json.dumps(result, indent=2)}")
+            else:
+                try:
+                    error_data = response.json()
+                    error_details = json.dumps(error_data, indent=2)
+                except:
+                    error_details = response.text
+                
+                self.log_result(
+                    "Stage Update - Correct Values", 
+                    False, 
+                    f"Still failed with status {response.status_code}",
+                    error_details
+                )
+                print(f"   ❌ FAILED: {error_details}")
+                
+        except Exception as e:
+            self.log_result("Stage Update - Correct Values", False, f"Error: {str(e)}")
+
     def print_test_summary(self):
         """Print test summary"""
         print("\n" + "="*80)
