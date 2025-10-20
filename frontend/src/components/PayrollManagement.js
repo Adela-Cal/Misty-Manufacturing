@@ -296,6 +296,31 @@ const PayrollManagement = () => {
     }
   };
 
+  const handleBankDetailsSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch(`/api/payroll/employees/${selectedEmployee.id}/bank-details?bank_account_bsb=${encodeURIComponent(bankDetailsFormData.bank_account_bsb)}&bank_account_number=${encodeURIComponent(bankDetailsFormData.bank_account_number)}&tax_file_number=${encodeURIComponent(bankDetailsFormData.tax_file_number || '')}&superannuation_fund=${encodeURIComponent(bankDetailsFormData.superannuation_fund || '')}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (response.ok) {
+        toast.success('Bank details updated successfully');
+        setShowBankDetailsModal(false);
+        loadPayrollData();
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to update bank details');
+      }
+    } catch (error) {
+      console.error('Failed to update bank details:', error);
+      toast.error('Failed to update bank details');
+    }
+  };
+
   const handleApproveLeave = async (requestId) => {
     try {
       const response = await fetch(`/api/payroll/leave-requests/${requestId}/approve`, {
