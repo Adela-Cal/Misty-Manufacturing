@@ -942,15 +942,7 @@ const PayrollManagement = () => {
           )}
 
           {activeTab === 'reports' && hasPermission('manage_payroll') && (
-            <div className="misty-card p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">Payroll Reports</h3>
-              <p className="text-gray-400 mb-4">Generate payroll summaries and leave balance reports</p>
-              
-              <div className="text-center py-8">
-                <BanknotesIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-400">Payroll reporting interface will be implemented here</p>
-              </div>
-            </div>
+            <PayrollReports />
           )}
         </div>
       </div>
