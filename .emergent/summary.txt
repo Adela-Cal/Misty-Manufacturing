@@ -1,111 +1,76 @@
 <analysis>
-The trajectory details a transition from an initial AI engineer's work to a new phase under user guidance. The previous work focused on enhancing reports (Job Card Performance, Projected Order Analysis with material cost corrections), UI updates (Client Product Catalogue, Product Specifications for spiral cores), and a comprehensive payroll system overhaul (employee sync, archiving, leave management with balance deduction, and backend error handling). The current AI engineer's work, prompted by specific user requests, addressed numerous bugs and implemented new features. Key achievements include fixing pending timesheet display issues by correcting  mapping, implementing full payroll reports with backend endpoints, enabling timesheet saving and approval, adding a view/edit previous timesheets feature, transforming the Jump To function on the Production Board into a modal, fixing duplicate employee codes, removing job card watermarks, improving part supply invoicing to track remaining quantities, and refining the job card workflow with stage-specific clock icons and automated stage progression. The final unresolved issue is the part supply invoicing logic.
+The trajectory details the continuation of development on the Misty Manufacturing application. Initially, the AI engineer addressed several bug reports and feature enhancements. Key issues resolved include: fixing part supply invoicing logic (including backend  model updates and re-evaluation of current stage for partially invoiced orders), correcting duplicate order number generation (which required a  call to identify a database name mismatch), and ensuring completed orders are archived and hidden from the main view. The final, ongoing task involves rectifying a UI bug where the search bar's magnifying glass icon overlaps the input text. Multiple attempts have been made, including adjusting padding and, most recently, removing the placeholder text from the search fields. This last fix for the UI is still in progress, with recent messages indicating successful file edits.
 </analysis>
 
 <product_requirements>
-The Misty Manufacturing application manages manufacturing, including product definition, job management, stock control, invoicing, and payroll. The trajectory covered:
-- **Reports**: Enhanced Job Card Performance Report with detailed metrics; corrected Projected Order Analysis for material cost calculations; new Pay Slips, Timesheets, and Leave Entitlements reports.
-- **Product Specifications**: UI updates for  and spiral core allocations; accurate spiral-wound paper core calculations across reports and job cards; data persistence for spiral core fields.
-- **Payroll Management**: Employee synchronization, soft/permanent deletion; comprehensive leave management (request creation, approval, balance deduction/restoration, calendar, reminders); timesheet submission and approval; bank details/TFN entry; unique employee codes; view/edit previous timesheets.
-- **Job Card Workflow**: Start Job updates ; Complete Run moves job to next stage and archives job cards; stage-specific clock icon status; Job Card Performance Report search by customer/invoice/product, and view/edit functionality.
-- **Invoicing**: Part supply invoicing with quantity selection, generating packing slips and invoices, tracking remaining quantities, historical archiving with invoice numbering (, ).
-- **UI/UX**: Production Board Jump To as a modal; removal of job card watermarks; general error handling improvements.
+The Misty Manufacturing application facilitates various aspects of manufacturing, including product definition, job management, stock control, invoicing, and payroll. Recent development focused on:
+-   **Reports**: Enhancements to Job Card Performance Report and Projected Order Analysis; new Pay Slips, Timesheets, and Leave Entitlements reports.
+-   **Product Specifications**: UI updates for  and spiral core allocations with accurate calculations and data persistence.
+-   **Payroll Management**: Comprehensive system including employee sync, leave management (request, approval, balance), timesheet submission/approval, bank details, unique employee codes, and previous timesheet viewing.
+-   **Job Card Workflow**: Automated  updates, stage progression, archiving, stage-specific clock icons, and enhanced Job Card Performance Report search/edit functionality.
+-   **Invoicing**: Critical part supply invoicing with features such as generating packing slips and invoices for partial quantities, retaining remaining quantities in jobs ready for invoicing, allowing repeated partial invoicing (with ,  suffixes), archiving fully invoiced jobs, and maintaining historical invoice records. Recently, the Full Invoice option should be hidden if partial invoicing has occurred.
+-   **UI/UX**: Production Board Jump To refactored to a modal, removal of job card watermarks, and general error handling. A recent UI bug involved the search bar magnifying glass overlapping text.
 </product_requirements>
 
 <key_technical_concepts>
-- **Frameworks**: React (Frontend), FastAPI (Backend).
-- **Database**: MongoDB (UUIDs for IDs, ISO string for , Pydantic for models).
-- **Data Modeling**: Pydantic for backend data validation, including nested models and Enums.
-- **APIs**: RESTful CRUD endpoints, Axios for frontend, sync endpoints.
-- **Frontend**: React hooks, conditional rendering, modal management, dynamic dropdowns, date calculations, environment variables for API URLs.
-- **Backend**: Python  for financial calculations,  for date operations, custom helper functions.
+-   **Frameworks**: React (Frontend), FastAPI (Backend).
+-   **Database**: MongoDB, using UUIDs for IDs and ISO strings for .
+-   **Data Modeling**: Pydantic for backend data validation and serialization.
+-   **APIs**: RESTful CRUD, Axios for frontend interaction, environment variables for API URLs.
+-   **Backend**: Python  for financial calculations,  for date operations.
+-   **Frontend**: React hooks, state management, conditional rendering, modal components.
+-   **Tooling**: backend                          RUNNING   pid 27, uptime 0:00:14
+code-server                      RUNNING   pid 28, uptime 0:00:14
+frontend                         STOPPED   Oct 20 12:18 PM
+mongodb                          RUNNING   pid 31, uptime 0:00:14
+supervisor>  for service management,  for backend testing,  for complex debugging.
 </key_technical_concepts>
 
 <code_architecture>
-The application uses a monorepo structure with  (FastAPI) and  (React).
+The application employs a monorepo structure, segmenting  (FastAPI) and  (React).
 
 
 
 -   ****
-    -   **Importance**: Defines core Pydantic models for data validation.
+    -   **Importance**: Defines Pydantic models for data validation.
+    -   **Changes**: Added  and  fields to  model to support part supply invoicing status tracking.
+-   ****
+    -   **Importance**: Main FastAPI application handling core logic and API endpoints.
     -   **Changes**:
-        -   : Added , , , .
-        -    Enum: Added , .
-        -    Enum: Added pending.
-        -   : Added  (now  as ) and  field.
-        -   : Made  optional.
--   ****
-    -   **Importance**: Defines Pydantic models specific to payroll.
-    -   **Changes**: : Added . New  model.
--   ****
-    -   **Importance**: Handles API routes and logic for payroll.
-    -   **Changes**: Sync employees, soft/hard delete, leave request management (approval, balance deduction/restoration, approver view), new endpoints for archived leave, leave calendar, reminders, bank details, adjustments, payslips, timesheet reports. Fixed MongoDB ObjectId serialization and Pydantic validation. Added  helper and used it for unique employee numbers. Added endpoint for . Updated timesheet endpoints to correctly map  to  for permissions. Added backend endpoints for payroll reports (Pay Slips, Timesheet reports, Leave Entitlements).
--   ****
-    -   **Importance**: Contains business logic for payroll.
-    -   **Changes**: Updated  to round Decimal values to 2 decimal places for leave balances.
--   ****
-    -   **Importance**: Main FastAPI application for products, stock, reports, and job cards.
-    -   **Changes**:  for material cost calculation and GSM retrieval. Added  endpoint to update orders. Added job card endpoints for saving () and moving stages (). Updated invoice generation to track  with partial invoicing suffixes (, , etc.).
+        -   **Order Number Generation**: Modified  endpoint (lines 1395-1396) to generate unique order numbers by querying the highest existing number for the year, preventing race conditions and duplicates.
+        -   **Invoice Generation**: Updated  endpoint to handle partial invoicing logic, including ,  suffixes for partial invoice numbers, tracking remaining quantities, and setting  to  for partially invoiced orders (line 3461).
+        -   **Live Jobs Filter**: Reverted temporary changes to  endpoint to correctly filter by  after the stage update logic in  was corrected.
+        -   **Order Archiving**: Modified  endpoint (line 1377) and  to exclude orders with  or  from the main Orders list, ensuring they are properly archived.
 -   ** (NEW FILE)**
-    -   **Importance**: One-off migration script to update existing timesheets to use  instead of .
-    -   **Changes**: Created to iterate through timesheets, find corresponding , and update .
+    -   **Importance**: One-off migration script to correct existing duplicate order numbers in the database.
+    -   **Changes**: Iterates through orders, identifies duplicates, and renumbers them. Updated to use the correct  from environment variables, resolving a critical database query mismatch.
 -   ****
-    -   **Importance**: Manages client products.
-    -   **Changes**: Added UI for .
+    -   **Importance**: Manages invoicing functionalities.
+    -   **Changes**:
+        -   **UI Logic for Part Supply**: Updated  to automatically select 'partial' invoice type if an order has existing .
+        -   **Invoice Type Selection**: Modified the invoice type modal to hide the Full Invoice option when an order has been partially invoiced.
+        -   **Search Bar Styling**: Adjusted  (e.g.,  to  then ) for search inputs to fix magnifying glass overlap. Later,  text was removed.
 -   ****
-    -   **Importance**: Manages product specifications.
-    -   **Changes**: Updated  to correctly save spiral core allocation fields.
--   ****
-    -   **Importance**: Displays and manages individual job card details.
-    -   **Changes**:  updated for spiral core formula.  now calls backend to update order's  and accepts  callback.  saves job card data and moves job to the next stage.  enum imported.
--   ****
-    -   **Importance**: Handles order creation.
-    -   **Changes**: Raw Materials Needed button condition confirmed.
--   ****
-    -   **Importance**: Central hub for payroll and leave management.
-    -   **Changes**: Replaced Edit with Delete, added Archived Staff, Add Leave Request (auto-calc hours, approver), Archived Leave Requests, Leave Calendar, Bank Details. Improved error handling. Added sync buttons. Implemented pending timesheets approval interface with Approve/View buttons and ,  functions. Updated API calls to use .
--   ****
-    -   **Importance**: Manages user roles.
-    -   **Changes**: Implicit updates for  and  roles.
--   ** (NEW FILE)**
-    -   **Importance**: Component for payroll reports.
-    -   **Changes**: Initial UI for Pay Slips, Timesheets, Leave Entitlements. Updated API calls to use .
--   ****
-    -   **Importance**: Handles individual timesheet entry and submission.
-    -   **Changes**: Updated to fetch  for current user.  and  updated to use correct . Added View Previous Timesheets button and a modal to display historical timesheets.
--   ****
-    -   **Importance**: Displays the production line and job tiles.
-    -   **Changes**: Replaced  (material status) with  (job start status), with pulsing animation based on  (now stage-specific ). The Jump To dropdown was refactored into a modal popup. Removed old  and  logic.
--   ****
-    -   **Importance**: Handles invoicing.
-    -   **Changes**: Implemented part supply invoicing modal for item selection and quantity input. Updated  to handle partial items.  now calculates remaining quantities.  added to UI.
--   ****
-    -   **Importance**: Displays various application reports.
-    -   **Changes**: Added states for job card performance report. Implemented  function. Replaced old Job Card Performance Report modal content with new search-based interface including Customer, Invoice Number, Product search fields, and a Search All button. Added  to review and edit job cards. Fixed JSX parsing errors due to leftover code. Imported . Implemented search validation to disable search button when input is empty.
--   ****
-    -   **Importance**: Utility for API calls.
-    -   **Changes**: Added  helper. Added  helper.
--   ****
-    -   **Importance**: Utility for payroll API calls.
-    -   **Changes**: Added  for current user. Added  endpoint.
+    -   **Importance**: Displays and manages client orders.
+    -   **Changes**: Search bar styling (padding adjustments and placeholder removal) applied to address the UI issue.
+-   **, , , , , **
+    -   **Importance**: Various components containing search functionalities.
+    -   **Changes**: All these components had their search input fields updated (padding adjusted and placeholder text removed) to resolve the UI overlap issue with the magnifying glass icon.
 </code_architecture>
 
 <pending_tasks>
-- **NAS Integration:** Configure the application to integrate with NAS storage for uploads and backups.
-- **Payroll Reports Implementation (Remaining):** Display leave entitlements with manual adjustment in the Overview section.
+-   **NAS Integration:** Configure the application to integrate with NAS storage for uploads and backups.
+-   **Payroll Reports Implementation (Remaining):** Display leave entitlements with manual adjustment in the Overview section.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was addressing the part supply invoicing function is still not working issue. The user provided a detailed list of requirements for this feature, including:
-- Generating a packing slip and invoice for the quantity entered.
-- Keeping the remaining quantity in the jobs ready for invoicing section.
-- Allowing repeated partial invoicing until full quantity is met.
-- Archiving the job once fully invoiced, with a history of each part supply invoice.
-- Using a consistent invoice number with a suffix (, , etc.) for partial invoices.
+Immediately before this summary request, the AI engineer was addressing a UI issue where the magnifying glass icon in search bars was overlapping the input text. This was identified through user feedback and a provided screenshot.
 
-The AI engineer's last action was to update the backend's invoice generation logic in  to properly handle partial invoicing with the , , etc. suffix for invoice numbers and to track remaining quantities and job status. The specific edit was to modify the logic after invoice insertion. The work is in progress.
+The initial approach involved increasing the  ( to , then ) on the search input fields within multiple frontend components, including , , , , , , , and . After two attempts at adjusting padding, the user reported that the issue persisted.
+
+The current strategy, as per the user's suggestion, is to remove the  text from all affected search input fields, leaving only the magnifying glass icon. The AI engineer has successfully edited several files to remove this placeholder text in  directory (e.g., , , , , , , , ). This is the last action in the trajectory, and the work on this UI fix is still in progress and not yet fully verified or summarized as complete.
 </current_work>
 
 <optional_next_step>
-Continue updating the backend logic in  after invoice insertion to manage remaining quantities and update job status correctly.
+Verify the UI fix for the search bar icon by taking a screenshot or requesting user confirmation.
 </optional_next_step>
