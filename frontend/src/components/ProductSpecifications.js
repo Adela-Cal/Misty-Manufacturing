@@ -1415,8 +1415,8 @@ const ProductSpecifications = () => {
                   </div>
                 </div>
 
-                {/* Specifications - Only show for non-Spiral Paper Core, non-Cardboard Boxes, non-Pallet, non-Plastic Bags, and non-Tapes types */}
-                {formData.product_type !== 'Spiral Paper Core' && formData.product_type !== 'Cardboard Boxes' && formData.product_type !== 'Pallet' && formData.product_type !== 'Plastic Bags' && formData.product_type !== 'Tapes' && (
+                {/* Specifications - Only show for non-Spiral Paper Core, non-Composite Core, non-Cardboard Boxes, non-Pallet, non-Plastic Bags, and non-Tapes types */}
+                {formData.product_type !== 'Spiral Paper Core' && formData.product_type !== 'Composite Core' && formData.product_type !== 'Cardboard Boxes' && formData.product_type !== 'Pallet' && formData.product_type !== 'Plastic Bags' && formData.product_type !== 'Tapes' && (
                   <div className="mb-8">
                     <h3 className="text-lg font-semibold text-white mb-4">Product Specifications</h3>
                     <div className="space-y-4">
