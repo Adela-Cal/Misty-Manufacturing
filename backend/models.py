@@ -210,6 +210,8 @@ class Order(BaseModel):
     acknowledged_at: Optional[datetime] = None
     production_started_at: Optional[datetime] = None  # When production actually started
     completed_at: Optional[datetime] = None
+    invoice_history: Optional[List[dict]] = []  # Track partial invoices: [{invoice_number, items: [{product_id, quantity}], date}]
+    fully_invoiced: bool = False  # Flag when all items have been invoiced
 
 class OrderCreate(BaseModel):
     client_id: str
