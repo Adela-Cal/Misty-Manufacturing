@@ -654,20 +654,38 @@ class InvoicingWorkflowTester:
                         f"Job status is not active: {status}"
                     )
                 
-                # Check partially_invoiced flag
+                # Check partially_invoiced flag (should be True for partial invoices, False when fully invoiced)
                 partially_invoiced = job.get("partially_invoiced", False)
-                if partially_invoiced:
-                    self.log_result(
-                        f"Partially Invoiced Flag After Invoice {invoice_count}", 
-                        True, 
-                        f"Job correctly marked as partially invoiced"
-                    )
+                fully_invoiced = job.get("fully_invoiced", False)
+                
+                if not fully_invoiced:
+                    # For partial invoices, should be marked as partially invoiced
+                    if partially_invoiced:
+                        self.log_result(
+                            f"Partially Invoiced Flag After Invoice {invoice_count}", 
+                            True, 
+                            f"Job correctly marked as partially invoiced"
+                        )
+                    else:
+                        self.log_result(
+                            f"Partially Invoiced Flag After Invoice {invoice_count}", 
+                            False, 
+                            f"Job not marked as partially invoiced"
+                        )
                 else:
-                    self.log_result(
-                        f"Partially Invoiced Flag After Invoice {invoice_count}", 
-                        False, 
-                        f"Job not marked as partially invoiced"
-                    )
+                    # For fully invoiced jobs, partially_invoiced should be False
+                    if not partially_invoiced:
+                        self.log_result(
+                            f"Partially Invoiced Flag After Invoice {invoice_count}", 
+                            True, 
+                            f"Job correctly marked as NOT partially invoiced (fully invoiced)"
+                        )
+                    else:
+                        self.log_result(
+                            f"Partially Invoiced Flag After Invoice {invoice_count}", 
+                            False, 
+                            f"Job incorrectly still marked as partially invoiced when fully invoiced"
+                        )
                 
                 # Check invoice history
                 invoice_history = job.get("invoice_history", [])
