@@ -1168,32 +1168,67 @@ class BackendAPITester:
         except Exception as e:
             self.log_result("Material Usage Report - Invalid Dates", False, f"Error: {str(e)}")
 
-    def test_get_staff_security_users(self):
-        """Test getting users from Staff and Security system"""
+    def test_get_pending_timesheets(self):
+        """Test GET /api/payroll/timesheets/pending endpoint"""
         try:
-            response = self.session.get(f"{API_BASE}/users")
+            response = self.session.get(f"{API_BASE}/payroll/timesheets/pending")
             
             if response.status_code == 200:
-                users = response.json()
-                active_users = [user for user in users if user.get("is_active", True)]
+                result = response.json()
                 
+                # Check response structure
+                if result.get("success") and "data" in result:
+                    timesheets = result["data"]
+                    
+                    self.log_result(
+                        "Get Pending Timesheets", 
+                        True, 
+                        f"Successfully retrieved pending timesheets endpoint",
+                        f"Found {len(timesheets)} pending timesheets"
+                    )
+                    
+                    # Check if any timesheets have status "submitted"
+                    submitted_count = sum(1 for ts in timesheets if ts.get("status") == "submitted")
+                    
+                    if submitted_count > 0:
+                        self.log_result(
+                            "Pending Timesheets - Submitted Status", 
+                            True, 
+                            f"Found {submitted_count} timesheets with 'submitted' status"
+                        )
+                    else:
+                        self.log_result(
+                            "Pending Timesheets - Submitted Status", 
+                            False, 
+                            "No timesheets with 'submitted' status found",
+                            f"Statuses found: {[ts.get('status') for ts in timesheets]}"
+                        )
+                    
+                    return timesheets
+                else:
+                    self.log_result(
+                        "Get Pending Timesheets", 
+                        False, 
+                        "Invalid response structure",
+                        f"Response: {result}"
+                    )
+            elif response.status_code == 403:
                 self.log_result(
-                    "Get Staff & Security Users", 
-                    True, 
-                    f"Successfully retrieved {len(active_users)} active users from Staff and Security",
-                    f"Total users: {len(users)}, Active users: {len(active_users)}"
+                    "Get Pending Timesheets", 
+                    False, 
+                    "Access denied - insufficient permissions",
+                    "User may not have payroll access"
                 )
-                return active_users
             else:
                 self.log_result(
-                    "Get Staff & Security Users", 
+                    "Get Pending Timesheets", 
                     False, 
-                    f"Failed to get users: {response.status_code}",
+                    f"Failed to get pending timesheets: {response.status_code}",
                     response.text
                 )
                 
         except Exception as e:
-            self.log_result("Get Staff & Security Users", False, f"Error: {str(e)}")
+            self.log_result("Get Pending Timesheets", False, f"Error: {str(e)}")
         
         return []
 
