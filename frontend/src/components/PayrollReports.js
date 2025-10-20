@@ -40,7 +40,7 @@ const PayrollReports = () => {
 
   const loadEmployees = async () => {
     try {
-      const response = await fetch('/api/payroll/employees', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/employees`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       if (response.ok) {
