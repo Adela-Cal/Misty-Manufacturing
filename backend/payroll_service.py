@@ -13,8 +13,8 @@ def prepare_for_mongo(data):
     elif isinstance(data, list):
         return [prepare_for_mongo(item) for item in data]
     elif isinstance(data, Decimal):
-        # Convert Decimal objects to float for MongoDB compatibility
-        return float(data)
+        # Convert Decimal objects to float rounded to 2 decimal places for MongoDB compatibility
+        return round(float(data), 2)
     elif isinstance(data, date) and not isinstance(data, datetime):
         # Convert date to datetime at midnight UTC for consistency
         return datetime.combine(data, datetime.min.time().replace(tzinfo=timezone.utc))
