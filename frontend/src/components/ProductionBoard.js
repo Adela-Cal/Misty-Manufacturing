@@ -291,6 +291,7 @@ const ProductionBoard = () => {
     const isExpanded = expandedJobs[job.id];
     const isOverdue = job.is_overdue;
     const materialsStatus = getMaterialsStatus(job);
+    const jobStartStatus = getJobStartStatus(job);
 
     return (
       <div 
