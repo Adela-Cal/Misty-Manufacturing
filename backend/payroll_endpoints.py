@@ -1234,7 +1234,6 @@ async def check_timesheet_reminder(current_user: dict = Depends(require_any_role
             "message": "Don't forget to submit your timesheet!" if should_show else None,
             "current_day": date.today().strftime("%A")
         }
-
     }
 
 # ============= PAYROLL REPORTS ENDPOINTS =============
