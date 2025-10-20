@@ -784,9 +784,14 @@ async def calculate_raw_material_permutation(
         if master_width_mm == 0:
             raise HTTPException(status_code=400, detail="Material does not have width defined")
         
-        gsm = float(base_material.get("gsm", 0))
+        gsm_raw = base_material.get("gsm", 0)
+        try:
+            gsm = float(gsm_raw) if gsm_raw else 0
+        except (ValueError, TypeError):
+            gsm = 0
+        
         if gsm == 0:
-            raise HTTPException(status_code=400, detail="Material does not have GSM defined")
+            raise HTTPException(status_code=400, detail=f"Material does not have GSM defined (raw value: {gsm_raw})")
         
         # Calculate total linear meters available
         # From tonnage: (tonnage * 1,000,000 grams) / (GSM * width_meters)
