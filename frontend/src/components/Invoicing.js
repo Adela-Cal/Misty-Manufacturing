@@ -141,6 +141,14 @@ const Invoicing = () => {
   const handleInvoiceJob = (job) => {
     setSelectedJob(job);
     
+    // If job has invoice history, automatically set to partial mode
+    if (job.invoice_history && job.invoice_history.length > 0) {
+      setInvoiceType('partial');
+    } else {
+      // Reset to full invoice for new jobs
+      setInvoiceType('full');
+    }
+    
     // Initialize partial items with remaining quantities to invoice
     if (job.items && Array.isArray(job.items)) {
       // Calculate already invoiced quantities from invoice_history
