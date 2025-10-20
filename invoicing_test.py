@@ -117,14 +117,8 @@ class InvoicingWorkflowTester:
         """Find an existing order in delivery stage or create one"""
         print("\n=== FINDING OR CREATING DELIVERY STAGE ORDER ===")
         
-        # First, try to find an existing order in delivery stage
-        existing_order = self.find_delivery_stage_order()
-        if existing_order:
-            self.test_order_id = existing_order["id"]
-            self.test_order_data = existing_order
-            return True
-        
-        # If no existing order, create a new one
+        # Always create a new order for clean testing
+        # This ensures we start with a fresh order with no existing invoices
         return self.create_test_order_in_delivery_stage()
     
     def find_delivery_stage_order(self):
