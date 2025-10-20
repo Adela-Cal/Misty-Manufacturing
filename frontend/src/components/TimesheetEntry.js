@@ -512,50 +512,60 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
       </div>
 
       {/* Action Buttons */}
-      <div className="mb-6 flex items-center justify-end space-x-3">
-        {canEdit() && (
-          <>
-            <button
-              onClick={handleSave}
-              disabled={submitting}
-              className="misty-button misty-button-secondary"
-              data-testid="save-timesheet"
-            >
-              Save Draft
-            </button>
-            
-            {timesheet?.status === 'draft' && (
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium px-4 py-2 rounded-lg transition-colors duration-200"
-                data-testid="submit-timesheet"
-              >
-                Submit Timesheet
-              </button>
-            )}
-          </>
-        )}
-        
-        {isManager && timesheet?.status === 'submitted' && (
-          <button
-            onClick={handleApprove}
-            disabled={submitting}
-            className="misty-button misty-button-primary"
-            data-testid="approve-timesheet"
-          >
-            <CheckCircleIcon className="h-4 w-4 mr-1" />
-            Approve & Calculate Pay
-          </button>
-        )}
-        
+      <div className="mb-6 flex items-center justify-between">
         <button
-          onClick={onClose}
-          className="misty-button misty-button-secondary"
-          data-testid="close-timesheet"
+          onClick={handleViewPreviousTimesheets}
+          className="misty-button misty-button-secondary text-sm"
         >
-          Close
+          <ClockIcon className="h-4 w-4 mr-1" />
+          View Previous Timesheets
         </button>
+        
+        <div className="flex items-center space-x-3">
+          {canEdit() && (
+            <>
+              <button
+                onClick={handleSave}
+                disabled={submitting}
+                className="misty-button misty-button-secondary"
+                data-testid="save-timesheet"
+              >
+                Save Draft
+              </button>
+              
+              {timesheet?.status === 'draft' && (
+                <button
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+                  data-testid="submit-timesheet"
+                >
+                  Submit Timesheet
+                </button>
+              )}
+            </>
+          )}
+          
+          {isManager && timesheet?.status === 'submitted' && (
+            <button
+              onClick={handleApprove}
+              disabled={submitting}
+              className="misty-button misty-button-primary"
+              data-testid="approve-timesheet"
+            >
+              <CheckCircleIcon className="h-4 w-4 mr-1" />
+              Approve & Calculate Pay
+            </button>
+          )}
+          
+          <button
+            onClick={onClose}
+            className="misty-button misty-button-secondary"
+            data-testid="close-timesheet"
+          >
+            Close
+          </button>
+        </div>
       </div>
 
       {/* Error Summary */}
