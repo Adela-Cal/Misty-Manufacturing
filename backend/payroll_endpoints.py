@@ -1466,5 +1466,3 @@ async def get_timesheet_report(
     except Exception as e:
         logger.error(f"Failed to load timesheet report: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to load timesheet report: {str(e)}")
-
-    }
