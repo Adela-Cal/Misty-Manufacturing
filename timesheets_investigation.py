@@ -10,7 +10,7 @@ from datetime import datetime
 import sys
 
 # Configuration
-BACKEND_URL = "https://misty-tracker.preview.emergentagent.com/api"
+BACKEND_URL = "https://prod-management.preview.emergentagent.com/api"
 ADMIN_USERNAME = "Callum"
 ADMIN_PASSWORD = "Peach7510"
 

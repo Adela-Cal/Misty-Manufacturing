@@ -1,112 +1,111 @@
 <analysis>
-The previous AI engineer made significant progress on the Misty Manufacturing application. Initially, work focused on improving reports and product specifications: Job Card Performance Report was enhanced, Projected Order Analysis received a crucial material cost formula correction (including a backend Pydantic model fix and GSM retrieval), and the Client Product Catalogue and Product Specifications UIs were updated for  and spiral core allocations. A major bug involving incorrect saving of spiral core allocation fields due to a backend model mismatch was identified and fixed.
-
-Subsequently, extensive work was done on the payroll system. This involved synchronizing employees with staff and security, implementing soft delete (archiving) and permanent delete for employee profiles, and a comprehensive overhaul of leave management. Leave management now includes manual leave request creation with auto-calculation of hours (excluding weekends), approver assignment, archived requests, a leave calendar, and manager reminders. Crucially, leave balance deduction and restoration on approval/cancellation were implemented and debugged. Error handling for frontend-backend communication, particularly for validation errors and ObjectId serialization, was a recurring theme and was addressed across multiple payroll-related endpoints. The last identified issue, which is currently being addressed, is the pending timesheets section not displaying correctly due to old employee IDs.
+The trajectory details a transition from an initial AI engineer's work to a new phase under user guidance. The previous work focused on enhancing reports (Job Card Performance, Projected Order Analysis with material cost corrections), UI updates (Client Product Catalogue, Product Specifications for spiral cores), and a comprehensive payroll system overhaul (employee sync, archiving, leave management with balance deduction, and backend error handling). The current AI engineer's work, prompted by specific user requests, addressed numerous bugs and implemented new features. Key achievements include fixing pending timesheet display issues by correcting  mapping, implementing full payroll reports with backend endpoints, enabling timesheet saving and approval, adding a view/edit previous timesheets feature, transforming the Jump To function on the Production Board into a modal, fixing duplicate employee codes, removing job card watermarks, improving part supply invoicing to track remaining quantities, and refining the job card workflow with stage-specific clock icons and automated stage progression. The final unresolved issue is the part supply invoicing logic.
 </analysis>
 
 <product_requirements>
-The Misty Manufacturing application streamlines manufacturing processes, encompassing product definition, job management, stock control, invoicing, and comprehensive payroll management.
-
-The trajectory covered the following user requirements and implementations:
--   **Job Card Performance Report:** Detailed report including time, stock, averages, and material metrics.
--   **Consumable Usage Report:** Accurate reporting based on jobs and product dimensions (implicitly addressed via other report enhancements).
--   **Projected Order Analysis:** Corrected data display, transitioned from Projected Revenue to Projected Material Cost using a precise, multi-step formula for paper material (tonne to linear metres, price per metre, breakdown per layer).
--   **Product Specification UI Enhancements:** Auto-population of material details, dynamic Layer Sequence in Spiral Core Allocation section.
--   **Product Data Synchronization:** Mechanism to synchronize product specifications between  and .
--   **Accurate Spiral-Wound Paper Core Calculation:** Implemented and fixed calculation across Projected Order Analysis and Production Job Cards, ensuring data persistence for spiral core allocation fields in product specifications.
--   **Material Layers UI:** Added explicit UI components for  in Client Product Catalogue.
--   **Payroll Management:**
-    -   Employee synchronization: Automated synchronization of active users from Staff and Security to Payroll, with a UI indicator for inactive users and a manual sync option.
-    -   Employee Archiving & Deletion: Replaced Edit with Delete (soft delete), added Archived Staff tab, and implemented permanent deletion for archived data.
-    -   Leave Management: Added Add Leave Request functionality with employee dropdown, date range (auto-calculates hours, excludes weekends, manual override), approver assignment, and approver-specific views. Implemented Archived Leave Requests and a Leave Calendar showing upcoming approved leave. Implemented leave balance deduction/restoration on approval/cancellation. Added manager reminders for upcoming approved leave (1 week and 1 day prior).
-    -   Reports: Requirements for Pay Slips (download/historic), Timesheets (staff/date range), and Leave Entitlements (display, manual adjustment with reason) were initiated.
-    -   Timesheet Submission: Investigating issues with submission.
-    -   Bank Details & TFN: Added UI elements for entering bank details and Tax File Numbers for employees.
--   **Error Handling:** Addressed multiple frontend rendering and backend serialization errors (e.g., MongoDB ObjectId, Pydantic validation) across various features.
+The Misty Manufacturing application manages manufacturing, including product definition, job management, stock control, invoicing, and payroll. The trajectory covered:
+- **Reports**: Enhanced Job Card Performance Report with detailed metrics; corrected Projected Order Analysis for material cost calculations; new Pay Slips, Timesheets, and Leave Entitlements reports.
+- **Product Specifications**: UI updates for  and spiral core allocations; accurate spiral-wound paper core calculations across reports and job cards; data persistence for spiral core fields.
+- **Payroll Management**: Employee synchronization, soft/permanent deletion; comprehensive leave management (request creation, approval, balance deduction/restoration, calendar, reminders); timesheet submission and approval; bank details/TFN entry; unique employee codes; view/edit previous timesheets.
+- **Job Card Workflow**: Start Job updates ; Complete Run moves job to next stage and archives job cards; stage-specific clock icon status; Job Card Performance Report search by customer/invoice/product, and view/edit functionality.
+- **Invoicing**: Part supply invoicing with quantity selection, generating packing slips and invoices, tracking remaining quantities, historical archiving with invoice numbering (, ).
+- **UI/UX**: Production Board Jump To as a modal; removal of job card watermarks; general error handling improvements.
 </product_requirements>
 
 <key_technical_concepts>
--   **Frameworks**: React (Frontend), FastAPI (Backend).
--   **Database**: MongoDB (UUIDs for IDs, ISO string for ).
--   **Data Modeling**: Pydantic for backend data validation, including nested models.
--   **APIs**: RESTful CRUD endpoints, Axios for frontend, new sync endpoints.
--   **Frontend**: React hooks (, ), conditional rendering, modal management, dynamic dropdowns, date range calculations.
--   **Backend**: Python  for financial calculations,  for date operations.
+- **Frameworks**: React (Frontend), FastAPI (Backend).
+- **Database**: MongoDB (UUIDs for IDs, ISO string for , Pydantic for models).
+- **Data Modeling**: Pydantic for backend data validation, including nested models and Enums.
+- **APIs**: RESTful CRUD endpoints, Axios for frontend, sync endpoints.
+- **Frontend**: React hooks, conditional rendering, modal management, dynamic dropdowns, date calculations, environment variables for API URLs.
+- **Backend**: Python  for financial calculations,  for date operations, custom helper functions.
 </key_technical_concepts>
 
 <code_architecture>
-The application follows a monorepo structure:
+The application uses a monorepo structure with  (FastAPI) and  (React).
 
 
 
 -   ****
-    -   **Importance**: Defines core Pydantic models for data validation, including , , , and .
+    -   **Importance**: Defines core Pydantic models for data validation.
     -   **Changes**:
-        -   : Added , , ,  to persist spiral core specifications.
-        -    Enum: Added  and  roles for consistency with frontend.
+        -   : Added , , , .
+        -    Enum: Added , .
+        -    Enum: Added pending.
+        -   : Added  (now  as ) and  field.
+        -   : Made  optional.
 -   ****
-    -   **Importance**: Defines Pydantic models specific to the payroll system, such as  and .
-    -   **Changes**:
-        -   : Added  field.
-        -   New  model added.
+    -   **Importance**: Defines Pydantic models specific to payroll.
+    -   **Changes**: : Added . New  model.
 -   ****
-    -   **Importance**: Handles all API routes and business logic for the payroll system.
-    -   **Changes**:
-        -   : Modified to auto-sync with active users from the  collection, creating s if missing.
-        -   New  (soft delete) and  (hard delete) endpoints added.
-        -   Leave Request Endpoints: Updated to handle , added endpoint to get requests by approver. Implemented logic to deduct/restore leave balances on approval/cancellation.
-        -   New endpoints for archived leave requests, leave calendar, leave reminders, bank details, leave adjustments, payslips, and timesheet reports.
-        -   Fixed MongoDB ObjectId serialization issues and Pydantic validation errors (e.g.,  field,  field mismatch,  duplication).
+    -   **Importance**: Handles API routes and logic for payroll.
+    -   **Changes**: Sync employees, soft/hard delete, leave request management (approval, balance deduction/restoration, approver view), new endpoints for archived leave, leave calendar, reminders, bank details, adjustments, payslips, timesheet reports. Fixed MongoDB ObjectId serialization and Pydantic validation. Added  helper and used it for unique employee numbers. Added endpoint for . Updated timesheet endpoints to correctly map  to  for permissions. Added backend endpoints for payroll reports (Pay Slips, Timesheet reports, Leave Entitlements).
 -   ****
-    -   **Importance**: Main FastAPI application, defining core API routes and business logic for products, stock, reports.
-    -   **Changes**:
-        -   : Significant updates to implement the new material cost calculation formula (converting tonne to linear meters, calculating price per meter, and providing detailed cost breakdowns). Fixed GSM retrieval from material specifications.
+    -   **Importance**: Contains business logic for payroll.
+    -   **Changes**: Updated  to round Decimal values to 2 decimal places for leave balances.
 -   ****
-    -   **Importance**: Manages client-specific product data.
-    -   **Changes**: Added UI components and handlers for  within the product creation/edit modal.
+    -   **Importance**: Main FastAPI application for products, stock, reports, and job cards.
+    -   **Changes**:  for material cost calculation and GSM retrieval. Added  endpoint to update orders. Added job card endpoints for saving () and moving stages (). Updated invoice generation to track  with partial invoicing suffixes (, , etc.).
+-   ** (NEW FILE)**
+    -   **Importance**: One-off migration script to update existing timesheets to use  instead of .
+    -   **Changes**: Created to iterate through timesheets, find corresponding , and update .
 -   ****
-    -   **Importance**: Manages general product specifications, including spiral core allocations.
-    -   **Changes**:
-        -    (via ): Updated to correctly include , , ,  when saving material layers.
+    -   **Importance**: Manages client products.
+    -   **Changes**: Added UI for .
 -   ****
-    -   **Importance**: Displays individual job card details.
-    -   **Changes**:  function updated to use the accurate spiral-wound paper core calculation formula.
+    -   **Importance**: Manages product specifications.
+    -   **Changes**: Updated  to correctly save spiral core allocation fields.
 -   ****
-    -   **Importance**: Handles order creation and displays material needs.
-    -   **Changes**: Condition for Raw Materials Needed button was confirmed correct after initial testing agent concerns.
+    -   **Importance**: Displays and manages individual job card details.
+    -   **Changes**:  updated for spiral core formula.  now calls backend to update order's  and accepts  callback.  saves job card data and moves job to the next stage.  enum imported.
+-   ****
+    -   **Importance**: Handles order creation.
+    -   **Changes**: Raw Materials Needed button condition confirmed.
 -   ****
     -   **Importance**: Central hub for payroll and leave management.
-    -   **Changes**:
-        -   Replaced Edit button with Delete (soft delete functionality).
-        -   Added Archived Staff tab with permanent delete option.
-        -   Implemented Add Leave Request functionality with employee selection, date range (auto-calculating hours excluding weekends, manual override), and approver.
-        -   Added Archived Leave Requests and Leave Calendar tabs/modals.
-        -   Added UI for displaying leave reminders.
-        -   Added Bank Details button and modal for employees.
-        -   Improved error handling for leave request submission, particularly for Pydantic validation errors and data type conversion (e.g.,  to Decimal).
-        -   Added a sync button and messages for payroll-staff synchronization.
+    -   **Changes**: Replaced Edit with Delete, added Archived Staff, Add Leave Request (auto-calc hours, approver), Archived Leave Requests, Leave Calendar, Bank Details. Improved error handling. Added sync buttons. Implemented pending timesheets approval interface with Approve/View buttons and ,  functions. Updated API calls to use .
 -   ****
-    -   **Importance**: Manages user roles and security.
-    -   **Changes**: Implicit updates to handle the new  and  roles due to backend enum changes.
+    -   **Importance**: Manages user roles.
+    -   **Changes**: Implicit updates for  and  roles.
 -   ** (NEW FILE)**
-    -   **Importance**: New component created to house the various payroll reports (Pay Slips, Timesheet reports).
-    -   **Changes**: Initial creation to integrate into .
+    -   **Importance**: Component for payroll reports.
+    -   **Changes**: Initial UI for Pay Slips, Timesheets, Leave Entitlements. Updated API calls to use .
+-   ****
+    -   **Importance**: Handles individual timesheet entry and submission.
+    -   **Changes**: Updated to fetch  for current user.  and  updated to use correct . Added View Previous Timesheets button and a modal to display historical timesheets.
+-   ****
+    -   **Importance**: Displays the production line and job tiles.
+    -   **Changes**: Replaced  (material status) with  (job start status), with pulsing animation based on  (now stage-specific ). The Jump To dropdown was refactored into a modal popup. Removed old  and  logic.
+-   ****
+    -   **Importance**: Handles invoicing.
+    -   **Changes**: Implemented part supply invoicing modal for item selection and quantity input. Updated  to handle partial items.  now calculates remaining quantities.  added to UI.
+-   ****
+    -   **Importance**: Displays various application reports.
+    -   **Changes**: Added states for job card performance report. Implemented  function. Replaced old Job Card Performance Report modal content with new search-based interface including Customer, Invoice Number, Product search fields, and a Search All button. Added  to review and edit job cards. Fixed JSX parsing errors due to leftover code. Imported . Implemented search validation to disable search button when input is empty.
+-   ****
+    -   **Importance**: Utility for API calls.
+    -   **Changes**: Added  helper. Added  helper.
+-   ****
+    -   **Importance**: Utility for payroll API calls.
+    -   **Changes**: Added  for current user. Added  endpoint.
 </code_architecture>
 
 <pending_tasks>
--   **NAS Integration:** Configure the application to integrate with NAS storage for uploads and backups.
--   **Timesheet Submission Fix:** Fix the issue where timesheet submissions are not working or pending timesheets are not showing up correctly due to old employee IDs not matching current employee profiles.
--   **Payroll Reports Implementation:** Complete the full implementation of Pay Slips and Timesheets reports within the  component, and display leave entitlements with manual adjustment in the Overview section.
+- **NAS Integration:** Configure the application to integrate with NAS storage for uploads and backups.
+- **Payroll Reports Implementation (Remaining):** Display leave entitlements with manual adjustment in the Overview section.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was addressing a user's concern that the pending timesheets section in the Payroll and Leave Management window was not showing timesheets waiting for approval.
+Immediately before this summary request, the AI engineer was addressing the part supply invoicing function is still not working issue. The user provided a detailed list of requirements for this feature, including:
+- Generating a packing slip and invoice for the quantity entered.
+- Keeping the remaining quantity in the jobs ready for invoicing section.
+- Allowing repeated partial invoicing until full quantity is met.
+- Archiving the job once fully invoiced, with a history of each part supply invoice.
+- Using a consistent invoice number with a suffix (, , etc.) for partial invoices.
 
-The AI engineer initiated an investigation by involving a testing agent. The testing agent's feedback revealed that the core issue is that timesheets in the system have old  values that no longer match the s currently active. This mismatch prevents the system from correctly linking and displaying pending timesheets for approval.
-
-The AI engineer's current plan is to modify the relevant backend endpoint(s) to make the  lookup logic more robust, enabling it to correctly identify and associate timesheets with current employee profiles, even if older or inconsistent  references exist in the timesheet data. The last explicit action was the thought to update the endpoint for robust employee lookup.
+The AI engineer's last action was to update the backend's invoice generation logic in  to properly handle partial invoicing with the , , etc. suffix for invoice numbers and to track remaining quantities and job status. The specific edit was to modify the logic after invoice insertion. The work is in progress.
 </current_work>
 
 <optional_next_step>
-Update the backend endpoint for pending timesheets to implement a more robust employee lookup mechanism.
+Continue updating the backend logic in  after invoice insertion to manage remaining quantities and update job status correctly.
 </optional_next_step>
