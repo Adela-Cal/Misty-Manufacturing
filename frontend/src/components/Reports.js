@@ -2679,6 +2679,15 @@ const Reports = () => {
             {profitabilityMode === 'single' && (
               <div>
                 <label className="block text-sm text-gray-400 mb-2">Select Completed Job</label>
+                {completedOrders.length === 0 ? (
+                  <div className="text-gray-400 text-sm mb-2">
+                    Loading completed orders... If no orders appear, there may be no completed/archived jobs in the system.
+                  </div>
+                ) : (
+                  <div className="text-gray-400 text-xs mb-2">
+                    {completedOrders.length} completed/archived job(s) available
+                  </div>
+                )}
                 <select
                   className="misty-select w-full"
                   onChange={(e) => setSelectedOrders([e.target.value])}
