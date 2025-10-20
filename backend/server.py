@@ -1375,10 +1375,15 @@ async def delete_client(client_id: str, current_user: dict = Depends(require_adm
 
 @api_router.get("/orders", response_model=List[Order])
 async def get_orders(status_filter: Optional[str] = None, current_user: dict = Depends(require_any_role)):
-    """Get all orders with optional status filter"""
+    """Get all orders with optional status filter (excludes archived/completed orders by default)"""
     query = {}
+    
+    # Exclude completed/cleared orders unless specifically requested
     if status_filter:
         query["status"] = status_filter
+    else:
+        # By default, exclude completed orders (they should only appear in archived jobs)
+        query["status"] = {"$ne": "completed"}
     
     orders = await db.orders.find(query).sort("created_at", -1).to_list(1000)
     return [Order(**order) for order in orders]
