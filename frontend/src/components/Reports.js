@@ -494,6 +494,13 @@ const Reports = () => {
     }
   };
   
+  const toggleMaterialDetails = (orderId) => {
+    setExpandedMaterialDetails(prev => ({
+      ...prev,
+      [orderId]: !prev[orderId]
+    }));
+  };
+  
   const toggleJobDetails = (jobId) => {
     setExpandedJobDetails(prev => ({
       ...prev,
