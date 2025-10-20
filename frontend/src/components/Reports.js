@@ -440,6 +440,64 @@ const Reports = () => {
       setLoadingProductReport(false);
     }
   };
+
+  const searchJobCards = async () => {
+    if (!jobCardSearchTerm.trim()) {
+      toast.error('Please enter a search term');
+      return;
+    }
+
+    try {
+      setLoadingJobCards(true);
+      const params = {};
+      
+      if (jobCardSearchType === 'customer') {
+        params.customer = jobCardSearchTerm;
+      } else if (jobCardSearchType === 'invoice') {
+        params.invoice_number = jobCardSearchTerm;
+      } else if (jobCardSearchType === 'product') {
+        params.product = jobCardSearchTerm;
+      }
+      
+      const response = await apiHelpers.searchJobCards(params);
+      setJobCardResults(response.data?.data || []);
+      
+      if (response.data?.data?.length === 0) {
+        toast.info('No job cards found for this search');
+      } else {
+        toast.success(`Found ${response.data?.data?.length} orders with job cards`);
+      }
+    } catch (error) {
+      console.error('Failed to search job cards:', error);
+      toast.error('Failed to search job cards');
+    } finally {
+      setLoadingJobCards(false);
+    }
+  };
+
+  const viewOrderJobCards = async (orderData) => {
+    setSelectedOrderJobCards(orderData);
+    setShowJobCardsModal(true);
+  };
+
+  const updateJobCard = async (jobCardId, updates) => {
+    try {
+      await apiHelpers.updateJobCard(jobCardId, updates);
+      toast.success('Job card updated successfully');
+      
+      // Refresh the job cards for this order
+      const response = await apiHelpers.getJobCardsByOrder(selectedOrderJobCards.order_id);
+      const updatedJobCards = response.data?.data || [];
+      setSelectedOrderJobCards({
+        ...selectedOrderJobCards,
+        job_cards: updatedJobCards
+      });
+    } catch (error) {
+      console.error('Failed to update job card:', error);
+      toast.error('Failed to update job card');
+    }
+  };
+
   
   const printMaterialUsageReport = () => {
     // Create a print-friendly window
