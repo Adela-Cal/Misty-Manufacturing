@@ -570,8 +570,69 @@ const ProductionBoard = () => {
           onClose={handleCloseJobCard}
         />
       )}
+
+      {/* Jump to Stage Modal */}
+      {showJumpModal && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowJumpModal(false)}>
+          <div className="modal-content max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Jump to Stage</h3>
+                  <p className="text-sm text-gray-400">
+                    Select a stage to jump this job to
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowJumpModal(false)}
+                  className="text-gray-400 hover:text-white text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-sm text-gray-400 mb-4">
+                  Current Stage: <span className="text-white font-medium">{stageDisplayNames[jumpJobData.currentStage]}</span>
+                </p>
+                
+                {jumpJobData.stages.length > 0 ? (
+                  <div className="space-y-2">
+                    {jumpJobData.stages.map((stage) => (
+                      <button
+                        key={stage}
+                        onClick={() => jumpToStage(stage)}
+                        className="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg transition-colors text-white"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>Jump to {stageDisplayNames[stage]}</span>
+                          <svg className="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-sm py-4 text-center">No other stages available</p>
+                )}
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowJumpModal(false)}
+                  className="misty-button misty-button-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
+
 
 export default ProductionBoard;
