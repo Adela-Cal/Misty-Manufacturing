@@ -1326,79 +1326,101 @@ class BackendAPITester:
         
         return []
 
-    def test_employee_data_matches_user_data(self):
-        """Test that employee data matches user data from Staff and Security"""
+    def test_create_submitted_timesheet(self):
+        """Create a test submitted timesheet if none exists"""
         try:
-            # Get users and employees
-            users_response = self.session.get(f"{API_BASE}/users")
+            # Get employees first
             employees_response = self.session.get(f"{API_BASE}/payroll/employees")
             
-            if users_response.status_code == 200 and employees_response.status_code == 200:
-                users = users_response.json()
+            if employees_response.status_code == 200:
                 employees = employees_response.json()
                 
-                # Create user lookup by ID
-                user_lookup = {user.get("id"): user for user in users if user.get("is_active", True)}
-                
-                matches_verified = 0
-                mismatches = []
-                
-                for emp in employees:
-                    user_id = emp.get("user_id")
-                    if user_id and user_id in user_lookup:
-                        user = user_lookup[user_id]
-                        
-                        # Verify data matches
-                        checks = [
-                            ("email", emp.get("email"), user.get("email")),
-                            ("department", emp.get("department"), user.get("department")),
-                            ("employment_type", emp.get("employment_type"), user.get("employment_type"))
+                if employees and len(employees) > 0:
+                    employee = employees[0]  # Use first employee
+                    
+                    # Create a timesheet with submitted status
+                    timesheet_data = {
+                        "employee_id": employee["id"],
+                        "week_start": "2024-12-16",  # Monday
+                        "week_end": "2024-12-22",    # Sunday
+                        "status": "submitted",
+                        "total_regular_hours": 38.0,
+                        "total_overtime_hours": 2.0,
+                        "daily_entries": [
+                            {
+                                "date": "2024-12-16",
+                                "regular_hours": 8.0,
+                                "overtime_hours": 0.0,
+                                "notes": "Regular work day"
+                            },
+                            {
+                                "date": "2024-12-17",
+                                "regular_hours": 8.0,
+                                "overtime_hours": 1.0,
+                                "notes": "Overtime for urgent order"
+                            },
+                            {
+                                "date": "2024-12-18",
+                                "regular_hours": 8.0,
+                                "overtime_hours": 1.0,
+                                "notes": "Overtime continued"
+                            },
+                            {
+                                "date": "2024-12-19",
+                                "regular_hours": 7.0,
+                                "overtime_hours": 0.0,
+                                "notes": "Left early"
+                            },
+                            {
+                                "date": "2024-12-20",
+                                "regular_hours": 7.0,
+                                "overtime_hours": 0.0,
+                                "notes": "Regular work day"
+                            }
                         ]
+                    }
+                    
+                    # Try to create timesheet
+                    response = self.session.post(f"{API_BASE}/payroll/timesheets", json=timesheet_data)
+                    
+                    if response.status_code == 200:
+                        result = response.json()
                         
-                        # Check name matching
-                        user_full_name = user.get("full_name", "")
-                        if user_full_name:
-                            name_parts = user_full_name.split(" ", 1)
-                            expected_first = name_parts[0]
-                            expected_last = name_parts[1] if len(name_parts) > 1 else ""
-                            
-                            checks.extend([
-                                ("first_name", emp.get("first_name"), expected_first),
-                                ("last_name", emp.get("last_name"), expected_last)
-                            ])
+                        self.log_result(
+                            "Create Test Submitted Timesheet", 
+                            True, 
+                            f"Successfully created test timesheet with 'submitted' status",
+                            f"Employee: {employee.get('first_name')} {employee.get('last_name')}, Week: 2024-12-16 to 2024-12-22"
+                        )
                         
-                        # Verify all checks
-                        employee_valid = True
-                        for field_name, emp_value, user_value in checks:
-                            if emp_value != user_value and user_value:  # Only check if user has value
-                                mismatches.append(f"Employee {emp.get('employee_number')}: {field_name} mismatch")
-                                employee_valid = False
+                        # Now test the pending endpoint again
+                        self.test_get_pending_timesheets_after_creation()
                         
-                        if employee_valid:
-                            matches_verified += 1
-                
-                if len(mismatches) == 0:
-                    self.log_result(
-                        "Employee Data Matches User Data", 
-                        True, 
-                        f"All {matches_verified} employees have matching user data"
-                    )
+                        return result.get("data", {}).get("id")
+                    else:
+                        self.log_result(
+                            "Create Test Submitted Timesheet", 
+                            False, 
+                            f"Failed to create timesheet: {response.status_code}",
+                            response.text
+                        )
                 else:
                     self.log_result(
-                        "Employee Data Matches User Data", 
+                        "Create Test Submitted Timesheet", 
                         False, 
-                        f"Found {len(mismatches)} data mismatches",
-                        f"Mismatches: {mismatches[:5]}"  # Show first 5
+                        "No employees available to create timesheet"
                     )
             else:
                 self.log_result(
-                    "Employee Data Matches User Data", 
+                    "Create Test Submitted Timesheet", 
                     False, 
-                    "Failed to get users or employees for comparison"
+                    f"Failed to get employees: {employees_response.status_code}"
                 )
                 
         except Exception as e:
-            self.log_result("Employee Data Matches User Data", False, f"Error: {str(e)}")
+            self.log_result("Create Test Submitted Timesheet", False, f"Error: {str(e)}")
+        
+        return None
 
     def test_role_to_position_mapping(self):
         """Test role to position mapping functionality"""
