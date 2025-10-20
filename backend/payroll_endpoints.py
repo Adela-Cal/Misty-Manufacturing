@@ -551,6 +551,31 @@ async def get_current_week_timesheet(employee_id: str, current_user: dict = Depe
     
     return new_timesheet
 
+@payroll_router.get("/timesheets/employee/{employee_id}")
+async def get_employee_timesheets(employee_id: str, current_user: dict = Depends(require_any_role)):
+    """Get all timesheets for an employee"""
+    
+    # Validate employee_id parameter
+    if not employee_id or employee_id in ['undefined', 'null', 'None']:
+        raise HTTPException(status_code=400, detail="Valid employee ID is required")
+    
+    # Check access permissions using the helper function
+    if not await check_timesheet_access(current_user, employee_id):
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Get all timesheets for this employee, sorted by week_starting descending
+    timesheets = await db.timesheets.find({"employee_id": employee_id}).sort("week_starting", -1).to_list(100)
+    
+    # Remove MongoDB _id and return
+    for timesheet in timesheets:
+        if "_id" in timesheet:
+            del timesheet["_id"]
+    
+    return {
+        "success": True,
+        "data": timesheets
+    }
+
 @payroll_router.put("/timesheets/{timesheet_id}", response_model=StandardResponse)
 async def update_timesheet(timesheet_id: str, timesheet_data: TimesheetCreate, current_user: dict = Depends(require_any_role)):
     """Update timesheet entries"""
