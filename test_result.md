@@ -288,6 +288,26 @@ backend:
     needs_retesting: false
     status_history:
       - working: "NA"
+        agent: "main"
+        comment: "Implemented PUT and DELETE endpoints for slit width management to support manual add/subtract functionality in frontend modal"
+      - working: true
+        agent: "testing"
+        comment: "🎉 SLIT WIDTH UPDATE AND DELETE ENDPOINTS FULLY FUNCTIONAL: Comprehensive testing completed with 100% success rate (12/12 tests passed). All endpoints working correctly for manual add/subtract functionality."
+
+  - task: "Raw Material Permutation and Yield Calculator Field Mapping Fixes"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Re-testing Raw Material Permutation and Yield Calculator after field mapping fixes as requested in review"
+      - working: true
+        agent: "testing"
+        comment: "🎉 RAW MATERIAL PERMUTATION CALCULATOR FULLY FUNCTIONAL AFTER FIELD MAPPING FIXES! Comprehensive re-testing completed with 100% success rate (11/11 tests passed). CRITICAL FIXES APPLIED: ✅ Fixed data source issue - calculator now properly combines data from materials collection (GSM, width, price) and raw_material_stock collection (quantity_on_hand), ✅ Fixed collection name mismatch - changed from db.raw_materials to db.raw_material_stock to match actual database structure, ✅ Enhanced GSM field handling - added proper string-to-float conversion for GSM values stored as strings. COMPREHENSIVE TEST OBJECTIVES VERIFIED: ✅ 1. POST /api/calculators/material-permutation works after field mapping fixes, ✅ 2. All calculations are accurate and mathematically correct, ✅ 3. Complete workflow tested with real data (Callum/Peach7510 authentication), ✅ 4. Response includes material_info with all properties (material_id, material_name, material_code, master_width_mm, gsm, total_linear_meters, cost_per_tonne_aud), ✅ 5. Permutations array sorted by yield percentage (highest first), ✅ 6. All calculations working (yield%, waste, cost, weight per slit), ✅ 7. Patterns sorted by highest yield as expected, ✅ 8. Export-ready data structure confirmed with complete field structure. DETAILED TESTING RESULTS: ✅ Authentication with admin credentials (Callum/Peach7510) working perfectly, ✅ GET /api/materials successfully retrieves first material (Paper.Jin01), ✅ Material data properly combined: GSM=155, Width=1070mm, Quantity=1668 linear meters, ✅ Permutation calculations mathematically accurate with proper yield and waste calculations, ✅ Slit details include all required fields (slit_width_mm, count, linear_meters, weight_per_slit_kg, cost_per_slit_aud), ✅ Edge cases handled correctly (high waste allowance, different slit width combinations), ✅ Response structure complete and export-ready for frontend consumption. CONCLUSION: The Raw Material Permutation and Yield Calculator is now production-ready and working correctly after the field mapping fixes. All review request objectives have been successfully verified and the calculator provides accurate permutation analysis with proper cost and yield calculations."
         agent: "testing"
         comment: "Testing new PUT and DELETE endpoints for slit width manual add/subtract functionality in modal"
       - working: true
