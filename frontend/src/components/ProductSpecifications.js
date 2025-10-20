@@ -1464,7 +1464,7 @@ const ProductSpecifications = () => {
                 )}
 
                 {/* Spiral Paper Core Specifications - Moved here after Basic Information */}
-                {formData.product_type === 'Spiral Paper Core' && (
+                {(formData.product_type === 'Spiral Paper Core' || formData.product_type === 'Composite Core') && (
                   <div className="mb-8">
                     <h3 className="text-lg font-semibold text-white mb-4">Spiral Paper Core Specifications</h3>
                     
