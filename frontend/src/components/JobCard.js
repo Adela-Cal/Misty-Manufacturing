@@ -41,7 +41,7 @@ const MACHINE_LINES = {
   }
 };
 
-const JobCard = ({ jobId, stage, orderId, onClose }) => {
+const JobCard = ({ jobId, stage, orderId, onClose, onJobStarted }) => {
   const [jobData, setJobData] = useState(null);
   const [productSpecs, setProductSpecs] = useState(null);
   const [calculations, setCalculations] = useState({});
