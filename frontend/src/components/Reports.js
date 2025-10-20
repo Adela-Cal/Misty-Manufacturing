@@ -112,6 +112,7 @@ const Reports = () => {
   const [profitabilityReport, setProfitabilityReport] = useState(null);
   const [loadingProfitability, setLoadingProfitability] = useState(false);
   const [completedOrders, setCompletedOrders] = useState([]);
+  const [expandedMaterialDetails, setExpandedMaterialDetails] = useState({});
 
   useEffect(() => {
     loadReportsData();
