@@ -697,7 +697,7 @@ const Invoicing = () => {
               <input
                 type="text"
                 placeholder="Search jobs..."
-                className="misty-input pl-12 w-full max-w-md"
+                className="misty-input pl-14 w-full max-w-md"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
