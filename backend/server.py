@@ -777,7 +777,7 @@ async def calculate_raw_material_permutation(
             raise HTTPException(status_code=404, detail="Material not found")
         
         # Then get the raw material stock data (has quantity_on_hand)
-        raw_material = await db.raw_materials.find_one({"material_id": request.material_id})
+        raw_material = await db.raw_material_stock.find_one({"material_id": request.material_id})
         print(f"DEBUG: Looking for raw material with material_id: {request.material_id}")
         print(f"DEBUG: Found raw material: {raw_material is not None}")
         if raw_material:
