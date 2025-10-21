@@ -64,7 +64,7 @@ ensure_upload_dirs()
 
 @api_router.post("/auth/login", response_model=Token)
 async def login(user_credentials: UserLogin):
-    """Authenticate user and return JWT token"""
+    """Authenticate user and return JWT token with refresh token"""
     user_data = await db.users.find_one({"username": user_credentials.username})
     
     # Handle both hashed_password and password_hash field names
@@ -88,10 +88,10 @@ async def login(user_credentials: UserLogin):
         {"$set": {"last_login": datetime.now(timezone.utc)}}
     )
     
-    # Create JWT token
-    access_token = create_access_token(
-        data={"sub": user_data["username"], "role": user_data["role"], "user_id": user_data["id"]}
-    )
+    # Create JWT tokens (access and refresh)
+    token_data = {"sub": user_data["username"], "role": user_data["role"], "user_id": user_data["id"]}
+    access_token = create_access_token(data=token_data)
+    refresh_token = create_refresh_token(data=token_data)
     
     user_info = {
         "id": user_data["id"],
@@ -101,7 +101,12 @@ async def login(user_credentials: UserLogin):
         "email": user_data["email"]
     }
     
-    return {"access_token": access_token, "token_type": "bearer", "user": user_info}
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "user": user_info
+    }
 
 @api_router.post("/auth/register", response_model=StandardResponse)
 async def register_user(user_data: UserCreate, current_user: dict = Depends(require_admin)):
