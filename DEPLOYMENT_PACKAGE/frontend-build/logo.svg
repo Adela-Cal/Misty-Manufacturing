@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark navy background circle -->
+  <circle cx="50" cy="50" r="50" fill="#1A2A3A"/>
+  
+  <!-- Outer incomplete arc/circle in bright yellow -->
+  <path d="M 15 75 Q 25 10 85 25 Q 95 45 75 85 Q 55 95 15 75" 
+        fill="none" 
+        stroke="#FFD700" 
+        stroke-width="8" 
+        stroke-linecap="round"/>
+  
+  <!-- First inner stroke (left, shorter and thicker at base) -->
+  <path d="M 28 70 Q 35 45 45 25 Q 48 22 50 25 Q 45 35 38 55 Q 32 68 28 70" 
+        fill="#FFD700"/>
+  
+  <!-- Second inner stroke (right, longer and consistent width) -->
+  <path d="M 45 65 Q 55 35 70 20 Q 73 18 75 22 Q 70 25 60 45 Q 50 62 45 65" 
+        fill="#FFD700"/>
+  
+  <!-- Additional dynamic element for visual balance -->
+  <path d="M 40 75 Q 50 50 65 30" 
+        fill="none" 
+        stroke="#FFD700" 
+        stroke-width="2" 
+        opacity="0.6" 
+        stroke-linecap="round"/>
+</svg>

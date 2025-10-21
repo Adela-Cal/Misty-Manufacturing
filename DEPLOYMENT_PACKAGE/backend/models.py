@@ -1,0 +1,1015 @@
+from pydantic import BaseModel, Field, EmailStr
+from typing import List, Optional, Dict, Any
+from datetime import datetime, date, timezone
+from enum import Enum
+import uuid
+
+# Enums for system constants
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    PRODUCTION_MANAGER = "production_manager"
+    SALES = "sales"
+    PRODUCTION_TEAM = "production_team"
+    PRODUCTION_STAFF = "production_staff"  # Added for frontend compatibility
+    SUPERVISOR = "supervisor"              # Added for frontend compatibility
+    MANAGER = "manager"          # Department/Team managers
+    EMPLOYEE = "employee"        # Regular employees
+
+class EmploymentType(str, Enum):
+    FULL_TIME = "full_time"
+    PART_TIME = "part_time"
+    CASUAL = "casual"
+
+class ProductionStage(str, Enum):
+    ORDER_ENTERED = "order_entered"
+    PENDING_MATERIAL = "pending_material"
+    PAPER_SLITTING = "paper_slitting"
+    WINDING = "winding"
+    FINISHING = "finishing"
+    DELIVERY = "delivery"
+    INVOICING = "invoicing"
+    ACCOUNTING_TRANSACTION = "accounting_transaction"  # New stage for accounting processing
+    CLEARED = "cleared"
+
+class OrderStatus(str, Enum):
+    PENDING = "pending"
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    OVERDUE = "overdue"
+    ACCOUNTING_DRAFT = "accounting_draft"  # New status for accounting transactions
+    ARCHIVED = "archived"
+
+class OrderPriority(str, Enum):
+    ASAP = "ASAP"
+    MUST_DELIVERY_ON_DATE = "Must Delivery On Date"
+    NORMAL_LOW = "Normal/Low"
+
+# User Models
+class User(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    username: str
+    email: EmailStr
+    hashed_password: str
+    role: UserRole
+    full_name: str
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    last_login: Optional[datetime] = None
+
+class UserCreate(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+    full_name: str
+    role: UserRole = UserRole.PRODUCTION_TEAM
+    department: Optional[str] = None
+    phone: Optional[str] = None
+    employment_type: EmploymentType = EmploymentType.FULL_TIME
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    refresh_token: Optional[str] = None  # Refresh token for getting new access tokens
+    token_type: str
+    user: dict
+
+# Client Models
+class ClientContact(BaseModel):
+    name: str
+    position: str
+    email: EmailStr
+    phone: str
+    is_primary: bool = False
+
+class ClientBankDetails(BaseModel):
+    bank_name: str
+    account_name: str
+    bsb: str
+    account_number: str
+    reference: Optional[str] = None
+
+class Client(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    company_name: str
+    abn: Optional[str] = None
+    address: str
+    city: str
+    state: str
+    postal_code: str
+    country: str = "Australia"
+    phone: str
+    email: EmailStr
+    website: Optional[str] = None
+    logo_path: Optional[str] = None
+    contacts: List[ClientContact] = []
+    bank_details: Optional[ClientBankDetails] = None
+    payment_terms: str = "Net 30 days"  # Default payment terms
+    lead_time_days: int = 7  # Default lead time in days
+    notes: Optional[str] = None
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+class ClientCreate(BaseModel):
+    company_name: str
+    abn: Optional[str] = None
+    address: str
+    city: str
+    state: str
+    postal_code: str
+    country: str = "Australia"
+    phone: str
+    email: EmailStr
+    website: Optional[str] = None
+    contacts: List[ClientContact] = []
+    bank_details: Optional[ClientBankDetails] = None
+    payment_terms: str = "Net 30 days"
+    lead_time_days: int = 7
+    notes: Optional[str] = None
+
+# Product Models
+class ProductSpecification(BaseModel):
+    material_type: str
+    dimensions: str
+    weight: Optional[str] = None
+    color: Optional[str] = None
+    finishing_requirements: Optional[str] = None
+    quality_standards: Optional[str] = None
+    special_instructions: Optional[str] = None
+
+class Product(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    client_id: str
+    product_name: str
+    product_code: Optional[str] = None
+    description: str
+    unit_price: float
+    unit_of_measure: str
+    specifications: ProductSpecification
+    delivery_requirements: Optional[str] = None
+    lead_time_days: int = 7
+    point_of_contact: Optional[str] = None
+    notes: Optional[str] = None
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+class ProductCreate(BaseModel):
+    client_id: str
+    product_name: str
+    product_code: Optional[str] = None
+    description: str
+    unit_price: float
+    unit_of_measure: str
+    specifications: ProductSpecification
+    delivery_requirements: Optional[str] = None
+    lead_time_days: int = 7
+    point_of_contact: Optional[str] = None
+    notes: Optional[str] = None
+
+# Order Models
+class OrderItem(BaseModel):
+    product_id: str
+    product_name: str
+    quantity: int
+    unit_price: float
+    total_price: float
+    specifications: Optional[ProductSpecification] = None
+    is_completed: bool = False  # Track if this item is completed
+    allocated_stock: Optional[int] = 0  # Quantity allocated from existing stock
+    remaining_to_produce: Optional[int] = None  # Calculated: quantity - allocated_stock
+
+class Order(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    order_number: str
+    client_id: str
+    client_name: str
+    purchase_order_number: Optional[str] = None  # Client's PO number
+    items: List[OrderItem]
+    subtotal: float
+    discount_percentage: Optional[float] = None  # Discount percentage (0-100)
+    discount_amount: Optional[float] = None  # Calculated discount amount
+    discount_notes: Optional[str] = None  # Reason for discount
+    discounted_subtotal: Optional[float] = None  # Subtotal after discount
+    gst: float
+    total_amount: float
+    due_date: datetime
+    priority: OrderPriority = OrderPriority.NORMAL_LOW
+    delivery_address: Optional[str] = None
+    delivery_instructions: Optional[str] = None
+    status: OrderStatus = OrderStatus.ACTIVE
+    current_stage: ProductionStage = ProductionStage.ORDER_ENTERED
+    runtime_estimate: Optional[str] = None  # e.g., "2-3 days", "1 week"
+    notes: Optional[str] = None
+    created_by: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+    acknowledged_at: Optional[datetime] = None
+    production_started_at: Optional[datetime] = None  # When production actually started (overall)
+    stage_start_times: Optional[Dict[str, str]] = {}  # Stage-specific start times: {stage_name: timestamp}
+    completed_at: Optional[datetime] = None
+    invoice_history: Optional[List[dict]] = []  # Track partial invoices: [{invoice_number, items: [{product_id, quantity}], date}]
+    invoiced: Optional[bool] = None  # Flag when order has been invoiced (True for full invoice, False for partial)
+    partially_invoiced: Optional[bool] = None  # Flag when order has been partially invoiced
+    fully_invoiced: bool = False  # Flag when all items have been invoiced
+    version: int = 1  # Optimistic locking - increment on each update to prevent concurrent modification conflicts
+
+class OrderCreate(BaseModel):
+    client_id: str
+    purchase_order_number: Optional[str] = None  # Client's PO number
+    items: List[OrderItem]
+    discount_percentage: Optional[float] = None  # Discount percentage (0-100)
+    discount_notes: Optional[str] = None  # Reason for discount
+    due_date: datetime
+    priority: OrderPriority = OrderPriority.NORMAL_LOW
+    delivery_address: Optional[str] = None
+    delivery_instructions: Optional[str] = None
+    runtime_estimate: Optional[str] = None
+    notes: Optional[str] = None
+
+# Production Stage Tracking
+class ProductionStageUpdate(BaseModel):
+    order_id: str = None  # Make optional since it's in the URL
+    from_stage: ProductionStage
+    to_stage: ProductionStage
+    updated_by: Optional[str] = None  # Make optional, will be populated from current_user
+    notes: Optional[str] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+class ProductionLog(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    order_id: str
+    stage: ProductionStage
+    updated_by: str
+    notes: Optional[str] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+# Materials Status Tracking
+class MaterialsStatus(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    order_id: str
+    materials_ready: bool = False
+    materials_checklist: List[Dict[str, Any]] = []  # List of materials with ready status
+    updated_by: str
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class MaterialsStatusUpdate(BaseModel):
+    materials_ready: bool
+    materials_checklist: List[Dict[str, Any]] = []
+
+# Order Item Status Updates
+class OrderItemStatusUpdate(BaseModel):
+    item_index: int
+    is_completed: bool
+
+# Stage Movement Request
+class StageMovementRequest(BaseModel):
+    direction: str  # "forward" or "backward"
+    notes: Optional[str] = None
+
+class StageJumpRequest(BaseModel):
+    target_stage: str  # Direct stage to jump to
+    notes: Optional[str] = None
+
+# Job Specification Models
+class JobSpecification(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    order_id: str
+    product_id: str
+    client_requirements: str
+    delivery_timeline: str
+    point_of_contact: str
+    contact_email: EmailStr
+    contact_phone: str
+    special_instructions: Optional[str] = None
+    quality_checkpoints: List[str] = []
+    materials_required: List[str] = []
+    estimated_completion: datetime
+    created_by: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+class JobSpecificationCreate(BaseModel):
+    order_id: str
+    product_id: str
+    client_requirements: str
+    delivery_timeline: str
+    point_of_contact: str
+    contact_email: EmailStr
+    contact_phone: str
+    special_instructions: Optional[str] = None
+    quality_checkpoints: List[str] = []
+    materials_required: List[str] = []
+    estimated_completion: datetime
+
+# Report Models
+class OutstandingJobsReport(BaseModel):
+    total_jobs: int
+    jobs_by_stage: Dict[str, int]
+    overdue_jobs: int
+    jobs_due_today: int
+    jobs_due_this_week: int
+    report_generated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class LateDeliveryReport(BaseModel):
+    total_late_deliveries: int
+    average_delay_days: float
+    late_deliveries_by_client: Dict[str, int]
+    late_deliveries_by_month: Dict[str, int]
+    report_generated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class CustomerAnnualReport(BaseModel):
+    client_id: str
+    client_name: str
+    year: int
+    total_orders: int
+    total_revenue: float
+    average_order_value: float
+    orders_by_month: Dict[str, int]
+    revenue_by_month: Dict[str, float]
+    top_products: List[Dict[str, Any]]
+    on_time_delivery_rate: float
+    report_generated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Document Models
+class DocumentTemplate(BaseModel):
+    type: str  # acknowledgment, job_card, packing_list, invoice
+    template_data: Dict[str, Any]
+    generated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Supplier Models
+class Supplier(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    supplier_name: str
+    contact_person: Optional[str] = None
+    phone_number: str
+    email: EmailStr
+    physical_address: str
+    post_code: str
+    currency_accepted: str = "AUD"
+    # Bank details
+    bank_name: str
+    bank_address: str
+    account_name: str  # New field
+    bank_account_number: str
+    swift_code: Optional[str] = None
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+class SupplierCreate(BaseModel):
+    supplier_name: str
+    contact_person: Optional[str] = None
+    phone_number: str
+    email: EmailStr
+    physical_address: str
+    post_code: str
+    currency_accepted: str = "AUD"
+    bank_name: str
+    bank_address: str
+    account_name: str  # New field
+    bank_account_number: str
+    swift_code: Optional[str] = None
+
+# Product Specifications Models
+# Enhanced Material Layer Assignment Model
+class MaterialLayerAssignment(BaseModel):
+    material_id: str
+    material_name: str
+    layer_type: str  # "Outer Most Layer", "Central Layer", "Inner Most Layer"
+    width: Optional[float] = None  # mm for Outer/Inner layers
+    width_range: Optional[str] = None  # e.g., "61-68" for Central layers
+    thickness: float  # mm - thickness of this material
+    quantity: Optional[float] = None  # quantity/percentage if applicable
+    notes: Optional[str] = None
+    # Spiral Core Allocation fields
+    spiral_allocation_percent: Optional[float] = None  # Percentage of this layer in spiral formation
+    spiral_sequence: Optional[int] = None  # Order of application in spiral winding (1, 2, 3, etc.)
+    winding_direction: Optional[str] = None  # "clockwise", "counterclockwise", "alternating"
+    overlap_factor: Optional[float] = None  # Material overlap multiplier (1.0 = no overlap)
+
+# Machinery Models for Product Specifications
+class MachineryRate(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    function: str  # "Slitting", "winding", "Cutting/Indexing", "splitting", "Packing", "Delivery Time"
+    rate_per_hour: float  # Default $ rate per hour for this function
+    description: Optional[str] = None  # Optional description for the rate
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+class MachineryRateCreate(BaseModel):
+    function: str
+    rate_per_hour: float
+    description: Optional[str] = None
+
+class MachineryRateUpdate(BaseModel):
+    function: Optional[str] = None
+    rate_per_hour: Optional[float] = None
+    description: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class MachineryFunction(BaseModel):
+    function: str  # "Slitting", "winding", "Cutting/Indexing", "splitting", "Packing", "Delivery Time"
+    rate_per_hour: Optional[float] = None  # $ rate per hour for this function
+
+class MachinerySpec(BaseModel):
+    machine_name: str
+    running_speed: Optional[float] = None  # Meters Per Minute
+    setup_time: Optional[str] = None  # Time in HH:MM format
+    pack_up_time: Optional[str] = None  # Time in HH:MM format
+    functions: List[MachineryFunction] = []  # Available functions for this machine
+
+class ProductSpecification(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    product_name: str
+    product_type: str  # e.g., "Paper Core", "Spiral Paper Core"
+    specifications: Dict[str, Any]  # Flexible spec storage
+    materials_composition: List[Dict[str, Any]] = []  # Legacy materials (for backward compatibility)
+    material_layers: List[MaterialLayerAssignment] = []  # New enhanced material layers
+    machinery: List[MachinerySpec] = []  # Machinery specifications for job card/run sheet
+    manufacturing_notes: Optional[str] = None
+    calculated_total_thickness: Optional[float] = None  # Auto-calculated from material layers
+    selected_thickness: Optional[float] = None  # User-selected thickness from calculated options
+    thickness_options: List[float] = []  # Available thickness options
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+class ProductSpecificationCreate(BaseModel):
+    product_name: str
+    product_type: str
+    specifications: Dict[str, Any]
+    materials_composition: List[Dict[str, Any]] = []
+    material_layers: List[MaterialLayerAssignment] = []
+    machinery: List[MachinerySpec] = []
+    manufacturing_notes: Optional[str] = None
+    selected_thickness: Optional[float] = None
+
+# Calculator Models
+class MaterialConsumptionByClientRequest(BaseModel):
+    client_id: str
+    material_id: str
+    start_date: date
+    end_date: date
+
+class MaterialPermutationRequest(BaseModel):
+    core_ids: List[str]
+    sizes_to_manufacture: List[Dict[str, Any]]  # [{width: float, priority: int}]
+    master_deckle_width: float
+    acceptable_waste_percentage: float
+
+class RawMaterialPermutationRequest(BaseModel):
+    material_id: str  # Raw material ID from raw_materials collection
+    waste_allowance_mm: float  # Maximum acceptable waste in mm
+    desired_slit_widths: List[float]  # List of target slit widths in mm
+    quantity_master_rolls: int = 1  # Number of master rolls available
+
+class ProfitabilityReportRequest(BaseModel):
+    order_ids: Optional[List[str]] = None  # For specific order analysis (not used in new design)
+    client_ids: Optional[List[str]] = None  # Filter by multiple clients
+    product_ids: Optional[List[str]] = None  # Filter by multiple products
+    start_date: Optional[str] = None  # Filter by date range
+    end_date: Optional[str] = None
+    profit_threshold: float = 0.0  # Profit % threshold for alerts (default 0%)
+
+class ManualStocktake(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    month: str  # YYYY-MM format
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_by: str
+    items: List[Dict[str, Any]]  # List of all items with confirmed/modified status
+    summary: Dict[str, Any]  # Summary stats (total items, confirmed, modified)
+    spiral_cores_summary: Optional[List[Dict[str, Any]]] = None
+
+class SpiralCoreConsumptionRequest(BaseModel):
+    product_specification_id: str
+    core_internal_diameter: float  # mm
+    core_length: float  # mm
+    quantity: int
+
+class CalculationResult(BaseModel):
+    calculation_type: str
+    input_parameters: Dict[str, Any]
+    results: Dict[str, Any]
+    calculated_at: datetime = Field(default_factory=datetime.utcnow)
+    calculated_by: str
+
+# Stocktake Models
+class StocktakeEntry(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    stocktake_id: str
+    material_id: str
+    material_name: str
+    actual_quantity: float
+    expected_quantity: Optional[float] = 0
+    variance: Optional[float] = 0
+    notes: Optional[str] = ""
+    recorded_by: str
+    recorded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# Stock Management System Models
+class RawSubstrateStock(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    client_id: str
+    client_name: str
+    product_id: str
+    product_code: str
+    product_description: str
+    quantity_on_hand: float
+    unit_of_measure: str = "units"
+    source_order_id: str  # Which order created this excess stock
+    source_job_id: Optional[str] = None
+    is_shared_product: bool = False
+    shared_with_clients: List[str] = Field(default_factory=list)
+    created_from_excess: bool = True  # True if from Job Card excess, False if manual entry
+    material_specifications: Optional[dict] = Field(default_factory=dict)  # Core specs, materials used, etc.
+    material_value_m2: Optional[float] = 0.0  # Calculated material value in square meters
+    minimum_stock_level: Optional[float] = 0.0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+    created_by: str
+    updated_by: Optional[str] = None
+
+class RawMaterialStock(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    material_id: str
+    material_name: str
+    quantity_on_hand: float
+    unit_of_measure: str = "kg"
+    minimum_stock_level: float = 0.0
+    alert_threshold_days: Optional[int] = 7  # Days to alert before running out
+    supplier_id: Optional[str] = None
+    last_order_date: Optional[datetime] = None
+    last_order_quantity: Optional[float] = 0.0
+    usage_rate_per_month: Optional[float] = 0.0  # Calculated from historical data
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+
+class StockMovement(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    stock_type: str  # "raw_substrate" or "raw_material"
+    stock_id: str  # Reference to RawSubstrateStock or RawMaterialStock ID
+    movement_type: str  # "addition", "consumption", "adjustment", "transfer"
+    quantity_change: float  # Positive for additions, negative for consumption
+    previous_quantity: float
+    new_quantity: float
+    reference_id: Optional[str] = None  # Order ID, Job ID, or Manual Entry ID
+    reference_type: Optional[str] = None  # "order", "job", "manual", "transfer"
+    notes: Optional[str] = ""
+    created_by: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class StockAlert(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    stock_type: str  # "raw_substrate" or "raw_material"
+    stock_id: str
+    alert_type: str  # "low_stock", "out_of_stock", "expiry_warning"
+    message: str
+    is_active: bool = True
+    acknowledged_by: Optional[str] = None
+    acknowledged_at: Optional[datetime] = None
+    snooze_until: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# Stock Management Request Models
+class RawSubstrateStockCreate(BaseModel):
+    client_id: str
+    client_name: str
+    product_id: str
+    product_code: str
+    product_description: str
+    quantity_on_hand: float
+    unit_of_measure: str = "units"
+    source_order_id: str
+    source_job_id: Optional[str] = None
+    is_shared_product: bool = False
+    shared_with_clients: List[str] = Field(default_factory=list)
+    created_from_excess: bool = True
+    material_specifications: Optional[dict] = Field(default_factory=dict)
+    material_value_m2: Optional[float] = 0.0
+    minimum_stock_level: Optional[float] = 0.0
+
+class RawSubstrateStockUpdate(BaseModel):
+    quantity_on_hand: Optional[float] = None
+    minimum_stock_level: Optional[float] = None
+    is_shared_product: Optional[bool] = None
+    shared_with_clients: Optional[List[str]] = None
+    material_specifications: Optional[dict] = None
+    notes: Optional[str] = None
+
+class RawMaterialStockCreate(BaseModel):
+    material_id: str
+    material_name: str
+    quantity_on_hand: float
+    unit_of_measure: str = "kg"
+    minimum_stock_level: float = 0.0
+    alert_threshold_days: int = 7
+    supplier_id: Optional[str] = None
+    usage_rate_per_month: Optional[float] = 0.0
+
+class RawMaterialStockUpdate(BaseModel):
+    quantity_on_hand: Optional[float] = None
+    minimum_stock_level: Optional[float] = None
+    alert_threshold_days: Optional[int] = None
+    usage_rate_per_month: Optional[float] = None
+    last_order_date: Optional[datetime] = None
+    last_order_quantity: Optional[float] = None
+    notes: Optional[str] = None
+
+class StockAlertAcknowledge(BaseModel):
+    snooze_hours: Optional[int] = None
+
+# Slit Width Management Models for Raw Material Allocation
+class SlitWidth(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    raw_material_id: str  # Reference to the original raw material stock
+    raw_material_name: str
+    slit_width_mm: float  # The width of the slit material
+    quantity_meters: float  # How many meters of this width are available
+    source_job_id: str  # Which slitting job created this slit width
+    source_order_id: str  # Which order the slitting job belonged to
+    created_from_additional_widths: bool = True  # True if from JobCard additional widths
+    is_allocated: bool = False  # Whether this stock is allocated to an order
+    allocated_to_order_id: Optional[str] = None
+    allocated_quantity: Optional[float] = None
+    remaining_quantity: float  # Available quantity after allocations
+    material_specifications: Optional[dict] = Field(default_factory=dict)  # Material specs from original
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+    created_by: str
+
+class SlitWidthCreate(BaseModel):
+    raw_material_id: str
+    raw_material_name: str
+    slit_width_mm: float
+    quantity_meters: float
+    source_job_id: str
+    source_order_id: str
+    created_from_additional_widths: bool = True
+    material_specifications: Optional[dict] = Field(default_factory=dict)
+
+class SlitWidthUpdate(BaseModel):
+    quantity_meters: Optional[float] = None
+    is_allocated: Optional[bool] = None
+    allocated_to_order_id: Optional[str] = None
+    allocated_quantity: Optional[float] = None
+    remaining_quantity: Optional[float] = None
+
+class SlitWidthAllocationRequest(BaseModel):
+    slit_width_id: str
+    order_id: str
+    required_quantity_meters: float
+    
+class SlitWidthAllocationResponse(BaseModel):
+    success: bool
+    allocated_quantity: float
+    remaining_required: float
+    slit_width_id: str
+    message: str
+
+class Stocktake(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    stocktake_date: date
+    month: str  # "2025-09"
+    status: str = "in_progress"  # in_progress, completed
+    entries: List[StocktakeEntry] = []
+    completed_by: Optional[str] = None
+    completed_at: Optional[datetime] = None
+    created_by: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class StocktakeCreate(BaseModel):
+    stocktake_date: date
+    
+class StocktakeEntryUpdate(BaseModel):
+    material_id: str
+    current_quantity: float
+
+# User Management Models (Enhanced)
+# UserRole enum is defined earlier in the file - removed duplicate
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+    role: Optional[UserRole] = None
+    department: Optional[str] = None
+    phone: Optional[str] = None
+    employment_type: Optional[EmploymentType] = None
+    is_active: Optional[bool] = None
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+# Materials & Products Models
+class Material(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    supplier: str
+    product_code: str
+    order_to_delivery_time: str
+    material_description: Optional[str] = None  # Made optional for backward compatibility
+    price: float
+    currency: str = "AUD"  # New field with default
+    unit: str  # m2, By the Box, Single Unit
+    raw_substrate: bool = False
+    # Raw substrate fields (only if raw_substrate is True)
+    gsm: Optional[str] = None
+    thickness_mm: Optional[float] = None
+    burst_strength_kpa: Optional[float] = None
+    ply_bonding_jm2: Optional[float] = None
+    moisture_percent: Optional[float] = None
+    supplied_roll_weight: Optional[float] = None  # New field
+    master_deckle_width_mm: Optional[float] = None  # New field
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+class MaterialCreate(BaseModel):
+    supplier: str
+    product_code: str
+    order_to_delivery_time: str
+    material_description: str  # New field
+    price: float
+    currency: str = "AUD"  # New field with default
+    unit: str
+    raw_substrate: bool = False
+    gsm: Optional[str] = None
+    thickness_mm: Optional[float] = None
+    burst_strength_kpa: Optional[float] = None
+    ply_bonding_jm2: Optional[float] = None
+    moisture_percent: Optional[float] = None
+    supplied_roll_weight: Optional[float] = None  # New field
+    master_deckle_width_mm: Optional[float] = None  # New field
+
+# Client Product Types
+class ClientProductType(str, Enum):
+    FINISHED_GOODS = "finished_goods"
+    PAPER_CORES = "paper_cores"
+    SERVICES_AND_DELIVERIES = "services_and_deliveries"
+
+class ClientProduct(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    client_id: str
+    product_type: ClientProductType
+    product_code: str
+    product_description: str
+    price_ex_gst: float
+    minimum_order_quantity: int
+    consignment: bool = False
+    
+    # Paper Cores specific fields
+    material_used: Optional[List[str]] = []  # List of material IDs
+    core_id: Optional[str] = None
+    core_width: Optional[str] = None
+    core_thickness: Optional[str] = None
+    strength_quality_important: Optional[bool] = False
+    delivery_included: Optional[bool] = False
+    
+    # Services and Deliveries specific fields
+    service_delivery_subtype: Optional[str] = None  # "services" or "deliveries"
+    # Services subtype fields
+    service_job_description: Optional[str] = None
+    service_time_required: Optional[str] = None  # e.g., "2 hours", "3 days"
+    service_price: Optional[float] = None
+    service_functions: Optional[List[str]] = Field(default_factory=list)  # List of function descriptions
+    # Deliveries subtype fields
+    delivery_from_address: Optional[str] = None
+    delivery_to_address: Optional[str] = None
+    delivery_unit_type: Optional[str] = None  # Pallets, Cores, Voidfill, Blades, Other
+    delivery_price_per_unit: Optional[float] = None
+    
+    # Production & Makeready Parameters
+    makeready_allowance_percent: Optional[float] = 0.0
+    setup_time_minutes: Optional[int] = 0
+    waste_percentage: Optional[float] = 0.0
+    qc_tolerances: Optional[dict] = Field(default_factory=lambda: {"id_tolerance": 0.0, "od_tolerance": 0.0, "wall_tolerance": 0.0})
+    inspection_interval_minutes: Optional[int] = 0
+    tubes_per_carton: Optional[int] = 0
+    cartons_per_pallet: Optional[int] = 0
+    special_tooling_notes: Optional[str] = ""
+    packing_instructions: Optional[str] = ""
+    
+    # Consumables and sharing
+    consumables: Optional[List[dict]] = Field(default_factory=list)
+    is_shared_product: Optional[bool] = False
+    shared_with_clients: Optional[List[str]] = Field(default_factory=list)
+    
+    # Common fields for database management
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+
+# Archived Orders
+class ArchivedOrder(BaseModel):
+    """Complete order data preserved when archived"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    original_order_id: str
+    order_number: str
+    client_id: str
+    client_name: str
+    purchase_order_number: Optional[str] = None
+    items: List[OrderItem]
+    subtotal: float
+    gst: float
+    total_amount: float
+    due_date: datetime
+    delivery_address: Optional[str] = None
+    delivery_instructions: Optional[str] = None
+    status: OrderStatus = OrderStatus.ARCHIVED
+    final_stage: ProductionStage = ProductionStage.CLEARED
+    runtime_estimate: Optional[str] = None
+    notes: Optional[str] = None
+    created_by: str
+    created_at: datetime
+    completed_at: datetime
+    archived_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    archived_by: str
+
+class ArchivedOrderFilter(BaseModel):
+    """Filters for archived orders search"""
+    client_id: Optional[str] = None
+    date_from: Optional[date] = None
+    date_to: Optional[date] = None
+    search_query: Optional[str] = None  # Search in order number, client name, product names
+    
+class ReportField(str, Enum):
+    """Available fields for Fast Report"""
+    ORDER_NUMBER = "order_number"
+    CLIENT_NAME = "client_name"
+    PURCHASE_ORDER_NUMBER = "purchase_order_number"
+    ORDER_DATE = "created_at"
+    COMPLETION_DATE = "completed_at"
+    DUE_DATE = "due_date"
+    SUBTOTAL = "subtotal"
+    GST = "gst" 
+    TOTAL_AMOUNT = "total_amount"
+    DELIVERY_ADDRESS = "delivery_address"
+    PRODUCT_NAMES = "product_names"
+    PRODUCT_QUANTITIES = "product_quantities"
+    NOTES = "notes"
+    RUNTIME_ESTIMATE = "runtime_estimate"
+
+class ReportTimePeriod(str, Enum):
+    """Time period filters for reports"""
+    CURRENT_MONTH = "current_month"
+    LAST_MONTH = "last_month"
+    LAST_3_MONTHS = "last_3_months"
+    LAST_6_MONTHS = "last_6_months"
+    LAST_9_MONTHS = "last_9_months"
+    LAST_YEAR = "last_year"
+    CURRENT_QUARTER = "current_quarter"
+    LAST_QUARTER = "last_quarter"
+    CURRENT_FINANCIAL_YEAR = "current_financial_year"
+    LAST_FINANCIAL_YEAR = "last_financial_year"
+    YEAR_TO_DATE = "year_to_date"
+    CUSTOM_RANGE = "custom_range"
+
+class FastReportRequest(BaseModel):
+    """Request for generating Fast Report"""
+    client_id: str
+    time_period: ReportTimePeriod
+    date_from: Optional[date] = None
+    date_to: Optional[date] = None
+    selected_fields: List[ReportField]
+    product_filter: Optional[str] = None  # Filter by specific product names
+    report_title: Optional[str] = None
+    
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+class ClientProductCreate(BaseModel):
+    client_id: Optional[str] = None  # Will be set from URL path
+    product_type: ClientProductType
+    product_code: str
+    product_description: str
+    price_ex_gst: float
+    minimum_order_quantity: int
+    consignment: bool = False
+    material_used: Optional[List[str]] = []
+    core_id: Optional[str] = None
+    core_width: Optional[str] = None
+    core_thickness: Optional[str] = None
+    strength_quality_important: Optional[bool] = False
+    delivery_included: Optional[bool] = False
+    
+    # Services and Deliveries specific fields
+    service_delivery_subtype: Optional[str] = None
+    service_job_description: Optional[str] = None
+    service_time_required: Optional[str] = None
+    service_price: Optional[float] = None
+    service_functions: Optional[List[str]] = Field(default_factory=list)
+    delivery_from_address: Optional[str] = None
+    delivery_to_address: Optional[str] = None
+    delivery_unit_type: Optional[str] = None
+    delivery_price_per_unit: Optional[float] = None
+    
+    # Production & Makeready Parameters
+    makeready_allowance_percent: Optional[float] = 0.0
+    setup_time_minutes: Optional[int] = 0
+    waste_percentage: Optional[float] = 0.0
+    qc_tolerances: Optional[dict] = Field(default_factory=lambda: {"id_tolerance": 0.0, "od_tolerance": 0.0, "wall_tolerance": 0.0})
+    inspection_interval_minutes: Optional[int] = 0
+    tubes_per_carton: Optional[int] = 0
+    cartons_per_pallet: Optional[int] = 0
+    special_tooling_notes: Optional[str] = ""
+    packing_instructions: Optional[str] = ""
+    
+    # Consumables and sharing
+    consumables: Optional[List[dict]] = Field(default_factory=list)
+    is_shared_product: Optional[bool] = False
+    shared_with_clients: Optional[List[str]] = Field(default_factory=list)
+
+# Response Models
+class StandardResponse(BaseModel):
+    success: bool
+    message: str
+    data: Optional[Any] = None
+
+class PaginatedResponse(BaseModel):
+    success: bool
+    data: List[Any]
+    total: int
+    page: int
+    per_page: int
+
+
+# Label Designer Models
+class LabelField(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    field_name: str  # e.g., "customer", "order_number", "due_date", "product_item", etc.
+    label: str  # Display label for the field
+    x_position: float  # Position in mm from left
+    y_position: float  # Position in mm from top
+    font_size: int = 12  # Font size in pt
+    font_weight: str = "normal"  # "normal" or "bold"
+    text_align: str = "left"  # "left", "center", "right"
+    max_width: Optional[float] = None  # Max width in mm
+
+class LabelShape(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    shape_type: str  # "rectangle", "circle", "line"
+    x_position: float  # Position in mm from left
+    y_position: float  # Position in mm from top
+    width: float  # Width in mm
+    height: float  # Height in mm
+    border_width: int = 1  # Border width in pt
+    border_color: str = "#000000"  # Border color
+    fill_color: Optional[str] = None  # Fill color (None for transparent)
+
+class LabelLogo(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    x_position: float  # Position in mm from left
+    y_position: float  # Position in mm from top
+    width: float  # Width in mm
+    height: float  # Height in mm
+    image_data: str  # Base64 encoded image data
+    image_format: str  # "png", "jpg", "jpeg"
+
+class LabelTemplate(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    template_name: str
+    width_mm: float = 100.0  # Default 100mm
+    height_mm: float = 150.0  # Default 150mm
+    fields: List[LabelField] = Field(default_factory=list)
+    shapes: List[LabelShape] = Field(default_factory=list)
+    logo: Optional[LabelLogo] = None
+    include_qr_code: bool = False
+    qr_code_x: Optional[float] = None  # QR code X position in mm
+    qr_code_y: Optional[float] = None  # QR code Y position in mm
+    qr_code_size: Optional[float] = 30.0  # QR code size in mm
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_by: Optional[str] = None
+
+class LabelTemplateCreate(BaseModel):
+    template_name: str
+    width_mm: float = 100.0
+    height_mm: float = 150.0
+    fields: List[LabelField] = Field(default_factory=list)
+    shapes: List[LabelShape] = Field(default_factory=list)
+    logo: Optional[LabelLogo] = None
+    include_qr_code: bool = False
+    qr_code_x: Optional[float] = None
+    qr_code_y: Optional[float] = None
+    qr_code_size: Optional[float] = 30.0
+
+class LabelTemplateUpdate(BaseModel):
+    template_name: Optional[str] = None
+    width_mm: Optional[float] = None
+    height_mm: Optional[float] = None
+    fields: Optional[List[LabelField]] = None
+    shapes: Optional[List[LabelShape]] = None
+    logo: Optional[LabelLogo] = None
+    include_qr_code: Optional[bool] = None
+    qr_code_x: Optional[float] = None
+    qr_code_y: Optional[float] = None
+    qr_code_size: Optional[float] = None
+
+    total_pages: int
