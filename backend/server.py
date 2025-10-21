@@ -4352,19 +4352,64 @@ async def update_raw_substrate_stock(
 
 @api_router.get("/stock/raw-materials", response_model=StandardResponse)
 async def get_raw_materials_stock(current_user: dict = Depends(require_any_role)):
-    """Get all raw materials stock"""
+    """Get all raw materials stock with complete material details"""
     try:
-        materials = await db.raw_material_stock.find({}).to_list(length=None)
+        materials_stock = await db.raw_material_stock.find({}).to_list(length=None)
         
-        # Remove MongoDB ObjectIds
-        for material in materials:
-            if "_id" in material:
-                del material["_id"]
+        # Enrich stock data with material details from materials collection
+        enriched_materials = []
+        for stock in materials_stock:
+            # Fetch corresponding material details
+            material_details = await db.materials.find_one({"id": stock.get("material_id")})
+            
+            # Merge stock data with material details
+            enriched_material = {
+                "id": stock.get("id"),
+                "material_id": stock.get("material_id"),
+                "material_name": stock.get("material_name"),
+                "quantity_on_hand": stock.get("quantity_on_hand", 0),
+                "unit_of_measure": stock.get("unit_of_measure", "kg"),
+                "minimum_stock_level": stock.get("minimum_stock_level", 0.0),
+                "alert_threshold_days": stock.get("alert_threshold_days", 7),
+                "supplier_id": stock.get("supplier_id"),
+                "last_order_date": stock.get("last_order_date"),
+                "last_order_quantity": stock.get("last_order_quantity", 0.0),
+                "usage_rate_per_month": stock.get("usage_rate_per_month", 0.0),
+                "created_at": stock.get("created_at"),
+                "updated_at": stock.get("updated_at")
+            }
+            
+            # Add material details if found
+            if material_details:
+                enriched_material.update({
+                    "supplier": material_details.get("supplier", "Unknown Supplier"),
+                    "product_code": material_details.get("product_code", ""),
+                    "material_description": material_details.get("material_description", ""),
+                    "price": material_details.get("price", 0),
+                    "purchase_cost": material_details.get("price", 0),
+                    "currency": material_details.get("currency", "AUD"),
+                    "unit": material_details.get("unit", "kg"),
+                    "gsm": material_details.get("gsm"),
+                    "master_deckle_width_mm": material_details.get("master_deckle_width_mm"),
+                    "width_mm": material_details.get("master_deckle_width_mm")
+                })
+            else:
+                # Set defaults if material details not found
+                enriched_material.update({
+                    "supplier": "Unknown Supplier",
+                    "product_code": "",
+                    "material_description": stock.get("material_name", "Unknown Material"),
+                    "price": 0,
+                    "purchase_cost": 0,
+                    "currency": "AUD"
+                })
+            
+            enriched_materials.append(enriched_material)
         
         return StandardResponse(
             success=True,
             message="Raw materials stock retrieved successfully",
-            data=materials
+            data=enriched_materials
         )
     except Exception as e:
         logger.error(f"Failed to get raw materials stock: {str(e)}")
