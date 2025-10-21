@@ -521,7 +521,7 @@ class ConcurrentAccessTester:
                         'employee_id': employee.get('id'),
                         'employee_name': f"{employee.get('first_name')} {employee.get('last_name')}",
                         'leave_type': 'annual_leave',
-                        'hours_requested': 24.0,
+                        'hours_requested': 8.0,
                         'status': 'pending'
                     }
                 else:
