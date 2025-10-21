@@ -122,7 +122,7 @@ const Layout = ({ children }) => {
         <div className="flex items-center h-16 px-4 border-b border-gray-700 flex-shrink-0">
           <div className="flex items-center">
             <img 
-              src="/logo192.png" 
+              src="/logo192.svg" 
               alt="Misty Manufacturing" 
               className="h-10 w-10 mr-3 object-contain"
             />
