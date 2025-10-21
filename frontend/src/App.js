@@ -73,6 +73,7 @@ function App() {
       <AuthProvider>
         <div className="App">
           <AppRoutes />
+          <PWAInstallPrompt />
           <Toaster 
             position="top-right" 
             theme="dark"
