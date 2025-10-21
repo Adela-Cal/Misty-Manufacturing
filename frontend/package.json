@@ -1,6 +1,8 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
+  "name": "misty-manufacturing",
+  "version": "1.0.0",
+  "description": "Misty Manufacturing Management System - Production, Orders, Stock, and Payroll Management",
+  "author": "Misty Manufacturing",
   "private": true,
   "dependencies": {
     "@heroicons/react": "^2.2.0",
