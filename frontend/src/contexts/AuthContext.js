@@ -68,13 +68,41 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (credentials) => {
+  const refreshAccessToken = async () => {
     try {
-      const response = await api.post('/auth/login', credentials);
-      const { access_token, user: userData } = response.data;
+      console.log('Refreshing access token...');
+      const response = await api.post(`/auth/refresh?refresh_token=${refreshToken}`);
+      const { access_token, refresh_token: newRefreshToken } = response.data;
       
       localStorage.setItem('token', access_token);
       setToken(access_token);
+      api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      
+      // Update refresh token if it was rotated
+      if (newRefreshToken && newRefreshToken !== refreshToken) {
+        localStorage.setItem('refreshToken', newRefreshToken);
+        setRefreshToken(newRefreshToken);
+      }
+      
+      console.log('Access token refreshed successfully');
+      return true;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      toast.error('Your session has expired. Please log in again.');
+      logout();
+      return false;
+    }
+  };
+
+  const login = async (credentials) => {
+    try {
+      const response = await api.post('/auth/login', credentials);
+      const { access_token, refresh_token, user: userData } = response.data;
+      
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('refreshToken', refresh_token);
+      setToken(access_token);
+      setRefreshToken(refresh_token);
       setUser(userData);
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       
@@ -89,7 +117,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     setToken(null);
+    setRefreshToken(null);
     setUser(null);
     delete api.defaults.headers.common['Authorization'];
     toast.info('Logged out successfully');
