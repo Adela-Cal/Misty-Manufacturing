@@ -215,6 +215,7 @@ class Order(BaseModel):
     invoiced: Optional[bool] = None  # Flag when order has been invoiced (True for full invoice, False for partial)
     partially_invoiced: Optional[bool] = None  # Flag when order has been partially invoiced
     fully_invoiced: bool = False  # Flag when all items have been invoiced
+    version: int = 1  # Optimistic locking - increment on each update to prevent concurrent modification conflicts
 
 class OrderCreate(BaseModel):
     client_id: str
