@@ -1168,14 +1168,16 @@ def _is_first_business_day(check_date):
 # ============= USER MANAGEMENT ENDPOINTS =============
 
 @api_router.get("/users", response_model=List[dict])
-async def get_users(current_user: dict = Depends(require_admin)):
-    """Get all users (Admin only)"""
+async def get_users(current_user: dict = Depends(require_any_role)):
+    """Get all users (accessible to all authenticated users for manager selection)"""
     users = await db.users.find({}).sort("full_name", 1).to_list(1000)
     
     # Remove password hashes and convert ObjectId to string
     for user in users:
         if "password_hash" in user:
             del user["password_hash"]
+        if "hashed_password" in user:
+            del user["hashed_password"]
         if "_id" in user:
             del user["_id"]  # Remove MongoDB ObjectId
     
