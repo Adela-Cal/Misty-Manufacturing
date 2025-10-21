@@ -19,6 +19,7 @@ dnspython==2.8.0
 ecdsa==0.19.1
 email-validator==2.3.0
 emails==0.6
+et_xmlfile==2.0.0
 fastapi==0.110.1
 flake8==7.3.0
 h11==0.16.0
@@ -37,6 +38,7 @@ mypy==1.18.2
 mypy_extensions==1.1.0
 numpy==2.3.3
 oauthlib==3.3.1
+openpyxl==3.1.5
 packaging==25.0
 pandas==2.3.2
 passlib==1.7.4
@@ -53,7 +55,7 @@ pydantic_core==2.33.2
 pyflakes==3.4.0
 Pygments==2.19.2
 PyJWT==2.10.1
-pymongo==4.5.0
+pymongo==4.15.3
 PyPDF2==3.0.1
 pytest==8.4.2
 python-dateutil==2.9.0.post0
@@ -83,4 +85,3 @@ uvicorn==0.25.0
 validators==0.35.0
 watchfiles==1.1.0
 xero_python==9.1.0
-openpyxl==3.1.5
