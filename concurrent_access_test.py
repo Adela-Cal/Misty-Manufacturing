@@ -297,14 +297,15 @@ class ConcurrentAccessTester:
             initial_quantity = stock_item.get('quantity_on_hand', 0)
             allocation_quantity = min(5, initial_quantity)  # Allocate 5 units or less
             
-            # Test stock allocation endpoint
+            # Test stock allocation endpoint (correct format)
             allocation_data = {
+                "product_id": stock_item.get('product_id'),
+                "client_id": stock_item.get('client_id'),
                 "quantity": allocation_quantity,
-                "order_id": f"TEST-ORDER-{str(uuid.uuid4())[:8]}",
-                "notes": "Test allocation for concurrent access testing"
+                "order_reference": f"TEST-ORDER-{str(uuid.uuid4())[:8]}"
             }
             
-            response = self.session.post(f"{API_BASE}/stock/allocate/{stock_id}", json=allocation_data)
+            response = self.session.post(f"{API_BASE}/stock/allocate", json=allocation_data)
             
             if response.status_code == 200:
                 result = response.json()
