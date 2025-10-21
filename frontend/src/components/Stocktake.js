@@ -3171,20 +3171,38 @@ const Stocktake = () => {
               </div>
 
               {/* Footer Actions */}
-              <div className="p-6 border-t border-gray-700 flex justify-end space-x-3">
-                <button
-                  onClick={() => setShowManualStockTake(false)}
-                  className="misty-button misty-button-secondary"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={saveManualStockTake}
-                  disabled={!manualStockTakeMonth}
-                  className="misty-button misty-button-primary disabled:opacity-50"
-                >
-                  Save Stock Take
-                </button>
+              <div className="p-6 border-t border-gray-700 flex justify-between items-center">
+                <div className="flex space-x-3">
+                  <button
+                    onClick={exportStockTakeToPDF}
+                    className="misty-button misty-button-secondary flex items-center"
+                  >
+                    <PrinterIcon className="h-5 w-5 mr-2" />
+                    Print PDF
+                  </button>
+                  <button
+                    onClick={exportStockTakeToCSV}
+                    className="misty-button misty-button-secondary flex items-center"
+                  >
+                    <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
+                    Generate CSV
+                  </button>
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowManualStockTake(false)}
+                    className="misty-button misty-button-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveManualStockTake}
+                    disabled={!manualStockTakeMonth}
+                    className="misty-button misty-button-primary disabled:opacity-50"
+                  >
+                    Save Stock Take
+                  </button>
+                </div>
               </div>
             </div>
           </div>
