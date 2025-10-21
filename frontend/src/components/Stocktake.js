@@ -1217,11 +1217,11 @@ const Stocktake = () => {
     
     // Add spiral cores summary
     const coresSummary = calculateSpiralCoresSummary();
-    if (coresSummary.length > 0) {
+    if (coresSummary && coresSummary.cores_by_width.length > 0) {
       rows.push([]);
-      rows.push(['SPIRAL PAPER CORES SUMMARY']);
+      rows.push(['SPIRAL PAPER CORES SUMMARY - CORES BY WIDTH']);
       rows.push(['Width (mm)', 'Quantity', 'Total m²', '% of Master Deckle']);
-      coresSummary.forEach(group => {
+      coresSummary.cores_by_width.forEach(group => {
         rows.push([
           group.width_mm,
           group.quantity,
@@ -1229,6 +1229,23 @@ const Stocktake = () => {
           group.percent_of_master.toFixed(2) + '%'
         ]);
       });
+      
+      // Add material usage
+      if (coresSummary.material_usage.length > 0) {
+        rows.push([]);
+        rows.push(['MATERIAL CONSUMPTION TO MANUFACTURE CORES']);
+        rows.push(['Layer Type', 'Material', 'Supplier', 'Width (mm)', 'GSM', 'Total Linear Meters']);
+        coresSummary.material_usage.forEach(material => {
+          rows.push([
+            material.layer_type,
+            material.material_name,
+            material.supplier,
+            material.width_mm,
+            material.gsm,
+            material.total_linear_meters.toFixed(2) + ' m'
+          ]);
+        });
+      }
     }
     
     const csvContent = [
