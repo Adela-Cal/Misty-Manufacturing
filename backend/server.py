@@ -108,6 +108,48 @@ async def login(user_credentials: UserLogin):
         "user": user_info
     }
 
+@api_router.post("/auth/refresh", response_model=Token)
+async def refresh_access_token(refresh_token: str):
+    """Refresh access token using a valid refresh token"""
+    # Verify the refresh token
+    payload = verify_token(refresh_token, token_type="refresh")
+    
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token"
+        )
+    
+    # Get user data to ensure user still exists and is active
+    user_data = await db.users.find_one({"username": payload.get("sub")})
+    
+    if not user_data or not user_data.get("is_active", True):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User account not found or disabled"
+        )
+    
+    # Create new access token (keep the same refresh token)
+    token_data = {"sub": user_data["username"], "role": user_data["role"], "user_id": user_data["id"]}
+    new_access_token = create_access_token(data=token_data)
+    
+    user_info = {
+        "id": user_data["id"],
+        "username": user_data["username"],
+        "full_name": user_data["full_name"],
+        "role": user_data["role"],
+        "email": user_data["email"]
+    }
+    
+    logger.info(f"Access token refreshed for user: {user_data['username']}")
+    
+    return {
+        "access_token": new_access_token,
+        "refresh_token": refresh_token,  # Return the same refresh token
+        "token_type": "bearer",
+        "user": user_info
+    }
+
 @api_router.post("/auth/register", response_model=StandardResponse)
 async def register_user(user_data: UserCreate, current_user: dict = Depends(require_admin)):
     """Register new user (Admin only)"""
