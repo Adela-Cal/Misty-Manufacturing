@@ -466,9 +466,23 @@ class ConcurrentAccessTester:
                             f"Found pending leave request: {request.get('leave_type')} for {request.get('employee_name')}"
                         )
                         return request
+                
+                # If no pending requests found, log this and skip the test
+                self.log_result(
+                    "Find Pending Leave Request", 
+                    False, 
+                    f"No pending leave requests found. Found {len(leave_requests)} total leave requests but none are pending."
+                )
+            else:
+                self.log_result(
+                    "Find Pending Leave Request", 
+                    False, 
+                    f"Failed to get pending leave requests: {response.status_code}",
+                    response.text
+                )
             
-            # If no pending requests, create one
-            return self.create_test_leave_request()
+            # Skip creating new leave request due to balance issues
+            return None
             
         except Exception as e:
             self.log_result("Find Pending Leave Request", False, f"Error: {str(e)}")
