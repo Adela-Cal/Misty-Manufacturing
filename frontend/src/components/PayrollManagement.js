@@ -112,16 +112,16 @@ const PayrollManagement = () => {
       setLoading(true);
       
       const [employeesRes, pendingTimesheetsRes, pendingLeaveRes, reminderRes] = await Promise.all([
-        hasPermission('manage_payroll') ? fetch('/api/payroll/employees', {
+        hasPermission('manage_payroll') ? fetch(`${BACKEND_URL}/api/payroll/employees`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }) : Promise.resolve({ json: () => [] }),
-        hasPermission('manage_payroll') ? fetch('/api/payroll/timesheets/pending', {
+        hasPermission('manage_payroll') ? fetch(`${BACKEND_URL}/api/payroll/timesheets/pending`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }) : Promise.resolve({ json: () => ({ data: [] }) }),
-        hasPermission('manage_payroll') ? fetch('/api/payroll/leave-requests/pending', {
+        hasPermission('manage_payroll') ? fetch(`${BACKEND_URL}/api/payroll/leave-requests/pending`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }) : Promise.resolve({ json: () => ({ data: [] }) }),
-        fetch('/api/payroll/dashboard/timesheet-reminder', {
+        fetch(`${BACKEND_URL}/api/payroll/dashboard/timesheet-reminder`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         })
       ]);
