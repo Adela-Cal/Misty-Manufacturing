@@ -663,72 +663,106 @@ async def submit_timesheet(timesheet_id: str, current_user: dict = Depends(requi
 
 @payroll_router.post("/timesheets/{timesheet_id}/approve", response_model=StandardResponse)
 async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(require_payroll_access)):
-    """Approve timesheet and calculate pay (Manager only)"""
+    """Approve timesheet and calculate pay (Manager only) - ATOMIC OPERATION for concurrent access"""
     
-    timesheet_doc = await db.timesheets.find_one({"id": timesheet_id})
+    # ATOMIC OPERATION: Update timesheet status only if still in submitted status
+    # This prevents concurrent approvals by multiple managers
+    timesheet_doc = await db.timesheets.find_one_and_update(
+        {
+            "id": timesheet_id,
+            "status": TimesheetStatus.SUBMITTED  # Only approve if currently submitted
+        },
+        {
+            "$set": {
+                "status": TimesheetStatus.APPROVED,
+                "approved_by": current_user.get("user_id", current_user.get("sub")),
+                "approved_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+        },
+        return_document=ReturnDocument.BEFORE  # Return original document for processing
+    )
+    
     if not timesheet_doc:
-        raise HTTPException(status_code=404, detail="Timesheet not found")
+        raise HTTPException(
+            status_code=404, 
+            detail="Timesheet not found, not in submitted status, or already approved by another manager"
+        )
     
     timesheet = Timesheet(**timesheet_doc)
     
     # Get employee profile
     employee_doc = await db.employee_profiles.find_one({"id": timesheet.employee_id})
     if not employee_doc:
+        # Rollback timesheet approval
+        await db.timesheets.update_one(
+            {"id": timesheet_id},
+            {"$set": {
+                "status": TimesheetStatus.SUBMITTED,
+                "approved_by": None,
+                "approved_at": None,
+                "updated_at": datetime.utcnow()
+            }}
+        )
         raise HTTPException(status_code=404, detail="Employee not found")
     
     employee = EmployeeProfile(**employee_doc)
     
-    # Calculate payroll
-    payroll_calculation = payroll_calc_service.calculate_weekly_pay(employee, timesheet)
-    
-    # Save payroll calculation
-    payroll_dict = prepare_for_mongo(payroll_calculation.dict())
-    await db.payroll_calculations.insert_one(payroll_dict)
-    
-    # Update timesheet status
-    await db.timesheets.update_one(
-        {"id": timesheet_id},
-        {"$set": {
-            "status": TimesheetStatus.APPROVED,
-            "approved_by": current_user["user_id"],
-            "approved_at": datetime.utcnow(),
+    try:
+        # Calculate payroll
+        payroll_calculation = payroll_calc_service.calculate_weekly_pay(employee, timesheet)
+        
+        # Save payroll calculation
+        payroll_dict = prepare_for_mongo(payroll_calculation.dict())
+        await db.payroll_calculations.insert_one(payroll_dict)
+        
+        # Update employee leave balances atomically
+        leave_updates = {
+            "annual_leave_balance": employee.annual_leave_balance + payroll_calculation.annual_leave_accrued,
+            "sick_leave_balance": employee.sick_leave_balance + payroll_calculation.sick_leave_accrued,
+            "personal_leave_balance": employee.personal_leave_balance + payroll_calculation.personal_leave_accrued,
             "updated_at": datetime.utcnow()
-        }}
-    )
-    
-    # Update employee leave balances
-    leave_updates = {
-        "annual_leave_balance": employee.annual_leave_balance + payroll_calculation.annual_leave_accrued,
-        "sick_leave_balance": employee.sick_leave_balance + payroll_calculation.sick_leave_accrued,
-        "personal_leave_balance": employee.personal_leave_balance + payroll_calculation.personal_leave_accrued,
-        "updated_at": datetime.utcnow()
-    }
-    
-    # Subtract any leave taken
-    for leave_type, hours_taken in payroll_calculation.leave_taken.items():
-        if leave_type == LeaveType.ANNUAL_LEAVE:
-            leave_updates["annual_leave_balance"] -= hours_taken
-        elif leave_type == LeaveType.SICK_LEAVE:
-            leave_updates["sick_leave_balance"] -= hours_taken
-        elif leave_type == LeaveType.PERSONAL_LEAVE:
-            leave_updates["personal_leave_balance"] -= hours_taken
-    
-    await db.employee_profiles.update_one(
-        {"id": employee.id},
-        {"$set": prepare_for_mongo(leave_updates)}
-    )
-    
-    logger.info(f"Approved timesheet {timesheet_id} and calculated pay: ${payroll_calculation.gross_pay}")
-    
-    return StandardResponse(
-        success=True, 
-        message="Timesheet approved and pay calculated", 
-        data={
-            "gross_pay": float(payroll_calculation.gross_pay),
-            "net_pay": float(payroll_calculation.net_pay),
-            "hours_worked": float(payroll_calculation.total_hours)
         }
-    )
+        
+        # Subtract any leave taken
+        for leave_type, hours_taken in payroll_calculation.leave_taken.items():
+            if leave_type == LeaveType.ANNUAL_LEAVE:
+                leave_updates["annual_leave_balance"] -= hours_taken
+            elif leave_type == LeaveType.SICK_LEAVE:
+                leave_updates["sick_leave_balance"] -= hours_taken
+            elif leave_type == LeaveType.PERSONAL_LEAVE:
+                leave_updates["personal_leave_balance"] -= hours_taken
+        
+        await db.employee_profiles.update_one(
+            {"id": employee.id},
+            {"$set": prepare_for_mongo(leave_updates)}
+        )
+        
+        logger.info(f"Approved timesheet {timesheet_id} by user {current_user.get('sub')} and calculated pay: ${payroll_calculation.gross_pay}")
+        
+        return StandardResponse(
+            success=True, 
+            message="Timesheet approved and pay calculated", 
+            data={
+                "gross_pay": float(payroll_calculation.gross_pay),
+                "net_pay": float(payroll_calculation.net_pay),
+                "hours_worked": float(payroll_calculation.total_hours)
+            }
+        )
+        
+    except Exception as e:
+        # Rollback timesheet approval if calculation fails
+        await db.timesheets.update_one(
+            {"id": timesheet_id},
+            {"$set": {
+                "status": TimesheetStatus.SUBMITTED,
+                "approved_by": None,
+                "approved_at": None,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        logger.error(f"Failed to approve timesheet {timesheet_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to approve timesheet: {str(e)}")
 
 @payroll_router.get("/timesheets/pending")
 async def get_pending_timesheets(current_user: dict = Depends(require_payroll_access)):
