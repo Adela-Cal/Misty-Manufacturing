@@ -4920,7 +4920,7 @@ async def allocate_stock(
     allocation_data: dict,
     current_user: dict = Depends(require_any_role)
 ):
-    """Allocate stock for an order"""
+    """Allocate stock for an order - ATOMIC OPERATION for concurrent access"""
     try:
         product_id = allocation_data.get("product_id")
         client_id = allocation_data.get("client_id")
@@ -4929,28 +4929,29 @@ async def allocate_stock(
         
         if not all([product_id, client_id, quantity]):
             raise HTTPException(status_code=400, detail="Missing required fields")
-            
-        # Find the stock entry
-        stock = await db.raw_substrate_stock.find_one({
-            "product_id": product_id,
-            "client_id": client_id,
-            "quantity_on_hand": {"$gte": quantity}
-        })
         
-        if not stock:
-            raise HTTPException(status_code=400, detail="Insufficient stock available")
-        
-        # Update stock quantity
-        new_quantity = stock["quantity_on_hand"] - quantity
-        result = await db.raw_substrate_stock.update_one(
-            {"id": stock["id"]},
-            {"$set": {"quantity_on_hand": new_quantity}}
+        # ATOMIC OPERATION: Find and update in single operation to prevent race conditions
+        # This ensures that if two users try to allocate the same stock simultaneously,
+        # only one will succeed and the other will get None (insufficient stock)
+        stock = await db.raw_substrate_stock.find_one_and_update(
+            {
+                "product_id": product_id,
+                "client_id": client_id,
+                "quantity_on_hand": {"$gte": quantity}  # Only update if enough stock
+            },
+            {
+                "$inc": {"quantity_on_hand": -quantity}  # Atomic decrement
+            },
+            return_document=ReturnDocument.AFTER
         )
         
-        if result.matched_count == 0:
-            raise HTTPException(status_code=404, detail="Stock entry not found")
+        if stock is None:
+            raise HTTPException(
+                status_code=400, 
+                detail="Insufficient stock available or concurrent allocation occurred. Please refresh and try again."
+            )
         
-        # Create stock movement record
+        # Create stock movement record (after successful allocation)
         movement_id = str(uuid.uuid4())
         movement = {
             "id": movement_id,
@@ -4960,18 +4961,20 @@ async def allocate_stock(
             "movement_type": "allocation",
             "quantity": -quantity,  # Negative for allocation
             "reference": order_reference,
-            "created_by": current_user["user_id"],
+            "created_by": current_user.get("user_id", current_user.get("sub")),
             "created_at": datetime.now(timezone.utc).isoformat(),
             "is_archived": False
         }
         await db.stock_movements.insert_one(movement)
+        
+        logger.info(f"Stock allocated successfully: {quantity} units by user {current_user.get('sub')} for order {order_reference}")
         
         return StandardResponse(
             success=True,
             message=f"Successfully allocated {quantity} units from stock",
             data={
                 "allocated_quantity": quantity,
-                "remaining_stock": new_quantity,
+                "remaining_stock": stock["quantity_on_hand"],
                 "movement_id": movement_id
             }
         )
