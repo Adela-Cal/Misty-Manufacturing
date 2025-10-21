@@ -115,3 +115,8 @@ Framework
 frontend/dist/mac/Misty
 Manufacturing.app/Contents/Resources/app.asar
 Manufacturing.app/Contents/Frameworks/Electron
+Manufacturing.app/Contents/Resources/node_modules/.cache/default-development/3.pack
+Manufacturing.app/Contents/Resources/node_modules/.cache/default-development/26.pack
+Manufacturing.app/Contents/Resources/node_modules/.cache/default-development/1.pack
+Manufacturing.app/Contents/Resources/node_modules/.cache/default-development/6.pack
+Manufacturing.app/Contents/Resources/node_modules/electron/dist/electron
