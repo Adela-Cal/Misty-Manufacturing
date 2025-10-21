@@ -3456,49 +3456,98 @@ const Stocktake = () => {
                     {/* Spiral Paper Cores Summary */}
                     {(() => {
                       const coresSummary = calculateSpiralCoresSummary();
-                      if (coresSummary.length === 0) return null;
+                      if (!coresSummary || coresSummary.cores_by_width.length === 0) return null;
                       
                       return (
-                        <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
-                          <h4 className="text-purple-300 font-medium mb-3 flex items-center">
-                            <CubeIcon className="h-5 w-5 mr-2" />
-                            Spiral Paper Cores Summary
-                          </h4>
-                          <div className="overflow-x-auto">
-                            <table className="w-full">
-                              <thead className="bg-gray-800">
-                                <tr>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-300">Width (mm)</th>
-                                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-300">Quantity</th>
-                                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-300">Total m²</th>
-                                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-300">% of Master Deckle</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-gray-700">
-                                {coresSummary.map((group, index) => (
-                                  <tr key={index}>
-                                    <td className="px-3 py-2 text-sm text-white">{group.width_mm} mm</td>
-                                    <td className="px-3 py-2 text-sm text-right text-gray-300">{group.quantity}</td>
-                                    <td className="px-3 py-2 text-sm text-right text-yellow-400">{group.total_m2.toFixed(2)} m²</td>
-                                    <td className="px-3 py-2 text-sm text-right text-blue-400">{group.percent_of_master.toFixed(2)}%</td>
+                        <div className="space-y-4">
+                          <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
+                            <h4 className="text-purple-300 font-medium mb-3 flex items-center">
+                              <CubeIcon className="h-5 w-5 mr-2" />
+                              Spiral Paper Cores Summary - Cores by Width
+                            </h4>
+                            <div className="overflow-x-auto">
+                              <table className="w-full">
+                                <thead className="bg-gray-800">
+                                  <tr>
+                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-300">Width (mm)</th>
+                                    <th className="px-3 py-2 text-right text-xs font-medium text-gray-300">Quantity</th>
+                                    <th className="px-3 py-2 text-right text-xs font-medium text-gray-300">Total m²</th>
+                                    <th className="px-3 py-2 text-right text-xs font-medium text-gray-300">% of Master Deckle</th>
                                   </tr>
-                                ))}
-                                <tr className="bg-gray-800 font-bold">
-                                  <td className="px-3 py-2 text-sm text-white">TOTAL</td>
-                                  <td className="px-3 py-2 text-sm text-right text-white">
-                                    {coresSummary.reduce((sum, g) => sum + g.quantity, 0)}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-right text-yellow-400">
-                                    {coresSummary.reduce((sum, g) => sum + g.total_m2, 0).toFixed(2)} m²
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-right text-gray-400">-</td>
-                                </tr>
-                              </tbody>
-                            </table>
+                                </thead>
+                                <tbody className="divide-y divide-gray-700">
+                                  {coresSummary.cores_by_width.map((group, index) => (
+                                    <tr key={index}>
+                                      <td className="px-3 py-2 text-sm text-white">{group.width_mm} mm</td>
+                                      <td className="px-3 py-2 text-sm text-right text-gray-300">{group.quantity}</td>
+                                      <td className="px-3 py-2 text-sm text-right text-yellow-400">{group.total_m2.toFixed(2)} m²</td>
+                                      <td className="px-3 py-2 text-sm text-right text-blue-400">{group.percent_of_master.toFixed(2)}%</td>
+                                    </tr>
+                                  ))}
+                                  <tr className="bg-gray-800 font-bold">
+                                    <td className="px-3 py-2 text-sm text-white">TOTAL</td>
+                                    <td className="px-3 py-2 text-sm text-right text-white">
+                                      {coresSummary.total_cores}
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-right text-yellow-400">
+                                      {coresSummary.cores_by_width.reduce((sum, g) => sum + g.total_m2, 0).toFixed(2)} m²
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-right text-gray-400">-</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-2">
+                              * Based on 1500mm master deckle width
+                            </p>
                           </div>
-                          <p className="text-xs text-gray-400 mt-2">
-                            * Based on 1500mm master deckle width
-                          </p>
+
+                          {/* Material Usage for Cores */}
+                          {coresSummary.material_usage.length > 0 && (
+                            <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                              <h4 className="text-blue-300 font-medium mb-3 flex items-center">
+                                <CubeIcon className="h-5 w-5 mr-2" />
+                                Material Consumption to Manufacture Cores
+                              </h4>
+                              <div className="overflow-x-auto">
+                                <table className="w-full">
+                                  <thead className="bg-gray-800">
+                                    <tr>
+                                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-300">Layer Type</th>
+                                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-300">Material</th>
+                                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-300">Supplier</th>
+                                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-300">Width (mm)</th>
+                                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-300">GSM</th>
+                                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-300">Total Linear Meters</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-700">
+                                    {coresSummary.material_usage.map((material, index) => (
+                                      <tr key={index}>
+                                        <td className="px-3 py-2 text-sm text-white">{material.layer_type}</td>
+                                        <td className="px-3 py-2 text-sm text-gray-300">{material.material_name}</td>
+                                        <td className="px-3 py-2 text-sm text-gray-400">{material.supplier}</td>
+                                        <td className="px-3 py-2 text-sm text-right text-gray-300">{material.width_mm} mm</td>
+                                        <td className="px-3 py-2 text-sm text-right text-gray-300">{material.gsm}</td>
+                                        <td className="px-3 py-2 text-sm text-right text-yellow-400 font-medium">
+                                          {material.total_linear_meters.toFixed(2)} m
+                                        </td>
+                                      </tr>
+                                    ))}
+                                    <tr className="bg-gray-800 font-bold">
+                                      <td colSpan="5" className="px-3 py-2 text-sm text-white text-right">TOTAL LINEAR METERS</td>
+                                      <td className="px-3 py-2 text-sm text-right text-yellow-400">
+                                        {coresSummary.material_usage.reduce((sum, m) => sum + m.total_linear_meters, 0).toFixed(2)} m
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+                              <p className="text-xs text-gray-400 mt-2">
+                                * Calculated based on quantity of cores on hand × material requirements per core
+                              </p>
+                            </div>
+                          )}
                         </div>
                       );
                     })()}
