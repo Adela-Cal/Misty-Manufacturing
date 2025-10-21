@@ -879,6 +879,29 @@ const Stocktake = () => {
         {/* Tab Content */}
         {activeTab === 'monthly' && (
           <div className="space-y-6">
+            {/* Manual Stock Take Button */}
+            <div className="bg-gray-800 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-1">Manual Stock Take</h3>
+                  <p className="text-sm text-gray-400">Conduct a manual inventory count for any month</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowManualStockTake(true);
+                    loadManualStockTakeItems();
+                    // Set default month to current month
+                    const now = new Date();
+                    setManualStockTakeMonth(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
+                  }}
+                  className="misty-button misty-button-secondary"
+                >
+                  <ClipboardDocumentListIcon className="h-5 w-5 mr-2" />
+                  Manual Stock Take
+                </button>
+              </div>
+            </div>
+
             {!currentStocktake && stocktakeRequired ? (
               // No stocktake - show prompt to start
               <div className="bg-gray-800 rounded-lg p-8 text-center">
