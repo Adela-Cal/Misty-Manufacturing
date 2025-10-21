@@ -947,54 +947,74 @@ async def get_leave_reminders(current_user: dict = Depends(require_any_role)):
 
 @payroll_router.post("/leave-requests/{request_id}/approve", response_model=StandardResponse)
 async def approve_leave_request(request_id: str, current_user: dict = Depends(require_payroll_access)):
-    """Approve leave request and deduct from employee balance"""
+    """Approve leave request and deduct from employee balance - ATOMIC OPERATION for concurrent access"""
     
-    # Get the leave request
-    leave_request = await db.leave_requests.find_one({"id": request_id, "status": LeaveStatus.PENDING})
+    # Get the leave request and mark as processing atomically
+    leave_request = await db.leave_requests.find_one_and_update(
+        {
+            "id": request_id, 
+            "status": LeaveStatus.PENDING  # Only process if still pending
+        },
+        {
+            "$set": {
+                "status": LeaveStatus.APPROVED,
+                "approved_by": current_user.get("user_id", current_user.get("sub")),
+                "approved_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+        },
+        return_document=ReturnDocument.AFTER
+    )
+    
     if not leave_request:
-        raise HTTPException(status_code=404, detail="Leave request not found or already processed")
-    
-    # Get employee profile
-    employee = await db.employee_profiles.find_one({"id": leave_request["employee_id"]})
-    if not employee:
-        raise HTTPException(status_code=404, detail="Employee not found")
+        raise HTTPException(
+            status_code=404, 
+            detail="Leave request not found, already processed, or concurrent approval occurred"
+        )
     
     # Determine balance field based on leave type
     leave_type = leave_request["leave_type"]
     balance_field = f"{leave_type}_balance"
     hours_requested = float(leave_request["hours_requested"])
     
-    # Get current balance
-    current_balance = float(employee.get(balance_field, 0))
+    # ATOMIC OPERATION: Deduct leave balance only if sufficient balance exists
+    # This prevents race condition where two concurrent approvals could over-deduct balance
+    employee = await db.employee_profiles.find_one_and_update(
+        {
+            "id": leave_request["employee_id"],
+            balance_field: {"$gte": hours_requested}  # Only update if sufficient balance
+        },
+        {
+            "$inc": {balance_field: -hours_requested},  # Atomic decrement
+            "$set": {"updated_at": datetime.utcnow()}
+        },
+        return_document=ReturnDocument.AFTER
+    )
     
-    # Check if employee has sufficient balance
-    if current_balance < hours_requested:
+    if employee is None:
+        # Insufficient balance - rollback leave approval
+        await db.leave_requests.update_one(
+            {"id": request_id},
+            {"$set": {
+                "status": LeaveStatus.PENDING,
+                "approved_by": None,
+                "approved_at": None,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        
+        # Get current balance for error message
+        emp = await db.employee_profiles.find_one({"id": leave_request["employee_id"]})
+        current_balance = float(emp.get(balance_field, 0)) if emp else 0
+        
         raise HTTPException(
             status_code=400, 
             detail=f"Insufficient {leave_type.replace('_', ' ')} balance. Available: {current_balance}h, Requested: {hours_requested}h"
         )
     
-    # Calculate new balance
-    new_balance = current_balance - hours_requested
+    new_balance = float(employee.get(balance_field, 0))
     
-    # Update leave request status
-    await db.leave_requests.update_one(
-        {"id": request_id},
-        {"$set": {
-            "status": LeaveStatus.APPROVED,
-            "approved_by": current_user["user_id"],
-            "approved_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
-        }}
-    )
-    
-    # Deduct leave balance from employee
-    await db.employee_profiles.update_one(
-        {"id": leave_request["employee_id"]},
-        {"$set": {balance_field: new_balance, "updated_at": datetime.utcnow()}}
-    )
-    
-    logger.info(f"Approved leave request {request_id}. Deducted {hours_requested}h from {leave_type}. New balance: {new_balance}h")
+    logger.info(f"Approved leave request {request_id} by user {current_user.get('sub')}. Deducted {hours_requested}h from {leave_type}. New balance: {new_balance}h")
     
     return StandardResponse(
         success=True, 
