@@ -36,17 +36,17 @@ const Login = () => {
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          {/* Adela Merchants Logo */}
+          {/* Misty Manufacturing Logo */}
           <div className="mx-auto mb-4">
             <img 
-              src="/adela-logo.png" 
-              alt="Adela Merchants Logo" 
+              src="/logo192.png" 
+              alt="Misty Manufacturing Logo" 
               className="h-24 w-24 mx-auto object-contain"
             />
           </div>
-          <h1 className="text-3xl font-bold text-yellow-400 mb-2">Adela Merchants</h1>
-          <h2 className="text-xl text-gray-300 mb-2">Manufacturing Management</h2>
-          <p className="text-sm text-gray-400">Adela Merchants</p>
+          <h1 className="text-3xl font-bold text-yellow-400 mb-2">Misty Manufacturing</h1>
+          <h2 className="text-xl text-gray-300 mb-2">Management System</h2>
+          <p className="text-sm text-gray-400">Production, Orders, Stock & Payroll</p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
