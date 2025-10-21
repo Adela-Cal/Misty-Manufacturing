@@ -493,13 +493,13 @@ class ConcurrentAccessTester:
                 
                 employee = employees[0]
                 
-                # Create leave request
+                # Create leave request with sufficient balance check
                 leave_data = {
                     "employee_id": employee.get('id'),
                     "leave_type": "annual_leave",
                     "start_date": (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d"),
-                    "end_date": (datetime.now() + timedelta(days=9)).strftime("%Y-%m-%d"),
-                    "hours_requested": 24.0,
+                    "end_date": (datetime.now() + timedelta(days=8)).strftime("%Y-%m-%d"),  # Only 1 day = 8 hours
+                    "hours_requested": 8.0,  # Request only 8 hours instead of 24
                     "reason": "Test leave request for concurrent access testing"
                 }
                 
