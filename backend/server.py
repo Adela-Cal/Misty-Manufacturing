@@ -66,7 +66,10 @@ async def login(user_credentials: UserLogin):
     """Authenticate user and return JWT token"""
     user_data = await db.users.find_one({"username": user_credentials.username})
     
-    if not user_data or not verify_password(user_credentials.password, user_data["hashed_password"]):
+    # Handle both hashed_password and password_hash field names
+    password_hash = user_data.get("hashed_password") or user_data.get("password_hash") if user_data else None
+    
+    if not user_data or not password_hash or not verify_password(user_credentials.password, password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password"
