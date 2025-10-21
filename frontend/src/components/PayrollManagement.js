@@ -252,7 +252,7 @@ const PayrollManagement = () => {
 
   const loadAllLeaveRequests = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests/pending', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests/pending`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
