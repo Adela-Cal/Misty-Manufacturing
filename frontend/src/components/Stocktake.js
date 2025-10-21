@@ -3531,6 +3531,181 @@ const Stocktake = () => {
             </div>
           </div>
         )}
+
+        {/* Archived Stocktakes Modal */}
+        {showArchivedStocktakes && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+              <div className="p-6 border-b border-gray-700">
+                <h2 className="text-2xl font-bold text-white">Archived Stocktakes</h2>
+                <p className="text-gray-400">View, edit, or export historical stocktakes</p>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                {loadingArchived ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
+                    <p className="text-gray-400 mt-4">Loading archived stocktakes...</p>
+                  </div>
+                ) : archivedStocktakes.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CubeIcon className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+                    <p className="text-gray-400">No archived stocktakes found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {archivedStocktakes.map((stocktake) => (
+                      <div key={stocktake.id} className="bg-gray-900 rounded-lg p-4 border border-gray-700">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-white mb-1">
+                              Stocktake for {stocktake.month}
+                            </h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-2">
+                              <div>
+                                <span className="text-gray-400">Created:</span>
+                                <span className="text-white ml-2">{new Date(stocktake.created_at).toLocaleDateString()}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400">Total Items:</span>
+                                <span className="text-white ml-2">{stocktake.summary.total_items}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400">Confirmed:</span>
+                                <span className="text-green-400 ml-2">{stocktake.summary.confirmed_count}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400">Modified:</span>
+                                <span className="text-yellow-400 ml-2">{stocktake.summary.modified_count || 0}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2 ml-4">
+                            <button
+                              onClick={() => exportArchivedStocktakeToPDF(stocktake)}
+                              className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded flex items-center"
+                              title="Print PDF"
+                            >
+                              <PrinterIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => exportArchivedStocktakeToCSV(stocktake)}
+                              className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded flex items-center"
+                              title="Generate CSV"
+                            >
+                              <DocumentArrowDownIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => viewStocktake(stocktake.id)}
+                              className="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded"
+                            >
+                              <EyeIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => editStocktake(stocktake.id)}
+                              className="px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm rounded"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => deleteStocktake(stocktake.id)}
+                              className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 border-t border-gray-700 flex justify-end">
+                <button
+                  onClick={() => setShowArchivedStocktakes(false)}
+                  className="misty-button misty-button-secondary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* View Stocktake Modal */}
+        {viewingStocktake && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+              <div className="p-6 border-b border-gray-700">
+                <h2 className="text-2xl font-bold text-white">Stocktake for {viewingStocktake.month}</h2>
+                <p className="text-gray-400">Created: {new Date(viewingStocktake.created_at).toLocaleString()}</p>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-6">
+                  {/* Summary */}
+                  <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                    <h4 className="text-blue-300 font-medium mb-2">Summary</h4>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-400">Total Items:</span>
+                        <span className="text-white ml-2">{viewingStocktake.summary.total_items}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Confirmed:</span>
+                        <span className="text-green-400 ml-2">{viewingStocktake.summary.confirmed_count}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Modified:</span>
+                        <span className="text-yellow-400 ml-2">{viewingStocktake.summary.modified_count || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Items */}
+                  <div className="bg-gray-900 rounded-lg overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-800">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Item</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-300 uppercase">QOH</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-300 uppercase">Cost</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-700">
+                        {viewingStocktake.items.map((item, index) => (
+                          <tr key={index} className={item.confirmed ? 'bg-green-900 bg-opacity-20' : ''}>
+                            <td className="px-4 py-3 text-sm text-white">{item.name}</td>
+                            <td className="px-4 py-3 text-sm text-right text-white">{item.quantity_on_hand}</td>
+                            <td className="px-4 py-3 text-sm text-right text-green-400">${(item.purchase_cost || 0).toFixed(2)}</td>
+                            <td className="px-4 py-3 text-sm text-center">
+                              {item.confirmed ? (
+                                <span className="text-green-400">✓ Confirmed</span>
+                              ) : (
+                                <span className="text-gray-400">Pending</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-gray-700 flex justify-end">
+                <button
+                  onClick={() => setViewingStocktake(null)}
+                  className="misty-button misty-button-secondary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
