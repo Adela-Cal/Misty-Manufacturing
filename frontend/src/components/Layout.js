@@ -30,21 +30,21 @@ const Layout = ({ children }) => {
   const [checkingXeroStatus, setCheckingXeroStatus] = useState(true);
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: HomeIcon, permission: null },
-    { name: 'Clients', href: '/clients', icon: UsersIcon, permission: 'manage_clients' },
-    { name: 'Orders', href: '/orders', icon: ClipboardDocumentListIcon, permission: 'create_orders' },
-    { name: 'Production', href: '/production', icon: Cog8ToothIcon, permission: 'update_production' },
-    { name: 'Invoicing', href: '/invoicing', icon: DocumentCurrencyDollarIcon, permission: 'view_reports' },
-    { name: 'Payroll', href: '/payroll', icon: BanknotesIcon, permission: null },
-    { name: 'Reports', href: '/reports', icon: ChartBarIcon, permission: 'view_reports' },
-    { name: 'Raw Materials', href: '/products-materials', icon: CubeIcon, permission: 'view_reports' },
-    { name: 'Suppliers List', href: '/suppliers', icon: TruckIcon, permission: 'view_reports' },
-    { name: 'Products & Specifications', href: '/product-specifications', icon: DocumentTextIcon, permission: 'view_reports' },
-    { name: 'Machinery Specifications', href: '/machinery-rates', icon: Cog8ToothIcon, permission: 'view_reports' },
-    { name: 'Calculators', href: '/calculators', icon: CalculatorIcon, permission: 'view_reports' },
-    { name: 'Stocktake', href: '/stocktake', icon: ClipboardDocumentListIcon, permission: 'view_reports' },
-    { name: 'Label Designer', href: '/label-designer', icon: TagIcon, permission: 'view_reports' },
-    { name: 'Staff & Security', href: '/staff-security', icon: ShieldCheckIcon, permission: 'admin' },
+    { name: 'Dashboard', href: '/', icon: HomeIcon, permission: null }, // Everyone
+    { name: 'Clients', href: '/clients', icon: UsersIcon, permission: 'manage_clients' }, // Admin, Manager, Sales
+    { name: 'Orders', href: '/orders', icon: ClipboardDocumentListIcon, permission: 'create_orders' }, // Admin, Manager, Production Manager, Sales
+    { name: 'Production', href: '/production', icon: Cog8ToothIcon, permission: 'view_production_board' }, // Admin, Manager, Production Manager, Production Staff
+    { name: 'Invoicing', href: '/invoicing', icon: DocumentCurrencyDollarIcon, permission: 'invoice' }, // Admin, Manager, Production Manager
+    { name: 'Payroll', href: '/payroll', icon: BanknotesIcon, permission: 'access_payroll' }, // Everyone (own timesheets)
+    { name: 'Reports', href: '/reports', icon: ChartBarIcon, permission: 'view_reports' }, // Admin, Manager, Production Manager, Sales
+    { name: 'Raw Materials', href: '/products-materials', icon: CubeIcon, permission: 'view_reports' }, // Admin, Manager, Production Manager, Sales
+    { name: 'Suppliers List', href: '/suppliers', icon: TruckIcon, permission: 'view_reports' }, // Admin, Manager, Production Manager, Sales
+    { name: 'Products & Specifications', href: '/product-specifications', icon: DocumentTextIcon, permission: 'view_reports' }, // Admin, Manager, Production Manager, Sales
+    { name: 'Machinery Specifications', href: '/machinery-rates', icon: Cog8ToothIcon, permission: 'view_reports' }, // Admin, Manager, Production Manager, Sales
+    { name: 'Calculators', href: '/calculators', icon: CalculatorIcon, permission: 'use_calculators' }, // Admin, Manager, Production Staff, Production Manager, Sales
+    { name: 'Stocktake', href: '/stocktake', icon: ClipboardDocumentListIcon, permission: 'view_reports' }, // Admin, Manager, Production Manager, Sales
+    { name: 'Label Designer', href: '/label-designer', icon: TagIcon, permission: 'use_label_designer' }, // Admin, Manager, Production Staff, Production Manager
+    { name: 'Staff & Security', href: '/staff-security', icon: ShieldCheckIcon, permission: 'admin' }, // Admin ONLY
   ];
 
   // Xero connection item (separate from main navigation)
