@@ -20,6 +20,7 @@ import Invoicing from './components/Invoicing';
 import StaffSecurity from './components/StaffSecurity';
 import XeroCallback from './components/XeroCallback';
 import ArchivedJobs from './components/ArchivedJobs';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 // import ClientProductCatalogue from './components/ClientProductCatalogue';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
