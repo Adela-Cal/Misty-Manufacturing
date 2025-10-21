@@ -116,10 +116,8 @@ class ConcurrentAccessTester:
             return
         
         try:
-            # Call refresh endpoint
-            response = self.session.post(f"{API_BASE}/auth/refresh", json={
-                "refresh_token": self.refresh_token
-            })
+            # Call refresh endpoint (refresh_token as query parameter)
+            response = self.session.post(f"{API_BASE}/auth/refresh?refresh_token={self.refresh_token}")
             
             if response.status_code == 200:
                 data = response.json()
