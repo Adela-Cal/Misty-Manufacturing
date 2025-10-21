@@ -1765,11 +1765,11 @@ const PayrollManagement = () => {
                               <p>{event.employee_number} - {event.department}</p>
                               <p className="mt-1">
                                 <span className="font-medium text-white">
-                                  {startDate.toLocaleDateString('en-US`, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                                  {startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
                                 </span>
                                 <span className="mx-2">→</span>
                                 <span className="font-medium text-white">
-                                  {endDate.toLocaleDateString('en-US`, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                                  {endDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
                                 </span>
                               </p>
                               <p className="mt-1">{event.hours_requested} hours</p>
