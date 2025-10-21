@@ -267,7 +267,7 @@ const PayrollManagement = () => {
 
   const loadArchivedLeaveRequests = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests/archived', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests/archived`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
@@ -282,7 +282,7 @@ const PayrollManagement = () => {
 
   const loadLeaveCalendar = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests/calendar', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests/calendar`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
@@ -298,7 +298,7 @@ const PayrollManagement = () => {
 
   const loadLeaveReminders = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests/reminders', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests/reminders`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
@@ -339,7 +339,7 @@ const PayrollManagement = () => {
         approver_id: leaveFormData.approver_id || null
       };
 
-      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -811,7 +811,7 @@ const PayrollManagement = () => {
                   <button
                     onClick={async () => {
                       try {
-                        const response = await fetch(`${BACKEND_URL}/api/payroll/employees/sync', {
+                        const response = await fetch(`${BACKEND_URL}/api/payroll/employees/sync`, {
                           method: 'POST',
                           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                         });
@@ -1765,11 +1765,11 @@ const PayrollManagement = () => {
                               <p>{event.employee_number} - {event.department}</p>
                               <p className="mt-1">
                                 <span className="font-medium text-white">
-                                  {startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                                  {startDate.toLocaleDateString('en-US`, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
                                 </span>
                                 <span className="mx-2">→</span>
                                 <span className="font-medium text-white">
-                                  {endDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                                  {endDate.toLocaleDateString('en-US`, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
                                 </span>
                               </p>
                               <p className="mt-1">{event.hours_requested} hours</p>
@@ -1783,7 +1783,7 @@ const PayrollManagement = () => {
                               {startDate.getDate()}
                             </div>
                             <div className="text-sm text-gray-400 mb-3">
-                              {startDate.toLocaleDateString('en-US', { month: 'short' })}
+                              {startDate.toLocaleDateString('en-US`, { month: 'short' })}
                             </div>
                             <button
                               onClick={() => handleCancelLeave(event.id)}
