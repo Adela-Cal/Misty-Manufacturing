@@ -719,9 +719,23 @@ class ConcurrentAccessTester:
                             f"Found submitted timesheet for {timesheet.get('employee_name')}"
                         )
                         return timesheet
+                
+                # If no submitted timesheets found, log this
+                self.log_result(
+                    "Find Submitted Timesheet", 
+                    False, 
+                    f"No submitted timesheets found. Found {len(timesheets)} total timesheets but none are submitted."
+                )
+            else:
+                self.log_result(
+                    "Find Submitted Timesheet", 
+                    False, 
+                    f"Failed to get pending timesheets: {response.status_code}",
+                    response.text
+                )
             
-            # If no submitted timesheets, create one
-            return self.create_test_submitted_timesheet()
+            # Skip creating new timesheet since endpoint doesn't exist
+            return None
             
         except Exception as e:
             self.log_result("Find Submitted Timesheet", False, f"Error: {str(e)}")
