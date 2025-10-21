@@ -146,7 +146,7 @@ const PayrollManagement = () => {
 
   const loadArchivedEmployees = async () => {
     try {
-      const response = await fetch('/api/payroll/employees/archived/list', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/employees/archived/list`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
