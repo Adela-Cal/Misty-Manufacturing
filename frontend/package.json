@@ -84,11 +84,18 @@
       "build/**/*",
       "electron.js",
       "preload.js",
-      "node_modules/**/*",
       "package.json"
     ],
+    "extraResources": [
+      {
+        "from": "node_modules",
+        "to": "node_modules",
+        "filter": ["**/*"]
+      }
+    ],
     "directories": {
-      "buildResources": "assets"
+      "buildResources": "assets",
+      "output": "dist"
     },
     "mac": {
       "category": "public.app-category.business",
