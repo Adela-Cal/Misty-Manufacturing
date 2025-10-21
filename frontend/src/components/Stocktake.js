@@ -813,6 +813,220 @@ const Stocktake = () => {
     setShowManualStockTake(false);
   };
 
+  const calculateSpiralCoresSummary = () => {
+    // Filter for Spiral Paper Cores
+    const spiralCores = manualStockTakeItems.filter(item => 
+      item.type === 'product' && 
+      (item.product_type === 'Spiral Paper Core' || item.name.toLowerCase().includes('core'))
+    );
+    
+    // Group by width
+    const widthGroups = {};
+    spiralCores.forEach(core => {
+      const width = core.width_mm || 0;
+      if (width > 0) {
+        if (!widthGroups[width]) {
+          widthGroups[width] = {
+            width_mm: width,
+            quantity: 0,
+            items: []
+          };
+        }
+        widthGroups[width].quantity += core.quantity_on_hand;
+        widthGroups[width].items.push(core);
+      }
+    });
+    
+    // Calculate total m² and % of master deckle (assuming 1500mm standard master deckle)
+    const masterDeckleWidth = 1500; // mm
+    const results = Object.values(widthGroups).map(group => {
+      // Assuming each core has a standard length (e.g., 1m per unit for calculation)
+      const assumedLengthPerUnit = 1; // meter
+      const totalLength = group.quantity * assumedLengthPerUnit;
+      const totalM2 = (group.width_mm / 1000) * totalLength;
+      const percentOfMasterDeckle = (group.width_mm / masterDeckleWidth) * 100;
+      
+      return {
+        ...group,
+        total_m2: totalM2,
+        percent_of_master: percentOfMasterDeckle
+      };
+    });
+    
+    return results.sort((a, b) => a.width_mm - b.width_mm);
+  };
+
+  const exportStockTakeToCSV = () => {
+    const headers = ['Type', 'Item Name', 'Client/Supplier', 'Quantity On Hand', 'Purchase Cost', 'Unit', 'Status'];
+    const rows = manualStockTakeItems.map(item => [
+      item.type === 'product' ? 'Product' : 'Material',
+      item.name,
+      item.client_name || item.supplier || '',
+      item.quantity_on_hand,
+      item.purchase_cost || 0,
+      item.unit_of_measure,
+      stockTakeModifications[item.id]?.confirmed ? 'Confirmed' : 'Pending'
+    ]);
+    
+    // Add spiral cores summary
+    const coresSummary = calculateSpiralCoresSummary();
+    if (coresSummary.length > 0) {
+      rows.push([]);
+      rows.push(['SPIRAL PAPER CORES SUMMARY']);
+      rows.push(['Width (mm)', 'Quantity', 'Total m²', '% of Master Deckle']);
+      coresSummary.forEach(group => {
+        rows.push([
+          group.width_mm,
+          group.quantity,
+          group.total_m2.toFixed(2),
+          group.percent_of_master.toFixed(2) + '%'
+        ]);
+      });
+    }
+    
+    const csvContent = [
+      ['Manual Stock Take - ' + manualStockTakeMonth],
+      ['Generated: ' + new Date().toLocaleString()],
+      [],
+      headers,
+      ...rows
+    ].map(row => row.join(',')).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stock-take-${manualStockTakeMonth}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success('CSV exported successfully');
+  };
+
+  const exportStockTakeToPDF = () => {
+    // Create printable content
+    const printWindow = window.open('', '_blank');
+    const coresSummary = calculateSpiralCoresSummary();
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Manual Stock Take - ${manualStockTakeMonth}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1 { color: #333; }
+          h2 { color: #666; margin-top: 30px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #4CAF50; color: white; }
+          tr:nth-child(even) { background-color: #f2f2f2; }
+          .confirmed { background-color: #d4edda; }
+          .summary { background-color: #fff3cd; }
+          .total-row { font-weight: bold; background-color: #e9ecef; }
+        </style>
+      </head>
+      <body>
+        <h1>Manual Stock Take</h1>
+        <p><strong>Month:</strong> ${manualStockTakeMonth}</p>
+        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+        <p><strong>Progress:</strong> ${Object.values(stockTakeModifications).filter(m => m.confirmed).length} / ${manualStockTakeItems.length} items confirmed</p>
+        
+        <h2>Products On Hand</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Client</th>
+              <th>Quantity</th>
+              <th>Purchase Cost</th>
+              <th>Unit</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${manualStockTakeItems.filter(i => i.type === 'product').map(item => `
+              <tr class="${stockTakeModifications[item.id]?.confirmed ? 'confirmed' : ''}">
+                <td>${item.name}</td>
+                <td>${item.client_name || ''}</td>
+                <td>${item.quantity_on_hand}</td>
+                <td>$${(item.purchase_cost || 0).toFixed(2)}</td>
+                <td>${item.unit_of_measure}</td>
+                <td>${stockTakeModifications[item.id]?.confirmed ? '✓ Confirmed' : 'Pending'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <h2>Raw Materials On Hand</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Material</th>
+              <th>Supplier</th>
+              <th>Quantity</th>
+              <th>Purchase Cost</th>
+              <th>Unit</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${manualStockTakeItems.filter(i => i.type === 'material').map(item => `
+              <tr class="${stockTakeModifications[item.id]?.confirmed ? 'confirmed' : ''}">
+                <td>${item.name}</td>
+                <td>${item.supplier || ''}</td>
+                <td>${item.quantity_on_hand}</td>
+                <td>$${(item.purchase_cost || 0).toFixed(2)}</td>
+                <td>${item.unit_of_measure}</td>
+                <td>${stockTakeModifications[item.id]?.confirmed ? '✓ Confirmed' : 'Pending'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        ${coresSummary.length > 0 ? `
+          <h2>Spiral Paper Cores Summary</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Width (mm)</th>
+                <th>Quantity</th>
+                <th>Total m²</th>
+                <th>% of Master Deckle (1500mm)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${coresSummary.map(group => `
+                <tr class="summary">
+                  <td>${group.width_mm} mm</td>
+                  <td>${group.quantity}</td>
+                  <td>${group.total_m2.toFixed(2)} m²</td>
+                  <td>${group.percent_of_master.toFixed(2)}%</td>
+                </tr>
+              `).join('')}
+              <tr class="total-row">
+                <td>TOTAL</td>
+                <td>${coresSummary.reduce((sum, g) => sum + g.quantity, 0)}</td>
+                <td>${coresSummary.reduce((sum, g) => sum + g.total_m2, 0).toFixed(2)} m²</td>
+                <td>-</td>
+              </tr>
+            </tbody>
+          </table>
+        ` : ''}
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.focus();
+    
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+    
+    toast.success('PDF generation initiated');
+  };
+
   if (loading) {
     return (
       <Layout>
