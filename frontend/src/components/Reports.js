@@ -1017,7 +1017,7 @@ const Reports = () => {
       </head>
       <body>
         <div class="header">
-          <h1>Adela Merchants</h1>
+          <h1>Misty Manufacturing</h1>
           <h2>Consumable Usage Report by Date</h2>
           <p>Period: ${new Date(report.report_period.start_date).toLocaleDateString()} - ${new Date(report.report_period.end_date).toLocaleDateString()}</p>
           <p style="color: #999; font-size: 10px;">Excludes: ${report.excluded_types.join(', ')}</p>
