@@ -7492,6 +7492,124 @@ async def generate_profitability_report(
         logger.error(f"Profitability report generation failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Report generation failed: {str(e)}")
 
+# Manual Stocktake Endpoints
+@api_router.post("/stock/manual-stocktakes", response_model=StandardResponse)
+async def create_manual_stocktake(
+    stocktake: ManualStocktake,
+    current_user: dict = Depends(require_any_role)
+):
+    """Save a manual stocktake"""
+    try:
+        stocktake_dict = stocktake.dict()
+        stocktake_dict["created_by"] = current_user["sub"]
+        stocktake_dict["created_at"] = datetime.now(timezone.utc).replace(tzinfo=None)
+        
+        await db.manual_stocktakes.insert_one(stocktake_dict)
+        
+        return StandardResponse(
+            success=True,
+            message="Manual stocktake saved successfully",
+            data=stocktake_dict
+        )
+    except Exception as e:
+        logger.error(f"Failed to save manual stocktake: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save stocktake: {str(e)}")
+
+@api_router.get("/stock/manual-stocktakes", response_model=StandardResponse)
+async def get_manual_stocktakes(
+    current_user: dict = Depends(require_any_role)
+):
+    """Get all manual stocktakes"""
+    try:
+        stocktakes = await db.manual_stocktakes.find({}).sort("created_at", -1).to_list(length=None)
+        
+        return StandardResponse(
+            success=True,
+            message=f"Found {len(stocktakes)} stocktakes",
+            data=stocktakes
+        )
+    except Exception as e:
+        logger.error(f"Failed to retrieve stocktakes: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve stocktakes: {str(e)}")
+
+@api_router.get("/stock/manual-stocktakes/{stocktake_id}", response_model=StandardResponse)
+async def get_manual_stocktake(
+    stocktake_id: str,
+    current_user: dict = Depends(require_any_role)
+):
+    """Get a specific manual stocktake"""
+    try:
+        stocktake = await db.manual_stocktakes.find_one({"id": stocktake_id})
+        
+        if not stocktake:
+            raise HTTPException(status_code=404, detail="Stocktake not found")
+        
+        return StandardResponse(
+            success=True,
+            message="Stocktake retrieved",
+            data=stocktake
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to retrieve stocktake: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve stocktake: {str(e)}")
+
+@api_router.put("/stock/manual-stocktakes/{stocktake_id}", response_model=StandardResponse)
+async def update_manual_stocktake(
+    stocktake_id: str,
+    stocktake: ManualStocktake,
+    current_user: dict = Depends(require_any_role)
+):
+    """Update a manual stocktake"""
+    try:
+        existing = await db.manual_stocktakes.find_one({"id": stocktake_id})
+        if not existing:
+            raise HTTPException(status_code=404, detail="Stocktake not found")
+        
+        stocktake_dict = stocktake.dict()
+        stocktake_dict["updated_at"] = datetime.now(timezone.utc).replace(tzinfo=None)
+        stocktake_dict["updated_by"] = current_user["sub"]
+        
+        await db.manual_stocktakes.update_one(
+            {"id": stocktake_id},
+            {"$set": stocktake_dict}
+        )
+        
+        return StandardResponse(
+            success=True,
+            message="Stocktake updated successfully",
+            data=stocktake_dict
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to update stocktake: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update stocktake: {str(e)}")
+
+@api_router.delete("/stock/manual-stocktakes/{stocktake_id}", response_model=StandardResponse)
+async def delete_manual_stocktake(
+    stocktake_id: str,
+    current_user: dict = Depends(require_any_role)
+):
+    """Delete a manual stocktake"""
+    try:
+        result = await db.manual_stocktakes.delete_one({"id": stocktake_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Stocktake not found")
+        
+        return StandardResponse(
+            success=True,
+            message="Stocktake deleted successfully",
+            data={"deleted_id": stocktake_id}
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete stocktake: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete stocktake: {str(e)}")
+
 @api_router.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc)}
