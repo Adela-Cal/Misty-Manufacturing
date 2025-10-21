@@ -56,6 +56,12 @@ const Stocktake = () => {
   const [manualStockTakeItems, setManualStockTakeItems] = useState([]);
   const [manualStockTakeLoading, setManualStockTakeLoading] = useState(false);
   const [stockTakeModifications, setStockTakeModifications] = useState({});
+  
+  // Archived Stocktakes states
+  const [showArchivedStocktakes, setShowArchivedStocktakes] = useState(false);
+  const [archivedStocktakes, setArchivedStocktakes] = useState([]);
+  const [loadingArchived, setLoadingArchived] = useState(false);
+  const [viewingStocktake, setViewingStocktake] = useState(null);
 
   // Slit widths modal states
   const [showSlitWidthsModal, setShowSlitWidthsModal] = useState(false);
