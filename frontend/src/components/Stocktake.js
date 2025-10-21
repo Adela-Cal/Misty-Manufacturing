@@ -817,8 +817,312 @@ const Stocktake = () => {
       if (!proceed) return;
     }
     
-    toast.success(`Manual stock take for ${manualStockTakeMonth} saved successfully`);
-    setShowManualStockTake(false);
+    try {
+      // Calculate spiral cores summary
+      const coresSummary = calculateSpiralCoresSummary();
+      
+      // Prepare stocktake data
+      const stocktakeData = {
+        month: manualStockTakeMonth,
+        items: manualStockTakeItems.map(item => ({
+          ...item,
+          confirmed: stockTakeModifications[item.id]?.confirmed || false,
+          modified: stockTakeModifications[item.id]?.modified || false
+        })),
+        summary: {
+          total_items: totalCount,
+          confirmed_count: confirmedCount,
+          modified_count: Object.values(stockTakeModifications).filter(m => m.modified).length
+        },
+        spiral_cores_summary: coresSummary
+      };
+      
+      const response = await fetch('/api/stock/manual-stocktakes', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(stocktakeData)
+      });
+      
+      if (response.ok) {
+        toast.success(`Manual stock take for ${manualStockTakeMonth} saved successfully`);
+        setShowManualStockTake(false);
+        // Reset form
+        setManualStockTakeItems([]);
+        setStockTakeModifications({});
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to save stocktake');
+      }
+    } catch (error) {
+      console.error('Failed to save stocktake:', error);
+      toast.error('Failed to save stocktake');
+    }
+  };
+
+  const loadArchivedStocktakes = async () => {
+    try {
+      setLoadingArchived(true);
+      const response = await fetch('/api/stock/manual-stocktakes', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setArchivedStocktakes(data.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to load archived stocktakes:', error);
+      toast.error('Failed to load archived stocktakes');
+    } finally {
+      setLoadingArchived(false);
+    }
+  };
+
+  const viewStocktake = async (stocktakeId) => {
+    try {
+      const response = await fetch(`/api/stock/manual-stocktakes/${stocktakeId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setViewingStocktake(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to load stocktake:', error);
+      toast.error('Failed to load stocktake');
+    }
+  };
+
+  const editStocktake = async (stocktakeId) => {
+    try {
+      const response = await fetch(`/api/stock/manual-stocktakes/${stocktakeId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const stocktake = data.data;
+        
+        // Load stocktake into manual stock take form
+        setManualStockTakeMonth(stocktake.month);
+        setManualStockTakeItems(stocktake.items);
+        
+        // Restore modifications
+        const modifications = {};
+        stocktake.items.forEach(item => {
+          if (item.confirmed || item.modified) {
+            modifications[item.id] = {
+              confirmed: item.confirmed,
+              modified: item.modified
+            };
+          }
+        });
+        setStockTakeModifications(modifications);
+        
+        setShowArchivedStocktakes(false);
+        setShowManualStockTake(true);
+      }
+    } catch (error) {
+      console.error('Failed to load stocktake for editing:', error);
+      toast.error('Failed to load stocktake');
+    }
+  };
+
+  const deleteStocktake = async (stocktakeId) => {
+    if (!window.confirm('Are you sure you want to delete this stocktake? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/stock/manual-stocktakes/${stocktakeId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        toast.success('Stocktake deleted successfully');
+        loadArchivedStocktakes(); // Reload list
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to delete stocktake');
+      }
+    } catch (error) {
+      console.error('Failed to delete stocktake:', error);
+      toast.error('Failed to delete stocktake');
+    }
+  };
+
+  const exportArchivedStocktakeToCSV = (stocktake) => {
+    const headers = ['Type', 'Item Name', 'Client/Supplier', 'Quantity On Hand', 'Purchase Cost', 'Unit', 'Status'];
+    const rows = stocktake.items.map(item => [
+      item.type === 'product' ? 'Product' : 'Material',
+      item.name,
+      item.client_name || item.supplier || '',
+      item.quantity_on_hand,
+      item.purchase_cost || 0,
+      item.unit_of_measure,
+      item.confirmed ? 'Confirmed' : 'Pending'
+    ]);
+    
+    // Add spiral cores summary if available
+    if (stocktake.spiral_cores_summary && stocktake.spiral_cores_summary.length > 0) {
+      rows.push([]);
+      rows.push(['SPIRAL PAPER CORES SUMMARY']);
+      rows.push(['Width (mm)', 'Quantity', 'Total m²', '% of Master Deckle']);
+      stocktake.spiral_cores_summary.forEach(group => {
+        rows.push([
+          group.width_mm,
+          group.quantity,
+          group.total_m2.toFixed(2),
+          group.percent_of_master.toFixed(2) + '%'
+        ]);
+      });
+    }
+    
+    const csvContent = [
+      ['Manual Stock Take - ' + stocktake.month],
+      ['Created: ' + new Date(stocktake.created_at).toLocaleString()],
+      [],
+      headers,
+      ...rows
+    ].map(row => row.join(',')).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stock-take-${stocktake.month}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success('CSV exported successfully');
+  };
+
+  const exportArchivedStocktakeToPDF = (stocktake) => {
+    const printWindow = window.open('', '_blank');
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Manual Stock Take - ${stocktake.month}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1 { color: #333; }
+          h2 { color: #666; margin-top: 30px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #4CAF50; color: white; }
+          tr:nth-child(even) { background-color: #f2f2f2; }
+          .confirmed { background-color: #d4edda; }
+          .summary { background-color: #fff3cd; }
+          .total-row { font-weight: bold; background-color: #e9ecef; }
+        </style>
+      </head>
+      <body>
+        <h1>Manual Stock Take</h1>
+        <p><strong>Month:</strong> ${stocktake.month}</p>
+        <p><strong>Created:</strong> ${new Date(stocktake.created_at).toLocaleString()}</p>
+        <p><strong>Total Items:</strong> ${stocktake.summary.total_items}</p>
+        <p><strong>Confirmed:</strong> ${stocktake.summary.confirmed_count}</p>
+        
+        <h2>Products On Hand</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Client</th>
+              <th>Quantity</th>
+              <th>Purchase Cost</th>
+              <th>Unit</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${stocktake.items.filter(i => i.type === 'product').map(item => `
+              <tr class="${item.confirmed ? 'confirmed' : ''}">
+                <td>${item.name}</td>
+                <td>${item.client_name || ''}</td>
+                <td>${item.quantity_on_hand}</td>
+                <td>$${(item.purchase_cost || 0).toFixed(2)}</td>
+                <td>${item.unit_of_measure}</td>
+                <td>${item.confirmed ? '✓ Confirmed' : 'Pending'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <h2>Raw Materials On Hand</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Material</th>
+              <th>Supplier</th>
+              <th>Quantity</th>
+              <th>Purchase Cost</th>
+              <th>Unit</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${stocktake.items.filter(i => i.type === 'material').map(item => `
+              <tr class="${item.confirmed ? 'confirmed' : ''}">
+                <td>${item.name}</td>
+                <td>${item.supplier || ''}</td>
+                <td>${item.quantity_on_hand}</td>
+                <td>$${(item.purchase_cost || 0).toFixed(2)}</td>
+                <td>${item.unit_of_measure}</td>
+                <td>${item.confirmed ? '✓ Confirmed' : 'Pending'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        ${stocktake.spiral_cores_summary && stocktake.spiral_cores_summary.length > 0 ? `
+          <h2>Spiral Paper Cores Summary</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Width (mm)</th>
+                <th>Quantity</th>
+                <th>Total m²</th>
+                <th>% of Master Deckle (1500mm)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${stocktake.spiral_cores_summary.map(group => `
+                <tr class="summary">
+                  <td>${group.width_mm} mm</td>
+                  <td>${group.quantity}</td>
+                  <td>${group.total_m2.toFixed(2)} m²</td>
+                  <td>${group.percent_of_master.toFixed(2)}%</td>
+                </tr>
+              `).join('')}
+              <tr class="total-row">
+                <td>TOTAL</td>
+                <td>${stocktake.spiral_cores_summary.reduce((sum, g) => sum + g.quantity, 0)}</td>
+                <td>${stocktake.spiral_cores_summary.reduce((sum, g) => sum + g.total_m2, 0).toFixed(2)} m²</td>
+                <td>-</td>
+              </tr>
+            </tbody>
+          </table>
+        ` : ''}
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.focus();
+    
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+    
+    toast.success('PDF generation initiated');
   };
 
   const calculateSpiralCoresSummary = () => {
