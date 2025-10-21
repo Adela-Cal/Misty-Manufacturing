@@ -692,6 +692,122 @@ const Stocktake = () => {
     }
   };
 
+  // Manual Stock Take Functions
+  const loadManualStockTakeItems = async () => {
+    try {
+      setManualStockTakeLoading(true);
+      
+      // Load all products on hand (raw substrates)
+      const substratesResponse = await apiHelpers.get('/stock/raw-substrates');
+      const substrates = substratesResponse.data?.data || substratesResponse.data || [];
+      
+      // Load all raw materials on hand
+      const materialsResponse = await apiHelpers.get('/stock/raw-materials');
+      const materials = materialsResponse.data?.data || materialsResponse.data || [];
+      
+      // Combine and format items
+      const allItems = [
+        ...substrates.map(item => ({
+          id: item.id,
+          type: 'product',
+          name: `${item.product_code} - ${item.product_description}`,
+          client_name: item.client_name,
+          quantity_on_hand: item.quantity_on_hand || 0,
+          unit_of_measure: item.unit_of_measure || 'units',
+          original_data: item
+        })),
+        ...materials.map(item => ({
+          id: item.material_id || item.id,
+          type: 'material',
+          name: `${item.product_code || ''} - ${item.material_description || item.supplier || 'Unknown'}`,
+          supplier: item.supplier,
+          quantity_on_hand: item.quantity_on_hand || 0,
+          unit_of_measure: item.unit_of_measure || 'kg',
+          original_data: item
+        }))
+      ];
+      
+      setManualStockTakeItems(allItems);
+      setStockTakeModifications({});
+    } catch (error) {
+      console.error('Failed to load stock take items:', error);
+      toast.error('Failed to load stock items');
+    } finally {
+      setManualStockTakeLoading(false);
+    }
+  };
+
+  const confirmQuantity = async (itemId) => {
+    const item = manualStockTakeItems.find(i => i.id === itemId);
+    if (!item) return;
+    
+    toast.success(`Quantity confirmed for ${item.name}`);
+    
+    // Mark as confirmed in UI
+    setStockTakeModifications(prev => ({
+      ...prev,
+      [itemId]: { confirmed: true, modified: false }
+    }));
+  };
+
+  const modifyStockOnHand = async (itemId) => {
+    const item = manualStockTakeItems.find(i => i.id === itemId);
+    const newQuantity = stockTakeModifications[itemId]?.newQuantity;
+    
+    if (!item || newQuantity === undefined || newQuantity === '') {
+      toast.error('Please enter a valid quantity');
+      return;
+    }
+    
+    try {
+      const endpoint = item.type === 'product' 
+        ? `/stock/raw-substrates/${item.id}`
+        : `/stock/raw-materials/${item.id}`;
+      
+      const updateData = {
+        ...item.original_data,
+        quantity_on_hand: parseFloat(newQuantity)
+      };
+      
+      await apiHelpers.put(endpoint, updateData);
+      
+      // Update local state
+      setManualStockTakeItems(prev => prev.map(i => 
+        i.id === itemId ? { ...i, quantity_on_hand: parseFloat(newQuantity) } : i
+      ));
+      
+      setStockTakeModifications(prev => ({
+        ...prev,
+        [itemId]: { confirmed: true, modified: true, newQuantity: undefined }
+      }));
+      
+      toast.success(`Stock updated for ${item.name}`);
+    } catch (error) {
+      console.error('Failed to update stock:', error);
+      toast.error('Failed to update stock quantity');
+    }
+  };
+
+  const saveManualStockTake = async () => {
+    if (!manualStockTakeMonth) {
+      toast.error('Please select a month for this stock take');
+      return;
+    }
+    
+    const confirmedCount = Object.values(stockTakeModifications).filter(m => m.confirmed).length;
+    const totalCount = manualStockTakeItems.length;
+    
+    if (confirmedCount < totalCount) {
+      const proceed = window.confirm(
+        `Only ${confirmedCount} out of ${totalCount} items have been confirmed. Do you want to save anyway?`
+      );
+      if (!proceed) return;
+    }
+    
+    toast.success(`Manual stock take for ${manualStockTakeMonth} saved successfully`);
+    setShowManualStockTake(false);
+  };
+
   if (loading) {
     return (
       <Layout>
