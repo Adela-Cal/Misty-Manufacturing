@@ -3094,6 +3094,56 @@ const Stocktake = () => {
                       </div>
                     </div>
 
+                    {/* Spiral Paper Cores Summary */}
+                    {(() => {
+                      const coresSummary = calculateSpiralCoresSummary();
+                      if (coresSummary.length === 0) return null;
+                      
+                      return (
+                        <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
+                          <h4 className="text-purple-300 font-medium mb-3 flex items-center">
+                            <CubeIcon className="h-5 w-5 mr-2" />
+                            Spiral Paper Cores Summary
+                          </h4>
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead className="bg-gray-800">
+                                <tr>
+                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-300">Width (mm)</th>
+                                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-300">Quantity</th>
+                                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-300">Total m²</th>
+                                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-300">% of Master Deckle</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-700">
+                                {coresSummary.map((group, index) => (
+                                  <tr key={index}>
+                                    <td className="px-3 py-2 text-sm text-white">{group.width_mm} mm</td>
+                                    <td className="px-3 py-2 text-sm text-right text-gray-300">{group.quantity}</td>
+                                    <td className="px-3 py-2 text-sm text-right text-yellow-400">{group.total_m2.toFixed(2)} m²</td>
+                                    <td className="px-3 py-2 text-sm text-right text-blue-400">{group.percent_of_master.toFixed(2)}%</td>
+                                  </tr>
+                                ))}
+                                <tr className="bg-gray-800 font-bold">
+                                  <td className="px-3 py-2 text-sm text-white">TOTAL</td>
+                                  <td className="px-3 py-2 text-sm text-right text-white">
+                                    {coresSummary.reduce((sum, g) => sum + g.quantity, 0)}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm text-right text-yellow-400">
+                                    {coresSummary.reduce((sum, g) => sum + g.total_m2, 0).toFixed(2)} m²
+                                  </td>
+                                  <td className="px-3 py-2 text-sm text-right text-gray-400">-</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-2">
+                            * Based on 1500mm master deckle width
+                          </p>
+                        </div>
+                      );
+                    })()}
+
                     {/* Summary */}
                     <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
                       <h4 className="text-blue-300 font-medium mb-2">Stock Take Progress</h4>
