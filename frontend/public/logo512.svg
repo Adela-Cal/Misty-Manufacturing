@@ -1,0 +1,37 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Bright yellow/lime color matching the uploaded logo -->
+    <radialGradient id="logoGlow512" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#E8FF00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D4E600;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Main incomplete circle/ring (open on right side) -->
+  <path d="M 385 95 A 150 150 0 1 1 385 417" 
+        fill="none" 
+        stroke="url(#logoGlow512)" 
+        stroke-width="55" 
+        stroke-linecap="round"/>
+  
+  <!-- Left curved ascending bar (shortest) -->
+  <path d="M 190 315 Q 200 256 190 175" 
+        fill="none" 
+        stroke="url(#logoGlow512)" 
+        stroke-width="45" 
+        stroke-linecap="round"/>
+  
+  <!-- Middle curved ascending bar -->
+  <path d="M 256 360 Q 266 256 256 145" 
+        fill="none" 
+        stroke="url(#logoGlow512)" 
+        stroke-width="50" 
+        stroke-linecap="round"/>
+  
+  <!-- Right curved ascending bar (tallest) -->
+  <path d="M 320 400 Q 330 256 320 105" 
+        fill="none" 
+        stroke="url(#logoGlow512)" 
+        stroke-width="55" 
+        stroke-linecap="round"/>
+</svg>
