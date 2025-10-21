@@ -1347,8 +1347,8 @@ const Stocktake = () => {
           </tbody>
         </table>
         
-        ${coresSummary.length > 0 ? `
-          <h2>Spiral Paper Cores Summary</h2>
+        ${coresSummary && coresSummary.cores_by_width && coresSummary.cores_by_width.length > 0 ? `
+          <h2>Spiral Paper Cores Summary - Cores By Width</h2>
           <table>
             <thead>
               <tr>
@@ -1359,7 +1359,7 @@ const Stocktake = () => {
               </tr>
             </thead>
             <tbody>
-              ${coresSummary.map(group => `
+              ${coresSummary.cores_by_width.map(group => `
                 <tr class="summary">
                   <td>${group.width_mm} mm</td>
                   <td>${group.quantity}</td>
@@ -1369,12 +1369,40 @@ const Stocktake = () => {
               `).join('')}
               <tr class="total-row">
                 <td>TOTAL</td>
-                <td>${coresSummary.reduce((sum, g) => sum + g.quantity, 0)}</td>
-                <td>${coresSummary.reduce((sum, g) => sum + g.total_m2, 0).toFixed(2)} m²</td>
+                <td>${coresSummary.cores_by_width.reduce((sum, g) => sum + g.quantity, 0)}</td>
+                <td>${coresSummary.cores_by_width.reduce((sum, g) => sum + g.total_m2, 0).toFixed(2)} m²</td>
                 <td>-</td>
               </tr>
             </tbody>
           </table>
+          
+          ${coresSummary.material_usage && coresSummary.material_usage.length > 0 ? `
+            <h2>Material Consumption to Manufacture Cores</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Layer Type</th>
+                  <th>Material</th>
+                  <th>Supplier</th>
+                  <th>Width (mm)</th>
+                  <th>GSM</th>
+                  <th>Total Linear Meters</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${coresSummary.material_usage.map(material => `
+                  <tr class="summary">
+                    <td>${material.layer_type}</td>
+                    <td>${material.material_name}</td>
+                    <td>${material.supplier}</td>
+                    <td>${material.width_mm} mm</td>
+                    <td>${material.gsm}</td>
+                    <td>${material.total_linear_meters.toFixed(2)} m</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          ` : ''}
         ` : ''}
       </body>
       </html>
