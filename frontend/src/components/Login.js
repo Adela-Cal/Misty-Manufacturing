@@ -39,7 +39,7 @@ const Login = () => {
           {/* Misty Manufacturing Logo */}
           <div className="mx-auto mb-4">
             <img 
-              src="/logo192.png" 
+              src="/logo192.svg" 
               alt="Misty Manufacturing Logo" 
               className="h-24 w-24 mx-auto object-contain"
             />
