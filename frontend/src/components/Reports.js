@@ -837,7 +837,7 @@ const Reports = () => {
       </head>
       <body>
         <div class="header">
-          <h1>Adela Merchants</h1>
+          <h1>Misty Manufacturing</h1>
           <h2>Material Usage Report by Width</h2>
           <p><strong>${report.material_name}</strong></p>
           <p>Material Code: ${report.material_code}</p>
