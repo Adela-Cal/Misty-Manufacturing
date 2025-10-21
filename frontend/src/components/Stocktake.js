@@ -1131,11 +1131,15 @@ const Stocktake = () => {
     // Filter for Spiral Paper Cores
     const spiralCores = manualStockTakeItems.filter(item => 
       item.type === 'product' && 
-      (item.product_type === 'Spiral Paper Core' || item.name.toLowerCase().includes('core'))
+      (item.product_type === 'Spiral Paper Core' || item.product_type === 'Composite Core' || item.name.toLowerCase().includes('core'))
     );
+    
+    if (spiralCores.length === 0) return [];
     
     // Group by width
     const widthGroups = {};
+    const materialUsage = {}; // Track material usage across all cores
+    
     spiralCores.forEach(core => {
       const width = core.width_mm || 0;
       if (width > 0) {
@@ -1143,11 +1147,31 @@ const Stocktake = () => {
           widthGroups[width] = {
             width_mm: width,
             quantity: 0,
-            items: []
+            items: [],
+            material_layers: []
           };
         }
         widthGroups[width].quantity += core.quantity_on_hand;
         widthGroups[width].items.push(core);
+        
+        // Extract material layers if available
+        if (core.material_layers && core.material_layers.length > 0) {
+          core.material_layers.forEach(layer => {
+            const layerKey = `${layer.material_name}_${layer.width}`;
+            if (!materialUsage[layerKey]) {
+              materialUsage[layerKey] = {
+                material_name: layer.material_name || 'Unknown',
+                supplier: layer.supplier || 'Unknown',
+                width_mm: layer.width || 0,
+                gsm: layer.gsm || 0,
+                total_linear_meters: 0,
+                layer_type: layer.layer_type || 'Unknown'
+              };
+            }
+            // Assuming 1m per unit for calculation (can be adjusted based on actual specs)
+            materialUsage[layerKey].total_linear_meters += core.quantity_on_hand * 1;
+          });
+        }
       }
     });
     
@@ -1167,7 +1191,16 @@ const Stocktake = () => {
       };
     });
     
-    return results.sort((a, b) => a.width_mm - b.width_mm);
+    // Add material usage summary
+    const materialUsageSummary = Object.values(materialUsage).sort((a, b) => 
+      b.total_linear_meters - a.total_linear_meters
+    );
+    
+    return {
+      cores_by_width: results.sort((a, b) => a.width_mm - b.width_mm),
+      material_usage: materialUsageSummary,
+      total_cores: spiralCores.reduce((sum, core) => sum + core.quantity_on_hand, 0)
+    };
   };
 
   const exportStockTakeToCSV = () => {
