@@ -713,7 +713,10 @@ const Stocktake = () => {
           name: `${item.product_code} - ${item.product_description}`,
           client_name: item.client_name,
           quantity_on_hand: item.quantity_on_hand || 0,
+          purchase_cost: item.purchase_cost || 0,
           unit_of_measure: item.unit_of_measure || 'units',
+          width_mm: item.width_mm || 0,
+          product_type: item.product_type,
           original_data: item
         })),
         ...materials.map(item => ({
@@ -722,7 +725,9 @@ const Stocktake = () => {
           name: `${item.product_code || ''} - ${item.material_description || item.supplier || 'Unknown'}`,
           supplier: item.supplier,
           quantity_on_hand: item.quantity_on_hand || 0,
+          purchase_cost: item.cost_per_tonne || item.price || 0,
           unit_of_measure: item.unit_of_measure || 'kg',
+          width_mm: item.width_mm || item.master_deckle_width_mm || 0,
           original_data: item
         }))
       ];
