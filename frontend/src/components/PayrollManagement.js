@@ -1783,7 +1783,7 @@ const PayrollManagement = () => {
                               {startDate.getDate()}
                             </div>
                             <div className="text-sm text-gray-400 mb-3">
-                              {startDate.toLocaleDateString('en-US`, { month: 'short' })}
+                              {startDate.toLocaleDateString('en-US', { month: 'short' })}
                             </div>
                             <button
                               onClick={() => handleCancelLeave(event.id)}
