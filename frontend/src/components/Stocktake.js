@@ -48,6 +48,13 @@ const Stocktake = () => {
   const [showArchivedAllocations, setShowArchivedAllocations] = useState(false);
   const [currentAllocationProduct, setCurrentAllocationProduct] = useState(null);
 
+  // Manual Stock Take states
+  const [showManualStockTake, setShowManualStockTake] = useState(false);
+  const [manualStockTakeMonth, setManualStockTakeMonth] = useState('');
+  const [manualStockTakeItems, setManualStockTakeItems] = useState([]);
+  const [manualStockTakeLoading, setManualStockTakeLoading] = useState(false);
+  const [stockTakeModifications, setStockTakeModifications] = useState({});
+
   // Slit widths modal states
   const [showSlitWidthsModal, setShowSlitWidthsModal] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
