@@ -74,15 +74,15 @@ export const AuthProvider = ({ children }) => {
       case 'admin':
         return role === 'admin';
       case 'manage_clients':
-        return ['admin', 'sales'].includes(role);
+        return ['admin', 'sales', 'manager'].includes(role);
       case 'create_orders':
-        return ['admin', 'production_manager', 'sales'].includes(role);
+        return ['admin', 'production_manager', 'sales', 'manager'].includes(role);
       case 'update_production':
-        return ['admin', 'production_manager', 'production_team'].includes(role);
+        return ['admin', 'production_manager', 'production_team', 'production_staff', 'manager'].includes(role);
       case 'invoice':
-        return ['admin', 'production_manager'].includes(role);
+        return ['admin', 'production_manager', 'manager'].includes(role);
       case 'view_reports':
-        return ['admin', 'production_manager', 'sales'].includes(role);
+        return ['admin', 'production_manager', 'sales', 'manager'].includes(role);
       case 'delete_orders':
         return ['admin', 'production_manager'].includes(role);
       case 'manage_payroll':
@@ -94,7 +94,17 @@ export const AuthProvider = ({ children }) => {
       case 'view_payroll_reports':
         return ['admin', 'manager'].includes(role);
       case 'submit_timesheet':
-        return ['admin', 'manager', 'production_manager', 'employee'].includes(role);
+        return ['admin', 'manager', 'production_manager', 'employee', 'production_staff'].includes(role);
+      case 'view_dashboard':
+        return true; // All authenticated users
+      case 'view_production_board':
+        return ['admin', 'production_manager', 'production_team', 'production_staff', 'manager'].includes(role);
+      case 'use_calculators':
+        return ['admin', 'production_manager', 'production_team', 'production_staff', 'manager', 'sales'].includes(role);
+      case 'use_label_designer':
+        return ['admin', 'production_manager', 'production_team', 'production_staff', 'manager'].includes(role);
+      case 'access_payroll':
+        return true; // All users can access their own timesheets
       default:
         return true;
     }
