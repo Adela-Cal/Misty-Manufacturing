@@ -3038,6 +3038,7 @@ const Stocktake = () => {
                               <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Material</th>
                               <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Supplier</th>
                               <th className="px-4 py-3 text-right text-xs font-medium text-gray-300 uppercase">Current QOH</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-300 uppercase">Purchase Cost</th>
                               <th className="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase">Unit</th>
                               <th className="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase">Actions</th>
                             </tr>
@@ -3048,6 +3049,7 @@ const Stocktake = () => {
                                 <td className="px-4 py-3 text-sm text-white">{item.name}</td>
                                 <td className="px-4 py-3 text-sm text-gray-300">{item.supplier}</td>
                                 <td className="px-4 py-3 text-sm text-right text-white font-medium">{item.quantity_on_hand}</td>
+                                <td className="px-4 py-3 text-sm text-right text-green-400">${(item.purchase_cost || 0).toFixed(2)}</td>
                                 <td className="px-4 py-3 text-sm text-center text-gray-400">{item.unit_of_measure}</td>
                                 <td className="px-4 py-3">
                                   <div className="flex items-center justify-center space-x-2">
