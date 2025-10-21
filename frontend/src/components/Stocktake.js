@@ -2705,6 +2705,217 @@ const Stocktake = () => {
             </div>
           </div>
         )}
+
+        {/* Manual Stock Take Modal */}
+        {showManualStockTake && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="bg-gray-800 rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+              <div className="p-6 border-b border-gray-700">
+                <h2 className="text-2xl font-bold text-white mb-2">Manual Stock Take</h2>
+                <p className="text-gray-400">Review and confirm stock quantities for all items</p>
+                
+                {/* Month Selection */}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Select Month for Stock Take <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="month"
+                    value={manualStockTakeMonth}
+                    onChange={(e) => setManualStockTakeMonth(e.target.value)}
+                    className="misty-input w-full md:w-64"
+                  />
+                </div>
+              </div>
+
+              {/* Stock Take Items List */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {manualStockTakeLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
+                    <p className="text-gray-400 mt-4">Loading stock items...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Products Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                        <CubeIcon className="h-5 w-5 mr-2 text-yellow-400" />
+                        Products On Hand ({manualStockTakeItems.filter(i => i.type === 'product').length})
+                      </h3>
+                      <div className="bg-gray-900 rounded-lg overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-gray-800">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Product</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Client</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-300 uppercase">Current QOH</th>
+                              <th className="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase">Unit</th>
+                              <th className="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-700">
+                            {manualStockTakeItems.filter(i => i.type === 'product').map((item) => (
+                              <tr key={item.id} className={stockTakeModifications[item.id]?.confirmed ? 'bg-green-900 bg-opacity-20' : ''}>
+                                <td className="px-4 py-3 text-sm text-white">{item.name}</td>
+                                <td className="px-4 py-3 text-sm text-gray-300">{item.client_name}</td>
+                                <td className="px-4 py-3 text-sm text-right text-white font-medium">{item.quantity_on_hand}</td>
+                                <td className="px-4 py-3 text-sm text-center text-gray-400">{item.unit_of_measure}</td>
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center justify-center space-x-2">
+                                    {!stockTakeModifications[item.id]?.confirmed ? (
+                                      <>
+                                        <button
+                                          onClick={() => confirmQuantity(item.id)}
+                                          className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded"
+                                        >
+                                          ✓ Confirmed
+                                        </button>
+                                        <input
+                                          type="number"
+                                          step="0.01"
+                                          placeholder="New qty"
+                                          value={stockTakeModifications[item.id]?.newQuantity || ''}
+                                          onChange={(e) => setStockTakeModifications(prev => ({
+                                            ...prev,
+                                            [item.id]: { ...prev[item.id], newQuantity: e.target.value }
+                                          }))}
+                                          className="misty-input w-24 text-sm"
+                                        />
+                                        <button
+                                          onClick={() => modifyStockOnHand(item.id)}
+                                          className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white text-xs rounded"
+                                        >
+                                          Modify SOH
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <div className="flex items-center space-x-2">
+                                        <CheckCircleIcon className="h-5 w-5 text-green-400" />
+                                        <span className="text-sm text-green-400">Confirmed</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Raw Materials Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                        <CubeIcon className="h-5 w-5 mr-2 text-blue-400" />
+                        Raw Materials On Hand ({manualStockTakeItems.filter(i => i.type === 'material').length})
+                      </h3>
+                      <div className="bg-gray-900 rounded-lg overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-gray-800">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Material</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Supplier</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-300 uppercase">Current QOH</th>
+                              <th className="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase">Unit</th>
+                              <th className="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-700">
+                            {manualStockTakeItems.filter(i => i.type === 'material').map((item) => (
+                              <tr key={item.id} className={stockTakeModifications[item.id]?.confirmed ? 'bg-green-900 bg-opacity-20' : ''}>
+                                <td className="px-4 py-3 text-sm text-white">{item.name}</td>
+                                <td className="px-4 py-3 text-sm text-gray-300">{item.supplier}</td>
+                                <td className="px-4 py-3 text-sm text-right text-white font-medium">{item.quantity_on_hand}</td>
+                                <td className="px-4 py-3 text-sm text-center text-gray-400">{item.unit_of_measure}</td>
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center justify-center space-x-2">
+                                    {!stockTakeModifications[item.id]?.confirmed ? (
+                                      <>
+                                        <button
+                                          onClick={() => confirmQuantity(item.id)}
+                                          className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded"
+                                        >
+                                          ✓ Confirmed
+                                        </button>
+                                        <input
+                                          type="number"
+                                          step="0.01"
+                                          placeholder="New qty"
+                                          value={stockTakeModifications[item.id]?.newQuantity || ''}
+                                          onChange={(e) => setStockTakeModifications(prev => ({
+                                            ...prev,
+                                            [item.id]: { ...prev[item.id], newQuantity: e.target.value }
+                                          }))}
+                                          className="misty-input w-24 text-sm"
+                                        />
+                                        <button
+                                          onClick={() => modifyStockOnHand(item.id)}
+                                          className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white text-xs rounded"
+                                        >
+                                          Modify SOH
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <div className="flex items-center space-x-2">
+                                        <CheckCircleIcon className="h-5 w-5 text-green-400" />
+                                        <span className="text-sm text-green-400">Confirmed</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Summary */}
+                    <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                      <h4 className="text-blue-300 font-medium mb-2">Stock Take Progress</h4>
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-400">Total Items:</span>
+                          <span className="text-white ml-2 font-medium">{manualStockTakeItems.length}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Confirmed:</span>
+                          <span className="text-green-400 ml-2 font-medium">
+                            {Object.values(stockTakeModifications).filter(m => m.confirmed).length}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Remaining:</span>
+                          <span className="text-yellow-400 ml-2 font-medium">
+                            {manualStockTakeItems.length - Object.values(stockTakeModifications).filter(m => m.confirmed).length}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer Actions */}
+              <div className="p-6 border-t border-gray-700 flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowManualStockTake(false)}
+                  className="misty-button misty-button-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveManualStockTake}
+                  disabled={!manualStockTakeMonth}
+                  className="misty-button misty-button-primary disabled:opacity-50"
+                >
+                  Save Stock Take
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
