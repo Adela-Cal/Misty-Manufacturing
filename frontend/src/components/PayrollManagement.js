@@ -252,7 +252,7 @@ const PayrollManagement = () => {
 
   const loadAllLeaveRequests = async () => {
     try {
-      const response = await fetch('/api/payroll/leave-requests/pending', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests/pending', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
@@ -267,7 +267,7 @@ const PayrollManagement = () => {
 
   const loadArchivedLeaveRequests = async () => {
     try {
-      const response = await fetch('/api/payroll/leave-requests/archived', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests/archived', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
@@ -282,7 +282,7 @@ const PayrollManagement = () => {
 
   const loadLeaveCalendar = async () => {
     try {
-      const response = await fetch('/api/payroll/leave-requests/calendar', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests/calendar', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
@@ -298,7 +298,7 @@ const PayrollManagement = () => {
 
   const loadLeaveReminders = async () => {
     try {
-      const response = await fetch('/api/payroll/leave-requests/reminders', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests/reminders', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
@@ -339,7 +339,7 @@ const PayrollManagement = () => {
         approver_id: leaveFormData.approver_id || null
       };
 
-      const response = await fetch('/api/payroll/leave-requests', {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-requests', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -811,7 +811,7 @@ const PayrollManagement = () => {
                   <button
                     onClick={async () => {
                       try {
-                        const response = await fetch('/api/payroll/employees/sync', {
+                        const response = await fetch(`${BACKEND_URL}/api/payroll/employees/sync', {
                           method: 'POST',
                           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                         });
