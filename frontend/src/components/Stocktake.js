@@ -718,24 +718,26 @@ const Stocktake = () => {
         ...substrates.map(item => ({
           id: item.id,
           type: 'product',
-          name: `${item.product_code} - ${item.product_description}`,
+          name: `${item.product_code || ''} - ${item.product_description || 'Unknown Product'}`,
           client_name: item.client_name,
           quantity_on_hand: item.quantity_on_hand || 0,
           purchase_cost: item.purchase_cost || 0,
           unit_of_measure: item.unit_of_measure || 'units',
           width_mm: item.width_mm || 0,
           product_type: item.product_type,
+          material_layers: item.material_layers || [],
           original_data: item
         })),
         ...materials.map(item => ({
           id: item.material_id || item.id,
           type: 'material',
-          name: `${item.product_code || ''} - ${item.material_description || item.supplier || 'Unknown'}`,
-          supplier: item.supplier,
+          name: `${item.product_code || item.supplier || ''} - ${item.material_description || item.product_description || 'Unknown Material'}`.trim(),
+          supplier: item.supplier || 'Unknown Supplier',
           quantity_on_hand: item.quantity_on_hand || 0,
-          purchase_cost: item.cost_per_tonne || item.price || 0,
+          purchase_cost: item.cost_per_tonne || item.price || item.purchase_cost || 0,
           unit_of_measure: item.unit_of_measure || 'kg',
           width_mm: item.width_mm || item.master_deckle_width_mm || 0,
+          gsm: item.gsm || 0,
           original_data: item
         }))
       ];
