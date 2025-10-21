@@ -39,8 +39,8 @@ load_dotenv(ROOT_DIR / '.env')
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "./uploads")
 
 # Force correct environment values for current environment  
-os.environ['XERO_REDIRECT_URI'] = 'https://mfgapp-ui-update.preview.emergentagent.com/xero-oauth-callback'
-os.environ['FRONTEND_URL'] = 'https://mfgapp-ui-update.preview.emergentagent.com'
+os.environ['XERO_REDIRECT_URI'] = 'https://misty-manufact.preview.emergentagent.com/xero-oauth-callback'
+os.environ['FRONTEND_URL'] = 'https://misty-manufact.preview.emergentagent.com'
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -2648,8 +2648,8 @@ async def generate_invoice_pdf(order_id: str):
 
 # Xero Integration Configuration
 # Force correct environment values for current environment  
-os.environ['XERO_REDIRECT_URI'] = 'https://mfgapp-ui-update.preview.emergentagent.com/xero-oauth-callback'
-os.environ['FRONTEND_URL'] = 'https://mfgapp-ui-update.preview.emergentagent.com'
+os.environ['XERO_REDIRECT_URI'] = 'https://misty-manufact.preview.emergentagent.com/xero-oauth-callback'
+os.environ['FRONTEND_URL'] = 'https://misty-manufact.preview.emergentagent.com'
 
 XERO_CLIENT_ID = os.getenv("XERO_CLIENT_ID")
 XERO_CLIENT_SECRET = os.getenv("XERO_CLIENT_SECRET")  

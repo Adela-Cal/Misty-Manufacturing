@@ -1,15 +1,27 @@
 <analysis>
-The trajectory details the continuation of development on the Misty Manufacturing application. Initially, the AI engineer addressed several bug reports and feature enhancements. Key issues resolved include: fixing part supply invoicing logic (including backend  model updates and re-evaluation of current stage for partially invoiced orders), correcting duplicate order number generation (which required a  call to identify a database name mismatch), and ensuring completed orders are archived and hidden from the main view. The final, ongoing task involves rectifying a UI bug where the search bar's magnifying glass icon overlaps the input text. Multiple attempts have been made, including adjusting padding and, most recently, removing the placeholder text from the search fields. This last fix for the UI is still in progress, with recent messages indicating successful file edits.
+The trajectory outlines a series of bug fixes and significant feature enhancements for the Misty Manufacturing application. Initially, the AI engineer addressed a UI bug involving search bar icon overlap, which progressed from padding adjustments to placeholder removal across multiple frontend components. Following this, the user pivoted to critical functionality improvements.
+
+Key tasks completed include:
+1.  **Payroll & Leave Management Fixes**: Rectified non-functional view and approve timesheet features by first correcting  data integrity issues in the database via a migration script, and then adjusting frontend logic in  to correctly pass  to .
+2.  **Material Usage Report Fix**: Resolved issues where the report showed no data by broadening status filters, correcting date format comparisons, and adjusting data sourcing in  to correctly locate  from .
+3.  **Raw Material Permutation and Yield Calculator**: Implemented a comprehensive new calculator, replacing an older version. This involved creating new backend models and endpoints, and a complete UI overhaul in . Bugs related to material dropdown data fetching (wrong API endpoint and ID field) were identified and fixed.
+4.  **Product Specifications Enhancement**: Added a grams of glue per layer meter field to Spiral Paper Cores and Composite Cores within product specifications, updating frontend state, UI, form submission, and edit/create modes in .
+5.  **Profitability Report Generator**: Developed a detailed report for Gross and Net Profit. This required new backend models/endpoints and a frontend report component in , incorporating complex calculations from various data sources. The report was refined to handle Single Jobs (all jobs) and Multiple Jobs (multi-client/product filtering) modes, correcting material cost attribution and client/product dropdown data loading. It was further enhanced to display layer-by-layer material consumption breakdown and overall material costs.
+6.  **Manual Stock Take Feature**: Introduced a comprehensive manual stocktake function, including monthly selection, product/raw material lists, quantity confirmation/modification, purchase cost display, spiral core material usage summary, and PDF/CSV export options in . An initial bug with missing icon imports was quickly resolved.
+7.  **Archived Stocktakes Feature**: Built out an archiving system for manual stocktakes, adding backend CRUD endpoints () and a frontend modal in  to list, view, edit, and delete archived stocktakes, complete with export functionalities.
+
+The current work involves addressing a user-reported bug in the Manual Stock Take feature, specifically concerning incorrect material names/values and the missing spiral cores summary, along with ensuring export functions correctly handle the new data structure.
 </analysis>
 
 <product_requirements>
-The Misty Manufacturing application facilitates various aspects of manufacturing, including product definition, job management, stock control, invoicing, and payroll. Recent development focused on:
--   **Reports**: Enhancements to Job Card Performance Report and Projected Order Analysis; new Pay Slips, Timesheets, and Leave Entitlements reports.
--   **Product Specifications**: UI updates for  and spiral core allocations with accurate calculations and data persistence.
--   **Payroll Management**: Comprehensive system including employee sync, leave management (request, approval, balance), timesheet submission/approval, bank details, unique employee codes, and previous timesheet viewing.
--   **Job Card Workflow**: Automated  updates, stage progression, archiving, stage-specific clock icons, and enhanced Job Card Performance Report search/edit functionality.
--   **Invoicing**: Critical part supply invoicing with features such as generating packing slips and invoices for partial quantities, retaining remaining quantities in jobs ready for invoicing, allowing repeated partial invoicing (with ,  suffixes), archiving fully invoiced jobs, and maintaining historical invoice records. Recently, the Full Invoice option should be hidden if partial invoicing has occurred.
--   **UI/UX**: Production Board Jump To refactored to a modal, removal of job card watermarks, and general error handling. A recent UI bug involved the search bar magnifying glass overlapping text.
+The Misty Manufacturing application is designed to streamline manufacturing operations, encompassing product definition, job management, stock control, invoicing, and payroll. Recent development focused on addressing several key areas:
+-   **Reports**: Development of Job Card Performance Report, Projected Order Analysis, Pay Slips, Timesheets, and Leave Entitlements. A new **Profitability Report Generator** was requested to calculate Gross and Net Profit for completed/archived jobs, drawing data from Job Cards, Staff Rates, Machine Rates, Material Usage, Job Selling Price, and Overhead Allowances (from machine hourly rates or configurable percentage/fixed cost). It needed to include consumables from the Client Product Catalogue and provide red text alarms for negative profit margins. The **Material Usage Report** also required an enhancement to display dollar value per linear meter.
+-   **Product Specifications**: UI updates for  and spiral core allocations. A new requirement was to add a grams of glue per layer meter variable for Spiral Paper Cores and Composite Cores.
+-   **Payroll Management**: A comprehensive system including employee sync, leave management, timesheet submission/approval, bank details, unique employee codes, and previous timesheet viewing. A bug in Pending Timesheets where view/approve functions didn't operate needed fixing.
+-   **Job Card Workflow**: Automated  updates, stage progression, archiving, stage-specific clock icons, and enhanced Job Card Performance Report search/edit.
+-   **Invoicing**: Part supply invoicing with partial quantities, ,  suffixes, archiving, and historical records. The Full Invoice option should hide if partial invoicing occurred.
+-   **UI/UX**: Refactored Production Board Jump To modal, removal of job card watermarks, and general error handling. An initial UI bug involved the search bar magnifying glass overlapping text, which was addressed by removing placeholder text.
+-   **Stocktake**: A new **Manual Stock Take** feature was requested for the Monthly Stocktake tab, allowing users to select a month, view products/raw materials on hand, confirm quantities, manually enter updates, and sync changes. This was further enhanced to include purchase costs, a detailed summary of spiral paper cores (material usage breakdown by layer, linear meters, total square meters, master deckle percentage), and Print PDF / Generate CSV export options. An **Archived Stocktakes** section was also requested with view, edit, delete, and export functionalities for saved stocktakes.
 </product_requirements>
 
 <key_technical_concepts>
@@ -18,12 +30,12 @@ The Misty Manufacturing application facilitates various aspects of manufacturing
 -   **Data Modeling**: Pydantic for backend data validation and serialization.
 -   **APIs**: RESTful CRUD, Axios for frontend interaction, environment variables for API URLs.
 -   **Backend**: Python  for financial calculations,  for date operations.
--   **Frontend**: React hooks, state management, conditional rendering, modal components.
--   **Tooling**: backend                          RUNNING   pid 27, uptime 0:00:14
-code-server                      RUNNING   pid 28, uptime 0:00:14
-frontend                         STOPPED   Oct 20 12:18 PM
-mongodb                          RUNNING   pid 31, uptime 0:00:14
-supervisor>  for service management,  for backend testing,  for complex debugging.
+-   **Frontend**: React hooks, state management, conditional rendering, modal components, .
+-   **Tooling**: backend                          RUNNING   pid 27, uptime 0:00:09
+code-server                      RUNNING   pid 29, uptime 0:00:09
+frontend                         STOPPED   Oct 21 11:47 AM
+mongodb                          RUNNING   pid 32, uptime 0:00:09
+supervisor>  for service management, , .
 </key_technical_concepts>
 
 <code_architecture>
@@ -32,45 +44,103 @@ The application employs a monorepo structure, segmenting  (FastAPI) and  (React)
 
 
 -   ****
-    -   **Importance**: Defines Pydantic models for data validation.
-    -   **Changes**: Added  and  fields to  model to support part supply invoicing status tracking.
+    -   **Importance**: Defines Pydantic models for data validation and API request/response structures.
+    -   **Changes**:
+        -   Added  and  fields to  model.
+        -   Added  for the new calculator.
+        -   Added  and  models for the profitability report.
+        -   Added  model for archived stocktakes.
 -   ****
     -   **Importance**: Main FastAPI application handling core logic and API endpoints.
     -   **Changes**:
-        -   **Order Number Generation**: Modified  endpoint (lines 1395-1396) to generate unique order numbers by querying the highest existing number for the year, preventing race conditions and duplicates.
-        -   **Invoice Generation**: Updated  endpoint to handle partial invoicing logic, including ,  suffixes for partial invoice numbers, tracking remaining quantities, and setting  to  for partially invoiced orders (line 3461).
-        -   **Live Jobs Filter**: Reverted temporary changes to  endpoint to correctly filter by  after the stage update logic in  was corrected.
-        -   **Order Archiving**: Modified  endpoint (line 1377) and  to exclude orders with  or  from the main Orders list, ensuring they are properly archived.
+        -   **Order Number Generation**: Modified  for unique order numbers.
+        -   **Invoice Generation**: Updated  for partial invoicing,  updates.
+        -   **Live Jobs Filter**: Reverted temporary changes to .
+        -   **Order Archiving**: Modified  to exclude completed/cleared orders.
+        -   **Material Usage Report ()**: Broadened status filtering, corrected date comparisons (datetime objects), added logic to check  for  (material_layers), and added  calculation.
+        -   **Material Permutation Calculator ()**: Replaced with new comprehensive logic based on .
+        -   **Profitability Report ()**: New endpoint added. Implements complex calculations for GP/NP, handles filtering by  and , calculates material costs using  from job cards, and includes  in the response.
+        -   **Manual Stocktake ()**: New CRUD endpoints added for saving, retrieving, viewing, editing, and deleting manual stocktakes.
+-   ****
+    -   **Importance**: Handles payroll-specific API endpoints.
+    -   **Changes**: No functional changes identified, but the  and  endpoints were confirmed to exist and function correctly (after data integrity fix).
 -   ** (NEW FILE)**
-    -   **Importance**: One-off migration script to correct existing duplicate order numbers in the database.
-    -   **Changes**: Iterates through orders, identifies duplicates, and renumbers them. Updated to use the correct  from environment variables, resolving a critical database query mismatch.
+    -   **Importance**: One-off migration script to correct existing duplicate order numbers. Later used to fix data integrity issue for timesheets (incorrect  field).
+    -   **Changes**: Updated to use correct . Executed to fix  in timesheets.
 -   ****
     -   **Importance**: Manages invoicing functionalities.
-    -   **Changes**:
-        -   **UI Logic for Part Supply**: Updated  to automatically select 'partial' invoice type if an order has existing .
-        -   **Invoice Type Selection**: Modified the invoice type modal to hide the Full Invoice option when an order has been partially invoiced.
-        -   **Search Bar Styling**: Adjusted  (e.g.,  to  then ) for search inputs to fix magnifying glass overlap. Later,  text was removed.
+    -   **Changes**: Updated  for partial invoicing UI logic. Search bar padding adjusted, then placeholder removed to fix UI overlap.
 -   ****
     -   **Importance**: Displays and manages client orders.
-    -   **Changes**: Search bar styling (padding adjustments and placeholder removal) applied to address the UI issue.
+    -   **Changes**: Search bar styling (padding adjustments, placeholder removal) applied to address UI overlap.
 -   **, , , , , **
     -   **Importance**: Various components containing search functionalities.
-    -   **Changes**: All these components had their search input fields updated (padding adjusted and placeholder text removed) to resolve the UI overlap issue with the magnifying glass icon.
+    -   **Changes**: Search input fields updated (padding adjusted and placeholder text removed) to resolve UI overlap issue.
+-   ****
+    -   **Importance**: Manages all reporting functionalities.
+    -   **Changes**:
+        -   Added state variables,  function, and UI tile for the new **Profitability Report**.
+        -   Implemented a new modal UI for profitability report, supporting Single Jobs (all data) and Multiple Jobs (multi-select client/product filtering).
+        -   Initialized profitability dates and added loading indicators for dropdowns.
+        -   Fixed  to fetch all client products.
+        -   Updated profitability report table to include expandable sections for .
+        -   Updated Material Usage Report display to include cost columns.
+        -   Imported , , .
+-   ****
+    -   **Importance**: Manages payroll functionalities.
+    -   **Changes**: Modified  to directly pass  to  component.
+-   ****
+    -   **Importance**: Displays and manages individual timesheet entries.
+    -   **Changes**: No direct changes to this file's logic, but it now receives  directly from .
+-   ****
+    -   **Importance**: Houses various calculators, including the Material Permutation.
+    -   **Changes**:
+        -   The entire  component section (lines 258-430 previously) was replaced with a new, comprehensive Raw Material Permutation and Yield Calculator.
+        -   Removed  prop from the component call.
+        -   Updated material selection dropdown to call the correct  endpoint and use uid=0(root) gid=0(root) groups=0(root) as the key.
+        -   Updated material details display to handle consistent field names.
+        -   Calculator description updated.
+-   ****
+    -   **Importance**: Manages product definition and specifications.
+    -   **Changes**:
+        -   Added  to the initial state for new product specifications.
+        -   Added a new input field for grams of glue per layer meter to the UI for Spiral Paper Core and Composite Core product types.
+        -   Ensured this new field is included in the form submission data ().
+        -   Updated edit mode () to load this field when editing.
+        -   Updated the default template () for Spiral Paper Core to include the field.
+-   ****
+    -   **Importance**: Manages stocktake processes.
+    -   **Changes**:
+        -   Added state for , , , , .
+        -   Implemented , , , , ,  (now saves to backend), , , and functions for managing archived stocktakes (load, view, edit, delete).
+        -   Added Manual Stock Take and Archived Stocktakes buttons to the monthly tab header.
+        -   Added a comprehensive Manual Stock Take modal with month selection, item lists, confirmation/modification, purchase cost column, detailed Spiral Paper Cores Summary (layer breakdown, linear meters, square meters, deckle percentage), and export buttons.
+        -   Added a comprehensive Archived Stocktakes modal with a list of saved stocktakes, and CRUD (view, edit, delete) and export functionalities.
+        -   Imported missing , , , , , .
+        -   Fixes data loading logic for raw materials and enhances  for detailed breakdown in the manual stocktake.
+        -   (Currently) Updating export functions to handle new data structure.
 </code_architecture>
 
 <pending_tasks>
 -   **NAS Integration:** Configure the application to integrate with NAS storage for uploads and backups.
 -   **Payroll Reports Implementation (Remaining):** Display leave entitlements with manual adjustment in the Overview section.
+-   **Manual Stock Take Export Functions**: Update PDF and CSV export functions to correctly handle the new data structure for the Manual Stock Take and its detailed Spiral Paper Cores Summary.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was addressing a UI issue where the magnifying glass icon in search bars was overlapping the input text. This was identified through user feedback and a provided screenshot.
+Immediately before this summary request, the AI engineer was addressing two user-reported issues related to the newly implemented Manual Stock Take feature.
 
-The initial approach involved increasing the  ( to , then ) on the search input fields within multiple frontend components, including , , , , , , , and . After two attempts at adjusting padding, the user reported that the issue persisted.
+1.  **Incorrect Material Name and Value in Raw Materials On Hand**: The user provided a screenshot showing raw materials listed as - Unknown with /bin/bash.00 cost in the Manual Stock Take modal.
+2.  **Missing Spiral Cores Summary**: The section intended to show a detailed breakdown of material usage for spiral paper cores (layer streams, linear meters, total square meters, percentage of a master deckle) was still not generating information.
 
-The current strategy, as per the user's suggestion, is to remove the  text from all affected search input fields, leaving only the magnifying glass icon. The AI engineer has successfully edited several files to remove this placeholder text in  directory (e.g., , , , , , , , ). This is the last action in the trajectory, and the work on this UI fix is still in progress and not yet fully verified or summarized as complete.
+The AI engineer acknowledged these issues and implemented fixes:
+-   Updated  to correct the data loading logic for raw materials to display accurate names and purchase costs.
+-   Enhanced the  function within  to correctly calculate and include the detailed material layer breakdown.
+-   Updated the UI in  to display this enhanced spiral cores summary.
+
+The very last action in the trajectory indicates that the AI engineer is now working on: Now I need to update the export functions to handle the new data structure:. This implies that the data loading and display logic for the spiral cores summary and raw materials have been addressed, and the next step is to ensure the Print PDF and Generate CSV buttons correctly export this enhanced data.
 </current_work>
 
 <optional_next_step>
-Verify the UI fix for the search bar icon by taking a screenshot or requesting user confirmation.
+Update the  and  functions in  to handle the new detailed data structure for spiral cores and raw materials.
 </optional_next_step>
