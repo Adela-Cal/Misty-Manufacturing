@@ -475,6 +475,15 @@ class ProfitabilityReportRequest(BaseModel):
     end_date: Optional[str] = None
     profit_threshold: float = 0.0  # Profit % threshold for alerts (default 0%)
 
+class ManualStocktake(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    month: str  # YYYY-MM format
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_by: str
+    items: List[Dict[str, Any]]  # List of all items with confirmed/modified status
+    summary: Dict[str, Any]  # Summary stats (total items, confirmed, modified)
+    spiral_cores_summary: Optional[List[Dict[str, Any]]] = None
+
 class SpiralCoreConsumptionRequest(BaseModel):
     product_specification_id: str
     core_internal_diameter: float  # mm
