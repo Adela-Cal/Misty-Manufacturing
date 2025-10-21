@@ -109,3 +109,6 @@ frontend/node_modules/.cache/default-development/24.pack
 frontend/node_modules/.cache/default-development/23.pack
 frontend/node_modules/.cache/default-development/26.pack
 frontend/node_modules/electron/dist/electron
+frontend/dist/mac/Electron.app/Contents/Frameworks/Electron
+Framework.framework/Versions/A/Electron
+Framework
