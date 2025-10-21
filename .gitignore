@@ -112,3 +112,6 @@ frontend/node_modules/electron/dist/electron
 frontend/dist/mac/Electron.app/Contents/Frameworks/Electron
 Framework.framework/Versions/A/Electron
 Framework
+frontend/dist/mac/Misty
+Manufacturing.app/Contents/Resources/app.asar
+Manufacturing.app/Contents/Frameworks/Electron
