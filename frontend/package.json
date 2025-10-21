@@ -82,8 +82,8 @@
     "productName": "Misty Manufacturing",
     "files": [
       "build/**/*",
-      "electron.js",
-      "preload.js",
+      "public/electron.js",
+      "public/preload.js",
       "package.json"
     ],
     "extraResources": [
