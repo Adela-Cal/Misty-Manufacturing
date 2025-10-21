@@ -16,6 +16,36 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'));
+
+  // Auto-refresh token before expiry
+  useEffect(() => {
+    if (!token || !refreshToken) return;
+    
+    try {
+      // Parse JWT to get expiry time
+      const tokenData = JSON.parse(atob(token.split('.')[1]));
+      const expiryTime = tokenData.exp * 1000; // Convert to milliseconds
+      const currentTime = Date.now();
+      const timeUntilExpiry = expiryTime - currentTime;
+      
+      // Refresh 5 minutes before expiry
+      const refreshTime = timeUntilExpiry - (5 * 60 * 1000);
+      
+      if (refreshTime > 0) {
+        const timeoutId = setTimeout(async () => {
+          await refreshAccessToken();
+        }, refreshTime);
+        
+        return () => clearTimeout(timeoutId);
+      } else if (timeUntilExpiry > 0) {
+        // Token expires soon, refresh immediately
+        refreshAccessToken();
+      }
+    } catch (error) {
+      console.error('Error parsing token for auto-refresh:', error);
+    }
+  }, [token, refreshToken]);
 
   useEffect(() => {
     if (token) {
