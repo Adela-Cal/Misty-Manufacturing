@@ -73,6 +73,7 @@ class UserLogin(BaseModel):
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: Optional[str] = None  # Refresh token for getting new access tokens
     token_type: str
     user: dict
 
