@@ -661,6 +661,34 @@ async def submit_timesheet(timesheet_id: str, current_user: dict = Depends(requi
     
     return StandardResponse(success=True, message="Timesheet submitted for approval")
 
+@payroll_router.post("/timesheets/{timesheet_id}/reset-to-draft", response_model=StandardResponse)
+async def reset_timesheet_to_draft(timesheet_id: str, current_user: dict = Depends(require_any_role)):
+    """Reset submitted/approved timesheet back to draft for re-editing and resubmission"""
+    
+    timesheet = await db.timesheets.find_one({"id": timesheet_id})
+    if not timesheet:
+        raise HTTPException(status_code=404, detail="Timesheet not found")
+    
+    # Check access permissions - only the timesheet owner can reset it
+    if not await check_timesheet_access(current_user, timesheet["employee_id"]):
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Reset status to draft and clear approval data
+    await db.timesheets.update_one(
+        {"id": timesheet_id},
+        {"$set": {
+            "status": TimesheetStatus.DRAFT,
+            "approved_by": None,
+            "approved_at": None,
+            "submitted_at": None,
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    
+    logger.info(f"Timesheet {timesheet_id} reset to draft by user {current_user.get('sub')}")
+    
+    return StandardResponse(success=True, message="Timesheet reset to draft. You can now edit and resubmit.")
+
 @payroll_router.post("/timesheets/{timesheet_id}/approve", response_model=StandardResponse)
 async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(require_payroll_access)):
     """Approve timesheet and calculate pay (Manager only) - ATOMIC OPERATION for concurrent access"""
