@@ -7389,7 +7389,9 @@ async def generate_profitability_report(
             job_revenue = 0
             for item in order.get("items", []):
                 # Unit price is ex GST as per client product catalogue
-                job_revenue += item.get("unit_price", 0) * item.get("quantity", 0)
+                unit_price = item.get("unit_price") or 0
+                quantity = item.get("quantity") or 0
+                job_revenue += unit_price * quantity
             
             # 1. Calculate Material Costs from Job Card with detailed breakdown
             material_cost = 0
@@ -7403,25 +7405,25 @@ async def generate_profitability_report(
                 
                 # Calculate total length from calculations if available
                 calculations = job_card.get("calculations", {})
-                total_length_m = float(calculations.get("totalLengthRequired", 0))
-                good_length_m = float(calculations.get("goodMaterialLength", 0))
-                makeready_length_m = float(calculations.get("makereadyLength", 0))
-                waste_length_m = float(calculations.get("wasteLength", 0))
+                total_length_m = float(calculations.get("totalLengthRequired") or 0)
+                good_length_m = float(calculations.get("goodMaterialLength") or 0)
+                makeready_length_m = float(calculations.get("makereadyLength") or 0)
+                waste_length_m = float(calculations.get("wasteLength") or 0)
                 
                 for layer in material_layers:
                     material_id = layer.get("material_id")
                     material_name = layer.get("material_name", "Unknown")
                     layer_type = layer.get("layer_type", "Unknown")
-                    layer_width_mm = float(layer.get("width", 0))
-                    layer_gsm = float(layer.get("gsm", 0))
-                    layer_thickness = float(layer.get("thickness", 0))
+                    layer_width_mm = float(layer.get("width") or 0)
+                    layer_gsm = float(layer.get("gsm") or 0)
+                    layer_thickness = float(layer.get("thickness") or 0)
                     supplier = layer.get("supplier", "Unknown")
                     
                     # Get material pricing from materials collection
                     material_doc = await db.materials.find_one({"id": material_id})
                     price_per_tonne = 0
                     if material_doc:
-                        price_per_tonne = float(material_doc.get("price", 0))
+                        price_per_tonne = float(material_doc.get("price") or 0)
                     
                     # Calculate weight: (width_m * length_m * gsm) / 1000 = kg
                     width_m = layer_width_mm / 1000.0
