@@ -7460,13 +7460,13 @@ async def generate_profitability_report(
                 # Get employee hourly rate
                 employee = await db.employee_profiles.find_one({"id": employee_id})
                 if employee:
-                    hourly_rate = float(employee.get("hourly_rate", 0))
+                    hourly_rate = float(employee.get("hourly_rate") or 0)
                     
                     # Sum regular and overtime hours
                     entries = timesheet.get("entries", [])
                     for entry in entries:
-                        regular_hours = float(entry.get("regular_hours", 0))
-                        overtime_hours = float(entry.get("overtime_hours", 0))
+                        regular_hours = float(entry.get("regular_hours") or 0)
+                        overtime_hours = float(entry.get("overtime_hours") or 0)
                         
                         # Regular hours at normal rate, overtime at 1.5x
                         labour_cost += (regular_hours * hourly_rate) + (overtime_hours * hourly_rate * 1.5)
@@ -7479,12 +7479,12 @@ async def generate_profitability_report(
                 machine_usage = job_card.get("machine_usage", [])
                 for machine in machine_usage:
                     machine_id = machine.get("machine_id")
-                    runtime_minutes = float(machine.get("runtime_minutes", 0))
+                    runtime_minutes = float(machine.get("runtime_minutes") or 0)
                     
                     # Get machine hourly rate
                     machinery = await db.machinery_rates.find_one({"id": machine_id})
                     if machinery:
-                        hourly_rate = float(machinery.get("hourly_rate", 0))
+                        hourly_rate = float(machinery.get("hourly_rate") or 0)
                         machine_cost += (runtime_minutes / 60.0) * hourly_rate
                 
                 # Overheads = machine costs
@@ -7494,7 +7494,7 @@ async def generate_profitability_report(
             consumables_cost = 0
             for item in order.get("items", []):
                 product_id = item.get("product_id")
-                quantity = item.get("quantity", 0)
+                quantity = item.get("quantity") or 0
                 
                 # Get client product to check for consumables
                 client_product = await db.client_products.find_one({"id": product_id})
@@ -7502,8 +7502,8 @@ async def generate_profitability_report(
                     # Check if product has consumables defined
                     consumables = client_product.get("consumables", [])
                     for consumable in consumables:
-                        consumable_cost_per_unit = float(consumable.get("cost_per_unit", 0))
-                        consumable_quantity_per_product = float(consumable.get("quantity_per_unit", 1))
+                        consumable_cost_per_unit = float(consumable.get("cost_per_unit") or 0)
+                        consumable_quantity_per_product = float(consumable.get("quantity_per_unit") or 1)
                         consumables_cost += quantity * consumable_quantity_per_product * consumable_cost_per_unit
             
             # 5. Calculate Totals
