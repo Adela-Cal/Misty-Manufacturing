@@ -434,6 +434,24 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
     }
   };
 
+  const handleEditAndResubmit = async () => {
+    if (!timesheet?.id) return;
+    
+    try {
+      setSubmitting(true);
+      // Reset timesheet to draft status
+      await payrollApi.resetTimesheetToDraft(timesheet.id);
+      toast.success('Timesheet reset to draft. You can now edit and resubmit.');
+      // Reload the timesheet to get updated status
+      await loadTimesheet();
+    } catch (error) {
+      console.error('Failed to reset timesheet:', error);
+      toast.error('Failed to reset timesheet');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const getDayName = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-AU', { weekday: 'short' });
