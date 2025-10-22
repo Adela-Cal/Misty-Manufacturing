@@ -15,6 +15,7 @@ export const payrollApi = {
   getEmployeeTimesheets: (employeeId) => api.get(`/payroll/timesheets/employee/${employeeId}`),
   updateTimesheet: (id, data) => api.put(`/payroll/timesheets/${id}`, data),
   submitTimesheet: (id) => api.post(`/payroll/timesheets/${id}/submit`),
+  resetTimesheetToDraft: (id) => api.post(`/payroll/timesheets/${id}/reset-to-draft`),
   approveTimesheet: (id) => api.post(`/payroll/timesheets/${id}/approve`),
   getPendingTimesheets: () => api.get('/payroll/timesheets/pending'),
   
