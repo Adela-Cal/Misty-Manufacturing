@@ -8061,6 +8061,117 @@ async def delete_label_template(template_id: str, current_user: dict = Depends(g
         logger.error(f"Error deleting label template: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ============================================================================
+# PAGE DESIGNER / PAGE TEMPLATES ENDPOINTS
+# ============================================================================
+
+@app.get("/api/page-templates")
+async def get_page_templates(current_user: dict = Depends(get_current_user)):
+    """Get all page templates"""
+    try:
+        templates = await db.page_templates.find().to_list(length=None)
+        return {
+            "success": True,
+            "data": templates
+        }
+    except Exception as e:
+        logger.error(f"Error fetching page templates: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/page-templates/{template_id}")
+async def get_page_template(template_id: str, current_user: dict = Depends(get_current_user)):
+    """Get a specific page template"""
+    try:
+        template = await db.page_templates.find_one({"id": template_id})
+        if not template:
+            raise HTTPException(status_code=404, detail="Page template not found")
+        
+        # Remove MongoDB _id
+        if '_id' in template:
+            del template['_id']
+        
+        return {"success": True, "data": template}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching page template: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/page-templates")
+async def create_page_template(template: PageTemplateCreate, current_user: dict = Depends(get_current_user)):
+    """Create a new page template"""
+    try:
+        template_data = PageTemplate(
+            **template.dict(),
+            created_by=current_user.get('sub')
+        )
+        await db.page_templates.insert_one(template_data.dict())
+        
+        return {
+            "success": True,
+            "message": "Page template created successfully",
+            "data": template_data.dict()
+        }
+    except Exception as e:
+        logger.error(f"Error creating page template: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/api/page-templates/{template_id}")
+async def update_page_template(
+    template_id: str,
+    template: PageTemplateUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a page template"""
+    try:
+        existing_template = await db.page_templates.find_one({"id": template_id})
+        if not existing_template:
+            raise HTTPException(status_code=404, detail="Page template not found")
+        
+        update_data = {k: v for k, v in template.dict().items() if v is not None}
+        update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+        
+        await db.page_templates.update_one(
+            {"id": template_id},
+            {"$set": update_data}
+        )
+        
+        updated_template = await db.page_templates.find_one({"id": template_id})
+        if '_id' in updated_template:
+            del updated_template['_id']
+        
+        return {
+            "success": True,
+            "message": "Page template updated successfully",
+            "data": updated_template
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating page template: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/page-templates/{template_id}")
+async def delete_page_template(template_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a page template"""
+    try:
+        result = await db.page_templates.delete_one({"id": template_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Page template not found")
+        
+        return {
+            "success": True,
+            "message": "Page template deleted successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting page template: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/printers")
 async def get_printers(current_user: dict = Depends(get_current_user)):
     """Get list of available printers"""
