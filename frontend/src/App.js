@@ -79,7 +79,13 @@ function App() {
       <AuthProvider>
         <ErrorBoundary>
           <div className="App">
-            <AppRoutes />
+            <Routes>
+              {/* Public error pages - accessible without authentication */}
+              <Route path="/error" element={<GeneralErrorPage />} />
+              <Route path="/network-error" element={<NetworkErrorPage />} />
+              {/* All other routes require authentication */}
+              <Route path="/*" element={<AppRoutes />} />
+            </Routes>
             <PWAInstallPrompt />
             <Toaster 
               position="top-right" 
