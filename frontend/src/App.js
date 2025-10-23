@@ -77,24 +77,26 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <div className="App">
-          <AppRoutes />
-          <PWAInstallPrompt />
-          <Toaster 
-            position="top-right" 
-            theme="dark"
-            visibleToasts={5}
-            expand={true}
-            duration={10000}
-            toastOptions={{
-              style: {
-                background: '#1f2937',
-                color: '#f9fafb',
-                border: '1px solid #374151',
-              },
-            }}
-          />
-        </div>
+        <ErrorBoundary>
+          <div className="App">
+            <AppRoutes />
+            <PWAInstallPrompt />
+            <Toaster 
+              position="top-right" 
+              theme="dark"
+              visibleToasts={5}
+              expand={true}
+              duration={10000}
+              toastOptions={{
+                style: {
+                  background: '#1f2937',
+                  color: '#f9fafb',
+                  border: '1px solid #374151',
+                },
+              }}
+            />
+          </div>
+        </ErrorBoundary>
       </AuthProvider>
     </BrowserRouter>
   );
