@@ -31,9 +31,9 @@ function GeneralErrorPage({ error, resetError }) {
       />
       
       {/* Content */}
-      <div className="relative z-10 text-center px-4 max-w-2xl">
+      <div className="relative z-10 text-center px-4 max-w-4xl">
         {/* Main Error Message */}
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-yellow-400 mb-6 leading-tight text-center">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-yellow-400 mb-6 leading-tight text-center">
           OHHHH, FUG MY TIGHT LITTLE P.....rogram has an error!<br />
           Try again, hung boy.
         </h1>
