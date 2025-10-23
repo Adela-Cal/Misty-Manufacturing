@@ -20,12 +20,13 @@ function GeneralErrorPage({ error, resetError }) {
 
   return (
     <div className="min-h-screen w-full relative flex items-center justify-center overflow-hidden bg-gray-900">
-      {/* Background Image with 60% opacity */}
+      {/* Background Image with 30% opacity */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat bg-fixed"
+        className="absolute inset-0 bg-center bg-no-repeat"
         style={{
           backgroundImage: 'url(/Error-Screen-Background.png)',
-          opacity: 0.6
+          backgroundSize: 'contain',
+          opacity: 0.3
         }}
       />
       
