@@ -16,7 +16,7 @@ import {
   HomeIcon
 } from '@heroicons/react/24/outline';
 
-const LabelDesigner = () => {
+const LabelDesigner = ({ embedded = false }) => {
   const navigate = useNavigate();
   const [templates, setTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
