@@ -64,9 +64,6 @@ function AppRoutes() {
         {/* <Route path="/clients/:clientId/product-catalogue" element={<ClientProductCatalogue />} /> */}
         <Route path="/xero/callback" element={<XeroCallback />} />
         <Route path="/xero-oauth-callback" element={<XeroCallback />} />
-        {/* Error pages - accessible via dedicated routes */}
-        <Route path="/error" element={<GeneralErrorPage />} />
-        <Route path="/network-error" element={<NetworkErrorPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
