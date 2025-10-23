@@ -272,6 +272,13 @@ export const apiHelpers = {
   updateLabelTemplate: (templateId, data) => api.put(`/label-templates/${templateId}`, data),
   deleteLabelTemplate: (templateId) => api.delete(`/label-templates/${templateId}`),
   
+  // Page Designer
+  getPageTemplates: () => api.get('/page-templates'),
+  getPageTemplate: (templateId) => api.get(`/page-templates/${templateId}`),
+  createPageTemplate: (data) => api.post('/page-templates', data),
+  updatePageTemplate: (templateId, data) => api.put(`/page-templates/${templateId}`, data),
+  deletePageTemplate: (templateId) => api.delete(`/page-templates/${templateId}`),
+  
   // Printing
   getPrinters: () => api.get('/printers'),
   printLabel: (data) => api.post('/print-label', data),
