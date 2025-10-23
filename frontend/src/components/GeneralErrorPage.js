@@ -33,8 +33,9 @@ function GeneralErrorPage({ error, resetError }) {
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-2xl">
         {/* Main Error Message */}
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-yellow-400 mb-6 leading-tight">
-          OHHHHH FUG MY P....rogram,<br />you have an error Big Boy
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-yellow-400 mb-6 leading-tight text-center">
+          OHHHH, FUG MY TIGHT LITTLE P.....rogram has an error!<br />
+          Try again, hung boy.
         </h1>
         
         {/* Error Details */}
