@@ -21,6 +21,9 @@ import StaffSecurity from './components/StaffSecurity';
 import XeroCallback from './components/XeroCallback';
 import ArchivedJobs from './components/ArchivedJobs';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import ErrorBoundary from './components/ErrorBoundary';
+import GeneralErrorPage from './components/GeneralErrorPage';
+import NetworkErrorPage from './components/NetworkErrorPage';
 // import ClientProductCatalogue from './components/ClientProductCatalogue';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
