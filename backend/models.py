@@ -1012,4 +1012,53 @@ class LabelTemplateUpdate(BaseModel):
     qr_code_y: Optional[float] = None
     qr_code_size: Optional[float] = None
 
+# Page Designer Models
+class PageElement(BaseModel):
+    id: str
+    type: str  # 'field', 'text', 'image', 'shape'
+    x: float
+    y: float
+    width: float
+    height: float
+    # Field-specific
+    field_type: Optional[str] = None
+    # Text-specific
+    content: Optional[str] = None
+    fontSize: Optional[int] = 12
+    fontWeight: Optional[str] = 'normal'
+    color: Optional[str] = '#000000'
+    # Image-specific
+    src: Optional[str] = None
+    maintainAspectRatio: Optional[bool] = True
+    # Shape-specific
+    shape_type: Optional[str] = None  # 'rectangle', 'circle', 'line'
+    borderColor: Optional[str] = '#000000'
+    borderWidth: Optional[int] = 1
+    fillColor: Optional[str] = 'transparent'
+
+class PageTemplate(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    template_name: str
+    document_type: str  # 'acknowledgment', 'invoice', 'packing_slip'
+    elements: List[PageElement] = Field(default_factory=list)
+    page_width: float = 595  # A4 width in points (210mm)
+    page_height: float = 842  # A4 height in points (297mm)
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_by: Optional[str] = None
+
+class PageTemplateCreate(BaseModel):
+    template_name: str
+    document_type: str
+    elements: List[PageElement] = Field(default_factory=list)
+    page_width: float = 595
+    page_height: float = 842
+
+class PageTemplateUpdate(BaseModel):
+    template_name: Optional[str] = None
+    document_type: Optional[str] = None
+    elements: Optional[List[PageElement]] = None
+    page_width: Optional[float] = None
+    page_height: Optional[float] = None
+
     total_pages: int
