@@ -389,42 +389,68 @@ const LabelDesigner = ({ embedded = false }) => {
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Label Designer</h1>
-          <p className="text-gray-400 mt-1">Create and manage carton label templates</p>
-        </div>
-        <div className="flex space-x-2">
-          {isEditing && (
-            <button
-              onClick={() => setIsEditing(false)}
-              className="misty-button misty-button-secondary flex items-center"
-            >
-              <XMarkIcon className="h-5 w-5 mr-2" />
-              Return to Templates
-            </button>
-          )}
-          {!isEditing && (
-            <>
+    <div className={embedded ? "" : "p-6"}>
+      {!embedded && (
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Label Designer</h1>
+            <p className="text-gray-400 mt-1">Create and manage carton label templates</p>
+          </div>
+          <div className="flex space-x-2">
+            {isEditing && (
               <button
-                onClick={() => navigate('/')}
+                onClick={() => setIsEditing(false)}
                 className="misty-button misty-button-secondary flex items-center"
               >
-                <HomeIcon className="h-5 w-5 mr-2" />
-                Return to Dashboard
+                <XMarkIcon className="h-5 w-5 mr-2" />
+                Return to Templates
               </button>
-              <button
-                onClick={handleCreateNew}
-                className="misty-button misty-button-primary flex items-center"
-              >
-                <PlusIcon className="h-5 w-5 mr-2" />
-                Create New Template
-              </button>
-            </>
-          )}
+            )}
+            {!isEditing && (
+              <>
+                <button
+                  onClick={() => navigate('/')}
+                  className="misty-button misty-button-secondary flex items-center"
+                >
+                  <HomeIcon className="h-5 w-5 mr-2" />
+                  Return to Dashboard
+                </button>
+                <button
+                  onClick={handleCreateNew}
+                  className="misty-button misty-button-primary flex items-center"
+                >
+                  <PlusIcon className="h-5 w-5 mr-2" />
+                  Create New Template
+                </button>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      )}
+      
+      {embedded && !isEditing && (
+        <div className="mb-6 flex items-center justify-end">
+          <button
+            onClick={handleCreateNew}
+            className="misty-button misty-button-primary flex items-center"
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Create New Template
+          </button>
+        </div>
+      )}
+      
+      {embedded && isEditing && (
+        <div className="mb-6 flex items-center justify-end">
+          <button
+            onClick={() => setIsEditing(false)}
+            className="misty-button misty-button-secondary flex items-center"
+          >
+            <XMarkIcon className="h-5 w-5 mr-2" />
+            Return to Templates
+          </button>
+        </div>
+      )}
 
       {/* Template List */}
       {!isEditing && (
