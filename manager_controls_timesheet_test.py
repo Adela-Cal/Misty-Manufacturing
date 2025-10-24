@@ -836,8 +836,6 @@ class ManagerControlsTimesheetTester:
                 timesheet_id = timesheet.get('id')
                 timesheet_status = timesheet.get('status', 'draft')
                 
-                print(f"DEBUG: Timesheet status: {timesheet_status}")
-                
                 if timesheet_id:
                     # Modify the timesheet (simulate manager edit)
                     entries = timesheet.get('entries', [])
