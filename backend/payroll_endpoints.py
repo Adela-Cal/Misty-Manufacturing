@@ -765,16 +765,20 @@ async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, 
     logger.info(f"Auto-populating leave for timesheet {timesheet_id}, employee {employee_id}, week {week_starting.date()} to {week_ending.date()}")
     
     # Find all approved leave requests that overlap with this week
+    # Convert to datetime objects for proper comparison
+    week_start_dt = datetime.combine(week_starting.date(), datetime.min.time())
+    week_end_dt = datetime.combine(week_ending.date(), datetime.max.time())
+    
     approved_leave = await db.leave_requests.find({
         "employee_id": employee_id,
         "status": LeaveStatus.APPROVED,
         "$or": [
             # Leave starts during this week
-            {"start_date": {"$gte": week_starting.date().isoformat(), "$lte": week_ending.date().isoformat()}},
+            {"start_date": {"$gte": week_start_dt, "$lte": week_end_dt}},
             # Leave ends during this week
-            {"end_date": {"$gte": week_starting.date().isoformat(), "$lte": week_ending.date().isoformat()}},
+            {"end_date": {"$gte": week_start_dt, "$lte": week_end_dt}},
             # Leave spans across this week
-            {"start_date": {"$lte": week_starting.date().isoformat()}, "end_date": {"$gte": week_ending.date().isoformat()}}
+            {"start_date": {"$lte": week_start_dt}, "end_date": {"$gte": week_end_dt}}
         ]
     }).to_list(100)
     
