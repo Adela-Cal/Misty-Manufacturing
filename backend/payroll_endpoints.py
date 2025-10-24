@@ -298,13 +298,70 @@ async def get_employee(employee_id: str, current_user: dict = Depends(require_pa
 
 @payroll_router.get("/employees/me/profile", response_model=EmployeeProfile)
 async def get_my_employee_profile(current_user: dict = Depends(require_any_role)):
-    """Get current user's employee profile"""
+    """Get current user's employee profile - auto-creates if not exists"""
     user_id = current_user.get("user_id") or current_user.get("sub")
     
     # Find employee profile by user_id
     employee = await db.employee_profiles.find_one({"user_id": user_id, "is_active": True})
+    
     if not employee:
-        raise HTTPException(status_code=404, detail="Employee profile not found for current user")
+        # Auto-create employee profile for this user
+        logger.info(f"Auto-creating employee profile for user {user_id}")
+        
+        # Get user details
+        user = await db.users.find_one({"id": user_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Generate employee number
+        employee_number = await get_next_employee_number()
+        
+        # Extract name parts
+        full_name = user.get("full_name", "")
+        name_parts = full_name.split(" ", 1) if full_name else ["", ""]
+        first_name = name_parts[0] or user.get("username", "Unknown")
+        last_name = name_parts[1] if len(name_parts) > 1 else ""
+        
+        # Determine position from role
+        role = user.get("role", "production_staff")
+        position_map = {
+            "admin": "Administrator",
+            "manager": "Manager",
+            "production_manager": "Production Manager",
+            "supervisor": "Supervisor",
+            "production_staff": "Production Staff",
+            "production_team": "Production Team Member"
+        }
+        position = position_map.get(role, "Staff Member")
+        
+        # Create new employee profile
+        new_employee = EmployeeProfile(
+            user_id=user_id,
+            employee_number=employee_number,
+            first_name=first_name,
+            last_name=last_name,
+            email=user.get("email", f"{user.get('username')}@example.com"),
+            phone=user.get("phone", ""),
+            department=user.get("department", "Production"),
+            position=position,
+            start_date=datetime.utcnow().date(),
+            employment_type=user.get("employment_type", "full_time"),
+            hourly_rate=Decimal("25.00"),  # Default hourly rate
+            weekly_hours=38,
+            annual_leave_entitlement=152,
+            sick_leave_entitlement=76,
+            personal_leave_entitlement=38,
+            annual_leave_balance=Decimal("0"),
+            sick_leave_balance=Decimal("0"),
+            personal_leave_balance=Decimal("0"),
+            is_active=True
+        )
+        
+        employee_dict = prepare_for_mongo(new_employee.dict())
+        await db.employee_profiles.insert_one(employee_dict)
+        
+        logger.info(f"Auto-created employee profile {new_employee.id} for user {user_id}")
+        return new_employee
     
     return EmployeeProfile(**employee)
 
