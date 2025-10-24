@@ -673,7 +673,7 @@ const PayrollManagement = () => {
                 />
                 <TabButton 
                   id="timesheets" 
-                  label="Timesheets" 
+                  label="Timesheet Approval" 
                   isActive={activeTab === 'timesheets'} 
                   onClick={setActiveTab} 
                 />
