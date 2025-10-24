@@ -604,6 +604,9 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
       {isAdminOrManager && (
         <div className="mb-6 bg-yellow-400/10 border border-yellow-400/30 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-yellow-400 mb-4">Manager Controls</h3>
+          <p className="text-sm text-gray-400 mb-4">
+            Select an employee and week to view/edit their timesheet. After editing, click "Save Draft" then "Submit for Approval" to send it for final approval.
+          </p>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
