@@ -1118,9 +1118,31 @@ async def create_leave_request(leave_data: LeaveRequestCreate, current_user: dic
     
     employee_profile = EmployeeProfile(**employee)
     
-    # Check leave balance
+    # LOCK CHECK: If employee is at or below -76 hours for annual leave, they cannot book more leave
+    if leave_data.leave_type == LeaveType.ANNUAL_LEAVE:
+        NEGATIVE_LIMIT = Decimal('-76.0')
+        current_annual_balance = employee_profile.annual_leave_balance
+        
+        if current_annual_balance <= NEGATIVE_LIMIT:
+            raise HTTPException(
+                status_code=403, 
+                detail=f"Leave application locked. You have reached the maximum negative balance of 2 weeks (-76 hours). Your current balance is {float(current_annual_balance)}h. You must wait until you accrue more leave before you can book additional annual leave."
+            )
+    
+    # Check leave balance (allows up to -76 for annual leave, but the above check prevents booking if already at limit)
     if not leave_service.check_leave_balance(employee_profile, leave_data.leave_type, leave_data.hours_requested):
-        raise HTTPException(status_code=400, detail="Insufficient leave balance")
+        balance_field_map = {
+            LeaveType.ANNUAL_LEAVE: employee_profile.annual_leave_balance,
+            LeaveType.SICK_LEAVE: employee_profile.sick_leave_balance,
+            LeaveType.PERSONAL_LEAVE: employee_profile.personal_leave_balance
+        }
+        current_balance = balance_field_map.get(leave_data.leave_type, Decimal('0'))
+        potential_balance = current_balance - leave_data.hours_requested
+        
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot book leave. Current balance: {float(current_balance)}h, Requesting: {float(leave_data.hours_requested)}h, Would result in: {float(potential_balance)}h. Maximum negative allowed: -76h (2 weeks)."
+        )
     
     # Create leave request
     leave_request_data = leave_data.dict()
