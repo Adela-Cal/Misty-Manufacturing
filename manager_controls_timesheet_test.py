@@ -829,11 +829,11 @@ class ManagerControlsTimesheetTester:
                         entries[0]['regular_hours'] = 8.0
                         entries[0]['notes'] = 'Updated by manager test'
                     
-                    # Prepare update data
+                    # Prepare update data (TimesheetCreate requires employee_id and week_starting)
                     update_data = {
-                        'entries': entries,
-                        'total_regular_hours': sum(entry.get('regular_hours', 0) for entry in entries),
-                        'total_overtime_hours': sum(entry.get('overtime_hours', 0) for entry in entries)
+                        'employee_id': employee_id,
+                        'week_starting': timesheet.get('week_starting') or timesheet.get('week_start'),
+                        'entries': entries
                     }
                     
                     # Test PUT endpoint for updating timesheet
