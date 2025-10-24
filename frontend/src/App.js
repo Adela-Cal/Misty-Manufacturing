@@ -24,6 +24,7 @@ import PWAInstallPrompt from './components/PWAInstallPrompt';
 import ErrorBoundary from './components/ErrorBoundary';
 import GeneralErrorPage from './components/GeneralErrorPage';
 import NetworkErrorPage from './components/NetworkErrorPage';
+import ErrorLogViewer from './components/ErrorLogViewer';
 // import ClientProductCatalogue from './components/ClientProductCatalogue';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
