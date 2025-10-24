@@ -582,7 +582,14 @@ Generated: ${new Date(data.generated_at).toLocaleString()}
                       <td>
                         <button
                           onClick={() => {
-                            toast.info('Bank details management coming soon');
+                            setSelectedEmployeeForBank(employee);
+                            setBankDetailsFormData({
+                              bank_account_bsb: employee.bank_account_bsb || '',
+                              bank_account_number: employee.bank_account_number || '',
+                              tax_file_number: employee.tax_file_number || '',
+                              superannuation_fund: employee.superannuation_fund || ''
+                            });
+                            setShowBankDetailsModal(true);
                           }}
                           className="text-yellow-400 hover:text-yellow-300 flex items-center text-sm"
                         >
