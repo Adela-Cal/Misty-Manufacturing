@@ -1327,59 +1327,6 @@ async def cancel_leave_request(request_id: str, current_user: dict = Depends(req
 
 # ============= REPORTING ENDPOINTS =============
 
-@payroll_router.get("/reports/timesheets")
-async def get_timesheet_report(
-    employee_id: Optional[str] = None,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    current_user: dict = Depends(require_payroll_access)
-):
-    """Get timesheet report with filtering"""
-    
-    query = {}
-    if employee_id:
-        query["employee_id"] = employee_id
-    if start_date:
-        query["week_start"] = {"$gte": start_date}
-    if end_date:
-        if "week_start" in query:
-            query["week_start"]["$lte"] = end_date
-        else:
-            query["week_start"] = {"$lte": end_date}
-    
-    timesheets = await db.timesheets.find(query).sort("week_start", -1).to_list(1000)
-    
-    # Enrich with employee and approver names
-    for timesheet in timesheets:
-        if "_id" in timesheet:
-            del timesheet["_id"]
-        
-        # Get employee name
-        employee = await db.employee_profiles.find_one({"id": timesheet["employee_id"]})
-        if employee:
-            timesheet["employee_name"] = f"{employee['first_name']} {employee['last_name']}"
-        
-        # Get approver name
-        if timesheet.get("approved_by"):
-            approver = await db.users.find_one({"id": timesheet["approved_by"]})
-            if approver:
-                timesheet["approver_name"] = approver.get("full_name", "Unknown")
-    
-    # Calculate summary
-    total_regular = sum(float(ts.get("total_regular_hours", 0)) for ts in timesheets)
-    total_overtime = sum(float(ts.get("total_overtime_hours", 0)) for ts in timesheets)
-    
-    return {
-        "success": True,
-        "data": timesheets,
-        "summary": {
-            "total_timesheets": len(timesheets),
-            "total_regular_hours": round(total_regular, 2),
-            "total_overtime_hours": round(total_overtime, 2),
-            "total_hours": round(total_regular + total_overtime, 2)
-        }
-    }
-
 @payroll_router.get("/reports/payslip/{timesheet_id}")
 async def generate_payslip(timesheet_id: str, current_user: dict = Depends(require_payroll_access)):
     """Generate payslip for a submitted timesheet"""
