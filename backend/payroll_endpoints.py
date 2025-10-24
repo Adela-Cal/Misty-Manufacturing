@@ -723,8 +723,10 @@ async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(requ
     timesheet = Timesheet(**timesheet_doc)
     
     # Get employee profile
+    logger.info(f"Looking for employee with ID: {timesheet.employee_id}")
     employee_doc = await db.employee_profiles.find_one({"id": timesheet.employee_id})
     if not employee_doc:
+        logger.error(f"Employee not found with ID: {timesheet.employee_id}")
         # Rollback timesheet approval
         await db.timesheets.update_one(
             {"id": timesheet_id},
