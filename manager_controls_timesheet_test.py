@@ -431,13 +431,14 @@ class ManagerControlsTimesheetTester:
                                 "Auto-Population Approved Leave", 
                                 True, 
                                 f"Successfully auto-populated approved leave (7.6 hours per day)",
-                                f"Found {len(leave_entries)} days with leave hours"
+                                f"Found {len(leave_entries)} days with leave hours. Example: {leave_entries[0].get('leave_hours', {})}"
                             )
                         else:
                             self.log_result(
                                 "Auto-Population Approved Leave", 
                                 False, 
-                                "Leave hours not correctly set to 7.6 per day"
+                                "Leave hours not correctly set to 7.6 per day",
+                                f"Leave entries found: {[(entry.get('date'), entry.get('leave_hours')) for entry in leave_entries]}"
                             )
                     else:
                         self.log_result(
