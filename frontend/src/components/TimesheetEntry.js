@@ -665,7 +665,7 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
                       </div>
                     </td>
                     
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-6 py-4 text-center">
                       <input
                         type="number"
                         min="0"
@@ -674,14 +674,14 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
                         value={entry.regular_hours || ''}
                         onChange={(e) => updateEntry(index, 'regular_hours', e.target.value)}
                         disabled={!canEdit()}
-                        className={`w-20 text-center misty-input ${
+                        className={`w-24 text-center misty-input ${
                           errors[`${index}_regular_hours`] ? 'border-red-500' : ''
                         }`}
                         data-testid={`regular-hours-${index}`}
                       />
                     </td>
                     
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-6 py-4 text-center">
                       <input
                         type="number"
                         min="0"
@@ -690,14 +690,14 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
                         value={entry.overtime_hours || ''}
                         onChange={(e) => updateEntry(index, 'overtime_hours', e.target.value)}
                         disabled={!canEdit()}
-                        className={`w-20 text-center misty-input ${
+                        className={`w-24 text-center misty-input ${
                           errors[`${index}_overtime_hours`] ? 'border-red-500' : ''
                         }`}
                         data-testid={`overtime-hours-${index}`}
                       />
                     </td>
                     
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-6 py-4 text-center">
                       <div className="text-sm">
                         {Object.keys(entry.leave_hours || {}).length > 0 ? (
                           <div className="space-y-1">
