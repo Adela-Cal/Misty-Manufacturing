@@ -769,6 +769,8 @@ async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, 
     week_start_dt = datetime.combine(week_starting.date(), datetime.min.time())
     week_end_dt = datetime.combine(week_ending.date(), datetime.max.time())
     
+    logger.info(f"DEBUG: Searching for leave between {week_start_dt} and {week_end_dt}")
+    
     approved_leave = await db.leave_requests.find({
         "employee_id": employee_id,
         "status": LeaveStatus.APPROVED,
