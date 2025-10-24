@@ -771,8 +771,6 @@ async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, 
     week_start_dt = datetime.combine(week_starting.date(), datetime.min.time())
     week_end_dt = datetime.combine(week_ending.date(), datetime.max.time())
     
-    logger.info(f"DEBUG: Searching for leave between {week_start_dt} and {week_end_dt}")
-    
     approved_leave = await db.leave_requests.find({
         "employee_id": employee_id,
         "status": LeaveStatus.APPROVED,
@@ -787,12 +785,6 @@ async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, 
     }).to_list(100)
     
     logger.info(f"Found {len(approved_leave)} approved leave requests for employee {employee_id} in week {week_starting.date()}")
-    
-    # Debug: Let's also check all leave requests for this employee to see what's there
-    all_leave = await db.leave_requests.find({"employee_id": employee_id}).to_list(100)
-    logger.info(f"DEBUG: Total leave requests for employee {employee_id}: {len(all_leave)}")
-    for leave in all_leave:
-        logger.info(f"DEBUG: Leave request - ID: {leave.get('id')}, Status: {leave.get('status')}, Start: {leave.get('start_date')}, End: {leave.get('end_date')}")
     
     if not approved_leave:
         return  # No approved leave for this week
