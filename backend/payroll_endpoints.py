@@ -1574,8 +1574,8 @@ async def get_timesheet_report(
     """Get timesheet report with filters"""
     
     try:
-        # Build query
-        query = {}
+        # Build query - only show approved timesheets
+        query = {"status": TimesheetStatus.APPROVED}
         
         if employee_id:
             query["employee_id"] = employee_id
@@ -1588,7 +1588,7 @@ async def get_timesheet_report(
                 date_query["$lte"] = end_date
             query["week_starting"] = date_query
         
-        # Get timesheets
+        # Get approved timesheets
         timesheets = await db.timesheets.find(query).sort("week_starting", -1).to_list(1000)
         
         # Calculate summary
