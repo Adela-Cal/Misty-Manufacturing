@@ -290,6 +290,8 @@ class TimesheetApprovalWorkflowTester:
             entries[1]["notes"] = "Partial day work - Workflow Test Tuesday"
             
             update_data = {
+                "employee_id": self.test_employee_id,
+                "week_starting": timesheet.get("week_starting"),
                 "entries": entries
             }
             
