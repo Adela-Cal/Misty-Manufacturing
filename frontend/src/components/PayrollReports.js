@@ -159,6 +159,43 @@ const PayrollReports = () => {
     }
   };
 
+  const handleBankDetailsSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!bankDetailsFormData.bank_account_bsb || !bankDetailsFormData.bank_account_number) {
+      toast.error('BSB and Account Number are required');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/employees/${selectedEmployeeForBank.id}/bank-details?bank_account_bsb=${encodeURIComponent(bankDetailsFormData.bank_account_bsb)}&bank_account_number=${encodeURIComponent(bankDetailsFormData.bank_account_number)}&tax_file_number=${encodeURIComponent(bankDetailsFormData.tax_file_number || '')}&superannuation_fund=${encodeURIComponent(bankDetailsFormData.superannuation_fund || '')}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        toast.success('Bank details updated successfully');
+        setShowBankDetailsModal(false);
+        setBankDetailsFormData({
+          bank_account_bsb: '',
+          bank_account_number: '',
+          tax_file_number: '',
+          superannuation_fund: ''
+        });
+        loadEmployees();
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to update bank details');
+      }
+    } catch (error) {
+      console.error('Failed to update bank details:', error);
+      toast.error('Failed to update bank details');
+    }
+  };
+
   const downloadPayslip = (payslip) => {
     const data = payslip.payslip_data;
     const content = `
