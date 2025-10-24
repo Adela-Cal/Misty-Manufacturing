@@ -754,6 +754,9 @@ async def get_employee_timesheets(employee_id: str, current_user: dict = Depends
             del timesheet["_id"]
     
     return {
+        "success": True,
+        "data": timesheets
+    }
 
 
 async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, week_starting: datetime, week_ending: datetime):
