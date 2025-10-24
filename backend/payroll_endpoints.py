@@ -762,6 +762,8 @@ async def get_employee_timesheets(employee_id: str, current_user: dict = Depends
 async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, week_starting: datetime, week_ending: datetime):
     """Auto-populate timesheet with approved leave days (7.6 hours per day)"""
     
+    logger.info(f"Auto-populating leave for timesheet {timesheet_id}, employee {employee_id}, week {week_starting.date()} to {week_ending.date()}")
+    
     # Find all approved leave requests that overlap with this week
     approved_leave = await db.leave_requests.find({
         "employee_id": employee_id,
@@ -775,6 +777,8 @@ async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, 
             {"start_date": {"$lte": week_starting.date().isoformat()}, "end_date": {"$gte": week_ending.date().isoformat()}}
         ]
     }).to_list(100)
+    
+    logger.info(f"Found {len(approved_leave)} approved leave requests for employee {employee_id} in week {week_starting.date()}")
     
     if not approved_leave:
         return  # No approved leave for this week
