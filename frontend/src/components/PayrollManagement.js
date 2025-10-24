@@ -933,36 +933,28 @@ const PayrollManagement = () => {
                           <td>
                             <div className="flex items-center space-x-2">
                               <button
+                                onClick={() => handleEmployeeEdit(employee)}
+                                className="text-gray-400 hover:text-blue-400 transition-colors flex items-center"
+                                data-testid={`edit-employee-${employee.id}`}
+                              >
+                                <PencilIcon className="h-4 w-4 mr-1" />
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleTimesheetView(employee)}
+                                className="text-gray-400 hover:text-purple-400 transition-colors flex items-center"
+                                data-testid={`view-timesheet-${employee.id}`}
+                              >
+                                <ClockIcon className="h-4 w-4 mr-1" />
+                                Timesheet
+                              </button>
+                              <button
                                 onClick={() => handleEmployeeDelete(employee)}
                                 className="text-gray-400 hover:text-red-400 transition-colors flex items-center"
                                 data-testid={`delete-employee-${employee.id}`}
                               >
                                 <TrashIcon className="h-4 w-4 mr-1" />
                                 Delete
-                              </button>
-                              <button
-                                onClick={() => handleTimesheetView(employee)}
-                                className="text-gray-400 hover:text-blue-400 transition-colors"
-                                data-testid={`view-timesheet-${employee.id}`}
-                              >
-                                Timesheet
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedEmployee(employee);
-                                  setBankDetailsFormData({
-                                    bank_account_bsb: employee.bank_account_bsb || '',
-                                    bank_account_number: employee.bank_account_number || '',
-                                    tax_file_number: employee.tax_file_number || '',
-                                    superannuation_fund: employee.superannuation_fund || ''
-                                  });
-                                  setShowBankDetailsModal(true);
-                                }}
-                                className="text-gray-400 hover:text-green-400 transition-colors flex items-center"
-                                data-testid={`bank-details-${employee.id}`}
-                              >
-                                <BuildingLibraryIcon className="h-4 w-4 mr-1" />
-                                Bank
                               </button>
                             </div>
                           </td>
