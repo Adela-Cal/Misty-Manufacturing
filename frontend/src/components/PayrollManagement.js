@@ -1144,6 +1144,13 @@ const PayrollManagement = () => {
                                   <EyeIcon className="h-4 w-4 mr-1" />
                                   View
                                 </button>
+                                <button
+                                  onClick={() => handleDeleteTimesheet(timesheet)}
+                                  className="text-red-400 hover:text-red-300 flex items-center text-sm"
+                                >
+                                  <TrashIcon className="h-4 w-4 mr-1" />
+                                  Delete
+                                </button>
                               </div>
                             </td>
                           </tr>
