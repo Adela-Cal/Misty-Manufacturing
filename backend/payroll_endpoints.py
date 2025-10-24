@@ -849,12 +849,18 @@ async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, 
             current_date += timedelta(days=1)
     
     # Update the timesheet with auto-populated leave
+    logger.info(f"DEBUG: About to update timesheet {timesheet_id}. First entry before update: {entries[0] if entries else 'No entries'}")
+    
     result = await db.timesheets.update_one(
         {"id": timesheet_id},
         {"$set": {"entries": entries, "updated_at": datetime.utcnow()}}
     )
     
     logger.info(f"Auto-populated approved leave in timesheet {timesheet_id} for employee {employee_id}. Updated {result.modified_count} documents.")
+    
+    # Verify the update worked
+    verification_timesheet = await db.timesheets.find_one({"id": timesheet_id})
+    logger.info(f"DEBUG: Verification after update. First entry leave_hours: {verification_timesheet.get('entries', [{}])[0].get('leave_hours', {})}")
 
 @payroll_router.put("/timesheets/{timesheet_id}", response_model=StandardResponse)
 async def update_timesheet(timesheet_id: str, timesheet_data: TimesheetCreate, current_user: dict = Depends(require_any_role)):
