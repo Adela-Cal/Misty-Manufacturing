@@ -410,6 +410,11 @@ class ManagerControlsTimesheetTester:
                         if leave_hours and any(hours > 0 for hours in leave_hours.values()):
                             leave_entries.append(entry)
                     
+                    # Debug: Print all entries to see what's happening
+                    print(f"DEBUG: Checking timesheet entries for leave auto-population:")
+                    for i, entry in enumerate(entries):
+                        print(f"  Entry {i}: date={entry.get('date')}, leave_hours={entry.get('leave_hours')}, notes={entry.get('notes')}")
+                    
                     if leave_entries:
                         # Check if leave hours are 7.6 per day as expected
                         correct_leave_hours = True
