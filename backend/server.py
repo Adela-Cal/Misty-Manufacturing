@@ -8170,6 +8170,68 @@ async def delete_page_template(template_id: str, current_user: dict = Depends(ge
         raise
     except Exception as e:
         logger.error(f"Error deleting page template: {str(e)}")
+
+
+# ============================================================================
+# ERROR LOGS ENDPOINT
+# ============================================================================
+
+@app.get("/api/error-logs")
+async def get_error_logs(current_user: dict = Depends(get_current_user)):
+    """Get application error logs - Admin only"""
+    try:
+        # Check if user has admin access
+        user_role = current_user.get('role', '')
+        if user_role != 'admin':
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        # Get error logs from database (last 100 errors)
+        error_logs = await db.error_logs.find().sort("timestamp", -1).limit(100).to_list(100)
+        
+        # Remove MongoDB _id field
+        for log in error_logs:
+            if '_id' in log:
+                del log['_id']
+        
+        return {
+            "success": True,
+            "data": error_logs
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching error logs: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/error-logs")
+async def log_error(error_data: dict, current_user: dict = Depends(get_current_user)):
+    """Log an application error"""
+    try:
+        from datetime import datetime, timezone
+        
+        error_log = {
+            "id": str(uuid.uuid4()),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "severity": error_data.get('severity', 'error'),
+            "message": error_data.get('message', 'Unknown error'),
+            "details": error_data.get('details'),
+            "affected_files": error_data.get('affected_files', []),
+            "stack_trace": error_data.get('stack_trace'),
+            "context": error_data.get('context'),
+            "user_id": current_user.get('sub'),
+            "username": current_user.get('username')
+        }
+        
+        await db.error_logs.insert_one(error_log)
+        
+        return {
+            "success": True,
+            "message": "Error logged successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error logging error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/printers")
