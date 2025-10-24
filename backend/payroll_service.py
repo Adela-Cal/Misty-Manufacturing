@@ -218,7 +218,7 @@ class LeaveManagementService:
         return total_hours
     
     def check_leave_balance(self, employee: EmployeeProfile, leave_type: LeaveType, hours_requested: Decimal) -> bool:
-        """Check if employee has sufficient leave balance"""
+        """Check if employee has sufficient leave balance (allows up to 2 weeks negative for annual leave)"""
         balance_field_map = {
             LeaveType.ANNUAL_LEAVE: employee.annual_leave_balance,
             LeaveType.SICK_LEAVE: employee.sick_leave_balance,
@@ -230,6 +230,14 @@ class LeaveManagementService:
             return True
         
         current_balance = balance_field_map.get(leave_type, Decimal('0'))
+        potential_new_balance = current_balance - hours_requested
+        
+        # Allow annual leave to go up to -76 hours (2 weeks negative)
+        if leave_type == LeaveType.ANNUAL_LEAVE:
+            NEGATIVE_LIMIT = Decimal('-76.0')  # 2 weeks * 38 hours/week
+            return potential_new_balance >= NEGATIVE_LIMIT
+        
+        # Other leave types require positive balance
         return current_balance >= hours_requested
     
     def get_team_leave_calendar(self, team_employee_ids: List[str], start_date: date, end_date: date) -> List[TeamLeaveCalendar]:
