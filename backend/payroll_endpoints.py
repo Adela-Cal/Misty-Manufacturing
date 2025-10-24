@@ -731,7 +731,6 @@ async def get_current_week_timesheet(
     
     # Reload the timesheet after auto-population
     populated_timesheet = await db.timesheets.find_one({"id": new_timesheet.id})
-    logger.info(f"DEBUG: Reloaded NEW timesheet after auto-population. First entry leave_hours: {populated_timesheet.get('entries', [{}])[0].get('leave_hours', {})}")
     return Timesheet(**populated_timesheet)
 
 @payroll_router.get("/timesheets/employee/{employee_id}")
