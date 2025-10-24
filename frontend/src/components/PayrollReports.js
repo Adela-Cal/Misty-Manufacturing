@@ -226,7 +226,7 @@ Generated: ${new Date(data.generated_at).toLocaleString()}
           }`}
         >
           <ClockIcon className="h-5 w-5 inline mr-2" />
-          Timesheets
+          Approved Timesheets
         </button>
         <button
           onClick={() => setActiveReportTab('leave')}
