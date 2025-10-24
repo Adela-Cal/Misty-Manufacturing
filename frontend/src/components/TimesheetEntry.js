@@ -423,12 +423,13 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
     
     try {
       setSubmitting(true);
-      await payrollApi.approveTimesheet(timesheet.id);
+      const response = await payrollApi.approveTimesheet(timesheet.id);
       toast.success('Timesheet approved and pay calculated');
-      onClose?.();
+      await loadTimesheet(); // Reload to show updated status
     } catch (error) {
       console.error('Failed to approve timesheet:', error);
-      toast.error('Failed to approve timesheet');
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to approve timesheet';
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
