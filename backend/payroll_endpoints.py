@@ -712,8 +712,9 @@ async def get_current_week_timesheet(
             week_ending_dt
         )
         # Reload the timesheet after auto-population
-        existing_timesheet = await db.timesheets.find_one({"id": existing_timesheet['id']})
-        return Timesheet(**existing_timesheet)
+        reloaded_timesheet = await db.timesheets.find_one({"id": existing_timesheet['id']})
+        logger.info(f"DEBUG: Reloaded timesheet after auto-population. First entry leave_hours: {reloaded_timesheet.get('entries', [{}])[0].get('leave_hours', {})}")
+        return Timesheet(**reloaded_timesheet)
     
     # Create new timesheet if it doesn't exist
     new_timesheet = timesheet_service.generate_weekly_timesheet(employee_id, week_starting_date)
