@@ -663,8 +663,12 @@ async def get_employee_leave_balances(employee_id: str, current_user: dict = Dep
 # ============= TIMESHEET ENDPOINTS =============
 
 @payroll_router.get("/timesheets/current-week/{employee_id}")
-async def get_current_week_timesheet(employee_id: str, current_user: dict = Depends(require_any_role)):
-    """Get or create current week timesheet"""
+async def get_current_week_timesheet(
+    employee_id: str, 
+    week_starting: Optional[str] = None,
+    current_user: dict = Depends(require_any_role)
+):
+    """Get or create timesheet for specified week (or current week if not specified)"""
     
     # Validate employee_id parameter
     if not employee_id or employee_id in ['undefined', 'null', 'None']:
@@ -674,10 +678,23 @@ async def get_current_week_timesheet(employee_id: str, current_user: dict = Depe
     if not await check_timesheet_access(current_user, employee_id):
         raise HTTPException(status_code=403, detail="Access denied")
     
-    week_starting = timesheet_service.get_current_week_starting()
+    # Determine which week to load
+    if week_starting:
+        # Parse the provided date string
+        try:
+            week_starting_date = datetime.fromisoformat(week_starting.replace('Z', '+00:00')).date()
+        except:
+            # Try parsing as YYYY-MM-DD
+            try:
+                week_starting_date = datetime.strptime(week_starting, '%Y-%m-%d').date()
+            except:
+                raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    else:
+        # Use current week
+        week_starting_date = timesheet_service.get_current_week_starting()
     
     # Convert date to datetime for MongoDB compatibility
-    week_starting_dt = datetime.combine(week_starting, datetime.min.time()).replace(tzinfo=timezone.utc)
+    week_starting_dt = datetime.combine(week_starting_date, datetime.min.time()).replace(tzinfo=timezone.utc)
     
     # Try to find existing timesheet
     existing_timesheet = await db.timesheets.find_one({
@@ -689,7 +706,7 @@ async def get_current_week_timesheet(employee_id: str, current_user: dict = Depe
         return Timesheet(**existing_timesheet)
     
     # Create new timesheet if it doesn't exist
-    new_timesheet = timesheet_service.generate_weekly_timesheet(employee_id, week_starting)
+    new_timesheet = timesheet_service.generate_weekly_timesheet(employee_id, week_starting_date)
     timesheet_dict = prepare_for_mongo(new_timesheet.dict())
     await db.timesheets.insert_one(timesheet_dict)
     
