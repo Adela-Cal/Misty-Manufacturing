@@ -75,7 +75,10 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
   };
 
   const loadTimesheetForEmployeeAndWeek = async (empId, weekDate) => {
-    if (!empId) return;
+    if (!empId) {
+      toast.error('Please select an employee first');
+      return;
+    }
     
     try {
       setLoading(true);
@@ -92,8 +95,8 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
       });
       
       if (response.ok) {
-        const result = await response.json();
-        const timesheetData = result.data;
+        const timesheetData = await response.json();
+        // The endpoint returns the timesheet directly, not wrapped in {data: ...}
         
         setTimesheet(timesheetData);
         setActualEmployeeId(empId);
@@ -110,10 +113,15 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
           const empData = await empResponse.json();
           setEmployee(empData.data || empData);
         }
+        
+        toast.success('Timesheet loaded successfully');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.detail || 'Failed to load timesheet');
       }
     } catch (error) {
       console.error('Error loading timesheet:', error);
-      toast.error('Failed to load timesheet');
+      toast.error('Failed to load timesheet: ' + error.message);
     } finally {
       setLoading(false);
     }
