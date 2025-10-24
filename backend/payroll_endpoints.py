@@ -746,6 +746,39 @@ async def reset_timesheet_to_draft(timesheet_id: str, current_user: dict = Depen
     
     return StandardResponse(success=True, message="Timesheet reset to draft. You can now edit and resubmit.")
 
+
+@payroll_router.delete("/timesheets/{timesheet_id}", response_model=StandardResponse)
+async def delete_timesheet(timesheet_id: str, current_user: dict = Depends(require_payroll_access)):
+    """Delete a timesheet (Manager only) - Employee will need to resubmit"""
+    
+    logger.info(f"Attempting to delete timesheet {timesheet_id} by user {current_user.get('sub')}")
+    
+    # Find the timesheet
+    timesheet = await db.timesheets.find_one({"id": timesheet_id})
+    if not timesheet:
+        raise HTTPException(status_code=404, detail="Timesheet not found")
+    
+    # Only allow deletion of draft or submitted timesheets, not approved ones
+    if timesheet.get("status") == TimesheetStatus.APPROVED:
+        raise HTTPException(
+            status_code=400, 
+            detail="Cannot delete approved timesheets. Please reset to draft first if needed."
+        )
+    
+    # Delete the timesheet
+    result = await db.timesheets.delete_one({"id": timesheet_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Timesheet not found")
+    
+    logger.info(f"Timesheet {timesheet_id} deleted by manager {current_user.get('sub')}")
+    
+    return StandardResponse(
+        success=True, 
+        message="Timesheet deleted successfully. Employee will need to create and submit a new timesheet."
+    )
+
+
 @payroll_router.post("/timesheets/{timesheet_id}/approve", response_model=StandardResponse)
 async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(require_payroll_access)):
     """Approve timesheet and calculate pay (Manager only) - ATOMIC OPERATION for concurrent access"""
