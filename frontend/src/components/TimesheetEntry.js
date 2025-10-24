@@ -567,12 +567,50 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-4" data-testid="timesheet-entry">
+      {/* Admin/Manager Controls */}
+      {isAdminOrManager && (
+        <div className="mb-6 bg-yellow-400/10 border border-yellow-400/30 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-yellow-400 mb-4">Manager Controls</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Select Employee <span className="text-red-400">*</span>
+              </label>
+              <select
+                value={selectedEmployeeId || ''}
+                onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                className="misty-select w-full"
+              >
+                <option value="">-- Select Employee --</option>
+                {allEmployees.map(emp => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.first_name} {emp.last_name} ({emp.employee_number})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Select Week Starting Date
+              </label>
+              <input
+                type="date"
+                value={selectedWeekDate}
+                onChange={(e) => setSelectedWeekDate(e.target.value)}
+                className="misty-input w-full"
+              />
+              <p className="text-xs text-gray-400 mt-1">Leave blank for current week</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-white mb-1">
-              {isManager && employee ? `${employee.first_name} ${employee.last_name}'s Timesheet` : 'My Timesheet'}
+              {employee ? `${employee.first_name} ${employee.last_name}'s Timesheet` : 'Timesheet'}
             </h2>
             <div className="flex items-center space-x-4 text-sm text-gray-400">
               <span className="flex items-center">
