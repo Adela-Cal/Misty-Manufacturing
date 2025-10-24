@@ -519,6 +519,66 @@ async def update_employee_bank_details(
     
     return StandardResponse(success=True, message="Bank details updated successfully")
 
+
+@payroll_router.put("/employees/{employee_id}", response_model=StandardResponse)
+async def update_employee(
+    employee_id: str,
+    update_data: dict,
+    current_user: dict = Depends(require_admin)
+):
+    """Update employee details including pay rates and bank details (Admin only)"""
+    
+    # Get current employee
+    employee = await db.employee_profiles.find_one({"id": employee_id})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    
+    # Prepare update
+    update_fields = {}
+    
+    # Pay rate fields
+    if 'hourly_rate' in update_data and update_data['hourly_rate']:
+        update_fields['hourly_rate'] = str(update_data['hourly_rate'])
+    
+    if 'position' in update_data:
+        update_fields['position'] = update_data['position']
+    
+    if 'department' in update_data:
+        update_fields['department'] = update_data['department']
+    
+    if 'employment_type' in update_data:
+        update_fields['employment_type'] = update_data['employment_type']
+    
+    # Bank details
+    if 'bank_account_bsb' in update_data:
+        update_fields['bank_account_bsb'] = update_data['bank_account_bsb']
+    
+    if 'bank_account_number' in update_data:
+        update_fields['bank_account_number'] = update_data['bank_account_number']
+    
+    if 'tax_file_number' in update_data:
+        update_fields['tax_file_number'] = update_data['tax_file_number']
+    
+    if 'superannuation_fund' in update_data:
+        update_fields['superannuation_fund'] = update_data['superannuation_fund']
+    
+    # Always update timestamp
+    update_fields['updated_at'] = datetime.utcnow()
+    
+    # Update employee
+    result = await db.employee_profiles.update_one(
+        {"id": employee_id},
+        {"$set": update_fields}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    
+    logger.info(f"Updated employee {employee_id} by admin {current_user.get('sub')}")
+    
+    return StandardResponse(success=True, message="Employee details updated successfully")
+
+
 @payroll_router.post("/leave-adjustments", response_model=StandardResponse)
 async def create_leave_adjustment(adjustment: LeaveAdjustmentCreate, current_user: dict = Depends(require_admin)):
     """Create manual leave adjustment with reason (Admin only)"""
