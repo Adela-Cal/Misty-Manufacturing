@@ -512,6 +512,33 @@ const PayrollManagement = () => {
     }
   };
 
+  const handleDeleteTimesheet = async (timesheet) => {
+    if (!window.confirm(`Are you sure you want to delete this timesheet for ${timesheet.employee_name}? The employee will need to resubmit their timesheet.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/timesheets/${timesheet.id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        toast.success('Timesheet deleted successfully. Employee will need to resubmit.');
+        loadPayrollData(); // Reload to update pending timesheets
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Failed to delete timesheet');
+      }
+    } catch (error) {
+      console.error('Failed to delete timesheet:', error);
+      toast.error('Failed to delete timesheet');
+    }
+  };
+
   const handleViewTimesheet = (timesheet) => {
     // Set a minimal employee object with just the id for TimesheetEntry
     // TimesheetEntry will load the full employee details if needed
