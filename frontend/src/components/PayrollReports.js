@@ -330,7 +330,10 @@ Generated: ${new Date(data.generated_at).toLocaleString()}
       {/* Approved Timesheets Report Tab */}
       {activeReportTab === 'timesheets' && (
         <div>
-          <h3 className="text-xl font-semibold text-white mb-4">Approved Timesheets Report</h3>
+          <div className="mb-4">
+            <h3 className="text-xl font-semibold text-white">Approved Timesheets Report</h3>
+            <p className="text-sm text-gray-400 mt-1">View all approved timesheets archived against employees who entered them</p>
+          </div>
           
           {/* Filters */}
           <div className="bg-gray-800 rounded-lg p-4 mb-6">
