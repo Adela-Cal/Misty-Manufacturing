@@ -476,6 +476,10 @@ class ManagerControlsTimesheetTester:
             # Create leave request
             response = self.session.post(f"{API_BASE}/payroll/leave-requests", json=leave_data)
             
+            print(f"DEBUG: Leave request creation response: {response.status_code}")
+            if response.status_code != 200:
+                print(f"DEBUG: Leave request error: {response.text}")
+            
             if response.status_code == 200:
                 result = response.json()
                 leave_id = result.get('data', {}).get('id')
