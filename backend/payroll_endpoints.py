@@ -821,10 +821,6 @@ async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, 
     
     logger.info(f"Auto-populated approved leave in timesheet {timesheet_id} for employee {employee_id}")
 
-        "success": True,
-        "data": timesheets
-    }
-
 @payroll_router.put("/timesheets/{timesheet_id}", response_model=StandardResponse)
 async def update_timesheet(timesheet_id: str, timesheet_data: TimesheetCreate, current_user: dict = Depends(require_any_role)):
     """Update timesheet entries"""
