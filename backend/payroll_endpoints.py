@@ -703,6 +703,16 @@ async def get_current_week_timesheet(
     })
     
     if existing_timesheet:
+        # Auto-populate with approved leave if not already done
+        week_ending_dt = week_starting_dt + timedelta(days=6)
+        await auto_populate_leave_in_timesheet(
+            existing_timesheet['id'], 
+            employee_id, 
+            week_starting_dt, 
+            week_ending_dt
+        )
+        # Reload the timesheet after auto-population
+        existing_timesheet = await db.timesheets.find_one({"id": existing_timesheet['id']})
         return Timesheet(**existing_timesheet)
     
     # Create new timesheet if it doesn't exist
@@ -710,7 +720,18 @@ async def get_current_week_timesheet(
     timesheet_dict = prepare_for_mongo(new_timesheet.dict())
     await db.timesheets.insert_one(timesheet_dict)
     
-    return new_timesheet
+    # Auto-populate the new timesheet with approved leave
+    week_ending_dt = week_starting_dt + timedelta(days=6)
+    await auto_populate_leave_in_timesheet(
+        new_timesheet.id, 
+        employee_id, 
+        week_starting_dt, 
+        week_ending_dt
+    )
+    
+    # Reload the timesheet after auto-population
+    populated_timesheet = await db.timesheets.find_one({"id": new_timesheet.id})
+    return Timesheet(**populated_timesheet)
 
 @payroll_router.get("/timesheets/employee/{employee_id}")
 async def get_employee_timesheets(employee_id: str, current_user: dict = Depends(require_any_role)):
