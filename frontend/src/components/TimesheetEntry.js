@@ -619,22 +619,22 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
       {/* Timesheet Grid */}
       <div className="misty-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full table-auto">
             <thead className="bg-gray-700">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Day (Click for Leave)
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Regular Hours
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Overtime Hours
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Leave Hours
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Notes
                 </th>
               </tr>
