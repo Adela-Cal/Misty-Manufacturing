@@ -917,11 +917,13 @@ async def get_pending_timesheets(current_user: dict = Depends(require_payroll_ac
                 if user:
                     employee = await db.employee_profiles.find_one({"user_id": user["id"]})
         
-        # Set employee name if found, otherwise use ID
+        # Set employee name and number if found, otherwise use ID
         if employee:
             timesheet["employee_name"] = f"{employee['first_name']} {employee['last_name']}"
+            timesheet["employee_number"] = employee.get('employee_number', 'N/A')
         else:
             timesheet["employee_name"] = f"Unknown Employee (ID: {employee_id[:8]}...)"
+            timesheet["employee_number"] = "N/A"
             logger.warning(f"Could not find employee for timesheet {timesheet.get('id')} with employee_id {employee_id}")
     
     return {"success": True, "data": pending_timesheets}
