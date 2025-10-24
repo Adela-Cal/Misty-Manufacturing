@@ -792,8 +792,8 @@ async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(requ
                 "updated_at": datetime.utcnow()
             }}
         )
-        logger.error(f"Failed to approve timesheet {timesheet_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to approve timesheet: {str(e)}")
+        logger.error(f"Failed to approve timesheet {timesheet_id}: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to calculate pay: {str(e)}")
 
 @payroll_router.get("/timesheets/pending")
 async def get_pending_timesheets(current_user: dict = Depends(require_payroll_access)):
