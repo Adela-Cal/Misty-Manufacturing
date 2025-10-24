@@ -1224,12 +1224,14 @@ async def approve_leave_request(request_id: str, current_user: dict = Depends(re
     balance_field = f"{leave_type}_balance"
     hours_requested = float(leave_request["hours_requested"])
     
-    # ATOMIC OPERATION: Deduct leave balance only if sufficient balance exists
+    # ATOMIC OPERATION: Deduct leave balance, allowing up to -76 hours (2 weeks negative)
     # This prevents race condition where two concurrent approvals could over-deduct balance
+    NEGATIVE_LIMIT = -76.0  # Allow 2 weeks negative (38 hours/week * 2)
+    
     employee = await db.employee_profiles.find_one_and_update(
         {
             "id": leave_request["employee_id"],
-            balance_field: {"$gte": hours_requested}  # Only update if sufficient balance
+            balance_field: {"$gte": NEGATIVE_LIMIT}  # Allow negative up to -76 hours
         },
         {
             "$inc": {balance_field: -hours_requested},  # Atomic decrement
@@ -1239,7 +1241,7 @@ async def approve_leave_request(request_id: str, current_user: dict = Depends(re
     )
     
     if employee is None:
-        # Insufficient balance - rollback leave approval
+        # Would exceed negative limit - rollback leave approval
         await db.leave_requests.update_one(
             {"id": request_id},
             {"$set": {
@@ -1253,10 +1255,11 @@ async def approve_leave_request(request_id: str, current_user: dict = Depends(re
         # Get current balance for error message
         emp = await db.employee_profiles.find_one({"id": leave_request["employee_id"]})
         current_balance = float(emp.get(balance_field, 0)) if emp else 0
+        potential_new_balance = current_balance - hours_requested
         
         raise HTTPException(
             status_code=400, 
-            detail=f"Insufficient {leave_type.replace('_', ' ')} balance. Available: {current_balance}h, Requested: {hours_requested}h"
+            detail=f"Cannot approve leave. This would exceed the maximum negative balance of 2 weeks (-76 hours). Current balance: {current_balance}h, Requested: {hours_requested}h, Would result in: {potential_new_balance}h"
         )
     
     new_balance = float(employee.get(balance_field, 0))
