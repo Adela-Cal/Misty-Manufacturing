@@ -81,6 +81,7 @@ function App() {
               {/* Public error pages - accessible without authentication */}
               <Route path="/error" element={<GeneralErrorPage />} />
               <Route path="/network-error" element={<NetworkErrorPage />} />
+              <Route path="/error-logs" element={<ErrorLogViewer />} />
               {/* All other routes require authentication */}
               <Route path="/*" element={<AppRoutes />} />
             </Routes>
