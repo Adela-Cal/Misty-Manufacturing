@@ -645,7 +645,7 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
                 return (
                   <tr key={index} className={isWeekend ? 'bg-gray-700/30' : ''}>
                     <td 
-                      className={`px-4 py-3 ${canEdit() ? 'cursor-pointer hover:bg-gray-600' : ''}`}
+                      className={`px-6 py-4 ${canEdit() ? 'cursor-pointer hover:bg-gray-600' : ''}`}
                       onClick={() => handleDayClick(index)}
                     >
                       <div className="text-sm">
