@@ -391,11 +391,12 @@ class ManagerControlsTimesheetTester:
             leave_created = self.create_test_approved_leave(employee_id)
             
             if leave_created:
-                # Get timesheet for the week with approved leave
+                # Get timesheet for the week with approved leave (use the employee who got the leave)
+                leave_employee_id = leave_created.get('employee_id', employee_id)
                 week_with_leave = leave_created.get('week_starting', '2025-01-06')
                 
                 response = self.session.get(
-                    f"{API_BASE}/payroll/timesheets/current-week/{employee_id}",
+                    f"{API_BASE}/payroll/timesheets/current-week/{leave_employee_id}",
                     params={"week_starting": week_with_leave}
                 )
                 
