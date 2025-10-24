@@ -487,7 +487,7 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto" data-testid="timesheet-entry">
+    <div className="max-w-7xl mx-auto px-6 py-4" data-testid="timesheet-entry">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between">
