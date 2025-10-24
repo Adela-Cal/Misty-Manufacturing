@@ -714,6 +714,7 @@ async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(requ
     )
     
     if not timesheet_doc:
+        logger.warning(f"Timesheet {timesheet_id} not found or not in submitted status")
         raise HTTPException(
             status_code=404, 
             detail="Timesheet not found, not in submitted status, or already approved by another manager"
