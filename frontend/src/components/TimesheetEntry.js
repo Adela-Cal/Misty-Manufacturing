@@ -11,7 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const [loading, setLoading] = useState(true);
   const [timesheet, setTimesheet] = useState(null);
   const [employee, setEmployee] = useState(null);
@@ -30,6 +30,12 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
   const [showPreviousTimesheets, setShowPreviousTimesheets] = useState(false);
   const [previousTimesheets, setPreviousTimesheets] = useState([]);
   const [loadingPrevious, setLoadingPrevious] = useState(false);
+  
+  // Admin/Manager controls
+  const [allEmployees, setAllEmployees] = useState([]);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(employeeId || null);
+  const [selectedWeekDate, setSelectedWeekDate] = useState('');
+  const isAdminOrManager = hasPermission('manage_payroll');
 
 
   useEffect(() => {
