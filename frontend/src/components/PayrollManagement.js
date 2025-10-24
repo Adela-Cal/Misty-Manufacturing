@@ -1059,8 +1059,8 @@ const PayrollManagement = () => {
 
           {activeTab === 'timesheets' && hasPermission('manage_payroll') && (
             <div className="misty-card p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">Pending Timesheets</h3>
-              <p className="text-gray-400 mb-4">Review and approve employee timesheets</p>
+              <h3 className="text-xl font-semibold text-white mb-4">Timesheet Approval</h3>
+              <p className="text-gray-400 mb-4">Review and approve employee timesheets requiring your approval</p>
               
               {pendingTimesheets.length > 0 ? (
                 <div className="misty-table">
