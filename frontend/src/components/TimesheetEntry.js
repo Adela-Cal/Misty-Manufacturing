@@ -591,15 +591,21 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Select Week Starting Date
+                Select Week
               </label>
-              <input
-                type="date"
-                value={selectedWeekDate}
+              <select
+                value={selectedWeekDate || ''}
                 onChange={(e) => setSelectedWeekDate(e.target.value)}
-                className="misty-input w-full"
-              />
-              <p className="text-xs text-gray-400 mt-1">Leave blank for current week</p>
+                className="misty-select w-full"
+              >
+                <option value="">-- Current Week --</option>
+                {getWeekOptions().map((week) => (
+                  <option key={week.value} value={week.value}>
+                    {week.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-400 mt-1">Select a week to view/edit timesheet</p>
             </div>
           </div>
         </div>
