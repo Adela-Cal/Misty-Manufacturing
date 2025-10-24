@@ -463,15 +463,19 @@ class ManagerControlsTimesheetTester:
     def create_test_approved_leave(self, employee_id):
         """Create a test approved leave request"""
         try:
-            # Create leave request for a future week
-            leave_data = {
-                "employee_id": employee_id,
-                "leave_type": "annual_leave",
-                "start_date": "2025-01-06",  # Monday
-                "end_date": "2025-01-08",    # Wednesday (3 days)
-                "hours_requested": 22.8,     # 3 days * 7.6 hours
-                "reason": "Test approved leave for timesheet auto-population"
-            }
+            # Try different employees to find one with positive balance
+            for employee in self.employees:
+                test_employee_id = employee.get('id')
+                
+                # Create leave request for a future week (smaller amount)
+                leave_data = {
+                    "employee_id": test_employee_id,
+                    "leave_type": "annual_leave",
+                    "start_date": "2025-01-06",  # Monday
+                    "end_date": "2025-01-06",    # Same day (1 day only)
+                    "hours_requested": 7.6,      # 1 day * 7.6 hours
+                    "reason": "Test approved leave for timesheet auto-population"
+                }
             
             # Create leave request
             response = self.session.post(f"{API_BASE}/payroll/leave-requests", json=leave_data)
