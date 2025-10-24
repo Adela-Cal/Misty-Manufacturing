@@ -354,7 +354,11 @@ const StaffSecurity = () => {
           </div>
           <div className="flex space-x-3">
             <button
-              onClick={() => window.open('/error-logs', '_blank')}
+              onClick={() => {
+                const url = '/error-logs';
+                const windowFeatures = 'width=1400,height=900,scrollbars=yes,resizable=yes';
+                window.open(url, '_blank', windowFeatures);
+              }}
               className="misty-button misty-button-secondary"
             >
               <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
