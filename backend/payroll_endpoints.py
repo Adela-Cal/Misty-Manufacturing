@@ -827,12 +827,9 @@ async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, 
                 else:
                     entry_date = entry_date_raw
                 
-                logger.info(f"DEBUG: Comparing entry_date {entry_date} with current_date {current_date}")
-                
                 if entry_date == current_date:
                     # Check if it's a weekday (not Saturday/Sunday)
                     if current_date.weekday() < 5:  # Monday=0, Friday=4
-                        logger.info(f"DEBUG: Auto-populating leave for date {current_date} with {leave_type}: 7.6 hours")
                         # Auto-populate with 7.6 hours of leave (leave_hours is a dict)
                         if 'leave_hours' not in entry:
                             entry['leave_hours'] = {}
@@ -841,9 +838,6 @@ async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, 
                         # Clear regular/overtime hours for leave days
                         entry['regular_hours'] = 0
                         entry['overtime_hours'] = 0
-                        logger.info(f"DEBUG: Entry after auto-population: {entry}")
-                    else:
-                        logger.info(f"DEBUG: Skipping weekend date {current_date} (weekday: {current_date.weekday()})")
                     break
             
             current_date += timedelta(days=1)
