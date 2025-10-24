@@ -36,11 +36,6 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(employeeId || null);
   const [selectedWeekDate, setSelectedWeekDate] = useState('');
   const isAdminOrManager = hasPermission('manage_payroll');
-  
-  // Debug logging
-  console.log('TimesheetEntry - isAdminOrManager:', isAdminOrManager);
-  console.log('TimesheetEntry - user:', user);
-  console.log('TimesheetEntry - hasPermission:', hasPermission);
 
 
   useEffect(() => {
