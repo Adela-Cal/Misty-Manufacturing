@@ -718,7 +718,7 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
                       </div>
                     </td>
                     
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-4">
                       <input
                         type="text"
                         placeholder="Notes..."
