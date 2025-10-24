@@ -802,9 +802,10 @@ async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, 
                 if entry_date == current_date:
                     # Check if it's a weekday (not Saturday/Sunday)
                     if current_date.weekday() < 5:  # Monday=0, Friday=4
-                        # Auto-populate with 7.6 hours of leave
-                        entry['leave_hours'] = 7.6
-                        entry['leave_type'] = leave_type
+                        # Auto-populate with 7.6 hours of leave (leave_hours is a dict)
+                        if 'leave_hours' not in entry:
+                            entry['leave_hours'] = {}
+                        entry['leave_hours'][leave_type] = 7.6
                         entry['notes'] = f"Auto-populated from approved {leave_type.replace('_', ' ')}"
                         # Clear regular/overtime hours for leave days
                         entry['regular_hours'] = 0
