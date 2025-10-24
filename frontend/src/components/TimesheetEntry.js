@@ -79,10 +79,10 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
     
     try {
       setLoading(true);
-      let url = `${process.env.REACT_APP_BACKEND_URL}/api/payroll/timesheets/current-week?employee_id=${empId}`;
+      let url = `${process.env.REACT_APP_BACKEND_URL}/api/payroll/timesheets/current-week/${empId}`;
       
       if (weekDate) {
-        url += `&week_starting=${weekDate}`;
+        url += `?week_starting=${weekDate}`;
       }
       
       const response = await fetch(url, {
