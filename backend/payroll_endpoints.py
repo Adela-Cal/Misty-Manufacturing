@@ -827,7 +827,15 @@ async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, 
         while current_date <= end_date:
             # Find the corresponding entry in the timesheet
             for entry in entries:
-                entry_date = datetime.fromisoformat(entry['date']).date() if isinstance(entry['date'], str) else entry['date']
+                entry_date_raw = entry['date']
+                if isinstance(entry_date_raw, str):
+                    entry_date = datetime.fromisoformat(entry_date_raw).date()
+                elif hasattr(entry_date_raw, 'date'):
+                    entry_date = entry_date_raw.date()
+                else:
+                    entry_date = entry_date_raw
+                
+                logger.info(f"DEBUG: Comparing entry_date {entry_date} with current_date {current_date}")
                 
                 if entry_date == current_date:
                     # Check if it's a weekday (not Saturday/Sunday)
