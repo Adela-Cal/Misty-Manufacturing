@@ -1315,26 +1315,192 @@ const PayrollManagement = () => {
         </div>
       </div>
 
-      {/* Employee Modal Placeholder */}
-      {showEmployeeModal && (
-        <div className="modal-overlay">
+      {/* Employee Edit Modal */}
+      {showEmployeeModal && selectedEmployee && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowEmployeeModal(false)}>
           <div className="modal-content max-w-4xl">
             <div className="p-6">
               <h2 className="text-xl font-bold text-white mb-4">
-                {selectedEmployee ? 'Edit Employee' : 'Add New Employee'}
+                Edit Employee Details
               </h2>
-              <p className="text-gray-400 mb-4">Employee form will be implemented here</p>
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => setShowEmployeeModal(false)}
-                  className="misty-button misty-button-secondary"
-                >
-                  Cancel
-                </button>
-                <button className="misty-button misty-button-primary">
-                  {selectedEmployee ? 'Update' : 'Create'}
-                </button>
-              </div>
+              <p className="text-sm text-gray-400 mb-6">
+                Employee: {selectedEmployee.first_name} {selectedEmployee.last_name} ({selectedEmployee.employee_number})
+              </p>
+
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const data = {
+                  hourly_rate: formData.get('hourly_rate'),
+                  position: formData.get('position'),
+                  department: formData.get('department'),
+                  employment_type: formData.get('employment_type'),
+                  bank_account_bsb: formData.get('bank_account_bsb'),
+                  bank_account_number: formData.get('bank_account_number'),
+                  tax_file_number: formData.get('tax_file_number'),
+                  superannuation_fund: formData.get('superannuation_fund')
+                };
+
+                try {
+                  // Update employee details
+                  const response = await fetch(`${BACKEND_URL}/api/payroll/employees/${selectedEmployee.id}`, {
+                    method: 'PUT',
+                    headers: {
+                      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                  });
+
+                  if (response.ok) {
+                    toast.success('Employee details updated successfully');
+                    setShowEmployeeModal(false);
+                    loadPayrollData();
+                  } else {
+                    const error = await response.json();
+                    toast.error(error.detail || 'Failed to update employee');
+                  }
+                } catch (error) {
+                  console.error('Failed to update employee:', error);
+                  toast.error('Failed to update employee');
+                }
+              }} className="space-y-6">
+                {/* Pay Rate Section */}
+                <div className="bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+                  <h3 className="text-lg font-semibold text-yellow-400 mb-4">Pay Rates & Employment</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Hourly Rate <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        name="hourly_rate"
+                        step="0.01"
+                        defaultValue={selectedEmployee.hourly_rate}
+                        className="misty-input w-full"
+                        placeholder="25.00"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Employment Type <span className="text-red-400">*</span>
+                      </label>
+                      <select
+                        name="employment_type"
+                        defaultValue={selectedEmployee.employment_type}
+                        className="misty-select w-full"
+                        required
+                      >
+                        <option value="full_time">Full Time</option>
+                        <option value="part_time">Part Time</option>
+                        <option value="casual">Casual</option>
+                        <option value="contract">Contract</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Position
+                      </label>
+                      <input
+                        type="text"
+                        name="position"
+                        defaultValue={selectedEmployee.position}
+                        className="misty-input w-full"
+                        placeholder="e.g., Production Manager"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Department
+                      </label>
+                      <input
+                        type="text"
+                        name="department"
+                        defaultValue={selectedEmployee.department}
+                        className="misty-input w-full"
+                        placeholder="e.g., Production"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bank Details Section */}
+                <div className="bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+                  <h3 className="text-lg font-semibold text-yellow-400 mb-4">Bank Details</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        BSB
+                      </label>
+                      <input
+                        type="text"
+                        name="bank_account_bsb"
+                        defaultValue={selectedEmployee.bank_account_bsb}
+                        className="misty-input w-full font-mono"
+                        placeholder="123-456"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Account Number
+                      </label>
+                      <input
+                        type="text"
+                        name="bank_account_number"
+                        defaultValue={selectedEmployee.bank_account_number}
+                        className="misty-input w-full font-mono"
+                        placeholder="12345678"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tax & Super Section */}
+                <div className="bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+                  <h3 className="text-lg font-semibold text-yellow-400 mb-4">Tax & Superannuation</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Tax File Number (TFN)
+                      </label>
+                      <input
+                        type="text"
+                        name="tax_file_number"
+                        defaultValue={selectedEmployee.tax_file_number}
+                        className="misty-input w-full font-mono"
+                        placeholder="123 456 789"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Superannuation Fund
+                      </label>
+                      <input
+                        type="text"
+                        name="superannuation_fund"
+                        defaultValue={selectedEmployee.superannuation_fund}
+                        className="misty-input w-full"
+                        placeholder="e.g., AustralianSuper"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-600">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmployeeModal(false)}
+                    className="misty-button misty-button-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="misty-button misty-button-primary">
+                    Update Employee
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
