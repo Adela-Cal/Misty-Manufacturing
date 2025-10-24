@@ -733,6 +733,70 @@ async def get_employee_timesheets(employee_id: str, current_user: dict = Depends
             del timesheet["_id"]
     
     return {
+
+
+async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, week_starting: datetime, week_ending: datetime):
+    """Auto-populate timesheet with approved leave days (7.6 hours per day)"""
+    
+    # Find all approved leave requests that overlap with this week
+    approved_leave = await db.leave_requests.find({
+        "employee_id": employee_id,
+        "status": LeaveStatus.APPROVED,
+        "$or": [
+            # Leave starts during this week
+            {"start_date": {"$gte": week_starting.date().isoformat(), "$lte": week_ending.date().isoformat()}},
+            # Leave ends during this week
+            {"end_date": {"$gte": week_starting.date().isoformat(), "$lte": week_ending.date().isoformat()}},
+            # Leave spans across this week
+            {"start_date": {"$lte": week_starting.date().isoformat()}, "end_date": {"$gte": week_ending.date().isoformat()}}
+        ]
+    }).to_list(100)
+    
+    if not approved_leave:
+        return  # No approved leave for this week
+    
+    # Get the current timesheet
+    timesheet = await db.timesheets.find_one({"id": timesheet_id})
+    if not timesheet:
+        return
+    
+    entries = timesheet.get('entries', [])
+    
+    # For each approved leave request, populate the corresponding days
+    for leave_req in approved_leave:
+        start_date = datetime.fromisoformat(leave_req['start_date']).date()
+        end_date = datetime.fromisoformat(leave_req['end_date']).date()
+        leave_type = leave_req['leave_type']
+        
+        # Iterate through each day of the leave
+        current_date = start_date
+        while current_date <= end_date:
+            # Find the corresponding entry in the timesheet
+            for entry in entries:
+                entry_date = datetime.fromisoformat(entry['date']).date() if isinstance(entry['date'], str) else entry['date']
+                
+                if entry_date == current_date:
+                    # Check if it's a weekday (not Saturday/Sunday)
+                    if current_date.weekday() < 5:  # Monday=0, Friday=4
+                        # Auto-populate with 7.6 hours of leave
+                        entry['leave_hours'] = 7.6
+                        entry['leave_type'] = leave_type
+                        entry['notes'] = f"Auto-populated from approved {leave_type.replace('_', ' ')}"
+                        # Clear regular/overtime hours for leave days
+                        entry['regular_hours'] = 0
+                        entry['overtime_hours'] = 0
+                    break
+            
+            current_date += timedelta(days=1)
+    
+    # Update the timesheet with auto-populated leave
+    await db.timesheets.update_one(
+        {"id": timesheet_id},
+        {"$set": {"entries": entries, "updated_at": datetime.utcnow()}}
+    )
+    
+    logger.info(f"Auto-populated approved leave in timesheet {timesheet_id} for employee {employee_id}")
+
         "success": True,
         "data": timesheets
     }
