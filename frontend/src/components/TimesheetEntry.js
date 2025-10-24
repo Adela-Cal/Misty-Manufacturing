@@ -39,6 +39,9 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
 
 
   useEffect(() => {
+    if (isAdminOrManager) {
+      loadAllEmployees();
+    }
     loadTimesheet();
     loadManagers();
   }, [employeeId]);
@@ -46,6 +49,75 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
   useEffect(() => {
     calculateTotals();
   }, [entries]);
+  
+  useEffect(() => {
+    // Reload timesheet when admin/manager changes selection
+    if (isAdminOrManager && selectedEmployeeId) {
+      loadTimesheetForEmployeeAndWeek(selectedEmployeeId, selectedWeekDate);
+    }
+  }, [selectedEmployeeId, selectedWeekDate]);
+
+  const loadAllEmployees = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/payroll/employees`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        const employees = Array.isArray(result) ? result : (result.data || []);
+        setAllEmployees(employees);
+      }
+    } catch (error) {
+      console.error('Failed to load employees:', error);
+    }
+  };
+
+  const loadTimesheetForEmployeeAndWeek = async (empId, weekDate) => {
+    if (!empId) return;
+    
+    try {
+      setLoading(true);
+      let url = `${process.env.REACT_APP_BACKEND_URL}/api/payroll/timesheets/current-week?employee_id=${empId}`;
+      
+      if (weekDate) {
+        url += `&week_starting=${weekDate}`;
+      }
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        const timesheetData = result.data;
+        
+        setTimesheet(timesheetData);
+        setActualEmployeeId(empId);
+        setEntries(timesheetData.entries || generateEmptyWeek());
+        
+        // Load employee info
+        const empResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/payroll/employees/${empId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (empResponse.ok) {
+          const empData = await empResponse.json();
+          setEmployee(empData.data || empData);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading timesheet:', error);
+      toast.error('Failed to load timesheet');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadTimesheet = async () => {
     try {
