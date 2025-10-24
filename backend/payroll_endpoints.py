@@ -863,9 +863,20 @@ async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(requ
         
         logger.info(f"Approved timesheet {timesheet_id} by user {current_user.get('sub')} and calculated pay: ${payroll_calculation.gross_pay}")
         
+        # Generate payslip automatically
+        try:
+            # Mark payslip as generated
+            await db.payroll_calculations.update_one(
+                {"id": payroll_calculation.id},
+                {"$set": {"payslip_generated": True, "payslip_generated_at": datetime.utcnow()}}
+            )
+            logger.info(f"Marked payslip as generated for timesheet {timesheet_id}")
+        except Exception as payslip_error:
+            logger.warning(f"Failed to mark payslip as generated: {str(payslip_error)}")
+        
         return StandardResponse(
             success=True, 
-            message="Timesheet approved and pay calculated", 
+            message="Timesheet approved, pay calculated, and payslip generated", 
             data={
                 "gross_pay": float(payroll_calculation.gross_pay),
                 "net_pay": float(payroll_calculation.net_pay),
