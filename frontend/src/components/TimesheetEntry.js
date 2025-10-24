@@ -471,7 +471,32 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
       return;
     }
     
-    // Show manager selection modal
+    // If admin/manager is using Manager Controls to submit another employee's timesheet,
+    // submit directly for approval without showing manager selection modal
+    if (isAdminOrManager && selectedEmployeeId && selectedEmployeeId !== employeeId) {
+      try {
+        setSubmitting(true);
+        
+        // Save first if there are changes
+        await handleSave();
+        
+        // Then submit for approval
+        if (timesheet?.id) {
+          await payrollApi.submitTimesheet(timesheet.id);
+          toast.success('Timesheet submitted for approval');
+          // Reload to show updated status
+          await loadTimesheetForEmployeeAndWeek(selectedEmployeeId, selectedWeekDate);
+        }
+      } catch (error) {
+        console.error('Failed to submit timesheet:', error);
+        toast.error('Failed to submit timesheet');
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+    
+    // For regular employees, show manager selection modal
     setShowManagerSelection(true);
   };
 
