@@ -693,6 +693,8 @@ async def reset_timesheet_to_draft(timesheet_id: str, current_user: dict = Depen
 async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(require_payroll_access)):
     """Approve timesheet and calculate pay (Manager only) - ATOMIC OPERATION for concurrent access"""
     
+    logger.info(f"Attempting to approve timesheet {timesheet_id} by user {current_user.get('sub')}")
+    
     # ATOMIC OPERATION: Update timesheet status only if still in submitted status
     # This prevents concurrent approvals by multiple managers
     timesheet_doc = await db.timesheets.find_one_and_update(
