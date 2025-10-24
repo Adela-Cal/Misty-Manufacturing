@@ -874,8 +874,11 @@ class ManagerControlsTimesheetTester:
                             f"Timesheet ID: {timesheet_id}"
                         )
                         
-                        # Verify the update by getting the timesheet again
-                        verify_response = self.session.get(f"{API_BASE}/payroll/timesheets/current-week/{employee_id}")
+                        # Verify the update by getting the same timesheet again (use same week)
+                        verify_response = self.session.get(
+                            f"{API_BASE}/payroll/timesheets/current-week/{employee_id}",
+                            params={"week_starting": future_week}
+                        )
                         
                         if verify_response.status_code == 200:
                             updated_timesheet = verify_response.json()
@@ -891,7 +894,8 @@ class ManagerControlsTimesheetTester:
                                 self.log_result(
                                     "Timesheet Update Verification", 
                                     False, 
-                                    "Timesheet update not properly persisted"
+                                    "Timesheet update not properly persisted",
+                                    f"Expected 8.0 hours, got: {updated_entries[0].get('regular_hours') if updated_entries else 'No entries'}"
                                 )
                     else:
                         self.log_result(
