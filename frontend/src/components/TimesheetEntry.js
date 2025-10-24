@@ -572,11 +572,6 @@ const TimesheetEntry = ({ employeeId, onClose, isManager = false }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-4" data-testid="timesheet-entry">
-      {/* DEBUG: Show permission status */}
-      <div className="mb-2 p-2 bg-blue-500 text-white text-xs">
-        DEBUG: isAdminOrManager = {String(isAdminOrManager)} | User Role: {user?.role || 'unknown'}
-      </div>
-      
       {/* Admin/Manager Controls */}
       {isAdminOrManager && (
         <div className="mb-6 bg-yellow-400/10 border border-yellow-400/30 rounded-lg p-4">
