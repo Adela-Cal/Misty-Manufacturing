@@ -477,53 +477,55 @@ class ManagerControlsTimesheetTester:
                     "reason": "Test approved leave for timesheet auto-population"
                 }
             
-            # Create leave request
-            response = self.session.post(f"{API_BASE}/payroll/leave-requests", json=leave_data)
-            
-            print(f"DEBUG: Leave request creation response: {response.status_code}")
-            if response.status_code != 200:
-                print(f"DEBUG: Leave request error: {response.text}")
-            
-            if response.status_code == 200:
-                result = response.json()
-                leave_id = result.get('data', {}).get('id')
+                # Create leave request
+                response = self.session.post(f"{API_BASE}/payroll/leave-requests", json=leave_data)
                 
-                if leave_id:
-                    # Approve the leave request
-                    approve_response = self.session.post(f"{API_BASE}/payroll/leave-requests/{leave_id}/approve")
+                print(f"DEBUG: Leave request creation for employee {test_employee_id}: {response.status_code}")
+                if response.status_code != 200:
+                    print(f"DEBUG: Leave request error: {response.text}")
+                    continue  # Try next employee
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    leave_id = result.get('data', {}).get('id')
                     
-                    if approve_response.status_code == 200:
-                        self.log_result(
-                            "Create Test Approved Leave", 
-                            True, 
-                            f"Created and approved test leave request",
-                            f"Leave ID: {leave_id}, Dates: 2025-01-06 to 2025-01-08"
-                        )
-                        return {
-                            "leave_id": leave_id,
-                            "week_starting": "2025-01-06",
-                            "start_date": "2025-01-06",
-                            "end_date": "2025-01-08"
-                        }
+                    if leave_id:
+                        # Approve the leave request
+                        approve_response = self.session.post(f"{API_BASE}/payroll/leave-requests/{leave_id}/approve")
+                        
+                        if approve_response.status_code == 200:
+                            self.log_result(
+                                "Create Test Approved Leave", 
+                                True, 
+                                f"Created and approved test leave request for employee {test_employee_id}",
+                                f"Leave ID: {leave_id}, Date: 2025-01-06"
+                            )
+                            return {
+                                "leave_id": leave_id,
+                                "employee_id": test_employee_id,
+                                "week_starting": "2025-01-06",
+                                "start_date": "2025-01-06",
+                                "end_date": "2025-01-06"
+                            }
+                        else:
+                            self.log_result(
+                                "Approve Test Leave", 
+                                False, 
+                                f"Failed to approve leave: {approve_response.status_code}"
+                            )
                     else:
                         self.log_result(
-                            "Approve Test Leave", 
+                            "Create Test Leave", 
                             False, 
-                            f"Failed to approve leave: {approve_response.status_code}"
+                            "Leave creation succeeded but no ID returned"
                         )
-                else:
-                    self.log_result(
-                        "Create Test Leave", 
-                        False, 
-                        "Leave creation succeeded but no ID returned"
-                    )
-            else:
-                self.log_result(
-                    "Create Test Leave", 
-                    False, 
-                    f"Failed to create leave request: {response.status_code}",
-                    response.text
-                )
+            
+            # If we get here, all employees failed
+            self.log_result(
+                "Create Test Leave", 
+                False, 
+                "Failed to create leave request for any employee - all have insufficient balance"
+            )
                 
         except Exception as e:
             self.log_result("Create Test Approved Leave", False, f"Error: {str(e)}")
