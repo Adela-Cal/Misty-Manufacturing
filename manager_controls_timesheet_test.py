@@ -819,12 +819,19 @@ class ManagerControlsTimesheetTester:
             employee = self.employees[0]
             employee_id = employee.get('id')
             
-            # First get a timesheet
-            response = self.session.get(f"{API_BASE}/payroll/timesheets/current-week/{employee_id}")
+            # First get a timesheet for a future week (likely to be draft status)
+            future_week = "2025-12-15"  # Future Monday
+            response = self.session.get(
+                f"{API_BASE}/payroll/timesheets/current-week/{employee_id}",
+                params={"week_starting": future_week}
+            )
             
             if response.status_code == 200:
                 timesheet = response.json()
                 timesheet_id = timesheet.get('id')
+                timesheet_status = timesheet.get('status', 'draft')
+                
+                print(f"DEBUG: Timesheet status: {timesheet_status}")
                 
                 if timesheet_id:
                     # Modify the timesheet (simulate manager edit)
