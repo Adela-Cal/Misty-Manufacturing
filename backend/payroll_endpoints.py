@@ -802,8 +802,20 @@ async def auto_populate_leave_in_timesheet(timesheet_id: str, employee_id: str, 
     
     # For each approved leave request, populate the corresponding days
     for leave_req in approved_leave:
-        start_date = datetime.fromisoformat(leave_req['start_date']).date()
-        end_date = datetime.fromisoformat(leave_req['end_date']).date()
+        # Handle both datetime and string formats
+        start_date_raw = leave_req['start_date']
+        end_date_raw = leave_req['end_date']
+        
+        if isinstance(start_date_raw, str):
+            start_date = datetime.fromisoformat(start_date_raw).date()
+        else:
+            start_date = start_date_raw.date() if hasattr(start_date_raw, 'date') else start_date_raw
+            
+        if isinstance(end_date_raw, str):
+            end_date = datetime.fromisoformat(end_date_raw).date()
+        else:
+            end_date = end_date_raw.date() if hasattr(end_date_raw, 'date') else end_date_raw
+            
         leave_type = leave_req['leave_type']
         
         # Iterate through each day of the leave
