@@ -30,6 +30,14 @@ const PayrollReports = () => {
     adjustment_hours: '',
     reason: ''
   });
+  const [showBankDetailsModal, setShowBankDetailsModal] = useState(false);
+  const [selectedEmployeeForBank, setSelectedEmployeeForBank] = useState(null);
+  const [bankDetailsFormData, setBankDetailsFormData] = useState({
+    bank_account_bsb: '',
+    bank_account_number: '',
+    tax_file_number: '',
+    superannuation_fund: ''
+  });
 
   useEffect(() => {
     loadEmployees();
