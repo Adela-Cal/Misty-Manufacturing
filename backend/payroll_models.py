@@ -69,6 +69,7 @@ class EmployeeProfile(BaseModel):
     annual_leave_balance: Decimal = Decimal('0')
     sick_leave_balance: Decimal = Decimal('0')
     personal_leave_balance: Decimal = Decimal('0')
+    long_service_leave_balance: Decimal = Decimal('0')
     
     # Payroll Settings
     tax_file_number: Optional[str] = None
