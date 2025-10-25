@@ -74,9 +74,9 @@ class PayslipTester:
         """Create a comprehensive test timesheet with regular, overtime, and leave hours"""
         print(f"\n📝 Creating test timesheet for employee {self.employee_id}...")
         
-        # Calculate week starting date (current week)
+        # Calculate week starting date (next week to avoid conflicts)
         today = date.today()
-        week_start = today - timedelta(days=today.weekday())
+        week_start = today - timedelta(days=today.weekday()) + timedelta(days=7)
         
         # Create timesheet entries for the week
         entries = []
