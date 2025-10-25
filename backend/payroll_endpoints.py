@@ -2061,14 +2061,31 @@ async def download_payslip_pdf(payslip_id: str, current_user: dict = Depends(req
         # Deductions
         story.append(Paragraph("DEDUCTIONS", heading_style))
         deductions_data = [
-            ['Tax Withheld (PAYG):', f"${data['deductions']['tax_withheld']:.2f}"],
-            ['Superannuation (10.5%):', f"${data['deductions']['superannuation']:.2f}"],
+            ['PAYG Tax:', f"${data['deductions'].get('payg_tax', data['deductions']['tax_withheld']):.2f}"],
         ]
+        
+        # Add Medicare Levy if present
+        if data['deductions'].get('medicare_levy', 0) > 0:
+            deductions_data.append(['Medicare Levy (2%):', f"${data['deductions']['medicare_levy']:.2f}"])
+        
+        # Add HELP withholding if present
+        if data['deductions'].get('help_withholding', 0) > 0:
+            deductions_data.append(['HELP/HECS Repayment:', f"${data['deductions']['help_withholding']:.2f}"])
+        
+        # Total tax withheld
+        deductions_data.append(['Total Tax Withheld:', f"${data['deductions']['tax_withheld']:.2f}"])
+        deductions_data.append(['', ''])  # Spacer
+        deductions_data.append(['Superannuation (12%):', f"${data['deductions']['superannuation']:.2f}"])
+        deductions_data.append(['', '(Paid by employer, not deducted from pay)'])
+        
         deductions_table = Table(deductions_data, colWidths=[3*inch, 3*inch])
         deductions_table.setStyle(TableStyle([
             ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 10),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LINEABOVE', (0, 3), (-1, 3), 1, colors.grey),
+            ('FONTSIZE', (0, -1), (-1, -1), 8),
+            ('TEXTCOLOR', (0, -1), (-1, -1), colors.grey),
         ]))
         story.append(deductions_table)
         story.append(Spacer(1, 0.2*inch))
