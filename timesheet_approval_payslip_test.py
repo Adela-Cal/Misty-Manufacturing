@@ -661,7 +661,7 @@ class TimesheetApprovalPayslipTester:
                                 details.append(f"Period: {pay_period.get('week_start')} to {pay_period.get('week_end')}")
                                 details.append(f"Hours: {hours.get('regular_hours', 0)} regular, {hours.get('overtime_hours', 0)} overtime")
                                 details.append(f"Gross Pay: ${earnings.get('gross_pay', 0)}")
-                                details.append(f"Net Pay: ${our_payslip.get('net_pay', 0)}")
+                                details.append(f"Net Pay: ${payslip_data.get('net_pay', 0)}")
                                 
                                 self.log_result(
                                     "CRITICAL: Payslip in Payslips List", 
