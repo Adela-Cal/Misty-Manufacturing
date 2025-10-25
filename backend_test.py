@@ -364,7 +364,12 @@ class PayslipTester:
             test_timesheet_id = timesheet_data["id"]
             
             # Update with regular hours only
-            update_data = {"entries": entries, "status": "draft"}
+            update_data = {
+                "employee_id": self.employee_id,
+                "week_starting": week_start.isoformat(),
+                "entries": entries, 
+                "status": "draft"
+            }
             update_response = self.session.put(f"{API_BASE}/payroll/timesheets/{test_timesheet_id}", json=update_data)
             
             if update_response.status_code == 200:
