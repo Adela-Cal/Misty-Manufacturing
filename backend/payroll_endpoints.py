@@ -1614,8 +1614,8 @@ async def generate_payslip(timesheet_id: str, current_user: dict = Depends(requi
             "superannuation_fund": employee_profile.superannuation_fund or "Not provided"
         },
         "pay_period": {
-            "week_start": timesheet["week_start"],
-            "week_end": timesheet["week_end"]
+            "week_start": timesheet.get("week_starting", ""),
+            "week_end": timesheet.get("week_ending", "")
         },
         "hours": {
             "regular_hours": round(regular_hours, 2),
