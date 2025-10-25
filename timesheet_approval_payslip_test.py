@@ -644,7 +644,7 @@ class TimesheetApprovalPayslipTester:
                             
                             if not missing_fields:
                                 # Verify specific field details
-                                employee_info = our_payslip.get("employee_info", {})
+                                employee_info = our_payslip.get("employee", {})
                                 pay_period = our_payslip.get("pay_period", {})
                                 hours = our_payslip.get("hours", {})
                                 earnings = our_payslip.get("earnings", {})
