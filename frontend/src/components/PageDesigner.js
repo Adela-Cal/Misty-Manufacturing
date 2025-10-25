@@ -538,7 +538,7 @@ const PageDesigner = () => {
                 }}
                 className="misty-select text-sm"
               >
-                <option value="">+ Add Field</option>
+                <option value="">+ Add Data Field</option>
                 {availableFields[templateForm.document_type]?.map(field => (
                   <option key={field.value} value={field.value}>
                     {field.label}
@@ -555,22 +555,30 @@ const PageDesigner = () => {
               Add Text
             </button>
 
-            <div className="relative inline-block">
-              <select
-                onChange={(e) => {
-                  if (e.target.value) {
-                    handleAddShape(e.target.value);
-                    e.target.value = '';
-                  }
-                }}
-                className="misty-select text-sm"
-              >
-                <option value="">+ Add Shape</option>
-                <option value="rectangle">Rectangle</option>
-                <option value="circle">Circle</option>
-                <option value="line">Line</option>
-              </select>
-            </div>
+            {/* Shape Buttons */}
+            <button
+              onClick={() => handleAddShape('rectangle')}
+              className="misty-button misty-button-secondary text-sm flex items-center"
+            >
+              <RectangleGroupIcon className="h-4 w-4 mr-1" />
+              Rectangle
+            </button>
+
+            <button
+              onClick={() => handleAddShape('circle')}
+              className="misty-button misty-button-secondary text-sm flex items-center"
+            >
+              <ArrowsPointingOutIcon className="h-4 w-4 mr-1" />
+              Circle
+            </button>
+
+            <button
+              onClick={() => handleAddShape('line')}
+              className="misty-button misty-button-secondary text-sm flex items-center"
+            >
+              ━
+              Line
+            </button>
 
             <label className="misty-button misty-button-secondary text-sm flex items-center cursor-pointer">
               <PhotoIcon className="h-4 w-4 mr-1" />
