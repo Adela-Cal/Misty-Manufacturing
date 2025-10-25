@@ -254,6 +254,27 @@ class EmployeeLeaveBalance(BaseModel):
     sick_leave_entitlement: int
     personal_leave_entitlement: int
 
+
+# Leave Adjustment Model for Audit Trail
+class LeaveAdjustment(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    employee_id: str
+    employee_name: str
+    leave_type: str  # annual_leave, sick_leave, personal_leave, long_service_leave
+    adjustment_amount: Decimal  # Can be positive or negative
+    previous_balance: Decimal
+    new_balance: Decimal
+    reason: str
+    adjusted_by: str  # Username of the person making the adjustment
+    adjusted_by_name: str  # Full name of the person making the adjustment
+    adjustment_date: datetime = Field(default_factory=datetime.utcnow)
+
+class LeaveAdjustmentCreate(BaseModel):
+    employee_id: str
+    leave_type: str
+    adjustment_amount: Decimal
+    reason: str
+
 class PayrollSummary(BaseModel):
     employee_id: str
     employee_name: str
