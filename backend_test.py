@@ -134,8 +134,9 @@ class PayslipTester:
             
             entries.append(entry)
         
-        # Get current week timesheet
-        response = self.session.get(f"{API_BASE}/payroll/timesheets/current-week/{self.employee_id}")
+        # Get timesheet for the specific week
+        week_param = week_start.isoformat()
+        response = self.session.get(f"{API_BASE}/payroll/timesheets/current-week/{self.employee_id}?week_starting={week_param}")
         
         if response.status_code == 200:
             timesheet_data = response.json()
