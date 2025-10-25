@@ -977,12 +977,31 @@ const PayrollReports = () => {
                   <h5 className="text-lg font-semibold text-yellow-400 mb-2">Deductions</h5>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Tax Withheld:</span>
+                      <span className="text-gray-400">PAYG Tax:</span>
+                      <span className="text-white">${(selectedPayslip.payslip_data.deductions.payg_tax || selectedPayslip.payslip_data.deductions.tax_withheld).toFixed(2)}</span>
+                    </div>
+                    {selectedPayslip.payslip_data.deductions.medicare_levy > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Medicare Levy (2%):</span>
+                        <span className="text-white">${selectedPayslip.payslip_data.deductions.medicare_levy.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {selectedPayslip.payslip_data.deductions.help_withholding > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">HELP/HECS Repayment:</span>
+                        <span className="text-white">${selectedPayslip.payslip_data.deductions.help_withholding.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-semibold border-t border-gray-700 pt-1 mt-1">
+                      <span className="text-gray-300">Total Tax Withheld:</span>
                       <span className="text-white">${selectedPayslip.payslip_data.deductions.tax_withheld.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Superannuation:</span>
-                      <span className="text-white">${selectedPayslip.payslip_data.deductions.superannuation.toFixed(2)}</span>
+                    <div className="mt-3 pt-3 border-t border-gray-700">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Superannuation (12%):</span>
+                        <span className="text-white">${selectedPayslip.payslip_data.deductions.superannuation.toFixed(2)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1 italic">* Paid by employer, not deducted from your pay</p>
                     </div>
                   </div>
                 </div>
