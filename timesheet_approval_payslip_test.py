@@ -723,14 +723,14 @@ class TimesheetApprovalPayslipTester:
     def test_multiple_timesheet_approvals(self):
         """Test approving another timesheet and verify payslip generation"""
         try:
-            # Create another timesheet for the same employee
-            today = datetime.now().date()
-            last_week_monday = today - timedelta(days=today.weekday() + 7)
+            # Create another timesheet for the same employee (different week)
+            # Use week after our test week
+            another_week_monday = self.test_week_monday + timedelta(days=7)
             
-            # Get timesheet for last week
+            # Get timesheet for another week
             response = self.session.get(
                 f"{API_BASE}/payroll/timesheets/current-week/{self.test_employee_id}",
-                params={"week_starting": last_week_monday.isoformat()}
+                params={"week_starting": another_week_monday.isoformat()}
             )
             
             if response.status_code == 200:
