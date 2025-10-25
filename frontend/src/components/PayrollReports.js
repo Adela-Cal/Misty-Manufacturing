@@ -104,9 +104,6 @@ const PayrollReports = () => {
     }
   };
 
-    }
-  };
-
   const loadPayslips = async () => {
     try {
       setLoading(true);
