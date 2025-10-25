@@ -8174,6 +8174,7 @@ async def delete_page_template(template_id: str, current_user: dict = Depends(ge
         raise
     except Exception as e:
         logger.error(f"Error deleting page template: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ============================================================================
