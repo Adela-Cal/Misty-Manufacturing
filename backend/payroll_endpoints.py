@@ -1067,8 +1067,8 @@ async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(requ
                     "week_end": timesheet.week_ending.isoformat() if hasattr(timesheet.week_ending, 'isoformat') else str(timesheet.week_ending)
                 },
                 "hours": {
-                    "regular_hours": float(payroll_calculation.regular_hours_worked),
-                    "overtime_hours": float(payroll_calculation.overtime_hours_worked),
+                    "regular_hours": float(payroll_calculation.regular_hours),
+                    "overtime_hours": float(payroll_calculation.overtime_hours),
                     "hourly_rate": float(employee.hourly_rate)
                 },
                 "earnings": {
