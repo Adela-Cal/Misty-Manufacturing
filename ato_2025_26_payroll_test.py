@@ -99,7 +99,7 @@ class ATO2025PayrollTester:
         
         # Calculate week starting date (future week to avoid conflicts)
         today = date.today()
-        week_start = today - timedelta(days=today.weekday()) + timedelta(days=14)  # Two weeks in future
+        week_start = today - timedelta(days=today.weekday()) + timedelta(days=28)  # Four weeks in future
         
         # Create timesheet entries for the week - distribute 38 regular + 4 overtime
         entries = []
