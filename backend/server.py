@@ -8071,6 +8071,10 @@ async def get_page_templates(current_user: dict = Depends(get_current_user)):
     """Get all page templates"""
     try:
         templates = await db.page_templates.find().to_list(length=None)
+        # Remove MongoDB _id from all templates
+        for template in templates:
+            if '_id' in template:
+                del template['_id']
         return {
             "success": True,
             "data": templates
