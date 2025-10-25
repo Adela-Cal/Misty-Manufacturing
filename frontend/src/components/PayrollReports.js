@@ -913,6 +913,141 @@ Generated: ${new Date(data.generated_at).toLocaleString()}
           </div>
         </div>
       )}
+
+      {/* Payslip View Modal */}
+      {showPayslipModal && selectedPayslip && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowPayslipModal(false)}>
+          <div className="modal-content max-w-4xl">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-yellow-400">Payslip</h3>
+                <button
+                  onClick={() => setShowPayslipModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Payslip Content */}
+              <div className="bg-gray-800 rounded-lg p-6 space-y-6">
+                {/* Employee Details */}
+                <div className="border-b border-gray-600 pb-4">
+                  <h4 className="text-xl font-semibold text-white mb-2">
+                    {selectedPayslip.payslip_data.employee.name}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <p className="text-gray-400">Employee Number: <span className="text-white">{selectedPayslip.payslip_data.employee.employee_number}</span></p>
+                    <p className="text-gray-400">Position: <span className="text-white">{selectedPayslip.payslip_data.employee.position}</span></p>
+                    <p className="text-gray-400">Department: <span className="text-white">{selectedPayslip.payslip_data.employee.department}</span></p>
+                    <p className="text-gray-400">TFN: <span className="text-white">{selectedPayslip.payslip_data.employee.tax_file_number}</span></p>
+                  </div>
+                </div>
+
+                {/* Pay Period */}
+                <div className="border-b border-gray-600 pb-4">
+                  <h5 className="text-lg font-semibold text-yellow-400 mb-2">Pay Period</h5>
+                  <p className="text-white">
+                    {selectedPayslip.payslip_data.pay_period.week_start} to {selectedPayslip.payslip_data.pay_period.week_end}
+                  </p>
+                </div>
+
+                {/* Hours Worked */}
+                <div className="border-b border-gray-600 pb-4">
+                  <h5 className="text-lg font-semibold text-yellow-400 mb-2">Hours Worked</h5>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <p className="text-gray-400">Regular Hours: <span className="text-white">{selectedPayslip.payslip_data.hours.regular_hours}h @ ${selectedPayslip.payslip_data.hours.hourly_rate}/hr</span></p>
+                    <p className="text-gray-400">Overtime Hours: <span className="text-white">{selectedPayslip.payslip_data.hours.overtime_hours}h @ ${(selectedPayslip.payslip_data.hours.hourly_rate * 1.5).toFixed(2)}/hr</span></p>
+                  </div>
+                </div>
+
+                {/* Earnings */}
+                <div className="border-b border-gray-600 pb-4">
+                  <h5 className="text-lg font-semibold text-yellow-400 mb-2">Earnings</h5>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Regular Pay:</span>
+                      <span className="text-white">${selectedPayslip.payslip_data.earnings.regular_pay.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Overtime Pay:</span>
+                      <span className="text-white">${selectedPayslip.payslip_data.earnings.overtime_pay.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold text-lg border-t border-gray-700 pt-2 mt-2">
+                      <span className="text-green-400">Gross Pay:</span>
+                      <span className="text-green-400">${selectedPayslip.payslip_data.earnings.gross_pay.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Deductions */}
+                <div className="border-b border-gray-600 pb-4">
+                  <h5 className="text-lg font-semibold text-yellow-400 mb-2">Deductions</h5>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Tax Withheld:</span>
+                      <span className="text-white">${selectedPayslip.payslip_data.deductions.tax_withheld.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Superannuation:</span>
+                      <span className="text-white">${selectedPayslip.payslip_data.deductions.superannuation.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Net Pay */}
+                <div className="border-b border-gray-600 pb-4">
+                  <div className="flex justify-between items-center">
+                    <h5 className="text-xl font-bold text-yellow-400">NET PAY:</h5>
+                    <span className="text-3xl font-bold text-yellow-400">${selectedPayslip.payslip_data.net_pay.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                {/* Year to Date */}
+                <div className="border-b border-gray-600 pb-4">
+                  <h5 className="text-lg font-semibold text-yellow-400 mb-2">Year to Date</h5>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <p className="text-gray-400">Gross Pay: <span className="text-white">${selectedPayslip.payslip_data.year_to_date.gross_pay.toFixed(2)}</span></p>
+                    <p className="text-gray-400">Tax Withheld: <span className="text-white">${selectedPayslip.payslip_data.year_to_date.tax_withheld.toFixed(2)}</span></p>
+                    <p className="text-gray-400">Superannuation: <span className="text-white">${selectedPayslip.payslip_data.year_to_date.superannuation.toFixed(2)}</span></p>
+                    <p className="text-gray-400">Net Pay: <span className="text-white">${selectedPayslip.payslip_data.year_to_date.net_pay.toFixed(2)}</span></p>
+                  </div>
+                </div>
+
+                {/* Payment Details */}
+                <div>
+                  <h5 className="text-lg font-semibold text-yellow-400 mb-2">Payment Details</h5>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <p className="text-gray-400">BSB: <span className="text-white">{selectedPayslip.payslip_data.bank_details.bsb}</span></p>
+                    <p className="text-gray-400">Account Number: <span className="text-white">{selectedPayslip.payslip_data.bank_details.account_number}</span></p>
+                    <p className="text-gray-400" style={{gridColumn: 'span 2'}}>Super Fund: <span className="text-white">{selectedPayslip.payslip_data.bank_details.superannuation_fund}</span></p>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-4">
+                    Generated: {new Date(selectedPayslip.payslip_data.generated_at).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => downloadPayslip(selectedPayslip)}
+                  className="misty-button misty-button-primary flex items-center"
+                >
+                  <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
+                  Download PDF
+                </button>
+                <button
+                  onClick={() => setShowPayslipModal(false)}
+                  className="misty-button misty-button-secondary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
