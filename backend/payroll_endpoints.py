@@ -1053,14 +1053,74 @@ async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(requ
         
         # Generate payslip automatically
         try:
-            # Mark payslip as generated
+            # Create payslip data
+            payslip_data = {
+                "employee": {
+                    "name": f"{employee.first_name} {employee.last_name}",
+                    "employee_number": employee.employee_number,
+                    "position": employee.position,
+                    "department": employee.department,
+                    "tax_file_number": employee.tax_file_number or "Not provided"
+                },
+                "pay_period": {
+                    "week_start": timesheet.week_starting.isoformat() if hasattr(timesheet.week_starting, 'isoformat') else str(timesheet.week_starting),
+                    "week_end": timesheet.week_ending.isoformat() if hasattr(timesheet.week_ending, 'isoformat') else str(timesheet.week_ending)
+                },
+                "hours": {
+                    "regular_hours": float(payroll_calculation.regular_hours_worked),
+                    "overtime_hours": float(payroll_calculation.overtime_hours_worked),
+                    "hourly_rate": float(employee.hourly_rate)
+                },
+                "earnings": {
+                    "regular_pay": float(payroll_calculation.regular_pay),
+                    "overtime_pay": float(payroll_calculation.overtime_pay),
+                    "gross_pay": float(payroll_calculation.gross_pay)
+                },
+                "deductions": {
+                    "tax_withheld": float(payroll_calculation.tax_withheld),
+                    "superannuation": float(payroll_calculation.superannuation)
+                },
+                "net_pay": float(payroll_calculation.net_pay),
+                "year_to_date": {
+                    "gross_pay": float(payroll_calculation.gross_pay),
+                    "tax_withheld": float(payroll_calculation.tax_withheld),
+                    "superannuation": float(payroll_calculation.superannuation),
+                    "net_pay": float(payroll_calculation.net_pay)
+                },
+                "bank_details": {
+                    "bsb": employee.bank_account_bsb or "Not provided",
+                    "account_number": employee.bank_account_number or "Not provided",
+                    "superannuation_fund": employee.superannuation_fund or "Not provided"
+                },
+                "generated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            # Check if payslip already exists
+            existing_payslip = await db.payslips.find_one({"timesheet_id": timesheet_id})
+            
+            if not existing_payslip:
+                # Save payslip to database
+                payslip_record = {
+                    "id": str(uuid4()),
+                    "timesheet_id": timesheet_id,
+                    "employee_id": employee.id,
+                    "payslip_data": payslip_data,
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_by": current_user.get("user_id", current_user.get("sub"))
+                }
+                
+                await db.payslips.insert_one(payslip_record)
+                logger.info(f"Payslip automatically generated for timesheet {timesheet_id}")
+            else:
+                logger.info(f"Payslip already exists for timesheet {timesheet_id}")
+            
+            # Mark payslip as generated in payroll calculation
             await db.payroll_calculations.update_one(
                 {"id": payroll_calculation.id},
                 {"$set": {"payslip_generated": True, "payslip_generated_at": datetime.utcnow()}}
             )
-            logger.info(f"Marked payslip as generated for timesheet {timesheet_id}")
         except Exception as payslip_error:
-            logger.warning(f"Failed to mark payslip as generated: {str(payslip_error)}")
+            logger.warning(f"Failed to generate payslip automatically: {str(payslip_error)}")
         
         return StandardResponse(
             success=True, 
