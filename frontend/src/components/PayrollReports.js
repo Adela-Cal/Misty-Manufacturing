@@ -810,18 +810,49 @@ const PayrollReports = () => {
       )}
 
       {/* Leave Adjustment Modal */}
-      {showLeaveAdjustment && (
+      {showLeaveAdjustment && selectedEmployeeForAdjustment && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowLeaveAdjustment(false)}>
-          <div className="modal-content max-w-md">
+          <div className="modal-content max-w-2xl">
             <div className="p-6">
               <h3 className="text-xl font-semibold text-white mb-4">
                 Adjust Leave Balance
               </h3>
               <p className="text-sm text-gray-400 mb-6">
-                Employee: {selectedEmployeeForAdjustment?.first_name} {selectedEmployeeForAdjustment?.last_name}
+                Employee: {selectedEmployeeForAdjustment?.employee_name}
+                {selectedEmployeeForAdjustment?.employee_number && (
+                  <span className="ml-2 text-gray-500">({selectedEmployeeForAdjustment.employee_number})</span>
+                )}
               </p>
 
-              <form onSubmit={handleLeaveAdjustment} className="space-y-4">
+              {/* Current Balances Display */}
+              <div className="grid grid-cols-4 gap-4 mb-6 bg-gray-800 p-4 rounded-lg">
+                <div>
+                  <p className="text-xs text-gray-400">Annual Leave</p>
+                  <p className="text-lg font-semibold text-blue-400">
+                    {selectedEmployeeForAdjustment?.annual_leave_balance || 0}h
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Sick Leave</p>
+                  <p className="text-lg font-semibold text-green-400">
+                    {selectedEmployeeForAdjustment?.sick_leave_balance || 0}h
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Personal Leave</p>
+                  <p className="text-lg font-semibold text-yellow-400">
+                    {selectedEmployeeForAdjustment?.personal_leave_balance || 0}h
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Long Service</p>
+                  <p className="text-lg font-semibold text-purple-400">
+                    {selectedEmployeeForAdjustment?.long_service_leave_balance || 0}h
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={handleLeaveAdjustment} className="space-y-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Leave Type
@@ -835,6 +866,7 @@ const PayrollReports = () => {
                     <option value="annual_leave">Annual Leave</option>
                     <option value="sick_leave">Sick Leave</option>
                     <option value="personal_leave">Personal Leave</option>
+                    <option value="long_service_leave">Long Service Leave</option>
                   </select>
                 </div>
 
@@ -845,14 +877,14 @@ const PayrollReports = () => {
                   <input
                     type="number"
                     step="0.5"
-                    value={adjustmentFormData.adjustment_hours}
-                    onChange={(e) => setAdjustmentFormData({...adjustmentFormData, adjustment_hours: e.target.value})}
+                    value={adjustmentFormData.adjustment_amount}
+                    onChange={(e) => setAdjustmentFormData({...adjustmentFormData, adjustment_amount: e.target.value})}
                     className="misty-input w-full"
                     placeholder="e.g., 8 or -4"
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Use positive numbers to add leave, negative to deduct
+                    Use positive numbers to add leave, negative to deduct. System allows negative balances (up to -76 hours).
                   </p>
                 </div>
 
@@ -876,7 +908,10 @@ const PayrollReports = () => {
                 <div className="flex justify-end space-x-3 pt-4 border-t border-gray-600">
                   <button
                     type="button"
-                    onClick={() => setShowLeaveAdjustment(false)}
+                    onClick={() => {
+                      setShowLeaveAdjustment(false);
+                      setAdjustmentHistory([]);
+                    }}
                     className="misty-button misty-button-secondary"
                   >
                     Cancel
@@ -889,6 +924,40 @@ const PayrollReports = () => {
                   </button>
                 </div>
               </form>
+
+              {/* Adjustment History */}
+              {adjustmentHistory.length > 0 && (
+                <div className="border-t border-gray-600 pt-4">
+                  <h4 className="text-lg font-semibold text-white mb-3">Adjustment History</h4>
+                  <div className="max-h-64 overflow-y-auto">
+                    {adjustmentHistory.map((adj, index) => (
+                      <div key={index} className="bg-gray-800 p-3 rounded-lg mb-2">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-white">
+                              {adj.leave_type.replace('_', ' ').charAt(0).toUpperCase() + adj.leave_type.replace('_', ' ').slice(1)}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">{adj.reason}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              By {adj.adjusted_by_name} on {new Date(adj.adjustment_date).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className={`text-sm font-semibold ${
+                              parseFloat(adj.adjustment_amount) >= 0 ? 'text-green-400' : 'text-red-400'
+                            }`}>
+                              {parseFloat(adj.adjustment_amount) >= 0 ? '+' : ''}{adj.adjustment_amount}h
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {adj.previous_balance}h → {adj.new_balance}h
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
