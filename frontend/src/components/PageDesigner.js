@@ -48,6 +48,7 @@ const PageDesigner = () => {
   const availableFields = {
     acknowledgment: [
       { value: 'order_number', label: 'Order Number' },
+      { value: 'invoice_number', label: 'Invoice Number' },
       { value: 'customer_name', label: 'Customer Name' },
       { value: 'customer_address', label: 'Customer Address' },
       { value: 'order_date', label: 'Order Date' },
@@ -70,6 +71,7 @@ const PageDesigner = () => {
     ],
     packing_slip: [
       { value: 'order_number', label: 'Order Number' },
+      { value: 'invoice_number', label: 'Invoice Number' },
       { value: 'customer_name', label: 'Customer Name' },
       { value: 'shipping_address', label: 'Shipping Address' },
       { value: 'date', label: 'Date' },
