@@ -463,6 +463,84 @@ const OrderManagement = () => {
           </div>
         </div>
       )}
+
+
+      {/* Template Selection Modal */}
+      {showTemplateModal && (
+        <div className="modal-overlay">
+          <div className="modal-content max-w-2xl">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white">Select Page Template</h2>
+                <button
+                  onClick={() => {
+                    setShowTemplateModal(false);
+                    setSelectedOrderForPdf(null);
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              <p className="text-gray-300 mb-6">
+                Choose a page design template for generating the Order Acknowledgment PDF
+              </p>
+
+              {loadingTemplates ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-400">Loading templates...</p>
+                </div>
+              ) : pageTemplates.length === 0 ? (
+                <div className="text-center py-12 bg-gray-700 rounded-lg">
+                  <p className="text-gray-400 mb-4">No acknowledgment templates found</p>
+                  <p className="text-sm text-gray-500">
+                    Go to Designer → Page Designs to create an acknowledgment template
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {pageTemplates.map(template => (
+                    <div
+                      key={template.id}
+                      className="bg-gray-700 rounded-lg p-4 hover:bg-gray-650 transition-colors cursor-pointer border-2 border-transparent hover:border-yellow-400"
+                      onClick={() => handleGeneratePdfWithTemplate(template.id)}
+                    >
+                      <h3 className="text-lg font-semibold text-white mb-2">
+                        {template.template_name}
+                      </h3>
+                      <p className="text-sm text-gray-400 mb-3">
+                        {template.elements?.length || 0} elements
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          {template.page_width}×{template.page_height}px
+                        </span>
+                        <button className="misty-button misty-button-primary text-sm">
+                          Use Template
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex justify-end mt-6 pt-6 border-t border-gray-700">
+                <button
+                  onClick={() => {
+                    setShowTemplateModal(false);
+                    setSelectedOrderForPdf(null);
+                  }}
+                  className="misty-button misty-button-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </Layout>
   );
 };
