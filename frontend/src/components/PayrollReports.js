@@ -38,6 +38,8 @@ const PayrollReports = () => {
     tax_file_number: '',
     superannuation_fund: ''
   });
+  const [showPayslipModal, setShowPayslipModal] = useState(false);
+  const [selectedPayslip, setSelectedPayslip] = useState(null);
 
   useEffect(() => {
     loadEmployees();
