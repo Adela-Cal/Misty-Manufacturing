@@ -10,7 +10,8 @@ import {
   PhotoIcon,
   RectangleGroupIcon,
   DocumentTextIcon,
-  ArrowsPointingOutIcon
+  ArrowsPointingOutIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 const PageDesigner = () => {
