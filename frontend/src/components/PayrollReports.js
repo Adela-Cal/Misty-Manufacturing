@@ -429,13 +429,24 @@ Generated: ${new Date(data.generated_at).toLocaleString()}
                           {new Date(data.generated_at).toLocaleDateString()}
                         </td>
                         <td>
-                          <button
-                            onClick={() => downloadPayslip(payslip)}
-                            className="text-blue-400 hover:text-blue-300 flex items-center text-sm"
-                          >
-                            <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
-                            Download
-                          </button>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => viewPayslip(payslip)}
+                              className="text-blue-400 hover:text-blue-300 flex items-center text-sm"
+                              title="View Payslip"
+                            >
+                              <EyeIcon className="h-4 w-4 mr-1" />
+                              View
+                            </button>
+                            <button
+                              onClick={() => downloadPayslip(payslip)}
+                              className="text-green-400 hover:text-green-300 flex items-center text-sm"
+                              title="Download Payslip"
+                            >
+                              <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
+                              Download
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
