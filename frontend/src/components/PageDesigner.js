@@ -288,6 +288,7 @@ const PageDesigner = () => {
       setIsDragging(true);
     }
     setDraggedElement(element);
+    setSelectedElementId(element.id); // Select element for properties panel
   };
 
   const handleMouseMove = (e) => {
