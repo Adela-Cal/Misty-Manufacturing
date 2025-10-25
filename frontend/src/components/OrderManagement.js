@@ -99,25 +99,34 @@ const OrderManagement = () => {
       
       const { orderId, orderNumber } = selectedOrderForPdf;
       
+      // Show generating toast
+      toast.loading('Generating PDF from template...', { id: 'pdf-gen' });
+      
       // Call backend to generate PDF with template
       const response = await apiHelpers.generateAcknowledgmentWithTemplate(orderId, templateId);
       
       // Download the PDF
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
       const link = document.createElement('a');
       link.href = url;
       link.download = `acknowledgment_${orderNumber}.pdf`;
+      link.setAttribute('download', `acknowledgment_${orderNumber}.pdf`); // Force download
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
-      toast.success('Acknowledgment downloaded successfully');
+      // Success message with download location
+      toast.success(`PDF saved to your Downloads folder as "acknowledgment_${orderNumber}.pdf"`, { 
+        id: 'pdf-gen',
+        duration: 5000 
+      });
+      
       setShowTemplateModal(false);
       setSelectedOrderForPdf(null);
     } catch (error) {
       console.error('Failed to download acknowledgment:', error);
-      toast.error('Failed to download acknowledgment');
+      toast.error(`Failed to generate PDF: ${error.message || 'Unknown error'}`, { id: 'pdf-gen' });
     }
   };
 
