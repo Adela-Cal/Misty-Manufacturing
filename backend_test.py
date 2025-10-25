@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
 """
-Enhanced PDF Payslip Generation Testing
-Testing the enhanced PDF payslip generation with all new fields including leave information and leave balances.
+Comprehensive Backend Testing for Leave Entitlements with Manual Adjustment Functionality
+Testing the new Leave Entitlements system as requested in the review.
 """
 
 import requests
 import json
-import os
-from datetime import datetime, date, timedelta
 import sys
+from datetime import datetime, date
+from decimal import Decimal
 
-# Get backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://misty-ato-payroll.preview.emergentagent.com')
-API_BASE = f"{BACKEND_URL}/api"
+# Backend URL from frontend environment
+BACKEND_URL = "https://misty-ato-payroll.preview.emergentagent.com/api"
 
-class PayslipTester:
+# Test credentials
+TEST_USERNAME = "Callum"
+TEST_PASSWORD = "Peach7510"
+
+class LeaveEntitlementsTest:
     def __init__(self):
         self.session = requests.Session()
         self.access_token = None
