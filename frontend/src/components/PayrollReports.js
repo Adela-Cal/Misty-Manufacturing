@@ -251,6 +251,36 @@ const PayrollReports = () => {
     setShowPayslipModal(true);
   };
 
+  const confirmDeletePayslip = (payslip) => {
+    setPayslipToDelete(payslip);
+    setShowDeleteConfirm(true);
+  };
+
+  const deletePayslip = async () => {
+    if (!payslipToDelete) return;
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/reports/payslips/${payslipToDelete.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        toast.success('Payslip deleted successfully');
+        setShowDeleteConfirm(false);
+        setPayslipToDelete(null);
+        // Reload payslips
+        loadPayslips();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.detail || 'Failed to delete payslip');
+      }
+    } catch (error) {
+      console.error('Error deleting payslip:', error);
+      toast.error('Failed to delete payslip');
+    }
+  };
+
   return (
     <div>
       {/* Sub-Tab Navigation */}
