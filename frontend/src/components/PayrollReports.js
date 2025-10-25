@@ -201,8 +201,10 @@ const PayrollReports = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          employee_id: selectedEmployeeForAdjustment.id,
-          ...adjustmentFormData
+          employee_id: selectedEmployeeForAdjustment.employee_id || selectedEmployeeForAdjustment.id,
+          leave_type: adjustmentFormData.leave_type,
+          adjustment_amount: parseFloat(adjustmentFormData.adjustment_amount),
+          reason: adjustmentFormData.reason
         })
       });
 
@@ -210,12 +212,13 @@ const PayrollReports = () => {
         const result = await response.json();
         toast.success(result.message);
         setShowLeaveAdjustment(false);
-        loadEmployees();
+        loadLeaveEntitlements();  // Reload the leave entitlements
         setAdjustmentFormData({
           leave_type: 'annual_leave',
-          adjustment_hours: '',
+          adjustment_amount: '',
           reason: ''
         });
+        setAdjustmentHistory([]);  // Clear history
       } else {
         const error = await response.json();
         toast.error(error.detail || 'Failed to adjust leave');
