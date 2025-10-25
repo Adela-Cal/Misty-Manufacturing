@@ -245,9 +245,11 @@ class PayrollCalculation(BaseModel):
 class EmployeeLeaveBalance(BaseModel):
     employee_id: str
     employee_name: str
+    employee_number: str
     annual_leave_balance: Decimal
     sick_leave_balance: Decimal
     personal_leave_balance: Decimal
+    long_service_leave_balance: Decimal
     annual_leave_entitlement: int
     sick_leave_entitlement: int
     personal_leave_entitlement: int
