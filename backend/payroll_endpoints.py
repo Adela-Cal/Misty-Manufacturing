@@ -1913,6 +1913,239 @@ async def generate_payslip(timesheet_id: str, current_user: dict = Depends(requi
         raise HTTPException(status_code=500, detail=f"Failed to generate payslip: {str(e)}")
 
 
+@payroll_router.get("/reports/payslip/{payslip_id}/pdf")
+async def download_payslip_pdf(payslip_id: str, current_user: dict = Depends(require_payroll_access)):
+    """Generate and download a PDF payslip"""
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+    from io import BytesIO
+    
+    try:
+        # Get payslip from database
+        payslip = await db.payslips.find_one({"id": payslip_id})
+        if not payslip:
+            raise HTTPException(status_code=404, detail="Payslip not found")
+        
+        data = payslip['payslip_data']
+        
+        # Create PDF in memory
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
+        story = []
+        styles = getSampleStyleSheet()
+        
+        # Custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=colors.HexColor('#F59E0B'),
+            alignment=TA_CENTER,
+            spaceAfter=20
+        )
+        
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=14,
+            textColor=colors.HexColor('#F59E0B'),
+            spaceAfter=10
+        )
+        
+        # Title
+        story.append(Paragraph("PAYSLIP", title_style))
+        story.append(Paragraph("Misty Manufacturing", styles['Normal']))
+        story.append(Spacer(1, 0.3*inch))
+        
+        # Employee Information
+        story.append(Paragraph("EMPLOYEE INFORMATION", heading_style))
+        emp_data = [
+            ['Name:', data['employee']['name'], 'Employee Number:', data['employee']['employee_number']],
+            ['Position:', data['employee']['position'], 'Department:', data['employee']['department']],
+            ['Tax File Number:', data['employee']['tax_file_number'], '', '']
+        ]
+        emp_table = Table(emp_data, colWidths=[1.5*inch, 2*inch, 1.5*inch, 2*inch])
+        emp_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        story.append(emp_table)
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Pay Period
+        story.append(Paragraph("PAY PERIOD", heading_style))
+        period_data = [
+            ['Week Starting:', data['pay_period']['week_start'], 'Week Ending:', data['pay_period']['week_end']]
+        ]
+        period_table = Table(period_data, colWidths=[1.5*inch, 2*inch, 1.5*inch, 2*inch])
+        period_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        story.append(period_table)
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Hours Worked
+        story.append(Paragraph("HOURS WORKED", heading_style))
+        hours_data = [
+            ['Regular Hours:', f"{data['hours']['regular_hours']}h", 'Rate:', f"${data['hours']['hourly_rate']:.2f}/hr"],
+            ['Overtime Hours:', f"{data['hours']['overtime_hours']}h", 'Rate:', f"${data['hours']['hourly_rate'] * 1.5:.2f}/hr"],
+        ]
+        
+        # Add leave hours if present
+        if data['hours'].get('leave_hours', 0) > 0:
+            hours_data.append(['Leave Hours:', f"{data['hours']['leave_hours']}h", '', ''])
+            
+        hours_data.append(['Total Hours:', f"{data['hours'].get('total_hours', data['hours']['regular_hours'] + data['hours']['overtime_hours'])}h", '', ''])
+        
+        hours_table = Table(hours_data, colWidths=[1.5*inch, 2*inch, 1.5*inch, 2*inch])
+        hours_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LINEABOVE', (0, -1), (-1, -1), 1, colors.grey),
+        ]))
+        story.append(hours_table)
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Leave Used (if any)
+        if data.get('leave_used') and len(data['leave_used']) > 0:
+            story.append(Paragraph("LEAVE USED THIS PERIOD", heading_style))
+            leave_data = []
+            for leave_type, hours in data['leave_used'].items():
+                leave_name = leave_type.replace('_', ' ').title()
+                leave_data.append([leave_name + ':', f"{hours}h"])
+            
+            leave_table = Table(leave_data, colWidths=[3*inch, 3*inch])
+            leave_table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ]))
+            story.append(leave_table)
+            story.append(Spacer(1, 0.2*inch))
+        
+        # Earnings
+        story.append(Paragraph("EARNINGS", heading_style))
+        earnings_data = [
+            ['Regular Pay:', f"${data['earnings']['regular_pay']:.2f}"],
+            ['Overtime Pay:', f"${data['earnings']['overtime_pay']:.2f}"],
+            ['Gross Pay:', f"${data['earnings']['gross_pay']:.2f}"],
+        ]
+        earnings_table = Table(earnings_data, colWidths=[3*inch, 3*inch])
+        earnings_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LINEABOVE', (0, -1), (-1, -1), 1, colors.grey),
+            ('FONTSIZE', (0, -1), (-1, -1), 12),
+            ('TEXTCOLOR', (0, -1), (-1, -1), colors.HexColor('#10B981')),
+        ]))
+        story.append(earnings_table)
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Deductions
+        story.append(Paragraph("DEDUCTIONS", heading_style))
+        deductions_data = [
+            ['Tax Withheld (PAYG):', f"${data['deductions']['tax_withheld']:.2f}"],
+            ['Superannuation (10.5%):', f"${data['deductions']['superannuation']:.2f}"],
+        ]
+        deductions_table = Table(deductions_data, colWidths=[3*inch, 3*inch])
+        deductions_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        story.append(deductions_table)
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Net Pay
+        story.append(Paragraph("NET PAY", heading_style))
+        net_data = [
+            ['NET PAY (Paid to your account):', f"${data['net_pay']:.2f}"],
+        ]
+        net_table = Table(net_data, colWidths=[3*inch, 3*inch])
+        net_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 14),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#F59E0B')),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LINEABOVE', (0, 0), (-1, -1), 2, colors.HexColor('#F59E0B')),
+            ('LINEBELOW', (0, 0), (-1, -1), 2, colors.HexColor('#F59E0B')),
+        ]))
+        story.append(net_table)
+        story.append(Spacer(1, 0.3*inch))
+        
+        # Leave Balances
+        if data.get('leave_balances'):
+            story.append(Paragraph("LEAVE BALANCES (After this payslip)", heading_style))
+            balance_data = [
+                ['Annual Leave:', f"{data['leave_balances'].get('annual_leave', 0):.1f} hours"],
+                ['Sick Leave:', f"{data['leave_balances'].get('sick_leave', 0):.1f} hours"],
+                ['Personal Leave:', f"{data['leave_balances'].get('personal_leave', 0):.1f} hours"],
+            ]
+            balance_table = Table(balance_data, colWidths=[3*inch, 3*inch])
+            balance_table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F3F4F6')),
+            ]))
+            story.append(balance_table)
+            story.append(Spacer(1, 0.2*inch))
+        
+        # Payment Details
+        story.append(Paragraph("PAYMENT DETAILS", heading_style))
+        payment_data = [
+            ['BSB:', data['bank_details']['bsb']],
+            ['Account Number:', data['bank_details']['account_number']],
+            ['Superannuation Fund:', data['bank_details']['superannuation_fund']],
+        ]
+        payment_table = Table(payment_data, colWidths=[3*inch, 3*inch])
+        payment_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        story.append(payment_table)
+        story.append(Spacer(1, 0.3*inch))
+        
+        # Footer
+        footer_text = f"Generated: {datetime.fromisoformat(data['generated_at'].replace('Z', '+00:00')).strftime('%d %B %Y at %I:%M %p')}"
+        story.append(Paragraph(footer_text, styles['Normal']))
+        
+        # Build PDF
+        doc.build(story)
+        buffer.seek(0)
+        
+        # Return PDF as response
+        filename = f"payslip_{data['employee']['employee_number']}_{data['pay_period']['week_start']}.pdf"
+        
+        from fastapi.responses import StreamingResponse
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate PDF payslip: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
+
+
 @payroll_router.get("/reports/timesheets")
 async def get_timesheet_report(
     employee_id: Optional[str] = None,
