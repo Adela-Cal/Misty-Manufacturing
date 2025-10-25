@@ -659,12 +659,14 @@ async def get_employee_leave_balances(employee_id: str, current_user: dict = Dep
     return EmployeeLeaveBalance(
         employee_id=employee["id"],
         employee_name=f"{employee['first_name']} {employee['last_name']}",
-        annual_leave_balance=employee["annual_leave_balance"],
-        sick_leave_balance=employee["sick_leave_balance"],
-        personal_leave_balance=employee["personal_leave_balance"],
-        annual_leave_entitlement=employee["annual_leave_entitlement"],
-        sick_leave_entitlement=employee["sick_leave_entitlement"],
-        personal_leave_entitlement=employee["personal_leave_entitlement"]
+        employee_number=employee.get("employee_number", "N/A"),
+        annual_leave_balance=employee.get("annual_leave_balance", 0),
+        sick_leave_balance=employee.get("sick_leave_balance", 0),
+        personal_leave_balance=employee.get("personal_leave_balance", 0),
+        long_service_leave_balance=employee.get("long_service_leave_balance", 0),
+        annual_leave_entitlement=employee.get("annual_leave_entitlement", 152),
+        sick_leave_entitlement=employee.get("sick_leave_entitlement", 76),
+        personal_leave_entitlement=employee.get("personal_leave_entitlement", 38)
     )
 
 # ============= TIMESHEET ENDPOINTS =============
