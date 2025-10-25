@@ -76,7 +76,7 @@ class PayslipTester:
         
         # Calculate week starting date (future week to avoid conflicts)
         today = date.today()
-        week_start = today - timedelta(days=today.weekday()) + timedelta(days=14)  # Two weeks in future
+        week_start = today - timedelta(days=today.weekday()) + timedelta(days=21)  # Three weeks in future
         
         # Create timesheet entries for the week
         entries = []
