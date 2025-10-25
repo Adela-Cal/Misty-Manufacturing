@@ -443,7 +443,7 @@ class TimesheetApprovalPayslipTester:
                     
                     # Verify payslip has all required fields
                     required_sections = [
-                        "employee_info", "pay_period", "hours", "earnings", 
+                        "employee", "pay_period", "hours", "earnings", 
                         "deductions", "net_pay", "year_to_date", "bank_details"
                     ]
                     
