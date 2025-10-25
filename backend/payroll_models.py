@@ -221,6 +221,11 @@ class PayrollCalculation(BaseModel):
     tax_withheld: Decimal
     superannuation: Decimal  # Usually 11% of gross pay
     
+    # Tax Breakdown (optional fields for detailed reporting)
+    medicare_levy: Optional[Decimal] = None
+    help_withholding: Optional[Decimal] = None
+    payg_tax: Optional[Decimal] = None
+    
     # Net Pay
     net_pay: Decimal
     
