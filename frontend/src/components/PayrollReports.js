@@ -931,8 +931,27 @@ const PayrollReports = () => {
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <p className="text-gray-400">Regular Hours: <span className="text-white">{selectedPayslip.payslip_data.hours.regular_hours}h @ ${selectedPayslip.payslip_data.hours.hourly_rate}/hr</span></p>
                     <p className="text-gray-400">Overtime Hours: <span className="text-white">{selectedPayslip.payslip_data.hours.overtime_hours}h @ ${(selectedPayslip.payslip_data.hours.hourly_rate * 1.5).toFixed(2)}/hr</span></p>
+                    {selectedPayslip.payslip_data.hours.leave_hours > 0 && (
+                      <p className="text-gray-400">Leave Hours: <span className="text-white">{selectedPayslip.payslip_data.hours.leave_hours}h</span></p>
+                    )}
+                    <p className="text-gray-400 font-semibold">Total Hours: <span className="text-white font-semibold">{selectedPayslip.payslip_data.hours.total_hours || (selectedPayslip.payslip_data.hours.regular_hours + selectedPayslip.payslip_data.hours.overtime_hours)}h</span></p>
                   </div>
                 </div>
+
+                {/* Leave Used */}
+                {selectedPayslip.payslip_data.leave_used && Object.keys(selectedPayslip.payslip_data.leave_used).length > 0 && (
+                  <div className="border-b border-gray-600 pb-4">
+                    <h5 className="text-lg font-semibold text-yellow-400 mb-2">Leave Used This Period</h5>
+                    <div className="space-y-1 text-sm">
+                      {Object.entries(selectedPayslip.payslip_data.leave_used).map(([type, hours]) => (
+                        <div key={type} className="flex justify-between">
+                          <span className="text-gray-400">{type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}:</span>
+                          <span className="text-white">{hours}h</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Earnings */}
                 <div className="border-b border-gray-600 pb-4">
