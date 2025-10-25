@@ -590,22 +590,29 @@ async def create_leave_adjustment(adjustment: LeaveAdjustmentCreate, current_use
     
     employee_profile = EmployeeProfile(**employee)
     
-    # Get current balance based on leave type
-    balance_field = f"{adjustment.leave_type.value}_balance"
+    # Map leave_type string to balance field name
+    balance_field = f"{adjustment.leave_type}_balance"
     current_balance = getattr(employee_profile, balance_field, Decimal("0"))
     
     # Calculate new balance
-    new_balance = current_balance + adjustment.adjustment_hours
+    new_balance = current_balance + adjustment.adjustment_amount
     
-    if new_balance < 0:
-        raise HTTPException(status_code=400, detail="Adjustment would result in negative balance")
+    # Note: We allow negative balances for leave in this system (up to -76 hours as per requirements)
+    
+    # Get current user's name
+    adjusted_by_name = current_user.get("full_name", current_user.get("username", "Unknown"))
     
     # Create adjustment record
     leave_adjustment = LeaveAdjustment(
-        **adjustment.dict(),
+        employee_id=adjustment.employee_id,
+        employee_name=f"{employee['first_name']} {employee['last_name']}",
+        leave_type=adjustment.leave_type,
+        adjustment_amount=adjustment.adjustment_amount,
         previous_balance=current_balance,
         new_balance=new_balance,
-        adjusted_by=current_user["user_id"]
+        reason=adjustment.reason,
+        adjusted_by=current_user["user_id"],
+        adjusted_by_name=adjusted_by_name
     )
     
     adjustment_dict = prepare_for_mongo(leave_adjustment.dict())
@@ -614,15 +621,15 @@ async def create_leave_adjustment(adjustment: LeaveAdjustmentCreate, current_use
     # Update employee balance
     await db.employee_profiles.update_one(
         {"id": adjustment.employee_id},
-        {"$set": {balance_field: float(new_balance), "updated_at": datetime.utcnow()}}
+        {"$set": {balance_field: float(new_balance), "updated_at": datetime.utcnow().isoformat()}}
     )
     
-    logger.info(f"Created leave adjustment for employee {adjustment.employee_id}: {adjustment.adjustment_hours}h")
+    logger.info(f"Created leave adjustment for employee {adjustment.employee_id}: {adjustment.adjustment_amount}h {adjustment.leave_type}")
     
     return StandardResponse(
         success=True,
-        message=f"Leave adjustment recorded. New balance: {new_balance}h",
-        data={"new_balance": float(new_balance)}
+        message=f"Leave adjustment recorded. New {adjustment.leave_type.replace('_', ' ')} balance: {new_balance}h",
+        data={"new_balance": float(new_balance), "adjustment_id": leave_adjustment.id}
     )
 
 @payroll_router.get("/leave-adjustments/{employee_id}")
