@@ -67,7 +67,8 @@ const PayrollReports = () => {
       }
     } catch (error) {
       console.error('Failed to load employees:', error);
-
+    }
+  };
 
   const loadLeaveEntitlements = async () => {
     try {
