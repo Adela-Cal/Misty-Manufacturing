@@ -42,6 +42,8 @@ const PayrollReports = () => {
   });
   const [showPayslipModal, setShowPayslipModal] = useState(false);
   const [selectedPayslip, setSelectedPayslip] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [payslipToDelete, setPayslipToDelete] = useState(null);
 
   useEffect(() => {
     loadEmployees();
