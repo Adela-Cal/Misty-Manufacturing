@@ -675,7 +675,7 @@ class TimesheetApprovalPayslipTester:
                                     "Payslip Required Fields", 
                                     False, 
                                     f"Payslip missing required fields: {missing_fields}",
-                                    f"Available fields: {list(our_payslip.keys())}"
+                                    f"Available fields: {list(payslip_data.keys())}"
                                 )
                                 return False
                         else:
