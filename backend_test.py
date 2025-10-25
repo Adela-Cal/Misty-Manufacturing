@@ -1,39 +1,20 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Profitability Report Material Costs and Data Sources Debugging
-
-PRIORITY TESTS:
-1. Check job_cards collection structure - what fields exist for material usage?
-2. Check if client_products endpoint exists and returns data
-3. Verify completed orders have associated job cards
-4. Identify correct field names for material usage in job cards
-
-TEST STEPS:
-1. Login with admin credentials (Callum/Peach7510)
-2. GET /api/job-cards to see structure of job cards
-3. Check a sample job card for material-related fields
-4. GET /api/client-products to verify endpoint exists
-5. Check structure of client products
-6. GET /api/orders and find one completed order
-7. Check if that order has a job card with order_id matching
-8. Examine what material fields are in the job card
+Enhanced PDF Payslip Generation Testing
+Testing the enhanced PDF payslip generation with all new fields including leave information and leave balances.
 """
 
 import requests
 import json
 import os
-from datetime import datetime, timedelta, date
-from dotenv import load_dotenv
-import uuid
-
-# Load environment variables
-load_dotenv('/app/frontend/.env')
+from datetime import datetime, date, timedelta
+import sys
 
 # Get backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://timesheet-manager-33.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
-class BackendAPITester:
+class PayslipTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
