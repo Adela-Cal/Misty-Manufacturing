@@ -1006,6 +1006,27 @@ const PayrollReports = () => {
                   </div>
                 </div>
 
+                {/* Leave Balances */}
+                {selectedPayslip.payslip_data.leave_balances && (
+                  <div className="border-b border-gray-600 pb-4">
+                    <h5 className="text-lg font-semibold text-yellow-400 mb-2">Leave Balances (After this payslip)</h5>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="bg-blue-900 bg-opacity-20 border border-blue-500 border-opacity-30 rounded-lg p-3">
+                        <p className="text-xs text-gray-400">Annual Leave</p>
+                        <p className="text-xl font-bold text-white">{selectedPayslip.payslip_data.leave_balances.annual_leave?.toFixed(1) || '0.0'}h</p>
+                      </div>
+                      <div className="bg-green-900 bg-opacity-20 border border-green-500 border-opacity-30 rounded-lg p-3">
+                        <p className="text-xs text-gray-400">Sick Leave</p>
+                        <p className="text-xl font-bold text-white">{selectedPayslip.payslip_data.leave_balances.sick_leave?.toFixed(1) || '0.0'}h</p>
+                      </div>
+                      <div className="bg-purple-900 bg-opacity-20 border border-purple-500 border-opacity-30 rounded-lg p-3">
+                        <p className="text-xs text-gray-400">Personal Leave</p>
+                        <p className="text-xl font-bold text-white">{selectedPayslip.payslip_data.leave_balances.personal_leave?.toFixed(1) || '0.0'}h</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Payment Details */}
                 <div>
                   <h5 className="text-lg font-semibold text-yellow-400 mb-2">Payment Details</h5>
