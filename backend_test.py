@@ -21,36 +21,47 @@ class LeaveEntitlementsTest:
     def __init__(self):
         self.session = requests.Session()
         self.access_token = None
+        self.test_results = []
         self.employee_id = None
-        self.timesheet_id = None
-        self.payslip_id = None
+        self.adjustment_ids = []
         
+    def log_result(self, test_name, success, message, details=None):
+        """Log test result"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "message": message,
+            "details": details or {},
+            "timestamp": datetime.now().isoformat()
+        }
+        self.test_results.append(result)
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name} - {message}")
+        if details and not success:
+            print(f"   Details: {details}")
+    
     def authenticate(self):
         """Authenticate as admin user"""
-        print("🔐 Authenticating as admin (Callum/Peach7510)...")
-        
-        login_data = {
-            "username": "Callum",
-            "password": "Peach7510"
-        }
-        
-        response = self.session.post(f"{API_BASE}/auth/login", json=login_data)
-        
-        if response.status_code == 200:
-            data = response.json()
-            self.access_token = data["access_token"]
-            self.session.headers.update({"Authorization": f"Bearer {self.access_token}"})
-            print(f"✅ Authentication successful - User: {data['user']['full_name']}")
-            return True
-        else:
-            print(f"❌ Authentication failed: {response.status_code} - {response.text}")
+        try:
+            response = self.session.post(f"{BACKEND_URL}/auth/login", json={
+                "username": TEST_USERNAME,
+                "password": TEST_PASSWORD
+            })
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.access_token = data["access_token"]
+                self.session.headers.update({"Authorization": f"Bearer {self.access_token}"})
+                self.log_result("Authentication", True, f"Successfully authenticated as {TEST_USERNAME}")
+                return True
+            else:
+                self.log_result("Authentication", False, f"Failed to authenticate: {response.status_code}", 
+                              {"response": response.text})
+                return False
+                
+        except Exception as e:
+            self.log_result("Authentication", False, f"Authentication error: {str(e)}")
             return False
-    
-    def get_employees(self):
-        """Get list of employees"""
-        print("\n👥 Getting employee list...")
-        
-        response = self.session.get(f"{API_BASE}/payroll/employees")
         
         if response.status_code == 200:
             data = response.json()
