@@ -2166,6 +2166,44 @@ async def download_payslip_pdf(payslip_id: str, current_user: dict = Depends(req
         raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
 
 
+@payroll_router.delete("/reports/payslips/{payslip_id}")
+async def delete_payslip(
+    payslip_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """
+    Delete a payslip (Admin only)
+    This should be used carefully as it removes historic payroll data
+    """
+    try:
+        # Check if payslip exists
+        payslip = await db.payslips.find_one({"id": payslip_id})
+        if not payslip:
+            raise HTTPException(status_code=404, detail="Payslip not found")
+        
+        # Get payslip details for logging
+        employee_name = payslip.get('payslip_data', {}).get('employee', {}).get('name', 'Unknown')
+        pay_period = payslip.get('payslip_data', {}).get('pay_period', {}).get('week_start', 'Unknown')
+        
+        # Delete the payslip
+        result = await db.payslips.delete_one({"id": payslip_id})
+        
+        if result.deleted_count == 1:
+            logger.info(f"Payslip {payslip_id} deleted by user {current_user.get('sub')} - Employee: {employee_name}, Period: {pay_period}")
+            return {
+                "success": True,
+                "message": f"Payslip for {employee_name} ({pay_period}) deleted successfully"
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to delete payslip")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete payslip: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete payslip: {str(e)}")
+
+
 @payroll_router.get("/reports/timesheets")
 async def get_timesheet_report(
     employee_id: Optional[str] = None,
