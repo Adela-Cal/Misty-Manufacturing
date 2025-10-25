@@ -1098,6 +1098,9 @@ async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(requ
                     "gross_pay": float(payroll_calculation.gross_pay)
                 },
                 "deductions": {
+                    "payg_tax": float(payroll_calculation.payg_tax) if payroll_calculation.payg_tax else float(payroll_calculation.tax_withheld),
+                    "medicare_levy": float(payroll_calculation.medicare_levy) if payroll_calculation.medicare_levy else 0.0,
+                    "help_withholding": float(payroll_calculation.help_withholding) if payroll_calculation.help_withholding else 0.0,
                     "tax_withheld": float(payroll_calculation.tax_withheld),
                     "superannuation": float(payroll_calculation.superannuation)
                 },
