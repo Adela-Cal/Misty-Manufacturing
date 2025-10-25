@@ -1053,6 +1053,23 @@ async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(requ
         
         # Generate payslip automatically
         try:
+            # Calculate leave used in this timesheet
+            leave_used = {}
+            total_leave_hours = 0
+            for entry in timesheet.entries:
+                if entry.get('leave_hours'):
+                    for leave_type, hours in entry.get('leave_hours', {}).items():
+                        leave_used[leave_type] = leave_used.get(leave_type, 0) + hours
+                        total_leave_hours += hours
+            
+            # Get updated employee leave balances (after approval update)
+            updated_employee = await db.employee_profiles.find_one({"id": employee.id})
+            leave_balances = {
+                "annual_leave": float(updated_employee.get("annual_leave_balance", 0)),
+                "sick_leave": float(updated_employee.get("sick_leave_balance", 0)),
+                "personal_leave": float(updated_employee.get("personal_leave_balance", 0))
+            }
+            
             # Create payslip data
             payslip_data = {
                 "employee": {
@@ -1069,8 +1086,12 @@ async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(requ
                 "hours": {
                     "regular_hours": float(payroll_calculation.regular_hours),
                     "overtime_hours": float(payroll_calculation.overtime_hours),
+                    "leave_hours": total_leave_hours,
+                    "total_hours": float(payroll_calculation.regular_hours) + float(payroll_calculation.overtime_hours) + total_leave_hours,
                     "hourly_rate": float(employee.hourly_rate)
                 },
+                "leave_used": leave_used,  # Breakdown of leave types used
+                "leave_balances": leave_balances,  # Current leave balances after this payslip
                 "earnings": {
                     "regular_pay": float(payroll_calculation.regular_pay),
                     "overtime_pay": float(payroll_calculation.overtime_pay),
