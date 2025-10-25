@@ -305,6 +305,59 @@ Generated: ${new Date(data.generated_at).toLocaleString()}
             View and download all generated payslips from approved timesheets
           </p>
 
+          {/* Filters - Same as Approved Timesheets */}
+          <div className="bg-gray-800 rounded-lg p-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Employee
+                </label>
+                <select
+                  value={selectedEmployee}
+                  onChange={(e) => setSelectedEmployee(e.target.value)}
+                  className="misty-select w-full"
+                >
+                  <option value="">All Employees</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.first_name} {emp.last_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  From Date
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="misty-input w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  To Date
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="misty-input w-full"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={loadPayslips}
+                  className="misty-button misty-button-primary w-full"
+                >
+                  Filter Payslips
+                </button>
+              </div>
+            </div>
+          </div>
+
           {loading ? (
             <p className="text-gray-400 text-center py-8">Loading payslips...</p>
           ) : payslips.length > 0 ? (
