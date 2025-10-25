@@ -78,7 +78,7 @@ class ATO2025PayrollTester:
             
             if target_employee:
                 self.employee_id = target_employee["id"]
-                self.hourly_rate = target_employee.get("hourly_rate", 25.0)
+                self.hourly_rate = float(target_employee.get("hourly_rate", 25.0))
                 print(f"📋 Selected employee: {target_employee['first_name']} {target_employee['last_name']} (ID: {self.employee_id})")
                 print(f"   💰 Hourly rate: ${self.hourly_rate}")
                 return True
