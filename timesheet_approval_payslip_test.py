@@ -198,12 +198,12 @@ class TimesheetApprovalPayslipTester:
                 self.log_result(
                     "Get/Create Test Week Timesheet", 
                     True, 
-                    f"Retrieved timesheet for week {next_week_monday}",
+                    f"Retrieved timesheet for week {future_week_monday}",
                     f"Timesheet ID: {self.test_timesheet_id}, Status: {timesheet.get('status', 'unknown')}"
                 )
                 
                 # Store the week for later use
-                self.test_week_monday = next_week_monday
+                self.test_week_monday = future_week_monday
                 
             else:
                 self.log_result(
