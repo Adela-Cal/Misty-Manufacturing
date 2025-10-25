@@ -130,21 +130,6 @@ const ClientManagement = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredClients.map((client) => (
               <div key={client.id} className="misty-card p-6 relative overflow-hidden" data-testid={`client-card-${client.id}`}>
-                {/* Background Logo Watermark */}
-                {client.logo_path && (
-                  <div 
-                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                    style={{ zIndex: 0, opacity: 0.15 }}
-                  >
-                    <img
-                      src={client.logo_path}
-                      alt=""
-                      className="object-contain"
-                      style={{ width: '345px', height: '345px' }}
-                    />
-                  </div>
-                )}
-
                 <div className="flex items-start justify-between mb-4 relative z-10">
                   <div className="flex items-center flex-1">
                     <div className="min-w-0 flex-1">
