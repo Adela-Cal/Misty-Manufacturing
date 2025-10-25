@@ -33,7 +33,7 @@
 
 ### 2. API Health ✅ PASS (100%)
 
-**Backend Health Endpoint:** `https://timesheet-manager-33.preview.emergentagent.com/api/health`  
+**Backend Health Endpoint:** `https://misty-ato-payroll.preview.emergentagent.com/api/health`  
 **Status Code:** 200 OK ✅
 
 **Result:** Backend API is responding correctly.
@@ -137,7 +137,7 @@
 
 **Issue:** CORS_ORIGINS in backend/.env includes:
 ```
-https://app.emergent.sh,http://localhost:3000,https://timesheet-manager-33.preview.emergentagent.com
+https://app.emergent.sh,http://localhost:3000,https://misty-ato-payroll.preview.emergentagent.com
 ```
 
 **Recommendation:** Update CORS for NAS deployment:

@@ -10,7 +10,7 @@ from datetime import datetime
 import sys
 
 # Configuration
-BACKEND_URL = "https://timesheet-manager-33.preview.emergentagent.com/api"
+BACKEND_URL = "https://misty-ato-payroll.preview.emergentagent.com/api"
 ADMIN_USERNAME = "Callum"
 ADMIN_PASSWORD = "Peach7510"
 
