@@ -8,7 +8,8 @@ import {
   ArrowDownTrayIcon,
   PencilIcon,
   CheckCircleIcon,
-  BuildingLibraryIcon
+  BuildingLibraryIcon,
+  EyeIcon
 } from '@heroicons/react/24/outline';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
