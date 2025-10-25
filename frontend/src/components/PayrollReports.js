@@ -67,6 +67,42 @@ const PayrollReports = () => {
       }
     } catch (error) {
       console.error('Failed to load employees:', error);
+
+
+  const loadLeaveEntitlements = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-entitlements`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        setLeaveEntitlements(result.data || []);
+      } else {
+        toast.error('Failed to load leave entitlements');
+      }
+    } catch (error) {
+      console.error('Failed to load leave entitlements:', error);
+      toast.error('Failed to load leave entitlements');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadAdjustmentHistory = async (employeeId) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/leave-adjustments/${employeeId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        setAdjustmentHistory(result.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to load adjustment history:', error);
+    }
+  };
+
     }
   };
 
