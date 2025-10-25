@@ -1035,6 +1035,10 @@ class PageElement(BaseModel):
     borderColor: Optional[str] = '#000000'
     borderWidth: Optional[int] = 1
     fillColor: Optional[str] = 'transparent'
+    # Label-Field linking (for auto-generated label+field pairs)
+    isFieldLabel: Optional[bool] = None
+    linkedFieldId: Optional[str] = None
+    linkedLabelId: Optional[str] = None
 
 class PageTemplate(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
