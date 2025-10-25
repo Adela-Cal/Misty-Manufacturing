@@ -557,7 +557,11 @@ class TimesheetApprovalPayslipTester:
                 
                 if result.get("success") and "data" in result:
                     report_data = result["data"]
-                    timesheets = report_data.get("timesheets", [])
+                    # Handle both formats: direct list or object with timesheets field
+                    if isinstance(report_data, list):
+                        timesheets = report_data
+                    else:
+                        timesheets = report_data.get("timesheets", [])
                     
                     # Find our approved timesheet
                     approved_timesheet = None
