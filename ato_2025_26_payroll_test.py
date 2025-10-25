@@ -428,7 +428,7 @@ class ATO2025PayrollTester:
         
         # Create a high-income timesheet (50 regular + 10 overtime hours)
         today = date.today()
-        week_start = today - timedelta(days=today.weekday() - 7)  # Next week
+        week_start = today - timedelta(days=today.weekday()) + timedelta(days=35)  # Five weeks in future
         
         entries = []
         for i in range(7):
