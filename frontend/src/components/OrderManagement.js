@@ -550,8 +550,10 @@ const OrderManagement = () => {
                   onClick={() => {
                     if (!generatingPdf) {
                       setShowTemplateModal(false);
-                    setSelectedOrderForPdf(null);
+                      setSelectedOrderForPdf(null);
+                    }
                   }}
+                  disabled={generatingPdf}
                   className="misty-button misty-button-secondary"
                 >
                   Cancel
