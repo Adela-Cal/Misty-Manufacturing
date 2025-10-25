@@ -1057,8 +1057,8 @@ async def approve_timesheet(timesheet_id: str, current_user: dict = Depends(requ
             leave_used = {}
             total_leave_hours = 0
             for entry in timesheet.entries:
-                if entry.get('leave_hours'):
-                    for leave_type, hours in entry.get('leave_hours', {}).items():
+                if hasattr(entry, 'leave_hours') and entry.leave_hours:
+                    for leave_type, hours in entry.leave_hours.items():
                         leave_used[leave_type] = leave_used.get(leave_type, 0) + hours
                         total_leave_hours += hours
             
