@@ -2604,6 +2604,119 @@ async def generate_acknowledgment(order_id: str):
         headers={"Content-Disposition": f"attachment; filename=acknowledgment_{order['order_number']}.pdf"}
     )
 
+
+@api_router.get("/documents/acknowledgment/{order_id}/template/{template_id}")
+async def generate_acknowledgment_with_template(order_id: str, template_id: str):
+    """Generate order acknowledgment PDF using a page template"""
+    # Get order data
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    client = await db.clients.find_one({"id": order["client_id"]})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Get template
+    template = await db.page_templates.find_one({"id": template_id})
+    if not template:
+        raise HTTPException(status_code=404, detail="Page template not found")
+    
+    # Prepare order data for template population
+    order_data = {
+        "order_number": order["order_number"],
+        "invoice_number": f"INV-{order['order_number']}",
+        "customer_name": client["company_name"],
+        "customer_address": f"{client['address']}, {client['city']}, {client['state']} {client['postal_code']}",
+        "order_date": datetime.now().strftime("%d/%m/%Y"),
+        "due_date": order["due_date"].strftime("%d/%m/%Y") if isinstance(order["due_date"], datetime) else order["due_date"],
+        "total_amount": f"${order['total_amount']:.2f}",
+        "notes": order.get("notes", "")
+    }
+    
+    # Generate PDF from template
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import A4
+    from io import BytesIO
+    
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=(template.get('page_width', 595), template.get('page_height', 842)))
+    
+    # Render each element from template
+    for element in template.get('elements', []):
+        element_type = element.get('type')
+        x = element.get('x', 0)
+        y = template.get('page_height', 842) - element.get('y', 0) - element.get('height', 0)  # Flip Y coordinate
+        
+        if element_type == 'text':
+            # Render static text or label
+            pdf.setFont("Helvetica-Bold" if element.get('fontWeight') == 'bold' else "Helvetica", element.get('fontSize', 12))
+            pdf.setFillColor(element.get('color', '#000000'))
+            pdf.drawString(x, y, element.get('content', ''))
+            
+        elif element_type == 'field':
+            # Render dynamic field data
+            field_type = element.get('field_type')
+            value = order_data.get(field_type, f"{{{field_type}}}")
+            
+            pdf.setFont("Helvetica-Bold" if element.get('fontWeight') == 'bold' else "Helvetica", element.get('fontSize', 12))
+            pdf.setFillColor(element.get('color', '#000000'))
+            pdf.drawString(x, y, str(value))
+            
+        elif element_type == 'shape':
+            shape_type = element.get('shape_type')
+            width = element.get('width', 100)
+            height = element.get('height', 100)
+            
+            pdf.setStrokeColor(element.get('borderColor', '#000000'))
+            pdf.setLineWidth(element.get('borderWidth', 1))
+            
+            if element.get('fillColor') and element.get('fillColor') != 'transparent':
+                pdf.setFillColor(element.get('fillColor'))
+            
+            if shape_type == 'rectangle':
+                if element.get('fillColor') and element.get('fillColor') != 'transparent':
+                    pdf.rect(x, y, width, height, fill=1, stroke=1)
+                else:
+                    pdf.rect(x, y, width, height, fill=0, stroke=1)
+            elif shape_type == 'circle':
+                radius = min(width, height) / 2
+                if element.get('fillColor') and element.get('fillColor') != 'transparent':
+                    pdf.circle(x + radius, y + radius, radius, fill=1, stroke=1)
+                else:
+                    pdf.circle(x + radius, y + radius, radius, fill=0, stroke=1)
+            elif shape_type == 'line':
+                pdf.line(x, y, x + width, y)
+        
+        elif element_type == 'image' and element.get('src'):
+            # Handle base64 images
+            try:
+                import base64
+                from reportlab.lib.utils import ImageReader
+                
+                image_data = element.get('src', '')
+                if image_data.startswith('data:image'):
+                    # Extract base64 data
+                    image_data = image_data.split(',')[1]
+                    image_bytes = base64.b64decode(image_data)
+                    image_buffer = BytesIO(image_bytes)
+                    
+                    pdf.drawImage(ImageReader(image_buffer), x, y, 
+                                width=element.get('width', 200), 
+                                height=element.get('height', 150))
+            except Exception as e:
+                logger.error(f"Error rendering image: {str(e)}")
+    
+    pdf.save()
+    buffer.seek(0)
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=acknowledgment_{order['order_number']}.pdf"}
+    )
+
+
 @api_router.get("/documents/job-card/{order_id}")
 async def generate_job_card(order_id: str):
     """Generate job card PDF"""
