@@ -24,6 +24,7 @@ const OrderManagement = () => {
   const [selectedOrderForPdf, setSelectedOrderForPdf] = useState(null);
   const [pageTemplates, setPageTemplates] = useState([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   useEffect(() => {
     loadOrders();
