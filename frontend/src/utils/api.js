@@ -186,6 +186,7 @@ export const apiHelpers = {
   
   // Documents
   generateAcknowledgment: (orderId) => api.get(`/documents/acknowledgment/${orderId}`, { responseType: 'blob' }),
+  generateAcknowledgmentWithTemplate: (orderId, templateId) => api.get(`/documents/acknowledgment/${orderId}/template/${templateId}`, { responseType: 'blob' }),
   generateJobCard: (orderId) => api.get(`/documents/job-card/${orderId}`, { responseType: 'blob' }),
   generatePackingList: (orderId) => api.get(`/documents/packing-list/${orderId}`, { responseType: 'blob' }),
   generateInvoice: (orderId) => api.get(`/documents/invoice/${orderId}`, { responseType: 'blob' }),
