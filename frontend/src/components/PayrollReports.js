@@ -68,7 +68,27 @@ const PayrollReports = () => {
       });
       if (response.ok) {
         const result = await response.json();
-        setPayslips(result.data || []);
+        let filteredPayslips = result.data || [];
+        
+        // Apply employee filter
+        if (selectedEmployee) {
+          filteredPayslips = filteredPayslips.filter(p => p.employee_id === selectedEmployee);
+        }
+        
+        // Apply date filters
+        if (startDate || endDate) {
+          filteredPayslips = filteredPayslips.filter(p => {
+            const payDate = new Date(p.payslip_data.pay_period.week_start);
+            const start = startDate ? new Date(startDate) : null;
+            const end = endDate ? new Date(endDate) : null;
+            
+            if (start && payDate < start) return false;
+            if (end && payDate > end) return false;
+            return true;
+          });
+        }
+        
+        setPayslips(filteredPayslips);
       }
     } catch (error) {
       toast.error('Failed to load payslips');
