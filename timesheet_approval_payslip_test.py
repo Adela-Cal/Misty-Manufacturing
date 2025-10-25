@@ -637,6 +637,9 @@ class TimesheetApprovalPayslipTester:
                                 break
                         
                         if our_payslip:
+                            # Check if payslip data is nested in payslip_data field
+                            payslip_data = our_payslip.get("payslip_data", our_payslip)
+                            
                             # Verify payslip has all required fields
                             required_fields = [
                                 "employee", "pay_period", "hours", "earnings",
@@ -644,14 +647,14 @@ class TimesheetApprovalPayslipTester:
                                 "generated_at"
                             ]
                             
-                            missing_fields = [field for field in required_fields if field not in our_payslip]
+                            missing_fields = [field for field in required_fields if field not in payslip_data]
                             
                             if not missing_fields:
                                 # Verify specific field details
-                                employee_info = our_payslip.get("employee", {})
-                                pay_period = our_payslip.get("pay_period", {})
-                                hours = our_payslip.get("hours", {})
-                                earnings = our_payslip.get("earnings", {})
+                                employee_info = payslip_data.get("employee", {})
+                                pay_period = payslip_data.get("pay_period", {})
+                                hours = payslip_data.get("hours", {})
+                                earnings = payslip_data.get("earnings", {})
                                 
                                 details = []
                                 details.append(f"Employee: {employee_info.get('name', 'Unknown')}")
