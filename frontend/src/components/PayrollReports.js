@@ -219,55 +219,28 @@ const PayrollReports = () => {
     }
   };
 
-  const downloadPayslip = (payslip) => {
-    const data = payslip.payslip_data;
-    const content = `
-PAYSLIP
-================================================================
-${data.employee.name} - ${data.employee.employee_number}
-${data.employee.position} - ${data.employee.department}
-
-PAY PERIOD: ${data.pay_period.week_start} to ${data.pay_period.week_end}
-================================================================
-
-HOURS WORKED:
-  Regular Hours:    ${data.hours.regular_hours} @ $${data.hours.hourly_rate}/hr
-  Overtime Hours:   ${data.hours.overtime_hours} @ $${(data.hours.hourly_rate * 1.5).toFixed(2)}/hr
-
-EARNINGS:
-  Regular Pay:      $${data.earnings.regular_pay.toFixed(2)}
-  Overtime Pay:     $${data.earnings.overtime_pay.toFixed(2)}
-  Gross Pay:        $${data.earnings.gross_pay.toFixed(2)}
-
-DEDUCTIONS:
-  Tax Withheld:     $${data.deductions.tax_withheld.toFixed(2)}
-  Superannuation:   $${data.deductions.superannuation.toFixed(2)}
-
-NET PAY:            $${data.net_pay.toFixed(2)}
-
-YEAR TO DATE:
-  Gross Pay:        $${data.year_to_date.gross_pay.toFixed(2)}
-  Tax Withheld:     $${data.year_to_date.tax_withheld.toFixed(2)}
-  Superannuation:   $${data.year_to_date.superannuation.toFixed(2)}
-  Net Pay:          $${data.year_to_date.net_pay.toFixed(2)}
-
-PAYMENT DETAILS:
-  BSB:              ${data.bank_details.bsb}
-  Account Number:   ${data.bank_details.account_number}
-  Super Fund:       ${data.bank_details.superannuation_fund}
-  TFN:              ${data.employee.tax_file_number}
-
-Generated: ${new Date(data.generated_at).toLocaleString()}
-================================================================
-    `;
-
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `payslip_${data.employee.employee_number}_${data.pay_period.week_start}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const downloadPayslip = async (payslip) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/payroll/reports/payslip/${payslip.id}/pdf`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `payslip_${payslip.payslip_data.employee.employee_number}_${payslip.payslip_data.pay_period.week_start}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success('Payslip downloaded successfully');
+      } else {
+        toast.error('Failed to download payslip');
+      }
+    } catch (error) {
+      console.error('Error downloading payslip:', error);
+      toast.error('Failed to download payslip');
+    }
   };
 
   const viewPayslip = (payslip) => {
