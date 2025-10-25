@@ -166,34 +166,34 @@ class TimesheetApprovalPayslipTester:
             self.log_result("Create Timesheet", False, "No employee ID available")
             return False
         
-        # Step 3a: Get/Create timesheet for next week to avoid conflicts with existing approved timesheets
+        # Step 3a: Get/Create timesheet for a future week to avoid conflicts with existing approved timesheets
         try:
-            # Use next week to avoid conflicts with existing timesheets
+            # Use a week far in the future to avoid conflicts with existing timesheets
             today = datetime.now().date()
-            next_week_monday = today + timedelta(days=(7 - today.weekday()))
+            # Use a week 4 weeks in the future
+            future_week_monday = today + timedelta(days=(28 - today.weekday()))
             
             response = self.session.get(
                 f"{API_BASE}/payroll/timesheets/current-week/{self.test_employee_id}",
-                params={"week_starting": next_week_monday.isoformat()}
+                params={"week_starting": future_week_monday.isoformat()}
             )
             
             if response.status_code == 200:
                 timesheet = response.json()
                 self.test_timesheet_id = timesheet.get('id')
                 
-                # Check if timesheet is already approved
+                # Check if timesheet is already approved (unlikely for future weeks)
                 if timesheet.get('status') == 'approved':
-                    # Try with a different week (week after next)
-                    next_next_week_monday = next_week_monday + timedelta(days=7)
+                    # Try with an even further week
+                    future_week_monday = future_week_monday + timedelta(days=7)
                     response = self.session.get(
                         f"{API_BASE}/payroll/timesheets/current-week/{self.test_employee_id}",
-                        params={"week_starting": next_next_week_monday.isoformat()}
+                        params={"week_starting": future_week_monday.isoformat()}
                     )
                     
                     if response.status_code == 200:
                         timesheet = response.json()
                         self.test_timesheet_id = timesheet.get('id')
-                        next_week_monday = next_next_week_monday
                 
                 self.log_result(
                     "Get/Create Test Week Timesheet", 
