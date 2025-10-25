@@ -452,6 +452,14 @@ const PayrollReports = () => {
                               <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
                               Download
                             </button>
+                            <button
+                              onClick={() => confirmDeletePayslip(payslip)}
+                              className="text-red-400 hover:text-red-300 flex items-center text-sm"
+                              title="Delete Payslip"
+                            >
+                              <TrashIcon className="h-4 w-4 mr-1" />
+                              Delete
+                            </button>
                           </div>
                         </td>
                       </tr>
