@@ -29,7 +29,7 @@ const PayrollReports = () => {
   const [selectedEmployeeForAdjustment, setSelectedEmployeeForAdjustment] = useState(null);
   const [adjustmentFormData, setAdjustmentFormData] = useState({
     leave_type: 'annual_leave',
-    adjustment_hours: '',
+    adjustment_amount: '',
     reason: ''
   });
   const [showBankDetailsModal, setShowBankDetailsModal] = useState(false);
