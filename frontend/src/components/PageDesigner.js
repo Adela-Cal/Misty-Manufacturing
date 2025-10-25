@@ -902,7 +902,11 @@ const PageDesigner = () => {
         </button>
       </div>
 
-      {templates.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-12">
+          <p className="text-gray-400 text-lg">Loading templates...</p>
+        </div>
+      ) : templates.length === 0 ? (
         <div className="text-center py-12">
           <DocumentDuplicateIcon className="h-16 w-16 text-gray-600 mx-auto mb-4" />
           <p className="text-gray-400 text-lg mb-4">No page templates yet</p>
