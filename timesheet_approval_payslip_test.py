@@ -740,17 +740,17 @@ class TimesheetApprovalPayslipTester:
                 # Update with different hours
                 update_data = {
                     "employee_id": self.test_employee_id,
-                    "week_starting": last_week_monday.isoformat(),
+                    "week_starting": another_week_monday.isoformat(),
                     "entries": [
                         {
-                            "date": last_week_monday.isoformat(),
+                            "date": another_week_monday.isoformat(),
                             "regular_hours": 7.0,
                             "overtime_hours": 1.0,
                             "leave_hours": {},
                             "notes": "Monday with overtime"
                         },
                         {
-                            "date": (last_week_monday + timedelta(days=1)).isoformat(),
+                            "date": (another_week_monday + timedelta(days=1)).isoformat(),
                             "regular_hours": 8.0,
                             "overtime_hours": 0.0,
                             "leave_hours": {},
