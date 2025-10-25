@@ -270,6 +270,11 @@ Generated: ${new Date(data.generated_at).toLocaleString()}
     URL.revokeObjectURL(url);
   };
 
+  const viewPayslip = (payslip) => {
+    setSelectedPayslip(payslip);
+    setShowPayslipModal(true);
+  };
+
   return (
     <div>
       {/* Sub-Tab Navigation */}
