@@ -143,6 +143,8 @@ class PayslipTester:
             
             # Update timesheet with our test data
             update_data = {
+                "employee_id": self.employee_id,
+                "week_starting": week_start.isoformat(),
                 "entries": entries,
                 "status": "draft"
             }
