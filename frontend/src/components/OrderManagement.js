@@ -505,6 +505,12 @@ const OrderManagement = () => {
                 <div className="text-center py-12">
                   <p className="text-gray-400">Loading templates...</p>
                 </div>
+              ) : generatingPdf ? (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400 mb-4"></div>
+                  <p className="text-gray-300 text-lg font-semibold">Generating PDF...</p>
+                  <p className="text-gray-400 text-sm mt-2">This will download to your Downloads folder</p>
+                </div>
               ) : pageTemplates.length === 0 ? (
                 <div className="text-center py-12 bg-gray-700 rounded-lg">
                   <p className="text-gray-400 mb-4">No acknowledgment templates found</p>
@@ -518,7 +524,7 @@ const OrderManagement = () => {
                     <div
                       key={template.id}
                       className="bg-gray-700 rounded-lg p-4 hover:bg-gray-650 transition-colors cursor-pointer border-2 border-transparent hover:border-yellow-400"
-                      onClick={() => handleGeneratePdfWithTemplate(template.id)}
+                      onClick={() => !generatingPdf && handleGeneratePdfWithTemplate(template.id)}
                     >
                       <h3 className="text-lg font-semibold text-white mb-2">
                         {template.template_name}
@@ -542,7 +548,8 @@ const OrderManagement = () => {
               <div className="flex justify-end mt-6 pt-6 border-t border-gray-700">
                 <button
                   onClick={() => {
-                    setShowTemplateModal(false);
+                    if (!generatingPdf) {
+                      setShowTemplateModal(false);
                     setSelectedOrderForPdf(null);
                   }}
                   className="misty-button misty-button-secondary"
