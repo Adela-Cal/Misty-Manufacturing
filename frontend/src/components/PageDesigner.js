@@ -153,22 +153,43 @@ const PageDesigner = () => {
   };
 
   const handleAddField = (fieldType) => {
-    const newElement = {
-      id: Date.now().toString(),
+    const timestamp = Date.now();
+    const fieldLabel = availableFields[templateForm.document_type]?.find(f => f.value === fieldType)?.label || fieldType;
+    
+    // Create label element (static text above the field)
+    const labelElement = {
+      id: `${timestamp}-label`,
+      type: 'text',
+      content: `${fieldLabel}:`,
+      x: 50,
+      y: 50,
+      width: 200,
+      height: 20,
+      fontSize: 11,
+      fontWeight: 'bold',
+      color: '#333333',
+      isFieldLabel: true, // Mark this as a field label for identification
+      linkedFieldId: `${timestamp}-field` // Link to the field below
+    };
+
+    // Create field element (data placeholder below the label)
+    const fieldElement = {
+      id: `${timestamp}-field`,
       type: 'field',
       field_type: fieldType,
       x: 50,
-      y: 50,
+      y: 72, // Position below label (50 + 20 + 2px gap)
       width: 200,
       height: 30,
       fontSize: 12,
       fontWeight: 'normal',
-      color: '#000000'
+      color: '#000000',
+      linkedLabelId: `${timestamp}-label` // Link to the label above
     };
 
     setTemplateForm({
       ...templateForm,
-      elements: [...templateForm.elements, newElement]
+      elements: [...templateForm.elements, labelElement, fieldElement]
     });
   };
 
