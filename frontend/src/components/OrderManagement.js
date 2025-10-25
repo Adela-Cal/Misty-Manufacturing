@@ -71,9 +71,38 @@ const OrderManagement = () => {
     loadOrders(); // Reload orders after successful create/update
   };
 
-  const handleDownloadAcknowledgment = async (orderId, orderNumber) => {
+  const loadPageTemplates = async () => {
     try {
-      const response = await apiHelpers.generateAcknowledgment(orderId);
+      setLoadingTemplates(true);
+      const response = await apiHelpers.getPageTemplates();
+      // Filter for acknowledgment templates
+      const ackTemplates = (response.data.data || []).filter(t => t.document_type === 'acknowledgment');
+      setPageTemplates(ackTemplates);
+    } catch (error) {
+      console.error('Failed to load page templates:', error);
+      toast.error('Failed to load page templates');
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  const handleDownloadAcknowledgment = async (orderId, orderNumber) => {
+    // Store order info and show template selection modal
+    setSelectedOrderForPdf({ orderId, orderNumber });
+    await loadPageTemplates();
+    setShowTemplateModal(true);
+  };
+
+  const handleGeneratePdfWithTemplate = async (templateId) => {
+    try {
+      if (!selectedOrderForPdf) return;
+      
+      const { orderId, orderNumber } = selectedOrderForPdf;
+      
+      // Call backend to generate PDF with template
+      const response = await apiHelpers.generateAcknowledgmentWithTemplate(orderId, templateId);
+      
+      // Download the PDF
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -82,7 +111,10 @@ const OrderManagement = () => {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
+      
       toast.success('Acknowledgment downloaded successfully');
+      setShowTemplateModal(false);
+      setSelectedOrderForPdf(null);
     } catch (error) {
       console.error('Failed to download acknowledgment:', error);
       toast.error('Failed to download acknowledgment');
