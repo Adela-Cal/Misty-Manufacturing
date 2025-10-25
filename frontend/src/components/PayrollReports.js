@@ -51,6 +51,8 @@ const PayrollReports = () => {
     loadEmployees();
     if (activeReportTab === 'payslips') {
       loadPayslips();
+    } else if (activeReportTab === 'leave') {
+      loadLeaveEntitlements();
     }
   }, [activeReportTab]);
 
