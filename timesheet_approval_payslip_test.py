@@ -166,23 +166,48 @@ class TimesheetApprovalPayslipTester:
             self.log_result("Create Timesheet", False, "No employee ID available")
             return False
         
-        # Step 3a: Get/Create current week timesheet
+        # Step 3a: Get/Create timesheet for next week to avoid conflicts with existing approved timesheets
         try:
-            response = self.session.get(f"{API_BASE}/payroll/timesheets/current-week/{self.test_employee_id}")
+            # Use next week to avoid conflicts with existing timesheets
+            today = datetime.now().date()
+            next_week_monday = today + timedelta(days=(7 - today.weekday()))
+            
+            response = self.session.get(
+                f"{API_BASE}/payroll/timesheets/current-week/{self.test_employee_id}",
+                params={"week_starting": next_week_monday.isoformat()}
+            )
             
             if response.status_code == 200:
                 timesheet = response.json()
                 self.test_timesheet_id = timesheet.get('id')
                 
+                # Check if timesheet is already approved
+                if timesheet.get('status') == 'approved':
+                    # Try with a different week (week after next)
+                    next_next_week_monday = next_week_monday + timedelta(days=7)
+                    response = self.session.get(
+                        f"{API_BASE}/payroll/timesheets/current-week/{self.test_employee_id}",
+                        params={"week_starting": next_next_week_monday.isoformat()}
+                    )
+                    
+                    if response.status_code == 200:
+                        timesheet = response.json()
+                        self.test_timesheet_id = timesheet.get('id')
+                        next_week_monday = next_next_week_monday
+                
                 self.log_result(
-                    "Get/Create Current Week Timesheet", 
+                    "Get/Create Test Week Timesheet", 
                     True, 
-                    f"Retrieved current week timesheet",
-                    f"Timesheet ID: {self.test_timesheet_id}"
+                    f"Retrieved timesheet for week {next_week_monday}",
+                    f"Timesheet ID: {self.test_timesheet_id}, Status: {timesheet.get('status', 'unknown')}"
                 )
+                
+                # Store the week for later use
+                self.test_week_monday = next_week_monday
+                
             else:
                 self.log_result(
-                    "Get/Create Current Week Timesheet", 
+                    "Get/Create Test Week Timesheet", 
                     False, 
                     f"Failed to get timesheet: {response.status_code}",
                     response.text
@@ -190,7 +215,7 @@ class TimesheetApprovalPayslipTester:
                 return False
                 
         except Exception as e:
-            self.log_result("Get/Create Current Week Timesheet", False, f"Error: {str(e)}")
+            self.log_result("Get/Create Test Week Timesheet", False, f"Error: {str(e)}")
             return False
         
         # Step 3b: Update timesheet with hours (Monday: 8h, Tuesday: 7.5h, Wednesday: 8h)
