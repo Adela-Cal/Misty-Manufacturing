@@ -624,16 +624,25 @@ const PageDesigner = () => {
             {templateForm.elements.map(element => (
               <div
                 key={element.id}
-                className="bg-gray-700 rounded p-3 flex items-center justify-between"
+                onClick={() => setSelectedElementId(element.id)}
+                className={`rounded p-3 flex items-center justify-between cursor-pointer transition-colors ${
+                  selectedElementId === element.id
+                    ? 'bg-yellow-600/20 border-2 border-yellow-400'
+                    : 'bg-gray-700 hover:bg-gray-650 border-2 border-transparent'
+                }`}
               >
                 <span className="text-gray-300">
                   {element.type === 'field' ? `Field: ${element.field_type}` :
-                   element.type === 'text' ? `Text: ${element.content}` :
+                   element.type === 'text' ? (element.isFieldLabel ? `Label: ${element.content}` : `Text: ${element.content}`) :
                    element.type === 'image' ? 'Image' :
                    `Shape: ${element.shape_type}`}
                 </span>
                 <button
-                  onClick={() => handleDeleteElement(element.id)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent selecting when deleting
+                    handleDeleteElement(element.id);
+                    if (selectedElementId === element.id) setSelectedElementId(null);
+                  }}
                   className="text-red-400 hover:text-red-300"
                 >
                   <TrashIcon className="h-5 w-5" />
