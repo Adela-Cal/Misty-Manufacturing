@@ -25,6 +25,7 @@ const PageDesigner = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [draggedElement, setDraggedElement] = useState(null);
   const [isResizing, setIsResizing] = useState(false);
+  const [selectedElementId, setSelectedElementId] = useState(null); // For properties panel
   
   // Template form state
   const [templateForm, setTemplateForm] = useState({
