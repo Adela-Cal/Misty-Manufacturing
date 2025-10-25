@@ -610,6 +610,11 @@ const PageDesigner = () => {
               position: 'relative',
               border: '1px solid #ccc',
               backgroundColor: '#fff',
+              backgroundImage: `
+                linear-gradient(rgba(200, 200, 200, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 200, 200, 0.2) 1px, transparent 1px)
+              `,
+              backgroundSize: '20px 20px',
               margin: '0 auto'
             }}
             onMouseMove={handleMouseMove}
