@@ -20,6 +20,10 @@ const OrderManagement = () => {
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [selectedOrderForPdf, setSelectedOrderForPdf] = useState(null);
+  const [pageTemplates, setPageTemplates] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
 
   useEffect(() => {
     loadOrders();
