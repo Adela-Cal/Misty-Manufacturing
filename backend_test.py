@@ -215,6 +215,29 @@ class PayslipTester:
             self.payslip_id = payslip["id"]
             payslip_data = payslip.get("payslip_data", {})
             
+            print(f"   🔍 Found payslip ID: {self.payslip_id}")
+            print(f"   📅 Payslip timesheet ID: {payslip.get('timesheet_id', 'MISSING')}")
+            print(f"   🆔 Our timesheet ID: {self.timesheet_id}")
+            
+            # Check if this is the payslip for our timesheet
+            if payslip.get('timesheet_id') != self.timesheet_id:
+                print(f"   ⚠️  This payslip is for a different timesheet, looking for our timesheet's payslip...")
+                # Look for our specific timesheet's payslip
+                our_payslip = None
+                for p in payslips:
+                    if p.get('timesheet_id') == self.timesheet_id:
+                        our_payslip = p
+                        break
+                
+                if our_payslip:
+                    payslip = our_payslip
+                    self.payslip_id = payslip["id"]
+                    payslip_data = payslip.get("payslip_data", {})
+                    print(f"   ✅ Found our timesheet's payslip: {self.payslip_id}")
+                else:
+                    print(f"   ❌ No payslip found for our timesheet {self.timesheet_id}")
+                    return False
+            
             print("✅ Payslip data structure verification:")
             
             # Check hours structure
