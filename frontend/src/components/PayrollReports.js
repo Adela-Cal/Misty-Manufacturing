@@ -44,6 +44,8 @@ const PayrollReports = () => {
   const [selectedPayslip, setSelectedPayslip] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [payslipToDelete, setPayslipToDelete] = useState(null);
+  const [leaveEntitlements, setLeaveEntitlements] = useState([]);
+  const [adjustmentHistory, setAdjustmentHistory] = useState([]);
 
   useEffect(() => {
     loadEmployees();
