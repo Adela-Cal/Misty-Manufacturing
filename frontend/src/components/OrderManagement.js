@@ -100,6 +100,8 @@ const OrderManagement = () => {
       
       const { orderId, orderNumber } = selectedOrderForPdf;
       
+      setGeneratingPdf(true);
+      
       // Show generating toast
       toast.loading('Generating PDF from template...', { id: 'pdf-gen' });
       
@@ -128,6 +130,8 @@ const OrderManagement = () => {
     } catch (error) {
       console.error('Failed to download acknowledgment:', error);
       toast.error(`Failed to generate PDF: ${error.message || 'Unknown error'}`, { id: 'pdf-gen' });
+    } finally {
+      setGeneratingPdf(false);
     }
   };
 
