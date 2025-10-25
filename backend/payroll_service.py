@@ -4,6 +4,7 @@ from decimal import Decimal
 import calendar
 from payroll_models import *
 from models import User
+from ato_payroll_calculator import ato_calculator
 import logging
 
 def prepare_for_mongo(data):
@@ -26,43 +27,48 @@ def prepare_for_mongo(data):
 class PayrollCalculationService:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        
-        # Australian tax brackets for 2024-25 (simplified)
-        self.tax_brackets = [
-            (18200, 0.0),      # Tax-free threshold
-            (45000, 0.19),     # 19% tax rate
-            (120000, 0.325),   # 32.5% tax rate
-            (180000, 0.37),    # 37% tax rate
-            (float('inf'), 0.45) # 45% tax rate
-        ]
     
     def calculate_weekly_pay(self, employee: EmployeeProfile, timesheet: Timesheet) -> PayrollCalculation:
-        """Calculate weekly pay from timesheet"""
+        """Calculate weekly pay from timesheet using ATO 2025-26 rules"""
         
         # Calculate total hours
         regular_hours = Decimal(str(timesheet.total_regular_hours))
         overtime_hours = Decimal(str(timesheet.total_overtime_hours))
         total_hours = regular_hours + overtime_hours
         
-        # Calculate pay
-        regular_pay = regular_hours * employee.hourly_rate
-        overtime_pay = overtime_hours * employee.hourly_rate * Decimal('1.5')  # 1.5x overtime
-        gross_pay = regular_pay + overtime_pay
+        # Calculate base pay (regular hours only)
+        base_pay = regular_hours * Decimal(str(employee.hourly_rate))
         
-        # Calculate annual equivalent for tax purposes
-        annual_gross = gross_pay * 52
+        # Calculate overtime pay (1.5x rate)
+        overtime_pay = overtime_hours * Decimal(str(employee.hourly_rate)) * Decimal('1.5')
         
-        # Calculate tax withholding
-        weekly_tax = self.calculate_weekly_tax(annual_gross)
-        
-        # Calculate superannuation (11% of gross pay)
-        superannuation = gross_pay * Decimal('0.11')
-        
-        # Calculate net pay
-        net_pay = gross_pay - weekly_tax
+        # Use ATO calculator for proper tax and super calculations
+        payroll_result = ato_calculator.calculate_payroll(
+            base_pay=base_pay,
+            allowances=Decimal('0'),  # Can be added later
+            overtime=overtime_pay,
+            bonuses=Decimal('0'),
+            salary_sacrifice_super=Decimal('0'),
+            other_pre_tax_deductions=Decimal('0'),
+            post_tax_deductions=Decimal('0'),
+            pay_period='weekly',
+            claims_tax_free_threshold=getattr(employee, 'claims_tax_free_threshold', True),
+            is_resident=getattr(employee, 'is_resident_for_tax', True),
+            has_help_debt=getattr(employee, 'has_help_debt', False),
+            tfn_provided=bool(employee.tax_file_number),
+            has_private_health=getattr(employee, 'has_private_health_cover', False),
+            is_single=True,
+            num_dependents=0
+        )
         
         # Calculate leave accruals
         leave_accruals = self.calculate_leave_accruals(employee, regular_hours)
+        
+        # Extract values from payroll result
+        gross_pay = payroll_result['gross_pay']
+        tax_withheld = payroll_result['tax_withholdings']['total']
+        superannuation = payroll_result['employer_contributions']['superannuation']
+        net_pay = payroll_result['net_pay']
         
         return PayrollCalculation(
             employee_id=employee.id,
@@ -72,17 +78,20 @@ class PayrollCalculationService:
             regular_hours=regular_hours,
             overtime_hours=overtime_hours,
             total_hours=total_hours,
-            regular_pay=regular_pay,
-            overtime_pay=overtime_pay,
-            gross_pay=gross_pay,
-            tax_withheld=weekly_tax,
-            superannuation=superannuation,
-            net_pay=net_pay,
+            regular_pay=Decimal(str(base_pay)),
+            overtime_pay=Decimal(str(overtime_pay)),
+            gross_pay=Decimal(str(gross_pay)),
+            tax_withheld=Decimal(str(tax_withheld)),
+            superannuation=Decimal(str(superannuation)),
+            net_pay=Decimal(str(net_pay)),
             annual_leave_accrued=leave_accruals['annual_leave'],
             sick_leave_accrued=leave_accruals['sick_leave'],
             personal_leave_accrued=leave_accruals['personal_leave'],
             leave_taken=timesheet.total_leave_hours,
-            calculated_by="system"
+            calculated_by="system",
+            medicare_levy=Decimal(str(payroll_result['tax_withholdings']['medicare_levy'])),
+            help_withholding=Decimal(str(payroll_result['tax_withholdings']['help_withholding'])),
+            payg_tax=Decimal(str(payroll_result['tax_withholdings']['payg_tax']))
         )
     
     def calculate_weekly_tax(self, annual_gross: Decimal) -> Decimal:
