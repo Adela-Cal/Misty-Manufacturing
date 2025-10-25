@@ -668,41 +668,52 @@ const PayrollReports = () => {
         <div>
           <h3 className="text-xl font-semibold text-white mb-4">Leave Entitlements</h3>
           <p className="text-sm text-gray-400 mb-6">
-            View and manage employee leave balances
+            View and manually adjust employee leave balances. All adjustments are recorded in an audit trail.
           </p>
 
-          {employees.length > 0 ? (
+          {loading ? (
+            <p className="text-gray-400 text-center py-8">Loading leave entitlements...</p>
+          ) : leaveEntitlements.length > 0 ? (
             <div className="misty-table">
               <table className="w-full">
                 <thead>
                   <tr>
                     <th>Employee</th>
+                    <th>Department</th>
                     <th>Annual Leave</th>
                     <th>Sick Leave</th>
                     <th>Personal Leave</th>
+                    <th>Long Service Leave</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {employees.map((employee) => (
-                    <tr key={employee.id}>
+                  {leaveEntitlements.map((entitlement) => (
+                    <tr key={entitlement.employee_id}>
                       <td>
-                        <p className="font-medium">{employee.first_name} {employee.last_name}</p>
-                        <p className="text-sm text-gray-400">{employee.employee_number}</p>
+                        <p className="font-medium">{entitlement.employee_name}</p>
+                        <p className="text-sm text-gray-400">{entitlement.employee_number}</p>
+                      </td>
+                      <td className="text-gray-300">
+                        {entitlement.department || 'N/A'}
                       </td>
                       <td className="font-medium text-blue-400">
-                        {employee.annual_leave_balance || 0}h / {employee.annual_leave_entitlement}h
+                        {entitlement.annual_leave_balance}h / {entitlement.annual_leave_entitlement}h
                       </td>
                       <td className="font-medium text-green-400">
-                        {employee.sick_leave_balance || 0}h / {employee.sick_leave_entitlement}h
+                        {entitlement.sick_leave_balance}h / {entitlement.sick_leave_entitlement}h
                       </td>
                       <td className="font-medium text-yellow-400">
-                        {employee.personal_leave_balance || 0}h / {employee.personal_leave_entitlement}h
+                        {entitlement.personal_leave_balance}h / {entitlement.personal_leave_entitlement}h
+                      </td>
+                      <td className="font-medium text-purple-400">
+                        {entitlement.long_service_leave_balance}h
                       </td>
                       <td>
                         <button
                           onClick={() => {
-                            setSelectedEmployeeForAdjustment(employee);
+                            setSelectedEmployeeForAdjustment(entitlement);
+                            loadAdjustmentHistory(entitlement.employee_id);
                             setShowLeaveAdjustment(true);
                           }}
                           className="text-yellow-400 hover:text-yellow-300 flex items-center text-sm"
@@ -717,7 +728,7 @@ const PayrollReports = () => {
               </table>
             </div>
           ) : (
-            <p className="text-gray-400 text-center py-8">No employees found</p>
+            <p className="text-gray-400 text-center py-8">No leave entitlements found</p>
           )}
         </div>
       )}
