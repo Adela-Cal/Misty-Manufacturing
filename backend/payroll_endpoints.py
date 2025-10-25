@@ -636,7 +636,7 @@ async def create_leave_adjustment(adjustment: LeaveAdjustmentCreate, current_use
 async def get_leave_adjustment_history(employee_id: str, current_user: dict = Depends(require_payroll_access)):
     """Get leave adjustment history for an employee"""
     
-    adjustments = await db.leave_adjustments.find({"employee_id": employee_id}).sort("created_at", -1).to_list(100)
+    adjustments = await db.leave_adjustments.find({"employee_id": employee_id}).sort("adjustment_date", -1).to_list(100)
     
     for adj in adjustments:
         if "_id" in adj:
