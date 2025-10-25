@@ -669,6 +669,47 @@ async def get_employee_leave_balances(employee_id: str, current_user: dict = Dep
         personal_leave_entitlement=employee.get("personal_leave_entitlement", 38)
     )
 
+
+@payroll_router.get("/leave-entitlements", response_model=StandardResponse)
+async def get_all_leave_entitlements(current_user: dict = Depends(require_admin_or_manager)):
+    """Get leave entitlements for all active employees (Admin/Manager only)"""
+    
+    try:
+        # Get all active employees
+        employees = await db.employee_profiles.find({"is_active": True}).to_list(1000)
+        
+        leave_entitlements = []
+        for emp in employees:
+            # Remove MongoDB _id
+            if "_id" in emp:
+                del emp["_id"]
+            
+            leave_entitlements.append({
+                "employee_id": emp["id"],
+                "employee_name": f"{emp['first_name']} {emp['last_name']}",
+                "employee_number": emp.get("employee_number", "N/A"),
+                "department": emp.get("department", "N/A"),
+                "annual_leave_balance": float(emp.get("annual_leave_balance", 0)),
+                "sick_leave_balance": float(emp.get("sick_leave_balance", 0)),
+                "personal_leave_balance": float(emp.get("personal_leave_balance", 0)),
+                "long_service_leave_balance": float(emp.get("long_service_leave_balance", 0)),
+                "annual_leave_entitlement": emp.get("annual_leave_entitlement", 152),
+                "sick_leave_entitlement": emp.get("sick_leave_entitlement", 76),
+                "personal_leave_entitlement": emp.get("personal_leave_entitlement", 38)
+            })
+        
+        logger.info(f"Retrieved leave entitlements for {len(leave_entitlements)} employees")
+        
+        return StandardResponse(
+            success=True,
+            message=f"Retrieved leave entitlements for {len(leave_entitlements)} employees",
+            data=leave_entitlements
+        )
+    except Exception as e:
+        logger.error(f"Error retrieving leave entitlements: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving leave entitlements: {str(e)}")
+
+
 # ============= TIMESHEET ENDPOINTS =============
 
 @payroll_router.get("/timesheets/current-week/{employee_id}")
