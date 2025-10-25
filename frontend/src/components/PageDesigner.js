@@ -640,6 +640,231 @@ const PageDesigner = () => {
             ))}
           </div>
         </div>
+
+
+        {/* Properties Panel */}
+        {selectedElementId && (() => {
+          const element = templateForm.elements.find(el => el.id === selectedElementId);
+          if (!element) return null;
+
+          return (
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-medium text-white">Element Properties</h3>
+                <button
+                  onClick={() => setSelectedElementId(null)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+              
+              <div className="bg-gray-700 rounded-lg p-4 space-y-4">
+                {/* Common properties for all elements */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">X Position</label>
+                    <input
+                      type="number"
+                      value={element.x}
+                      onChange={(e) => handleElementUpdate(element.id, { x: parseInt(e.target.value) })}
+                      className="misty-input text-sm w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Y Position</label>
+                    <input
+                      type="number"
+                      value={element.y}
+                      onChange={(e) => handleElementUpdate(element.id, { y: parseInt(e.target.value) })}
+                      className="misty-input text-sm w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Width</label>
+                    <input
+                      type="number"
+                      value={element.width}
+                      onChange={(e) => handleElementUpdate(element.id, { width: parseInt(e.target.value) })}
+                      className="misty-input text-sm w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Height</label>
+                    <input
+                      type="number"
+                      value={element.height}
+                      onChange={(e) => handleElementUpdate(element.id, { height: parseInt(e.target.value) })}
+                      className="misty-input text-sm w-full"
+                    />
+                  </div>
+                </div>
+
+                {/* Text-specific properties */}
+                {element.type === 'text' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Text Content {element.isFieldLabel && <span className="text-yellow-400 text-xs">(Field Label)</span>}
+                      </label>
+                      <textarea
+                        value={element.content}
+                        onChange={(e) => handleElementUpdate(element.id, { content: e.target.value })}
+                        className="misty-textarea text-sm w-full"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Font Size</label>
+                        <input
+                          type="number"
+                          value={element.fontSize}
+                          onChange={(e) => handleElementUpdate(element.id, { fontSize: parseInt(e.target.value) })}
+                          className="misty-input text-sm w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Font Weight</label>
+                        <select
+                          value={element.fontWeight}
+                          onChange={(e) => handleElementUpdate(element.id, { fontWeight: e.target.value })}
+                          className="misty-select text-sm w-full"
+                        >
+                          <option value="normal">Normal</option>
+                          <option value="bold">Bold</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Text Color</label>
+                      <input
+                        type="color"
+                        value={element.color}
+                        onChange={(e) => handleElementUpdate(element.id, { color: e.target.value })}
+                        className="h-10 w-full rounded cursor-pointer"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Field-specific properties */}
+                {element.type === 'field' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Field Type</label>
+                      <select
+                        value={element.field_type}
+                        onChange={(e) => handleElementUpdate(element.id, { field_type: e.target.value })}
+                        className="misty-select text-sm w-full"
+                      >
+                        {availableFields[templateForm.document_type]?.map(field => (
+                          <option key={field.value} value={field.value}>
+                            {field.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Font Size</label>
+                        <input
+                          type="number"
+                          value={element.fontSize}
+                          onChange={(e) => handleElementUpdate(element.id, { fontSize: parseInt(e.target.value) })}
+                          className="misty-input text-sm w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Font Weight</label>
+                        <select
+                          value={element.fontWeight}
+                          onChange={(e) => handleElementUpdate(element.id, { fontWeight: e.target.value })}
+                          className="misty-select text-sm w-full"
+                        >
+                          <option value="normal">Normal</option>
+                          <option value="bold">Bold</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Text Color</label>
+                      <input
+                        type="color"
+                        value={element.color}
+                        onChange={(e) => handleElementUpdate(element.id, { color: e.target.value })}
+                        className="h-10 w-full rounded cursor-pointer"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Shape-specific properties */}
+                {element.type === 'shape' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Shape Type</label>
+                      <select
+                        value={element.shape_type}
+                        onChange={(e) => handleElementUpdate(element.id, { shape_type: e.target.value })}
+                        className="misty-select text-sm w-full"
+                      >
+                        <option value="rectangle">Rectangle</option>
+                        <option value="circle">Circle</option>
+                        <option value="line">Line</option>
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Border Color</label>
+                        <input
+                          type="color"
+                          value={element.borderColor}
+                          onChange={(e) => handleElementUpdate(element.id, { borderColor: e.target.value })}
+                          className="h-10 w-full rounded cursor-pointer"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Border Width</label>
+                        <input
+                          type="number"
+                          value={element.borderWidth}
+                          onChange={(e) => handleElementUpdate(element.id, { borderWidth: parseInt(e.target.value) })}
+                          className="misty-input text-sm w-full"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Fill Color</label>
+                      <input
+                        type="color"
+                        value={element.fillColor || '#ffffff'}
+                        onChange={(e) => handleElementUpdate(element.id, { fillColor: e.target.value })}
+                        className="h-10 w-full rounded cursor-pointer"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Image-specific properties */}
+                {element.type === 'image' && (
+                  <div>
+                    <label className="flex items-center text-sm text-gray-300">
+                      <input
+                        type="checkbox"
+                        checked={element.maintainAspectRatio}
+                        onChange={(e) => handleElementUpdate(element.id, { maintainAspectRatio: e.target.checked })}
+                        className="mr-2"
+                      />
+                      Maintain Aspect Ratio
+                    </label>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
       </div>
     );
   }
