@@ -51,7 +51,11 @@ class PayslipTester:
         
         if response.status_code == 200:
             data = response.json()
-            employees = data.get("data", [])
+            # Handle both list and dict response formats
+            if isinstance(data, list):
+                employees = data
+            else:
+                employees = data.get("data", [])
             print(f"✅ Found {len(employees)} employees")
             
             if employees:
