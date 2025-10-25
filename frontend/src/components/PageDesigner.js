@@ -328,6 +328,7 @@ const PageDesigner = () => {
   };
 
   const renderElement = (element) => {
+    const isSelected = element.id === selectedElementId;
     const style = {
       position: 'absolute',
       left: `${element.x}px`,
@@ -335,7 +336,8 @@ const PageDesigner = () => {
       width: `${element.width}px`,
       height: `${element.height}px`,
       cursor: 'move',
-      border: '1px dashed #666'
+      border: isSelected ? '2px solid #fbbf24' : '1px dashed #666',
+      boxShadow: isSelected ? '0 0 10px rgba(251, 191, 36, 0.5)' : 'none'
     };
 
     switch (element.type) {
