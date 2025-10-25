@@ -220,9 +220,8 @@ class TimesheetApprovalPayslipTester:
         
         # Step 3b: Update timesheet with hours (Monday: 8h, Tuesday: 7.5h, Wednesday: 8h)
         try:
-            # Get current date for week calculation
-            today = datetime.now().date()
-            monday = today - timedelta(days=today.weekday())
+            # Use the test week we determined above
+            monday = self.test_week_monday
             
             update_data = {
                 "employee_id": self.test_employee_id,
